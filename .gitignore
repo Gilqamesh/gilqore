@@ -1,0 +1,10 @@
+*.dll
+*.d
+*.obj
+*.exp
+*.lib
+*.exe
+*.pdb
+.gittoken
+docs/*
+!docs/.gitkeep

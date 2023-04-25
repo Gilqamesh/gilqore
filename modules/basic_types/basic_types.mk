@@ -1,0 +1,28 @@
+BASIC_TYPES_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
+BASIC_TYPES_NAME_CURDIR := $(notdir $(patsubst %/,%,$(BASIC_TYPES_PATH_CURDIR)))
+BASIC_TYPES_PATH_LIB    := $(PATH_INSTALL)/$(BASIC_TYPES_NAME_CURDIR)$(EXT)
+
+BASIC_TYPES_SOURCES := $(wildcard $(BASIC_TYPES_PATH_CURDIR)*.c)
+BASIC_TYPES_OBJECTS := $(patsubst %.c, %.o, $(BASIC_TYPES_SOURCES))
+BASIC_TYPES_DEPENDS := $(patsubst %.c, %.d, $(BASIC_TYPES_SOURCES))
+
+BASIC_TYPES_DEPENDS_MODULES =
+BASIC_TYPES_DEPENDS_LIBS := $(foreach module,$(BASIC_TYPES_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
+BASIC_TYPES_DEPENDS_LIBS_RULES = $(foreach module,$(BASIC_TYPES_DEPENDS_MODULES),$(module)_all)
+
+$(BASIC_TYPES_PATH_CURDIR)%.o: $(BASIC_TYPES_PATH_CURDIR)%.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+
+$(BASIC_TYPES_PATH_LIB): | $(BASIC_TYPES_DEPENDS_LIBS_RULES)
+$(BASIC_TYPES_PATH_LIB): $(BASIC_TYPES_OBJECTS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(BASIC_TYPES_DEPENDS_LIBS)
+
+.PHONY: basic_types_all
+basic_types_all: $(BASIC_TYPES_PATH_LIB) ## build and install basic_types library
+
+.PHONY: basic_types_clean
+basic_types_clean: ## remove and deinstall basic_types library
+	- $(RM) $(BASIC_TYPES_PATH_LIB) $(BASIC_TYPES_OBJECTS) $(BASIC_TYPES_DEPENDS)
+
+-include $(BASIC_TYPES_DEPENDS)
