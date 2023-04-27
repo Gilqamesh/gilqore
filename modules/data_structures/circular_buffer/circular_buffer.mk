@@ -9,6 +9,13 @@ circular_buffer_install_path         := $(PATH_INSTALL)/$(circular_buffer_name_c
 circular_buffer_install_path_static  := $(circular_buffer_install_path)$(EXT_LIB_STATIC)
 circular_buffer_install_path_shared  := $(circular_buffer_install_path)$(EXT_LIB_SHARED)
 circular_buffer_sources              := $(wildcard $(circular_buffer_path_curdir)*.c)
+ifeq ($(PLATFORM), WINDOWS)
+circular_buffer_sources              += $(wildcard $(circular_buffer_path_curdir)/platform_specific/windows/*.c)
+else ifeq ($(PLATFORM), LINUX)
+circular_buffer_sources              += $(wildcard $(circular_buffer_path_curdir)/platform_specific/linux/*.c)
+else ifeq ($(PLATFORM), MAC)
+circular_buffer_sources              += $(wildcard $(circular_buffer_path_curdir)/platform_specific/mac/*.c)
+endif
 circular_buffer_static_objects       := $(patsubst %.c, %_static.o, $(circular_buffer_sources))
 circular_buffer_shared_objects       := $(patsubst %.c, %_shared.o, $(circular_buffer_sources))
 circular_buffer_depends              := $(patsubst %.c, %.d, $(circular_buffer_sources))

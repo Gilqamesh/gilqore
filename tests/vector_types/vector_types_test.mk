@@ -2,8 +2,9 @@ vector_types_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 vector_types_test_name_curdir          := $(notdir $(patsubst %/,%,$(vector_types_test_path_curdir)))
 vector_types_test_child_makefiles      := $(wildcard $(vector_types_test_path_curdir)*/*mk)
 vector_types_test_names                := $(basename $(notdir $(vector_types_test_child_makefiles)))
-vector_types_test_all_targets          := $(foreach vector_types_test,$(vector_types_test_names),$(vector_types_test)_all_tests)
-vector_types_test_clean_targets        := $(foreach vector_types_test,$(vector_types_test_names),$(vector_types_test)_clean_tests)
+vector_types_test_all_targets          := $(foreach vector_types_test,$(vector_types_test_names),$(vector_types_test)_all)
+vector_types_test_clean_targets        := $(foreach vector_types_test,$(vector_types_test_names),$(vector_types_test)_clean)
+vector_types_test_run_targets          := $(foreach vector_types_test,$(vector_types_test_names),$(vector_types_test)_run)
 vector_types_test_install_path         := $(vector_types_test_path_curdir)$(vector_types_test_name_curdir)$(EXT_EXE)
 vector_types_test_sources              := $(wildcard $(vector_types_test_path_curdir)*.c)
 vector_types_test_objects              := $(patsubst %.c, %.o, $(vector_types_test_sources))
@@ -33,5 +34,12 @@ vector_types_test_clean: $(vector_types_test_clean_targets) ## remove all vector
 vector_types_test_clean:
 	- $(RM) $(vector_types_test_install_path) $(vector_types_test_objects) $(vector_types_test_depends)
 
+.PHONY: vector_types_test_run
+vector_types_test_run: vector_types_test_all ## build and run vector_types_test
+vector_types_test_run: $(vector_types_test_run_targets)
+ifneq ($(vector_types_test_objects),)
+vector_types_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(vector_types_test_install_path)
+endif
 
 -include $(vector_types_test_depends)

@@ -2,8 +2,9 @@ tests_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 tests_test_name_curdir          := $(notdir $(patsubst %/,%,$(tests_test_path_curdir)))
 tests_test_child_makefiles      := $(wildcard $(tests_test_path_curdir)*/*mk)
 tests_test_names                := $(basename $(notdir $(tests_test_child_makefiles)))
-tests_test_all_targets          := $(foreach tests_test,$(tests_test_names),$(tests_test)_all_tests)
-tests_test_clean_targets        := $(foreach tests_test,$(tests_test_names),$(tests_test)_clean_tests)
+tests_test_all_targets          := $(foreach tests_test,$(tests_test_names),$(tests_test)_all)
+tests_test_clean_targets        := $(foreach tests_test,$(tests_test_names),$(tests_test)_clean)
+tests_test_run_targets          := $(foreach tests_test,$(tests_test_names),$(tests_test)_run)
 tests_test_install_path         := $(tests_test_path_curdir)$(tests_test_name_curdir)$(EXT_EXE)
 tests_test_sources              := $(wildcard $(tests_test_path_curdir)*.c)
 tests_test_objects              := $(patsubst %.c, %.o, $(tests_test_sources))
@@ -33,5 +34,12 @@ tests_test_clean: $(tests_test_clean_targets) ## remove all tests_test tests
 tests_test_clean:
 	- $(RM) $(tests_test_install_path) $(tests_test_objects) $(tests_test_depends)
 
+.PHONY: tests_test_run
+tests_test_run: tests_test_all ## build and run tests_test
+tests_test_run: $(tests_test_run_targets)
+ifneq ($(tests_test_objects),)
+tests_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(tests_test_install_path)
+endif
 
 -include $(tests_test_depends)

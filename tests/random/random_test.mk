@@ -2,8 +2,9 @@ random_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 random_test_name_curdir          := $(notdir $(patsubst %/,%,$(random_test_path_curdir)))
 random_test_child_makefiles      := $(wildcard $(random_test_path_curdir)*/*mk)
 random_test_names                := $(basename $(notdir $(random_test_child_makefiles)))
-random_test_all_targets          := $(foreach random_test,$(random_test_names),$(random_test)_all_tests)
-random_test_clean_targets        := $(foreach random_test,$(random_test_names),$(random_test)_clean_tests)
+random_test_all_targets          := $(foreach random_test,$(random_test_names),$(random_test)_all)
+random_test_clean_targets        := $(foreach random_test,$(random_test_names),$(random_test)_clean)
+random_test_run_targets          := $(foreach random_test,$(random_test_names),$(random_test)_run)
 random_test_install_path         := $(random_test_path_curdir)$(random_test_name_curdir)$(EXT_EXE)
 random_test_sources              := $(wildcard $(random_test_path_curdir)*.c)
 random_test_objects              := $(patsubst %.c, %.o, $(random_test_sources))
@@ -33,5 +34,12 @@ random_test_clean: $(random_test_clean_targets) ## remove all random_test tests
 random_test_clean:
 	- $(RM) $(random_test_install_path) $(random_test_objects) $(random_test_depends)
 
+.PHONY: random_test_run
+random_test_run: random_test_all ## build and run random_test
+random_test_run: $(random_test_run_targets)
+ifneq ($(random_test_objects),)
+random_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(random_test_install_path)
+endif
 
 -include $(random_test_depends)

@@ -5,7 +5,7 @@ ifeq ($(OS), Windows_NT)
 	EXT_LIB_STATIC			:= .lib
 	WHICH					:= where
 	RM						:= rm -f
-	PLATFORM 				:= Windows
+	PLATFORM 				:= WINDOWS
 else
 	EXT_EXE 				:=
 	EXT_LIB_STATIC			:= .a
@@ -15,9 +15,9 @@ else
 	WHICH					:= which
 	UNAME_S					:= $(shell uname -s)
 	ifeq ($(UNAME_S), Linux)
-		PLATFORM 			:= Linux
+		PLATFORM 			:= LINUX
 	endif
 	ifeq ($(UNAME_S), Darwin)
-		PLATFORM 			:= Mac
+		PLATFORM 			:= MAC
 	endif
 endif

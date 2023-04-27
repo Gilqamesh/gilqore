@@ -2,8 +2,9 @@ v3_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 v3_test_name_curdir          := $(notdir $(patsubst %/,%,$(v3_test_path_curdir)))
 v3_test_child_makefiles      := $(wildcard $(v3_test_path_curdir)*/*mk)
 v3_test_names                := $(basename $(notdir $(v3_test_child_makefiles)))
-v3_test_all_targets          := $(foreach v3_test,$(v3_test_names),$(v3_test)_all_tests)
-v3_test_clean_targets        := $(foreach v3_test,$(v3_test_names),$(v3_test)_clean_tests)
+v3_test_all_targets          := $(foreach v3_test,$(v3_test_names),$(v3_test)_all)
+v3_test_clean_targets        := $(foreach v3_test,$(v3_test_names),$(v3_test)_clean)
+v3_test_run_targets          := $(foreach v3_test,$(v3_test_names),$(v3_test)_run)
 v3_test_install_path         := $(v3_test_path_curdir)$(v3_test_name_curdir)$(EXT_EXE)
 v3_test_sources              := $(wildcard $(v3_test_path_curdir)*.c)
 v3_test_objects              := $(patsubst %.c, %.o, $(v3_test_sources))
@@ -33,5 +34,12 @@ v3_test_clean: $(v3_test_clean_targets) ## remove all v3_test tests
 v3_test_clean:
 	- $(RM) $(v3_test_install_path) $(v3_test_objects) $(v3_test_depends)
 
+.PHONY: v3_test_run
+v3_test_run: v3_test_all ## build and run v3_test
+v3_test_run: $(v3_test_run_targets)
+ifneq ($(v3_test_objects),)
+v3_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(v3_test_install_path)
+endif
 
 -include $(v3_test_depends)

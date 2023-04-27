@@ -9,3 +9,4 @@
 .gittoken
 docs/*
 !docs/.gitkeep
+*.o

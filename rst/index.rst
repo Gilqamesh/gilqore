@@ -6,6 +6,6 @@ Gil Modules
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   module_docs/module_documentation
-
+   module_docs/*

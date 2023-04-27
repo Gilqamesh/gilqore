@@ -5,5 +5,5 @@
 int main() {
     printf("%f\n", r32__abs(-3.2f));
 
-    return 0;
+    return 1;
 }

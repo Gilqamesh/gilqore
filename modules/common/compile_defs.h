@@ -1,7 +1,7 @@
 #ifndef COMPILE_DEFS_H
 # define COMPILE_DEFS_H
 
-# if defined(_WIN32)
+# if defined(WINDOWS)
 #  if defined(GIL_LIB_SHARED_EXPORT)
 #   define GIL_API __declspec(dllexport)
 #  elif defined(GIL_LIB_SHARED_IMPORT)
@@ -18,6 +18,13 @@
 #  define ASSERT(condition) assert(condition)
 # else
 #  define ASSERT(condition)
+# endif
+
+# if defined(WINDOWS)
+# elif defined(LINUX)
+# elif defined(MAC)
+# else
+#  error "platform not supported"
 # endif
 
 #endif

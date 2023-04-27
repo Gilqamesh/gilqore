@@ -2,8 +2,9 @@ libc_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 libc_test_name_curdir          := $(notdir $(patsubst %/,%,$(libc_test_path_curdir)))
 libc_test_child_makefiles      := $(wildcard $(libc_test_path_curdir)*/*mk)
 libc_test_names                := $(basename $(notdir $(libc_test_child_makefiles)))
-libc_test_all_targets          := $(foreach libc_test,$(libc_test_names),$(libc_test)_all_tests)
-libc_test_clean_targets        := $(foreach libc_test,$(libc_test_names),$(libc_test)_clean_tests)
+libc_test_all_targets          := $(foreach libc_test,$(libc_test_names),$(libc_test)_all)
+libc_test_clean_targets        := $(foreach libc_test,$(libc_test_names),$(libc_test)_clean)
+libc_test_run_targets          := $(foreach libc_test,$(libc_test_names),$(libc_test)_run)
 libc_test_install_path         := $(libc_test_path_curdir)$(libc_test_name_curdir)$(EXT_EXE)
 libc_test_sources              := $(wildcard $(libc_test_path_curdir)*.c)
 libc_test_objects              := $(patsubst %.c, %.o, $(libc_test_sources))
@@ -33,5 +34,12 @@ libc_test_clean: $(libc_test_clean_targets) ## remove all libc_test tests
 libc_test_clean:
 	- $(RM) $(libc_test_install_path) $(libc_test_objects) $(libc_test_depends)
 
+.PHONY: libc_test_run
+libc_test_run: libc_test_all ## build and run libc_test
+libc_test_run: $(libc_test_run_targets)
+ifneq ($(libc_test_objects),)
+libc_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(libc_test_install_path)
+endif
 
 -include $(libc_test_depends)

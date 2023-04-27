@@ -2,8 +2,9 @@ circular_buffer_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 circular_buffer_test_name_curdir          := $(notdir $(patsubst %/,%,$(circular_buffer_test_path_curdir)))
 circular_buffer_test_child_makefiles      := $(wildcard $(circular_buffer_test_path_curdir)*/*mk)
 circular_buffer_test_names                := $(basename $(notdir $(circular_buffer_test_child_makefiles)))
-circular_buffer_test_all_targets          := $(foreach circular_buffer_test,$(circular_buffer_test_names),$(circular_buffer_test)_all_tests)
-circular_buffer_test_clean_targets        := $(foreach circular_buffer_test,$(circular_buffer_test_names),$(circular_buffer_test)_clean_tests)
+circular_buffer_test_all_targets          := $(foreach circular_buffer_test,$(circular_buffer_test_names),$(circular_buffer_test)_all)
+circular_buffer_test_clean_targets        := $(foreach circular_buffer_test,$(circular_buffer_test_names),$(circular_buffer_test)_clean)
+circular_buffer_test_run_targets          := $(foreach circular_buffer_test,$(circular_buffer_test_names),$(circular_buffer_test)_run)
 circular_buffer_test_install_path         := $(circular_buffer_test_path_curdir)$(circular_buffer_test_name_curdir)$(EXT_EXE)
 circular_buffer_test_sources              := $(wildcard $(circular_buffer_test_path_curdir)*.c)
 circular_buffer_test_objects              := $(patsubst %.c, %.o, $(circular_buffer_test_sources))
@@ -33,5 +34,12 @@ circular_buffer_test_clean: $(circular_buffer_test_clean_targets) ## remove all 
 circular_buffer_test_clean:
 	- $(RM) $(circular_buffer_test_install_path) $(circular_buffer_test_objects) $(circular_buffer_test_depends)
 
+.PHONY: circular_buffer_test_run
+circular_buffer_test_run: circular_buffer_test_all ## build and run circular_buffer_test
+circular_buffer_test_run: $(circular_buffer_test_run_targets)
+ifneq ($(circular_buffer_test_objects),)
+circular_buffer_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(circular_buffer_test_install_path)
+endif
 
 -include $(circular_buffer_test_depends)

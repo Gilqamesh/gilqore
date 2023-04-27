@@ -2,8 +2,9 @@ basic_types_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
 basic_types_test_name_curdir          := $(notdir $(patsubst %/,%,$(basic_types_test_path_curdir)))
 basic_types_test_child_makefiles      := $(wildcard $(basic_types_test_path_curdir)*/*mk)
 basic_types_test_names                := $(basename $(notdir $(basic_types_test_child_makefiles)))
-basic_types_test_all_targets          := $(foreach basic_types_test,$(basic_types_test_names),$(basic_types_test)_all_tests)
-basic_types_test_clean_targets        := $(foreach basic_types_test,$(basic_types_test_names),$(basic_types_test)_clean_tests)
+basic_types_test_all_targets          := $(foreach basic_types_test,$(basic_types_test_names),$(basic_types_test)_all)
+basic_types_test_clean_targets        := $(foreach basic_types_test,$(basic_types_test_names),$(basic_types_test)_clean)
+basic_types_test_run_targets          := $(foreach basic_types_test,$(basic_types_test_names),$(basic_types_test)_run)
 basic_types_test_install_path         := $(basic_types_test_path_curdir)$(basic_types_test_name_curdir)$(EXT_EXE)
 basic_types_test_sources              := $(wildcard $(basic_types_test_path_curdir)*.c)
 basic_types_test_objects              := $(patsubst %.c, %.o, $(basic_types_test_sources))
@@ -33,5 +34,12 @@ basic_types_test_clean: $(basic_types_test_clean_targets) ## remove all basic_ty
 basic_types_test_clean:
 	- $(RM) $(basic_types_test_install_path) $(basic_types_test_objects) $(basic_types_test_depends)
 
+.PHONY: basic_types_test_run
+basic_types_test_run: basic_types_test_all ## build and run basic_types_test
+basic_types_test_run: $(basic_types_test_run_targets)
+ifneq ($(basic_types_test_objects),)
+basic_types_test_run:
+	@python $(PATH_MK_FILES)/pytester.py $(basic_types_test_install_path)
+endif
 
 -include $(basic_types_test_depends)

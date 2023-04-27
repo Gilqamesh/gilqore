@@ -1,4 +1,4 @@
-CFLAGS			:= -O2 -g -Wall -Wextra -Werror -I$(PATH_MODULES)
+CFLAGS			:= -O2 -g -Wall -Wextra -Werror -I$(PATH_MODULES) -D$(PLATFORM)
 LFLAGS			:=
 
 GIL_BUILD_MODE  := GIL_BUILD_MODE_DEBUG

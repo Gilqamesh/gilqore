@@ -9,6 +9,13 @@ data_structures_install_path         := $(PATH_INSTALL)/$(data_structures_name_c
 data_structures_install_path_static  := $(data_structures_install_path)$(EXT_LIB_STATIC)
 data_structures_install_path_shared  := $(data_structures_install_path)$(EXT_LIB_SHARED)
 data_structures_sources              := $(wildcard $(data_structures_path_curdir)*.c)
+ifeq ($(PLATFORM), WINDOWS)
+data_structures_sources              += $(wildcard $(data_structures_path_curdir)/platform_specific/windows/*.c)
+else ifeq ($(PLATFORM), LINUX)
+data_structures_sources              += $(wildcard $(data_structures_path_curdir)/platform_specific/linux/*.c)
+else ifeq ($(PLATFORM), MAC)
+data_structures_sources              += $(wildcard $(data_structures_path_curdir)/platform_specific/mac/*.c)
+endif
 data_structures_static_objects       := $(patsubst %.c, %_static.o, $(data_structures_sources))
 data_structures_shared_objects       := $(patsubst %.c, %_shared.o, $(data_structures_sources))
 data_structures_depends              := $(patsubst %.c, %.d, $(data_structures_sources))
