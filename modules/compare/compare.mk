@@ -13,34 +13,34 @@ compare_static_objects       := $(patsubst %.c, %_static.o, $(compare_sources))
 compare_shared_objects       := $(patsubst %.c, %_shared.o, $(compare_sources))
 compare_depends              := $(patsubst %.c, %.d, $(compare_sources))
 compare_depends_modules      := 
-compare_depends_libs         := $(foreach module,$(compare_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+compare_depends_libs_static  := $(foreach module,$(compare_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+compare_depends_libs_shared  := $(foreach module,$(compare_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 compare_depends_libs_rules   := $(foreach module,$(compare_depends_modules),$(module)_all)
 
 include $(compare_child_makefiles)
 
 $(compare_path_curdir)%_static.o: $(compare_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(compare_path_curdir)%_shared.o: $(compare_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(compare_static_objects),)
 $(compare_install_path_static): | $(compare_depends_libs_rules)
 $(compare_install_path_static): $(compare_static_objects)
-	ar -rcs $@ $^ $(compare_depends_libs)
-endif
+	ar -rcs $@ $^ $(compare_depends_libs_static)
 
-ifneq ($(compare_shared_objects),)
 $(compare_install_path_shared): | $(compare_depends_libs_rules)
 $(compare_install_path_shared): $(compare_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(compare_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(compare_depends_libs_shared)
 
 .PHONY: compare_all
 compare_all: $(compare_all_targets) ## build and install all compare static and shared libraries
+ifneq ($(compare_shared_objects),)
 compare_all: $(compare_install_path_shared)
+endif
+ifneq ($(compare_static_objects),)
 compare_all: $(compare_install_path_static)
+endif
 
 .PHONY: compare_clean
 compare_clean: $(compare_clean_targets) ## remove and deinstall all compare static and shared libraries

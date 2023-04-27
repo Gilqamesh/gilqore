@@ -13,34 +13,34 @@ v4_static_objects       := $(patsubst %.c, %_static.o, $(v4_sources))
 v4_shared_objects       := $(patsubst %.c, %_shared.o, $(v4_sources))
 v4_depends              := $(patsubst %.c, %.d, $(v4_sources))
 v4_depends_modules      := 
-v4_depends_libs         := $(foreach module,$(v4_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+v4_depends_libs_static  := $(foreach module,$(v4_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+v4_depends_libs_shared  := $(foreach module,$(v4_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 v4_depends_libs_rules   := $(foreach module,$(v4_depends_modules),$(module)_all)
 
 include $(v4_child_makefiles)
 
 $(v4_path_curdir)%_static.o: $(v4_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(v4_path_curdir)%_shared.o: $(v4_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(v4_static_objects),)
 $(v4_install_path_static): | $(v4_depends_libs_rules)
 $(v4_install_path_static): $(v4_static_objects)
-	ar -rcs $@ $^ $(v4_depends_libs)
-endif
+	ar -rcs $@ $^ $(v4_depends_libs_static)
 
-ifneq ($(v4_shared_objects),)
 $(v4_install_path_shared): | $(v4_depends_libs_rules)
 $(v4_install_path_shared): $(v4_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(v4_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(v4_depends_libs_shared)
 
 .PHONY: v4_all
 v4_all: $(v4_all_targets) ## build and install all v4 static and shared libraries
+ifneq ($(v4_shared_objects),)
 v4_all: $(v4_install_path_shared)
+endif
+ifneq ($(v4_static_objects),)
 v4_all: $(v4_install_path_static)
+endif
 
 .PHONY: v4_clean
 v4_clean: $(v4_clean_targets) ## remove and deinstall all v4 static and shared libraries

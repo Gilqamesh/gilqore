@@ -9,35 +9,29 @@ circular_buffer_test_sources              := $(wildcard $(circular_buffer_test_p
 circular_buffer_test_objects              := $(patsubst %.c, %.o, $(circular_buffer_test_sources))
 circular_buffer_test_depends              := $(patsubst %.c, %.d, $(circular_buffer_test_sources))
 circular_buffer_test_depends_modules      := circular_buffer
-circular_buffer_test_depends_libs         := $(foreach module,$(circular_buffer_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+circular_buffer_test_depends_libs_static  := $(foreach module,$(circular_buffer_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+circular_buffer_test_depends_libs_shared  := $(foreach module,$(circular_buffer_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 circular_buffer_test_depends_libs_rules   := $(foreach module,$(circular_buffer_test_depends_modules),$(module)_all)
 
 include $(circular_buffer_test_child_makefiles)
-
-ifneq ($(circular_buffer_test_objects),)
 
 $(circular_buffer_test_path_curdir)%.o: $(circular_buffer_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $(circular_buffer_test_install_path): | $(circular_buffer_test_depends_libs_rules)
 $(circular_buffer_test_install_path): $(circular_buffer_test_objects)
-	$(CC) -o $@ $^ $(circular_buffer_test_depends_libs)
-
-.PHONY: circular_buffer_test_all
-circular_buffer_test_all: $(circular_buffer_test_install_path) ## build all circular_buffer_test tests
-
-.PHONY: circular_buffer_test_clean
-circular_buffer_test_clean: ## remove all circular_buffer_test tests
-	- $(RM) $(circular_buffer_test_install_path) $(circular_buffer_test_objects) $(circular_buffer_test_depends)
-
-else
+	$(CC) -o $@ $^ $(circular_buffer_test_depends_libs_static)
 
 .PHONY: circular_buffer_test_all
 circular_buffer_test_all: $(circular_buffer_test_all_targets) ## build all circular_buffer_test tests
+ifneq ($(circular_buffer_test_objects),)
+circular_buffer_test_all: $(circular_buffer_test_install_path)
+endif
 
 .PHONY: circular_buffer_test_clean
 circular_buffer_test_clean: $(circular_buffer_test_clean_targets) ## remove all circular_buffer_test tests
+circular_buffer_test_clean:
+	- $(RM) $(circular_buffer_test_install_path) $(circular_buffer_test_objects) $(circular_buffer_test_depends)
 
-endif
 
 -include $(circular_buffer_test_depends)

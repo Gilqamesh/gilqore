@@ -9,35 +9,29 @@ vector_types_test_sources              := $(wildcard $(vector_types_test_path_cu
 vector_types_test_objects              := $(patsubst %.c, %.o, $(vector_types_test_sources))
 vector_types_test_depends              := $(patsubst %.c, %.d, $(vector_types_test_sources))
 vector_types_test_depends_modules      := vector_types
-vector_types_test_depends_libs         := $(foreach module,$(vector_types_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+vector_types_test_depends_libs_static  := $(foreach module,$(vector_types_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+vector_types_test_depends_libs_shared  := $(foreach module,$(vector_types_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 vector_types_test_depends_libs_rules   := $(foreach module,$(vector_types_test_depends_modules),$(module)_all)
 
 include $(vector_types_test_child_makefiles)
-
-ifneq ($(vector_types_test_objects),)
 
 $(vector_types_test_path_curdir)%.o: $(vector_types_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $(vector_types_test_install_path): | $(vector_types_test_depends_libs_rules)
 $(vector_types_test_install_path): $(vector_types_test_objects)
-	$(CC) -o $@ $^ $(vector_types_test_depends_libs)
-
-.PHONY: vector_types_test_all
-vector_types_test_all: $(vector_types_test_install_path) ## build all vector_types_test tests
-
-.PHONY: vector_types_test_clean
-vector_types_test_clean: ## remove all vector_types_test tests
-	- $(RM) $(vector_types_test_install_path) $(vector_types_test_objects) $(vector_types_test_depends)
-
-else
+	$(CC) -o $@ $^ $(vector_types_test_depends_libs_static)
 
 .PHONY: vector_types_test_all
 vector_types_test_all: $(vector_types_test_all_targets) ## build all vector_types_test tests
+ifneq ($(vector_types_test_objects),)
+vector_types_test_all: $(vector_types_test_install_path)
+endif
 
 .PHONY: vector_types_test_clean
 vector_types_test_clean: $(vector_types_test_clean_targets) ## remove all vector_types_test tests
+vector_types_test_clean:
+	- $(RM) $(vector_types_test_install_path) $(vector_types_test_objects) $(vector_types_test_depends)
 
-endif
 
 -include $(vector_types_test_depends)

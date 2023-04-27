@@ -13,34 +13,34 @@ v3_static_objects       := $(patsubst %.c, %_static.o, $(v3_sources))
 v3_shared_objects       := $(patsubst %.c, %_shared.o, $(v3_sources))
 v3_depends              := $(patsubst %.c, %.d, $(v3_sources))
 v3_depends_modules      := 
-v3_depends_libs         := $(foreach module,$(v3_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+v3_depends_libs_static  := $(foreach module,$(v3_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+v3_depends_libs_shared  := $(foreach module,$(v3_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 v3_depends_libs_rules   := $(foreach module,$(v3_depends_modules),$(module)_all)
 
 include $(v3_child_makefiles)
 
 $(v3_path_curdir)%_static.o: $(v3_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(v3_path_curdir)%_shared.o: $(v3_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(v3_static_objects),)
 $(v3_install_path_static): | $(v3_depends_libs_rules)
 $(v3_install_path_static): $(v3_static_objects)
-	ar -rcs $@ $^ $(v3_depends_libs)
-endif
+	ar -rcs $@ $^ $(v3_depends_libs_static)
 
-ifneq ($(v3_shared_objects),)
 $(v3_install_path_shared): | $(v3_depends_libs_rules)
 $(v3_install_path_shared): $(v3_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(v3_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(v3_depends_libs_shared)
 
 .PHONY: v3_all
 v3_all: $(v3_all_targets) ## build and install all v3 static and shared libraries
+ifneq ($(v3_shared_objects),)
 v3_all: $(v3_install_path_shared)
+endif
+ifneq ($(v3_static_objects),)
 v3_all: $(v3_install_path_static)
+endif
 
 .PHONY: v3_clean
 v3_clean: $(v3_clean_targets) ## remove and deinstall all v3 static and shared libraries

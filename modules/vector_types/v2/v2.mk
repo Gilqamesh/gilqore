@@ -13,34 +13,34 @@ v2_static_objects       := $(patsubst %.c, %_static.o, $(v2_sources))
 v2_shared_objects       := $(patsubst %.c, %_shared.o, $(v2_sources))
 v2_depends              := $(patsubst %.c, %.d, $(v2_sources))
 v2_depends_modules      := basic_types
-v2_depends_libs         := $(foreach module,$(v2_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+v2_depends_libs_static  := $(foreach module,$(v2_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+v2_depends_libs_shared  := $(foreach module,$(v2_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 v2_depends_libs_rules   := $(foreach module,$(v2_depends_modules),$(module)_all)
 
 include $(v2_child_makefiles)
 
 $(v2_path_curdir)%_static.o: $(v2_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(v2_path_curdir)%_shared.o: $(v2_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(v2_static_objects),)
 $(v2_install_path_static): | $(v2_depends_libs_rules)
 $(v2_install_path_static): $(v2_static_objects)
-	ar -rcs $@ $^ $(v2_depends_libs)
-endif
+	ar -rcs $@ $^ $(v2_depends_libs_static)
 
-ifneq ($(v2_shared_objects),)
 $(v2_install_path_shared): | $(v2_depends_libs_rules)
 $(v2_install_path_shared): $(v2_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(v2_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(v2_depends_libs_shared)
 
 .PHONY: v2_all
 v2_all: $(v2_all_targets) ## build and install all v2 static and shared libraries
+ifneq ($(v2_shared_objects),)
 v2_all: $(v2_install_path_shared)
+endif
+ifneq ($(v2_static_objects),)
 v2_all: $(v2_install_path_static)
+endif
 
 .PHONY: v2_clean
 v2_clean: $(v2_clean_targets) ## remove and deinstall all v2 static and shared libraries

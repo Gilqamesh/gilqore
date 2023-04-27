@@ -73,9 +73,9 @@ r64 r64__abs(r64 a) {
 }
 
 r32 r32__abs_sub(r32 a, r32 b) {
-    return a < 0 ? -a : a;
+    return a < b ? b - a : a - b;
 }
 
 r64 r64__abs_sub(r64 a, r64 b) {
-    return a < 0 ? -a : a;
+    return a < b ? b - a : a - b;
 }

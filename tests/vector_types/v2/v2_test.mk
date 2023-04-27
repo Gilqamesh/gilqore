@@ -9,35 +9,29 @@ v2_test_sources              := $(wildcard $(v2_test_path_curdir)*.c)
 v2_test_objects              := $(patsubst %.c, %.o, $(v2_test_sources))
 v2_test_depends              := $(patsubst %.c, %.d, $(v2_test_sources))
 v2_test_depends_modules      := v2
-v2_test_depends_libs         := $(foreach module,$(v2_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+v2_test_depends_libs_static  := $(foreach module,$(v2_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+v2_test_depends_libs_shared  := $(foreach module,$(v2_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 v2_test_depends_libs_rules   := $(foreach module,$(v2_test_depends_modules),$(module)_all)
 
 include $(v2_test_child_makefiles)
-
-ifneq ($(v2_test_objects),)
 
 $(v2_test_path_curdir)%.o: $(v2_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $(v2_test_install_path): | $(v2_test_depends_libs_rules)
 $(v2_test_install_path): $(v2_test_objects)
-	$(CC) -o $@ $^ $(v2_test_depends_libs)
-
-.PHONY: v2_test_all
-v2_test_all: $(v2_test_install_path) ## build all v2_test tests
-
-.PHONY: v2_test_clean
-v2_test_clean: ## remove all v2_test tests
-	- $(RM) $(v2_test_install_path) $(v2_test_objects) $(v2_test_depends)
-
-else
+	$(CC) -o $@ $^ $(v2_test_depends_libs_static)
 
 .PHONY: v2_test_all
 v2_test_all: $(v2_test_all_targets) ## build all v2_test tests
+ifneq ($(v2_test_objects),)
+v2_test_all: $(v2_test_install_path)
+endif
 
 .PHONY: v2_test_clean
 v2_test_clean: $(v2_test_clean_targets) ## remove all v2_test tests
+v2_test_clean:
+	- $(RM) $(v2_test_install_path) $(v2_test_objects) $(v2_test_depends)
 
-endif
 
 -include $(v2_test_depends)

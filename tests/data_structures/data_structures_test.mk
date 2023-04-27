@@ -9,35 +9,29 @@ data_structures_test_sources              := $(wildcard $(data_structures_test_p
 data_structures_test_objects              := $(patsubst %.c, %.o, $(data_structures_test_sources))
 data_structures_test_depends              := $(patsubst %.c, %.d, $(data_structures_test_sources))
 data_structures_test_depends_modules      := data_structures
-data_structures_test_depends_libs         := $(foreach module,$(data_structures_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+data_structures_test_depends_libs_static  := $(foreach module,$(data_structures_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+data_structures_test_depends_libs_shared  := $(foreach module,$(data_structures_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 data_structures_test_depends_libs_rules   := $(foreach module,$(data_structures_test_depends_modules),$(module)_all)
 
 include $(data_structures_test_child_makefiles)
-
-ifneq ($(data_structures_test_objects),)
 
 $(data_structures_test_path_curdir)%.o: $(data_structures_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $(data_structures_test_install_path): | $(data_structures_test_depends_libs_rules)
 $(data_structures_test_install_path): $(data_structures_test_objects)
-	$(CC) -o $@ $^ $(data_structures_test_depends_libs)
-
-.PHONY: data_structures_test_all
-data_structures_test_all: $(data_structures_test_install_path) ## build all data_structures_test tests
-
-.PHONY: data_structures_test_clean
-data_structures_test_clean: ## remove all data_structures_test tests
-	- $(RM) $(data_structures_test_install_path) $(data_structures_test_objects) $(data_structures_test_depends)
-
-else
+	$(CC) -o $@ $^ $(data_structures_test_depends_libs_static)
 
 .PHONY: data_structures_test_all
 data_structures_test_all: $(data_structures_test_all_targets) ## build all data_structures_test tests
+ifneq ($(data_structures_test_objects),)
+data_structures_test_all: $(data_structures_test_install_path)
+endif
 
 .PHONY: data_structures_test_clean
 data_structures_test_clean: $(data_structures_test_clean_targets) ## remove all data_structures_test tests
+data_structures_test_clean:
+	- $(RM) $(data_structures_test_install_path) $(data_structures_test_objects) $(data_structures_test_depends)
 
-endif
 
 -include $(data_structures_test_depends)

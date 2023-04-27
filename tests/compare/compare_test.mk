@@ -9,35 +9,29 @@ compare_test_sources              := $(wildcard $(compare_test_path_curdir)*.c)
 compare_test_objects              := $(patsubst %.c, %.o, $(compare_test_sources))
 compare_test_depends              := $(patsubst %.c, %.d, $(compare_test_sources))
 compare_test_depends_modules      := compare
-compare_test_depends_libs         := $(foreach module,$(compare_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+compare_test_depends_libs_static  := $(foreach module,$(compare_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+compare_test_depends_libs_shared  := $(foreach module,$(compare_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 compare_test_depends_libs_rules   := $(foreach module,$(compare_test_depends_modules),$(module)_all)
 
 include $(compare_test_child_makefiles)
-
-ifneq ($(compare_test_objects),)
 
 $(compare_test_path_curdir)%.o: $(compare_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $(compare_test_install_path): | $(compare_test_depends_libs_rules)
 $(compare_test_install_path): $(compare_test_objects)
-	$(CC) -o $@ $^ $(compare_test_depends_libs)
-
-.PHONY: compare_test_all
-compare_test_all: $(compare_test_install_path) ## build all compare_test tests
-
-.PHONY: compare_test_clean
-compare_test_clean: ## remove all compare_test tests
-	- $(RM) $(compare_test_install_path) $(compare_test_objects) $(compare_test_depends)
-
-else
+	$(CC) -o $@ $^ $(compare_test_depends_libs_static)
 
 .PHONY: compare_test_all
 compare_test_all: $(compare_test_all_targets) ## build all compare_test tests
+ifneq ($(compare_test_objects),)
+compare_test_all: $(compare_test_install_path)
+endif
 
 .PHONY: compare_test_clean
 compare_test_clean: $(compare_test_clean_targets) ## remove all compare_test tests
+compare_test_clean:
+	- $(RM) $(compare_test_install_path) $(compare_test_objects) $(compare_test_depends)
 
-endif
 
 -include $(compare_test_depends)

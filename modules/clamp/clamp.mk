@@ -13,34 +13,34 @@ clamp_static_objects       := $(patsubst %.c, %_static.o, $(clamp_sources))
 clamp_shared_objects       := $(patsubst %.c, %_shared.o, $(clamp_sources))
 clamp_depends              := $(patsubst %.c, %.d, $(clamp_sources))
 clamp_depends_modules      := v2 v3 v4 compare
-clamp_depends_libs         := $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+clamp_depends_libs_static  := $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+clamp_depends_libs_shared  := $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 clamp_depends_libs_rules   := $(foreach module,$(clamp_depends_modules),$(module)_all)
 
 include $(clamp_child_makefiles)
 
 $(clamp_path_curdir)%_static.o: $(clamp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(clamp_path_curdir)%_shared.o: $(clamp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(clamp_static_objects),)
 $(clamp_install_path_static): | $(clamp_depends_libs_rules)
 $(clamp_install_path_static): $(clamp_static_objects)
-	ar -rcs $@ $^ $(clamp_depends_libs)
-endif
+	ar -rcs $@ $^ $(clamp_depends_libs_static)
 
-ifneq ($(clamp_shared_objects),)
 $(clamp_install_path_shared): | $(clamp_depends_libs_rules)
 $(clamp_install_path_shared): $(clamp_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(clamp_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(clamp_depends_libs_shared)
 
 .PHONY: clamp_all
 clamp_all: $(clamp_all_targets) ## build and install all clamp static and shared libraries
+ifneq ($(clamp_shared_objects),)
 clamp_all: $(clamp_install_path_shared)
+endif
+ifneq ($(clamp_static_objects),)
 clamp_all: $(clamp_install_path_static)
+endif
 
 .PHONY: clamp_clean
 clamp_clean: $(clamp_clean_targets) ## remove and deinstall all clamp static and shared libraries

@@ -13,34 +13,34 @@ common_static_objects       := $(patsubst %.c, %_static.o, $(common_sources))
 common_shared_objects       := $(patsubst %.c, %_shared.o, $(common_sources))
 common_depends              := $(patsubst %.c, %.d, $(common_sources))
 common_depends_modules      := 
-common_depends_libs         := $(foreach module,$(common_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+common_depends_libs_static  := $(foreach module,$(common_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+common_depends_libs_shared  := $(foreach module,$(common_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 common_depends_libs_rules   := $(foreach module,$(common_depends_modules),$(module)_all)
 
 include $(common_child_makefiles)
 
 $(common_path_curdir)%_static.o: $(common_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(common_path_curdir)%_shared.o: $(common_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(common_static_objects),)
 $(common_install_path_static): | $(common_depends_libs_rules)
 $(common_install_path_static): $(common_static_objects)
-	ar -rcs $@ $^ $(common_depends_libs)
-endif
+	ar -rcs $@ $^ $(common_depends_libs_static)
 
-ifneq ($(common_shared_objects),)
 $(common_install_path_shared): | $(common_depends_libs_rules)
 $(common_install_path_shared): $(common_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(common_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(common_depends_libs_shared)
 
 .PHONY: common_all
 common_all: $(common_all_targets) ## build and install all common static and shared libraries
+ifneq ($(common_shared_objects),)
 common_all: $(common_install_path_shared)
+endif
+ifneq ($(common_static_objects),)
 common_all: $(common_install_path_static)
+endif
 
 .PHONY: common_clean
 common_clean: $(common_clean_targets) ## remove and deinstall all common static and shared libraries

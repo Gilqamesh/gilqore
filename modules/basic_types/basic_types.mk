@@ -13,34 +13,34 @@ basic_types_static_objects       := $(patsubst %.c, %_static.o, $(basic_types_so
 basic_types_shared_objects       := $(patsubst %.c, %_shared.o, $(basic_types_sources))
 basic_types_depends              := $(patsubst %.c, %.d, $(basic_types_sources))
 basic_types_depends_modules      := compare
-basic_types_depends_libs         := $(foreach module,$(basic_types_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+basic_types_depends_libs_static  := $(foreach module,$(basic_types_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+basic_types_depends_libs_shared  := $(foreach module,$(basic_types_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 basic_types_depends_libs_rules   := $(foreach module,$(basic_types_depends_modules),$(module)_all)
 
 include $(basic_types_child_makefiles)
 
 $(basic_types_path_curdir)%_static.o: $(basic_types_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(basic_types_path_curdir)%_shared.o: $(basic_types_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(basic_types_static_objects),)
 $(basic_types_install_path_static): | $(basic_types_depends_libs_rules)
 $(basic_types_install_path_static): $(basic_types_static_objects)
-	ar -rcs $@ $^ $(basic_types_depends_libs)
-endif
+	ar -rcs $@ $^ $(basic_types_depends_libs_static)
 
-ifneq ($(basic_types_shared_objects),)
 $(basic_types_install_path_shared): | $(basic_types_depends_libs_rules)
 $(basic_types_install_path_shared): $(basic_types_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(basic_types_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(basic_types_depends_libs_shared)
 
 .PHONY: basic_types_all
 basic_types_all: $(basic_types_all_targets) ## build and install all basic_types static and shared libraries
+ifneq ($(basic_types_shared_objects),)
 basic_types_all: $(basic_types_install_path_shared)
+endif
+ifneq ($(basic_types_static_objects),)
 basic_types_all: $(basic_types_install_path_static)
+endif
 
 .PHONY: basic_types_clean
 basic_types_clean: $(basic_types_clean_targets) ## remove and deinstall all basic_types static and shared libraries

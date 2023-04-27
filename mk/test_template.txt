@@ -9,35 +9,29 @@ $(MODULE_NAME)_test_sources              := $(wildcard $($(MODULE_NAME)_test_pat
 $(MODULE_NAME)_test_objects              := $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends              := $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends_modules      := $(MODULE_LIBDEP_MODULES)
-$(MODULE_NAME)_test_depends_libs         := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+$(MODULE_NAME)_test_depends_libs_static  := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+$(MODULE_NAME)_test_depends_libs_shared  := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 $(MODULE_NAME)_test_depends_libs_rules   := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(module)_all)
 
 include $($(MODULE_NAME)_test_child_makefiles)
-
-ifneq ($($(MODULE_NAME)_test_objects),)
 
 $($(MODULE_NAME)_test_path_curdir)%.o: $($(MODULE_NAME)_test_path_curdir)%.c
 	$(CC) -c $< -o $@ -I$(PATH_MODULES)
 
 $($(MODULE_NAME)_test_install_path): | $($(MODULE_NAME)_test_depends_libs_rules)
 $($(MODULE_NAME)_test_install_path): $($(MODULE_NAME)_test_objects)
-	$(CC) -o $@ $^ $($(MODULE_NAME)_test_depends_libs)
-
-.PHONY: $(MODULE_NAME)_test_all
-$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path) ## build all $(MODULE_NAME)_test tests
-
-.PHONY: $(MODULE_NAME)_test_clean
-$(MODULE_NAME)_test_clean: ## remove all $(MODULE_NAME)_test tests
-	- $(RM) $($(MODULE_NAME)_test_install_path) $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_depends)
-
-else
+	$(CC) -o $@ $^ $($(MODULE_NAME)_test_depends_libs_static)
 
 .PHONY: $(MODULE_NAME)_test_all
 $(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_all_targets) ## build all $(MODULE_NAME)_test tests
+ifneq ($($(MODULE_NAME)_test_objects),)
+$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path)
+endif
 
 .PHONY: $(MODULE_NAME)_test_clean
 $(MODULE_NAME)_test_clean: $($(MODULE_NAME)_test_clean_targets) ## remove all $(MODULE_NAME)_test tests
+$(MODULE_NAME)_test_clean:
+	- $(RM) $($(MODULE_NAME)_test_install_path) $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_depends)
 
-endif
 
 -include $($(MODULE_NAME)_test_depends)

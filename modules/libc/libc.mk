@@ -13,34 +13,34 @@ libc_static_objects       := $(patsubst %.c, %_static.o, $(libc_sources))
 libc_shared_objects       := $(patsubst %.c, %_shared.o, $(libc_sources))
 libc_depends              := $(patsubst %.c, %.d, $(libc_sources))
 libc_depends_modules      := common
-libc_depends_libs         := $(foreach module,$(libc_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+libc_depends_libs_static  := $(foreach module,$(libc_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+libc_depends_libs_shared  := $(foreach module,$(libc_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 libc_depends_libs_rules   := $(foreach module,$(libc_depends_modules),$(module)_all)
 
 include $(libc_child_makefiles)
 
 $(libc_path_curdir)%_static.o: $(libc_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(libc_path_curdir)%_shared.o: $(libc_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(libc_static_objects),)
 $(libc_install_path_static): | $(libc_depends_libs_rules)
 $(libc_install_path_static): $(libc_static_objects)
-	ar -rcs $@ $^ $(libc_depends_libs)
-endif
+	ar -rcs $@ $^ $(libc_depends_libs_static)
 
-ifneq ($(libc_shared_objects),)
 $(libc_install_path_shared): | $(libc_depends_libs_rules)
 $(libc_install_path_shared): $(libc_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(libc_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(libc_depends_libs_shared)
 
 .PHONY: libc_all
 libc_all: $(libc_all_targets) ## build and install all libc static and shared libraries
+ifneq ($(libc_shared_objects),)
 libc_all: $(libc_install_path_shared)
+endif
+ifneq ($(libc_static_objects),)
 libc_all: $(libc_install_path_static)
+endif
 
 .PHONY: libc_clean
 libc_clean: $(libc_clean_targets) ## remove and deinstall all libc static and shared libraries

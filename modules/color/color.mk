@@ -13,34 +13,34 @@ color_static_objects       := $(patsubst %.c, %_static.o, $(color_sources))
 color_shared_objects       := $(patsubst %.c, %_shared.o, $(color_sources))
 color_depends              := $(patsubst %.c, %.d, $(color_sources))
 color_depends_modules      := v4
-color_depends_libs         := $(foreach module,$(color_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+color_depends_libs_static  := $(foreach module,$(color_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+color_depends_libs_shared  := $(foreach module,$(color_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 color_depends_libs_rules   := $(foreach module,$(color_depends_modules),$(module)_all)
 
 include $(color_child_makefiles)
 
 $(color_path_curdir)%_static.o: $(color_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(color_path_curdir)%_shared.o: $(color_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(color_static_objects),)
 $(color_install_path_static): | $(color_depends_libs_rules)
 $(color_install_path_static): $(color_static_objects)
-	ar -rcs $@ $^ $(color_depends_libs)
-endif
+	ar -rcs $@ $^ $(color_depends_libs_static)
 
-ifneq ($(color_shared_objects),)
 $(color_install_path_shared): | $(color_depends_libs_rules)
 $(color_install_path_shared): $(color_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(color_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(color_depends_libs_shared)
 
 .PHONY: color_all
 color_all: $(color_all_targets) ## build and install all color static and shared libraries
+ifneq ($(color_shared_objects),)
 color_all: $(color_install_path_shared)
+endif
+ifneq ($(color_static_objects),)
 color_all: $(color_install_path_static)
+endif
 
 .PHONY: color_clean
 color_clean: $(color_clean_targets) ## remove and deinstall all color static and shared libraries

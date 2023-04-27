@@ -13,34 +13,34 @@ modules_static_objects       := $(patsubst %.c, %_static.o, $(modules_sources))
 modules_shared_objects       := $(patsubst %.c, %_shared.o, $(modules_sources))
 modules_depends              := $(patsubst %.c, %.d, $(modules_sources))
 modules_depends_modules      := 
-modules_depends_libs         := $(foreach module,$(modules_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+modules_depends_libs_static  := $(foreach module,$(modules_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+modules_depends_libs_shared  := $(foreach module,$(modules_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 modules_depends_libs_rules   := $(foreach module,$(modules_depends_modules),$(module)_all)
 
 include $(modules_child_makefiles)
 
 $(modules_path_curdir)%_static.o: $(modules_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(modules_path_curdir)%_shared.o: $(modules_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(modules_static_objects),)
 $(modules_install_path_static): | $(modules_depends_libs_rules)
 $(modules_install_path_static): $(modules_static_objects)
-	ar -rcs $@ $^ $(modules_depends_libs)
-endif
+	ar -rcs $@ $^ $(modules_depends_libs_static)
 
-ifneq ($(modules_shared_objects),)
 $(modules_install_path_shared): | $(modules_depends_libs_rules)
 $(modules_install_path_shared): $(modules_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(modules_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(modules_depends_libs_shared)
 
 .PHONY: modules_all
 modules_all: $(modules_all_targets) ## build and install all modules static and shared libraries
+ifneq ($(modules_shared_objects),)
 modules_all: $(modules_install_path_shared)
+endif
+ifneq ($(modules_static_objects),)
 modules_all: $(modules_install_path_static)
+endif
 
 .PHONY: modules_clean
 modules_clean: $(modules_clean_targets) ## remove and deinstall all modules static and shared libraries

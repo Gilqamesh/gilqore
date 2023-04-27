@@ -13,34 +13,34 @@ lerp_static_objects       := $(patsubst %.c, %_static.o, $(lerp_sources))
 lerp_shared_objects       := $(patsubst %.c, %_shared.o, $(lerp_sources))
 lerp_depends              := $(patsubst %.c, %.d, $(lerp_sources))
 lerp_depends_modules      := color
-lerp_depends_libs         := $(foreach module,$(lerp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+lerp_depends_libs_static  := $(foreach module,$(lerp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
+lerp_depends_libs_shared  := $(foreach module,$(lerp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 lerp_depends_libs_rules   := $(foreach module,$(lerp_depends_modules),$(module)_all)
 
 include $(lerp_child_makefiles)
 
 $(lerp_path_curdir)%_static.o: $(lerp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
 $(lerp_path_curdir)%_shared.o: $(lerp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-ifneq ($(lerp_static_objects),)
 $(lerp_install_path_static): | $(lerp_depends_libs_rules)
 $(lerp_install_path_static): $(lerp_static_objects)
-	ar -rcs $@ $^ $(lerp_depends_libs)
-endif
+	ar -rcs $@ $^ $(lerp_depends_libs_static)
 
-ifneq ($(lerp_shared_objects),)
 $(lerp_install_path_shared): | $(lerp_depends_libs_rules)
 $(lerp_install_path_shared): $(lerp_shared_objects)
-	$(CC) -o $@ $^ $(LFLAGS) -shared $(lerp_depends_libs)
-endif
-
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(lerp_depends_libs_shared)
 
 .PHONY: lerp_all
 lerp_all: $(lerp_all_targets) ## build and install all lerp static and shared libraries
+ifneq ($(lerp_shared_objects),)
 lerp_all: $(lerp_install_path_shared)
+endif
+ifneq ($(lerp_static_objects),)
 lerp_all: $(lerp_install_path_static)
+endif
 
 .PHONY: lerp_clean
 lerp_clean: $(lerp_clean_targets) ## remove and deinstall all lerp static and shared libraries
