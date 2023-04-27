@@ -3,6 +3,8 @@
 
 # include "defs.h"
 
-# include "basic_types/basic_types.h"
+enum LERP_ERROR_CODE {
+    LERP_ERROR_CODE_FATAL = ERROR_CODE_LERP
+};
 
 #endif

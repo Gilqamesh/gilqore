@@ -1,0 +1,11 @@
+#ifndef CONSOLE_DEFS_H
+# define CONSOLE_DEFS_H
+
+# include "defs.h"
+
+enum CONSOLE_ERROR_CODE {
+    CONSOLE_ERROR_CODE_FATAL = ERROR_CODE_CONSOLE,
+    CONSOLE_ERROR_CODE_VSNPRINTF
+};
+
+#endif

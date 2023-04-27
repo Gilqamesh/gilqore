@@ -3,6 +3,8 @@
 
 # include "defs.h"
 
-# include "basic_types/basic_types.h"
+enum CLAMP_ERROR_CODE {
+    CLAMP_ERROR_CODE_FATAL = ERROR_CODE_CLAMP
+};
 
 #endif

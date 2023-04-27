@@ -14,6 +14,6 @@ def main():
             if m:
                 item = m.group(1).strip()
                 defn = m.group(2).strip()
-                print("%-20s %s" %(item,defn))
+                print("%-35s %s" %(item,defn))
 
 main()

@@ -1,5 +1,5 @@
-#ifndef V3S16_H
-# define V3S16_H
+#ifndef V4S16_H
+# define V4S16_H
 
 # include "v4_defs.h"
 

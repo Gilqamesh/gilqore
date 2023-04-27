@@ -1,27 +1,55 @@
-COLOR_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-COLOR_NAME_CURDIR := $(notdir $(patsubst %/,%,$(COLOR_PATH_CURDIR)))
-COLOR_PATH_LIB    := $(PATH_INSTALL)/$(COLOR_NAME_CURDIR)$(EXT)
+color_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
+color_name_curdir          := $(notdir $(patsubst %/,%,$(color_path_curdir)))
+color_child_makefiles      := $(wildcard $(color_path_curdir)*/*mk)
+color_names                := $(basename $(notdir $(color_child_makefiles)))
+color_all_targets          := $(foreach color,$(color_names),$(color)_all)
+color_strip_targets        := $(foreach color,$(color_names),$(color)_strip)
+color_clean_targets        := $(foreach color,$(color_names),$(color)_clean)
+color_install_path         := $(PATH_INSTALL)/$(color_name_curdir)
+color_install_path_static  := $(color_install_path)$(EXT_LIB_STATIC)
+color_install_path_shared  := $(color_install_path)$(EXT_LIB_SHARED)
+color_sources              := $(wildcard $(color_path_curdir)*.c)
+color_static_objects       := $(patsubst %.c, %_static.o, $(color_sources))
+color_shared_objects       := $(patsubst %.c, %_shared.o, $(color_sources))
+color_depends              := $(patsubst %.c, %.d, $(color_sources))
+color_depends_modules      := v4
+color_depends_libs         := $(foreach module,$(color_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+color_depends_libs_rules   := $(foreach module,$(color_depends_modules),$(module)_all)
 
-COLOR_SOURCES := $(wildcard $(COLOR_PATH_CURDIR)*.c)
-COLOR_OBJECTS := $(patsubst %.c, %.o, $(COLOR_SOURCES))
-COLOR_DEPENDS := $(patsubst %.c, %.d, $(COLOR_SOURCES))
+include $(color_child_makefiles)
 
-COLOR_DEPENDS_MODULES = v4
-COLOR_DEPENDS_LIBS := $(foreach module,$(COLOR_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
-COLOR_DEPENDS_LIBS_RULES = $(foreach module,$(COLOR_DEPENDS_MODULES),$(module)_all)
+$(color_path_curdir)%_static.o: $(color_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
 
-$(COLOR_PATH_CURDIR)%.o: $(COLOR_PATH_CURDIR)%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+$(color_path_curdir)%_shared.o: $(color_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(COLOR_PATH_LIB): | $(COLOR_DEPENDS_LIBS_RULES)
-$(COLOR_PATH_LIB): $(COLOR_OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(COLOR_DEPENDS_LIBS)
+ifneq ($(color_static_objects),)
+$(color_install_path_static): | $(color_depends_libs_rules)
+$(color_install_path_static): $(color_static_objects)
+	ar -rcs $@ $^ $(color_depends_libs)
+endif
+
+ifneq ($(color_shared_objects),)
+$(color_install_path_shared): | $(color_depends_libs_rules)
+$(color_install_path_shared): $(color_shared_objects)
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(color_depends_libs)
+endif
+
 
 .PHONY: color_all
-color_all: $(COLOR_PATH_LIB) ## build and install color library
+color_all: $(color_all_targets) ## build and install all color static and shared libraries
+color_all: $(color_install_path_shared)
+color_all: $(color_install_path_static)
 
 .PHONY: color_clean
-color_clean: ## remove and deinstall color library
-	- $(RM) $(COLOR_PATH_LIB) $(COLOR_OBJECTS) $(COLOR_DEPENDS)
+color_clean: $(color_clean_targets) ## remove and deinstall all color static and shared libraries
+color_clean:
+	- $(RM) $(color_install_path_static) $(color_install_path_shared) $(color_static_objects) $(color_shared_objects) $(color_depends)
 
--include $(COLOR_DEPENDS)
+.PHONY: color_strip
+color_strip: $(color_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
+color_strip:
+	strip --strip-all $(color_install_path_shared)
+
+-include $(color_depends)

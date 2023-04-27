@@ -3,6 +3,8 @@
 
 # include "defs.h"
 
-# include <stdint.h>
+enum BASIC_TYPES_ERROR_CODE {
+    BASIC_TYPES_ERROR_CODE_FATAL = ERROR_CODE_BASIC_TYPES
+};
 
 #endif

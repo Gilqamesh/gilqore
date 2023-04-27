@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "basic_types/basic_types.h"
+
 struct v2r32 v2r32(r32 x, r32 y) {
     struct v2r32 v = {x, y};
 
@@ -38,6 +40,20 @@ struct v2r32 v2r32__sub_v2r32(struct v2r32 v, struct v2r32 w) {
         v.x - w.x,
         v.y - w.y
     );
+}
+
+struct v2r32 v2r32__abs(struct v2r32 v) {
+    v.x = r32__abs(v.x);
+    v.y = r32__abs(v.y);
+
+    return v;
+}
+
+struct v2r32 v2r32__abs_sub(struct v2r32 v, struct v2r32 w) {
+    v.x = r32__abs_sub(v.x, w.x);
+    v.y = r32__abs_sub(v.y, w.y);
+
+    return v;
 }
 
 r32 v2r32__dot_v2r32(struct v2r32 v, struct v2r32 w) {

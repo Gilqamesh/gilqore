@@ -1,27 +1,55 @@
-V4_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-V4_NAME_CURDIR := $(notdir $(patsubst %/,%,$(V4_PATH_CURDIR)))
-V4_PATH_LIB    := $(PATH_INSTALL)/$(V4_NAME_CURDIR)$(EXT)
+v4_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
+v4_name_curdir          := $(notdir $(patsubst %/,%,$(v4_path_curdir)))
+v4_child_makefiles      := $(wildcard $(v4_path_curdir)*/*mk)
+v4_names                := $(basename $(notdir $(v4_child_makefiles)))
+v4_all_targets          := $(foreach v4,$(v4_names),$(v4)_all)
+v4_strip_targets        := $(foreach v4,$(v4_names),$(v4)_strip)
+v4_clean_targets        := $(foreach v4,$(v4_names),$(v4)_clean)
+v4_install_path         := $(PATH_INSTALL)/$(v4_name_curdir)
+v4_install_path_static  := $(v4_install_path)$(EXT_LIB_STATIC)
+v4_install_path_shared  := $(v4_install_path)$(EXT_LIB_SHARED)
+v4_sources              := $(wildcard $(v4_path_curdir)*.c)
+v4_static_objects       := $(patsubst %.c, %_static.o, $(v4_sources))
+v4_shared_objects       := $(patsubst %.c, %_shared.o, $(v4_sources))
+v4_depends              := $(patsubst %.c, %.d, $(v4_sources))
+v4_depends_modules      := 
+v4_depends_libs         := $(foreach module,$(v4_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+v4_depends_libs_rules   := $(foreach module,$(v4_depends_modules),$(module)_all)
 
-V4_SOURCES := $(wildcard $(V4_PATH_CURDIR)*.c)
-V4_OBJECTS := $(patsubst %.c, %.o, $(V4_SOURCES))
-V4_DEPENDS := $(patsubst %.c, %.d, $(V4_SOURCES))
+include $(v4_child_makefiles)
 
-V4_DEPENDS_MODULES = basic_types
-V4_DEPENDS_LIBS := $(foreach module,$(V4_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
-V4_DEPENDS_LIBS_RULES = $(foreach module,$(V4_DEPENDS_MODULES),$(module)_all)
+$(v4_path_curdir)%_static.o: $(v4_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
 
-$(V4_PATH_CURDIR)%.o: $(V4_PATH_CURDIR)%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+$(v4_path_curdir)%_shared.o: $(v4_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(V4_PATH_LIB): | $(V4_DEPENDS_LIBS_RULES)
-$(V4_PATH_LIB): $(V4_OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(V4_DEPENDS_LIBS)
+ifneq ($(v4_static_objects),)
+$(v4_install_path_static): | $(v4_depends_libs_rules)
+$(v4_install_path_static): $(v4_static_objects)
+	ar -rcs $@ $^ $(v4_depends_libs)
+endif
+
+ifneq ($(v4_shared_objects),)
+$(v4_install_path_shared): | $(v4_depends_libs_rules)
+$(v4_install_path_shared): $(v4_shared_objects)
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(v4_depends_libs)
+endif
+
 
 .PHONY: v4_all
-v4_all: $(V4_PATH_LIB) ## build and install v4 library
+v4_all: $(v4_all_targets) ## build and install all v4 static and shared libraries
+v4_all: $(v4_install_path_shared)
+v4_all: $(v4_install_path_static)
 
 .PHONY: v4_clean
-v4_clean: ## remove and deinstall v4 library
-	- $(RM) $(V4_PATH_LIB) $(V4_OBJECTS) $(V4_DEPENDS)
+v4_clean: $(v4_clean_targets) ## remove and deinstall all v4 static and shared libraries
+v4_clean:
+	- $(RM) $(v4_install_path_static) $(v4_install_path_shared) $(v4_static_objects) $(v4_shared_objects) $(v4_depends)
 
--include $(V4_DEPENDS)
+.PHONY: v4_strip
+v4_strip: $(v4_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
+v4_strip:
+	strip --strip-all $(v4_install_path_shared)
+
+-include $(v4_depends)

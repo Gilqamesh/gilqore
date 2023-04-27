@@ -1,28 +1,55 @@
-BASIC_TYPES_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-BASIC_TYPES_NAME_CURDIR := $(notdir $(patsubst %/,%,$(BASIC_TYPES_PATH_CURDIR)))
-BASIC_TYPES_PATH_LIB    := $(PATH_INSTALL)/$(BASIC_TYPES_NAME_CURDIR)$(EXT)
+basic_types_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
+basic_types_name_curdir          := $(notdir $(patsubst %/,%,$(basic_types_path_curdir)))
+basic_types_child_makefiles      := $(wildcard $(basic_types_path_curdir)*/*mk)
+basic_types_names                := $(basename $(notdir $(basic_types_child_makefiles)))
+basic_types_all_targets          := $(foreach basic_types,$(basic_types_names),$(basic_types)_all)
+basic_types_strip_targets        := $(foreach basic_types,$(basic_types_names),$(basic_types)_strip)
+basic_types_clean_targets        := $(foreach basic_types,$(basic_types_names),$(basic_types)_clean)
+basic_types_install_path         := $(PATH_INSTALL)/$(basic_types_name_curdir)
+basic_types_install_path_static  := $(basic_types_install_path)$(EXT_LIB_STATIC)
+basic_types_install_path_shared  := $(basic_types_install_path)$(EXT_LIB_SHARED)
+basic_types_sources              := $(wildcard $(basic_types_path_curdir)*.c)
+basic_types_static_objects       := $(patsubst %.c, %_static.o, $(basic_types_sources))
+basic_types_shared_objects       := $(patsubst %.c, %_shared.o, $(basic_types_sources))
+basic_types_depends              := $(patsubst %.c, %.d, $(basic_types_sources))
+basic_types_depends_modules      := compare
+basic_types_depends_libs         := $(foreach module,$(basic_types_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+basic_types_depends_libs_rules   := $(foreach module,$(basic_types_depends_modules),$(module)_all)
 
-BASIC_TYPES_SOURCES := $(wildcard $(BASIC_TYPES_PATH_CURDIR)*.c)
-BASIC_TYPES_OBJECTS := $(patsubst %.c, %.o, $(BASIC_TYPES_SOURCES))
-BASIC_TYPES_DEPENDS := $(patsubst %.c, %.d, $(BASIC_TYPES_SOURCES))
+include $(basic_types_child_makefiles)
 
-BASIC_TYPES_DEPENDS_MODULES =
-BASIC_TYPES_DEPENDS_LIBS := $(foreach module,$(BASIC_TYPES_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
-BASIC_TYPES_DEPENDS_LIBS_RULES = $(foreach module,$(BASIC_TYPES_DEPENDS_MODULES),$(module)_all)
+$(basic_types_path_curdir)%_static.o: $(basic_types_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
 
-$(BASIC_TYPES_PATH_CURDIR)%.o: $(BASIC_TYPES_PATH_CURDIR)%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+$(basic_types_path_curdir)%_shared.o: $(basic_types_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
 
+ifneq ($(basic_types_static_objects),)
+$(basic_types_install_path_static): | $(basic_types_depends_libs_rules)
+$(basic_types_install_path_static): $(basic_types_static_objects)
+	ar -rcs $@ $^ $(basic_types_depends_libs)
+endif
 
-$(BASIC_TYPES_PATH_LIB): | $(BASIC_TYPES_DEPENDS_LIBS_RULES)
-$(BASIC_TYPES_PATH_LIB): $(BASIC_TYPES_OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(BASIC_TYPES_DEPENDS_LIBS)
+ifneq ($(basic_types_shared_objects),)
+$(basic_types_install_path_shared): | $(basic_types_depends_libs_rules)
+$(basic_types_install_path_shared): $(basic_types_shared_objects)
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(basic_types_depends_libs)
+endif
+
 
 .PHONY: basic_types_all
-basic_types_all: $(BASIC_TYPES_PATH_LIB) ## build and install basic_types library
+basic_types_all: $(basic_types_all_targets) ## build and install all basic_types static and shared libraries
+basic_types_all: $(basic_types_install_path_shared)
+basic_types_all: $(basic_types_install_path_static)
 
 .PHONY: basic_types_clean
-basic_types_clean: ## remove and deinstall basic_types library
-	- $(RM) $(BASIC_TYPES_PATH_LIB) $(BASIC_TYPES_OBJECTS) $(BASIC_TYPES_DEPENDS)
+basic_types_clean: $(basic_types_clean_targets) ## remove and deinstall all basic_types static and shared libraries
+basic_types_clean:
+	- $(RM) $(basic_types_install_path_static) $(basic_types_install_path_shared) $(basic_types_static_objects) $(basic_types_shared_objects) $(basic_types_depends)
 
--include $(BASIC_TYPES_DEPENDS)
+.PHONY: basic_types_strip
+basic_types_strip: $(basic_types_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
+basic_types_strip:
+	strip --strip-all $(basic_types_install_path_shared)
+
+-include $(basic_types_depends)

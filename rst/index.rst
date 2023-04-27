@@ -7,5 +7,5 @@ Gil Modules
 .. toctree::
    :maxdepth: 1
 
-   introduction/module_documentation
+   module_docs/module_documentation
 

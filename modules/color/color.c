@@ -8,10 +8,10 @@
 struct color color__pack(u32 red, u32 green, u32 blue, u32 alpha) {
     struct color result = {
         v4u8(
+            (alpha & 0xff) << COLOR_SHIFT_ALPHA,
             (red   & 0xff) << COLOR_SHIFT_RED,
             (green & 0xff) << COLOR_SHIFT_GREEN,
-            (blue  & 0xff) << COLOR_SHIFT_BLUE,
-            (alpha & 0xff) << COLOR_SHIFT_ALPHA
+            (blue  & 0xff) << COLOR_SHIFT_BLUE
         )
     };
 
@@ -20,10 +20,10 @@ struct color color__pack(u32 red, u32 green, u32 blue, u32 alpha) {
 
 u32 color__unpack(struct color color) {
     return
+    ((u32) color__channel_alpha(color) << COLOR_SHIFT_ALPHA) |
     ((u32) color__channel_red(color)   << COLOR_SHIFT_RED)   |
     ((u32) color__channel_green(color) << COLOR_SHIFT_GREEN) |
-    ((u32) color__channel_blue(color)  << COLOR_SHIFT_BLUE)  |
-    ((u32) color__channel_alpha(color) << COLOR_SHIFT_ALPHA);
+    ((u32) color__channel_blue(color)  << COLOR_SHIFT_BLUE);
 }
 
 struct color color__add(struct color color1, struct color color2) {

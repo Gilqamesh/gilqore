@@ -3,6 +3,4 @@
 
 # include "../vector_types_defs.h"
 
-# include <stdbool.h>
-
 #endif

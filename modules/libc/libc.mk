@@ -1,27 +1,55 @@
-LIBC_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-LIBC_NAME_CURDIR := $(notdir $(patsubst %/,%,$(LIBC_PATH_CURDIR)))
-LIBC_PATH_LIB    := $(PATH_INSTALL)/$(LIBC_NAME_CURDIR)$(EXT)
+libc_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
+libc_name_curdir          := $(notdir $(patsubst %/,%,$(libc_path_curdir)))
+libc_child_makefiles      := $(wildcard $(libc_path_curdir)*/*mk)
+libc_names                := $(basename $(notdir $(libc_child_makefiles)))
+libc_all_targets          := $(foreach libc,$(libc_names),$(libc)_all)
+libc_strip_targets        := $(foreach libc,$(libc_names),$(libc)_strip)
+libc_clean_targets        := $(foreach libc,$(libc_names),$(libc)_clean)
+libc_install_path         := $(PATH_INSTALL)/$(libc_name_curdir)
+libc_install_path_static  := $(libc_install_path)$(EXT_LIB_STATIC)
+libc_install_path_shared  := $(libc_install_path)$(EXT_LIB_SHARED)
+libc_sources              := $(wildcard $(libc_path_curdir)*.c)
+libc_static_objects       := $(patsubst %.c, %_static.o, $(libc_sources))
+libc_shared_objects       := $(patsubst %.c, %_shared.o, $(libc_sources))
+libc_depends              := $(patsubst %.c, %.d, $(libc_sources))
+libc_depends_modules      := common
+libc_depends_libs         := $(foreach module,$(libc_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+libc_depends_libs_rules   := $(foreach module,$(libc_depends_modules),$(module)_all)
 
-LIBC_SOURCES := $(wildcard $(LIBC_PATH_CURDIR)*.c)
-LIBC_OBJECTS := $(patsubst %.c, %.o, $(LIBC_SOURCES))
-LIBC_DEPENDS := $(patsubst %.c, %.d, $(LIBC_SOURCES))
+include $(libc_child_makefiles)
 
-LIBC_DEPENDS_MODULES =
-LIBC_DEPENDS_LIBS := $(foreach module,$(LIBC_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
-LIBC_DEPENDS_LIBS_RULES = $(foreach module,$(LIBC_DEPENDS_MODULES),$(module)_all)
+$(libc_path_curdir)%_static.o: $(libc_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
 
-$(LIBC_PATH_CURDIR)%.o: $(LIBC_PATH_CURDIR)%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+$(libc_path_curdir)%_shared.o: $(libc_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(LIBC_PATH_LIB): | $(LIBC_DEPENDS_LIBS_RULES)
-$(LIBC_PATH_LIB): $(LIBC_OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LIBC_DEPENDS_LIBS)
+ifneq ($(libc_static_objects),)
+$(libc_install_path_static): | $(libc_depends_libs_rules)
+$(libc_install_path_static): $(libc_static_objects)
+	ar -rcs $@ $^ $(libc_depends_libs)
+endif
+
+ifneq ($(libc_shared_objects),)
+$(libc_install_path_shared): | $(libc_depends_libs_rules)
+$(libc_install_path_shared): $(libc_shared_objects)
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(libc_depends_libs)
+endif
+
 
 .PHONY: libc_all
-libc_all: $(LIBC_PATH_LIB) ## build and install libc library
+libc_all: $(libc_all_targets) ## build and install all libc static and shared libraries
+libc_all: $(libc_install_path_shared)
+libc_all: $(libc_install_path_static)
 
 .PHONY: libc_clean
-libc_clean: ## remove and deinstall libc library
-	- $(RM) $(LIBC_PATH_LIB) $(LIBC_OBJECTS) $(LIBC_DEPENDS)
+libc_clean: $(libc_clean_targets) ## remove and deinstall all libc static and shared libraries
+libc_clean:
+	- $(RM) $(libc_install_path_static) $(libc_install_path_shared) $(libc_static_objects) $(libc_shared_objects) $(libc_depends)
 
--include $(LIBC_DEPENDS)
+.PHONY: libc_strip
+libc_strip: $(libc_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
+libc_strip:
+	strip --strip-all $(libc_install_path_shared)
+
+-include $(libc_depends)

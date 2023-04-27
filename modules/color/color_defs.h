@@ -3,6 +3,8 @@
 
 # include "defs.h"
 
-# include "basic_types/basic_types.h"
+enum COLOR_ERROR_CODE {
+    COLOR_ERROR_CODE_FATAL = ERROR_CODE_COLOR
+};
 
 #endif

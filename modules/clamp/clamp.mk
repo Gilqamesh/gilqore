@@ -1,27 +1,55 @@
-CLAMP_PATH_CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-CLAMP_NAME_CURDIR := $(notdir $(patsubst %/,%,$(CLAMP_PATH_CURDIR)))
-CLAMP_PATH_LIB    := $(PATH_INSTALL)/$(CLAMP_NAME_CURDIR)$(EXT)
+clamp_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
+clamp_name_curdir          := $(notdir $(patsubst %/,%,$(clamp_path_curdir)))
+clamp_child_makefiles      := $(wildcard $(clamp_path_curdir)*/*mk)
+clamp_names                := $(basename $(notdir $(clamp_child_makefiles)))
+clamp_all_targets          := $(foreach clamp,$(clamp_names),$(clamp)_all)
+clamp_strip_targets        := $(foreach clamp,$(clamp_names),$(clamp)_strip)
+clamp_clean_targets        := $(foreach clamp,$(clamp_names),$(clamp)_clean)
+clamp_install_path         := $(PATH_INSTALL)/$(clamp_name_curdir)
+clamp_install_path_static  := $(clamp_install_path)$(EXT_LIB_STATIC)
+clamp_install_path_shared  := $(clamp_install_path)$(EXT_LIB_SHARED)
+clamp_sources              := $(wildcard $(clamp_path_curdir)*.c)
+clamp_static_objects       := $(patsubst %.c, %_static.o, $(clamp_sources))
+clamp_shared_objects       := $(patsubst %.c, %_shared.o, $(clamp_sources))
+clamp_depends              := $(patsubst %.c, %.d, $(clamp_sources))
+clamp_depends_modules      := v2 v3 v4 compare
+clamp_depends_libs         := $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT))
+clamp_depends_libs_rules   := $(foreach module,$(clamp_depends_modules),$(module)_all)
 
-CLAMP_SOURCES := $(wildcard $(CLAMP_PATH_CURDIR)*.c)
-CLAMP_OBJECTS := $(patsubst %.c, %.o, $(CLAMP_SOURCES))
-CLAMP_DEPENDS := $(patsubst %.c, %.d, $(CLAMP_SOURCES))
+include $(clamp_child_makefiles)
 
-CLAMP_DEPENDS_MODULES = basic_types
-CLAMP_DEPENDS_LIBS := $(foreach module,$(CLAMP_DEPENDS_MODULES),$(PATH_INSTALL)/$(module)$(EXT))
-CLAMP_DEPENDS_LIBS_RULES = $(foreach module,$(CLAMP_DEPENDS_MODULES),$(module)_all)
+$(clamp_path_curdir)%_static.o: $(clamp_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -DGIL_LIB_STATIC
 
-$(CLAMP_PATH_CURDIR)%.o: $(CLAMP_PATH_CURDIR)%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+$(clamp_path_curdir)%_shared.o: $(clamp_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS) -MMD -MP -MF $@.d -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(CLAMP_PATH_LIB): | $(CLAMP_DEPENDS_LIBS_RULES)
-$(CLAMP_PATH_LIB): $(CLAMP_OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(CLAMP_DEPENDS_LIBS)
+ifneq ($(clamp_static_objects),)
+$(clamp_install_path_static): | $(clamp_depends_libs_rules)
+$(clamp_install_path_static): $(clamp_static_objects)
+	ar -rcs $@ $^ $(clamp_depends_libs)
+endif
+
+ifneq ($(clamp_shared_objects),)
+$(clamp_install_path_shared): | $(clamp_depends_libs_rules)
+$(clamp_install_path_shared): $(clamp_shared_objects)
+	$(CC) -o $@ $^ $(LFLAGS) -shared $(clamp_depends_libs)
+endif
+
 
 .PHONY: clamp_all
-clamp_all: $(CLAMP_PATH_LIB) ## build and install clamp library
+clamp_all: $(clamp_all_targets) ## build and install all clamp static and shared libraries
+clamp_all: $(clamp_install_path_shared)
+clamp_all: $(clamp_install_path_static)
 
 .PHONY: clamp_clean
-clamp_clean: ## remove and deinstall clamp library
-	- $(RM) $(CLAMP_PATH_LIB) $(CLAMP_OBJECTS) $(CLAMP_DEPENDS)
+clamp_clean: $(clamp_clean_targets) ## remove and deinstall all clamp static and shared libraries
+clamp_clean:
+	- $(RM) $(clamp_install_path_static) $(clamp_install_path_shared) $(clamp_static_objects) $(clamp_shared_objects) $(clamp_depends)
 
--include $(CLAMP_DEPENDS)
+.PHONY: clamp_strip
+clamp_strip: $(clamp_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
+clamp_strip:
+	strip --strip-all $(clamp_install_path_shared)
+
+-include $(clamp_depends)
