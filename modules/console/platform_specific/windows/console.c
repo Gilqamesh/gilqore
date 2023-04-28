@@ -1,41 +1,43 @@
 #include "console/console.h"
 
 #include <stdio.h>     // vsnprintf
+
+#include "common/error_code.h"
 #include "libc/libc.h"
 
 #include <windows.h>
 
-struct console { 
+struct console {
     HANDLE out_handle;
 
     char   *buffer;
     u32    buffer_size;
 };
 
-bool console__init_module(struct console* self, u32 max_message_length) {
+console console__init_module(u32 max_message_length) {
+    console self = libc__malloc(sizeof(*self));
     self->buffer      = NULL;
     self->buffer_size = 0;
     self->out_handle  = INVALID_HANDLE_VALUE;
 
     // TODO(david): diagnostics
     if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
-        return false;
+        error_code__exit(CONSOLE_ERROR_CODE_ATTACH_CONSOLE);
+        UNREACHABLE_CODE;
     }
 
     if ((self->out_handle = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE) {
-        return false;
+        error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
+        UNREACHABLE_CODE;
     }
 
     self->buffer_size = max_message_length;
     self->buffer = (char*) libc__malloc(self->buffer_size);
-    if (self->buffer == NULL) {
-        return false;
-    }
 
-    return true;
+    return self;
 }
 
-void console__deinit_module(struct console* self) {
+void console__deinit_module(console self) {
     FreeConsole();
 
     self->out_handle = INVALID_HANDLE_VALUE;
@@ -45,7 +47,7 @@ void console__deinit_module(struct console* self) {
     }
 }
 
-void console__log(struct console* self, char* msg, ...) {
+void console__log(console self, char* msg, ...) {
     if (self->out_handle != INVALID_HANDLE_VALUE) {
         va_list ap;
         va_start(ap, msg);

@@ -5,41 +5,46 @@ $(MODULE_NAME)_test_names                := $(basename $(notdir $($(MODULE_NAME)
 $(MODULE_NAME)_test_all_targets          := $(foreach $(MODULE_NAME)_test,$($(MODULE_NAME)_test_names),$($(MODULE_NAME)_test)_all)
 $(MODULE_NAME)_test_clean_targets        := $(foreach $(MODULE_NAME)_test,$($(MODULE_NAME)_test_names),$($(MODULE_NAME)_test)_clean)
 $(MODULE_NAME)_test_run_targets          := $(foreach $(MODULE_NAME)_test,$($(MODULE_NAME)_test_names),$($(MODULE_NAME)_test)_run)
-$(MODULE_NAME)_test_install_path         := $($(MODULE_NAME)_test_path_curdir)$($(MODULE_NAME)_test_name_curdir)$(EXT_EXE)
+$(MODULE_NAME)_test_install_path_static  := $($(MODULE_NAME)_test_path_curdir)$($(MODULE_NAME)_test_name_curdir)_static$(EXT_EXE)
+$(MODULE_NAME)_test_install_path_shared  := $($(MODULE_NAME)_test_path_curdir)$($(MODULE_NAME)_test_name_curdir)_shared$(EXT_EXE)
 $(MODULE_NAME)_test_sources              := $(wildcard $($(MODULE_NAME)_test_path_curdir)*.c)
 $(MODULE_NAME)_test_objects              := $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends              := $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
-$(MODULE_NAME)_test_depends_modules      := $(MODULE_LIBDEP_MODULES)
-$(MODULE_NAME)_test_depends_libs_static  := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_STATIC))
-$(MODULE_NAME)_test_depends_libs_shared  := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-$(MODULE_NAME)_test_depends_libs_rules   := $(foreach module,$($(MODULE_NAME)_test_depends_modules),$(module)_all)
+$(MODULE_NAME)_test_libdepend_target     := $($(MODULE_NAME)_test_name_curdir)_all test_framework_all
+$(MODULE_NAME)_test_libdepend_static     := $(PATH_INSTALL)/$($(MODULE_NAME)_test_name_curdir)$(EXT_LIB_STATIC)
+$(MODULE_NAME)_test_libdepend_shared     := $(PATH_INSTALL)/lib$($(MODULE_NAME)_test_name_curdir)dll.a $(PATH_INSTALL)/libtest_frameworkdll.a
 
 include $($(MODULE_NAME)_test_child_makefiles)
 
 $($(MODULE_NAME)_test_path_curdir)%.o: $($(MODULE_NAME)_test_path_curdir)%.c
-	$(CC) -c $< -o $@ -I$(PATH_MODULES)
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$($(MODULE_NAME)_test_install_path): | $($(MODULE_NAME)_test_depends_libs_rules)
-$($(MODULE_NAME)_test_install_path): $($(MODULE_NAME)_test_objects)
-	$(CC) -o $@ $^ $($(MODULE_NAME)_test_depends_libs_static)
+$($(MODULE_NAME)_test_install_path_static): | $($(MODULE_NAME)_test_libdepend_target)
+$($(MODULE_NAME)_test_install_path_static): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_static) $(PATH_INSTALL)/test_framework.lib
+	$(CC) -o $@ $($(MODULE_NAME)_test_objects) -Wl,--whole-archive $(PATH_INSTALL)/test_framework.lib -Wl,--no-whole-archive $($(MODULE_NAME)_test_libdepend_static) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
+
+$($(MODULE_NAME)_test_install_path_shared): | $($(MODULE_NAME)_test_libdepend_target)
+$($(MODULE_NAME)_test_install_path_shared): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_shared)
+	$(CC) -o $@ $($(MODULE_NAME)_test_objects) -Wl,--whole-archive $($(MODULE_NAME)_test_libdepend_shared) -Wl,--no-whole-archive $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
 
 .PHONY: $(MODULE_NAME)_test_all
 $(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_all_targets) ## build all $(MODULE_NAME)_test tests
 ifneq ($($(MODULE_NAME)_test_objects),)
-$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path)
+$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path_static)
+$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path_shared)
 endif
 
 .PHONY: $(MODULE_NAME)_test_clean
 $(MODULE_NAME)_test_clean: $($(MODULE_NAME)_test_clean_targets) ## remove all $(MODULE_NAME)_test tests
 $(MODULE_NAME)_test_clean:
-	- $(RM) $($(MODULE_NAME)_test_install_path) $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_depends)
+	- $(RM) $($(MODULE_NAME)_test_install_path_static) $($(MODULE_NAME)_test_install_path_shared) $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_depends)
 
 .PHONY: $(MODULE_NAME)_test_run
-$(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all ## build and run $(MODULE_NAME)_test
+$(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all ## build and run static $(MODULE_NAME)_test
 $(MODULE_NAME)_test_run: $($(MODULE_NAME)_test_run_targets)
 ifneq ($($(MODULE_NAME)_test_objects),)
 $(MODULE_NAME)_test_run:
-	@python $(PATH_MK_FILES)/pytester.py $($(MODULE_NAME)_test_install_path)
+	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $($(MODULE_NAME)_test_install_path_static)
 endif
 
 -include $($(MODULE_NAME)_test_depends)

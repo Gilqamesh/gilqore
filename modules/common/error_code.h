@@ -15,7 +15,8 @@ enum ERROR_CODE {
     ERROR_CODE_LERP             = 700,
     ERROR_CODE_LIBC             = 800,
     ERROR_CODE_RANDOM           = 900,
-    ERROR_CODE_VECTOR_TYPES     = 1000
+    ERROR_CODE_TEST_FRAMEWORK   = 1000,
+    ERROR_CODE_VECTOR_TYPES     = 1100
 };
 
 GIL_API void error_code__exit(u32 error_code);

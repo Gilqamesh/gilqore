@@ -1,6 +1,4 @@
 # Modular Make - top level makefile
-PATH_PROJECT	:= $(PWD)
-NAME_PROJECT	:= $(notdir $(PATH_PROJECT))
 PATH_INSTALL	:= lib
 PATH_MODULES	:= modules
 PATH_TESTS		:= tests

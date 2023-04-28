@@ -3,11 +3,11 @@
 
 # include "console_defs.h"
 
-struct console; // console for window applications
+typedef struct console *console; // console for window applications
 
-GIL_API bool console__init_module(struct console* self, u32 max_message_length);
-GIL_API void console__deinit_module(struct console* self);
+GIL_API console console__init_module(u32 max_message_length);
+GIL_API void    console__deinit_module(console self);
 
-GIL_API void console__log(struct console* self, char* msg, ...);
+GIL_API void console__log(console self, char* msg, ...);
 
 #endif

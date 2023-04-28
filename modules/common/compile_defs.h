@@ -24,7 +24,15 @@
 # elif defined(LINUX)
 # elif defined(MAC)
 # else
-#  error "platform not supported"
+#  error "platform not supported, need to defined either WINDOWS, LINUX or MAC"
+# endif
+
+# if defined(__GNUC__)
+#  define UNREACHABLE_CODE __builtin_unreachable()
+# endif
+
+# if !defined(UNREACHABLE_CODE)
+#  define UNREACHABLE_CODE ASSERT(false && "unreachable code")
 # endif
 
 #endif

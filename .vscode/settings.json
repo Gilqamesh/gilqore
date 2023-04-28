@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "console.h": "c",
+        "test_framework.h": "c",
+        "test_framework_defs.h": "c",
+        "shellapi.h": "c",
+        "random": "c",
+        "libc.h": "c"
+    }
+}
