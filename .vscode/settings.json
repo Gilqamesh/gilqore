@@ -5,6 +5,8 @@
         "test_framework_defs.h": "c",
         "shellapi.h": "c",
         "random": "c",
-        "libc.h": "c"
+        "libc.h": "c",
+        "fileapi.h": "c",
+        "circular_buffer.h": "c"
     }
 }

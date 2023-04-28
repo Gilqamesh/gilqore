@@ -12,11 +12,12 @@ enum ERROR_CODE {
     ERROR_CODE_COMPARE          = 400,
     ERROR_CODE_CONSOLE          = 500,
     ERROR_CODE_DATA_STRUCTURES  = 600,
-    ERROR_CODE_LERP             = 700,
-    ERROR_CODE_LIBC             = 800,
-    ERROR_CODE_RANDOM           = 900,
-    ERROR_CODE_TEST_FRAMEWORK   = 1000,
-    ERROR_CODE_VECTOR_TYPES     = 1100
+    ERROR_CODE_FILE             = 700,
+    ERROR_CODE_LERP             = 800,
+    ERROR_CODE_LIBC             = 900,
+    ERROR_CODE_RANDOM           = 1000,
+    ERROR_CODE_TEST_FRAMEWORK   = 1100,
+    ERROR_CODE_VECTOR_TYPES     = 1200
 };
 
 GIL_API void error_code__exit(u32 error_code);

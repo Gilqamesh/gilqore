@@ -25,7 +25,7 @@ endif
 console_static_objects               := $(patsubst %.c, %_static.o, $(console_sources))
 console_shared_objects               := $(patsubst %.c, %_shared.o, $(console_sources))
 console_depends                      := $(patsubst %.c, %.d, $(console_sources))
-console_depends_modules              :=  libc common
+console_depends_modules              := libc common 
 console_depends_libs_static_path     = $(foreach module_base,$(console_depends_modules),$($(module_base)_path_curdir))
 console_depends_libs_static_src      = $(foreach path,$(console_depends_libs_static_path),$(wildcard $(path)*.c))
 ifeq ($(PLATFORM), WINDOWS)
