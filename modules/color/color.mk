@@ -74,6 +74,10 @@ color_clean: $(color_clean_targets) ## remove and deinstall all color static and
 color_clean:
 	- $(RM) $(color_clean_files)
 
+.PHONY: color_re
+color_re: color_clean
+color_re: color_all
+
 .PHONY: color_strip
 color_strip: $(color_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 color_strip:

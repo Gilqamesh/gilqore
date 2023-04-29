@@ -6,8 +6,8 @@
 #include "data_structures/circular_buffer/circular_buffer.h"
 
 struct file {
-    HANDLE           handle;
-    circular_buffer  buffer;
+    HANDLE             handle;
+    circular_buffer_t  buffer;
 };
 
 file file__open(const char* path) {
@@ -20,5 +20,9 @@ void file__close(file self) {
 }
 
 u32 file__read(file self, void* out, u32 size) {
+    (void) self;
+    (void) out;
+    (void) size;
+
     return 0;
 }

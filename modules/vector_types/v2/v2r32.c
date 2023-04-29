@@ -1,8 +1,7 @@
 #include "v2r32.h"
 
-#include <math.h>
-
-#include "basic_types/basic_types.h"
+#include "math/sqrt/sqrt.h"
+#include "math/abs/abs.h"
 
 struct v2r32 v2r32(r32 x, r32 y) {
     struct v2r32 v = {x, y};
@@ -49,9 +48,9 @@ struct v2r32 v2r32__abs(struct v2r32 v) {
     return v;
 }
 
-struct v2r32 v2r32__abs_sub(struct v2r32 v, struct v2r32 w) {
-    v.x = r32__abs_sub(v.x, w.x);
-    v.y = r32__abs_sub(v.y, w.y);
+struct v2r32 v2r32__abs_dist(struct v2r32 v, struct v2r32 w) {
+    v.x = r32__abs_dist(v.x, w.x);
+    v.y = r32__abs_dist(v.y, w.y);
 
     return v;
 }
@@ -64,7 +63,7 @@ r32 v2r32__dot_v2r32(struct v2r32 v, struct v2r32 w) {
 
 r32 v2r32__length(struct v2r32 v) {
     return
-    sqrt(
+    sqrt__r32(
         v2r32__dot_v2r32(
             v,
             v

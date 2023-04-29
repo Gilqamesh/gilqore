@@ -1,9 +1,6 @@
+#include "test_framework/test_framework.h"
+
 #include "basic_types/basic_types.h"
 
-#include <stdio.h>
-
-int main() {
-    printf("%f\n", r32__abs(-3.2f));
-
-    return 1;
+void test_module_main() {
 }

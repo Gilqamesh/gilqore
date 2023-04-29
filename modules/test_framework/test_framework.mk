@@ -74,6 +74,10 @@ test_framework_clean: $(test_framework_clean_targets) ## remove and deinstall al
 test_framework_clean:
 	- $(RM) $(test_framework_clean_files)
 
+.PHONY: test_framework_re
+test_framework_re: test_framework_clean
+test_framework_re: test_framework_all
+
 .PHONY: test_framework_strip
 test_framework_strip: $(test_framework_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 test_framework_strip:

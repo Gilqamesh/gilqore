@@ -27,10 +27,11 @@ def content_module_config(module_config_path):
             # NOTE: assuming gcc compiler, by default console application
             f.write(CONSOLE_APP)
     else:
-        with open(module_config_path, 'r') as f:
+        with open(module_config_path, 'r+') as f:
             config_content = f.read()
             # TODO: make more options to embed into the template and parse them from the file
             if len(config_content) == 0:
+                f.write(CONSOLE_APP)
                 config_content = CONSOLE_APP
             config_content = config_content.replace(CONSOLE_APP, console_application)
             config_content = config_content.replace(WINDOW_APP, window_application)

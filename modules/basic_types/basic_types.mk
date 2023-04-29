@@ -74,6 +74,10 @@ basic_types_clean: $(basic_types_clean_targets) ## remove and deinstall all basi
 basic_types_clean:
 	- $(RM) $(basic_types_clean_files)
 
+.PHONY: basic_types_re
+basic_types_re: basic_types_clean
+basic_types_re: basic_types_all
+
 .PHONY: basic_types_strip
 basic_types_strip: $(basic_types_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 basic_types_strip:

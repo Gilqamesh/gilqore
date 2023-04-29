@@ -1,4 +1,4 @@
-CFLAGS_COMMON	:= -O2 -g -Wall -Wextra -Werror -I$(PATH_MODULES) -D$(PLATFORM)
+CFLAGS_COMMON	:= -O2 -std=c99 -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES) -D$(PLATFORM)
 LFLAGS_COMMON	:=
 
 GIL_BUILD_MODE  := GIL_BUILD_MODE_DEBUG

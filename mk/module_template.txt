@@ -74,6 +74,10 @@ $(MODULE_NAME)_clean: $($(MODULE_NAME)_clean_targets) ## remove and deinstall al
 $(MODULE_NAME)_clean:
 	- $(RM) $($(MODULE_NAME)_clean_files)
 
+.PHONY: $(MODULE_NAME)_re
+$(MODULE_NAME)_re: $(MODULE_NAME)_clean
+$(MODULE_NAME)_re: $(MODULE_NAME)_all
+
 .PHONY: $(MODULE_NAME)_strip
 $(MODULE_NAME)_strip: $($(MODULE_NAME)_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 $(MODULE_NAME)_strip:

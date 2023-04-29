@@ -74,6 +74,10 @@ common_clean: $(common_clean_targets) ## remove and deinstall all common static 
 common_clean:
 	- $(RM) $(common_clean_files)
 
+.PHONY: common_re
+common_re: common_clean
+common_re: common_all
+
 .PHONY: common_strip
 common_strip: $(common_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 common_strip:

@@ -74,6 +74,10 @@ libc_clean: $(libc_clean_targets) ## remove and deinstall all libc static and sh
 libc_clean:
 	- $(RM) $(libc_clean_files)
 
+.PHONY: libc_re
+libc_re: libc_clean
+libc_re: libc_all
+
 .PHONY: libc_strip
 libc_strip: $(libc_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 libc_strip:

@@ -18,7 +18,7 @@ GIL_API struct v2r32 v2r32__add_v2r32(struct v2r32 v, struct v2r32 w);
 GIL_API struct v2r32 v2r32__sub_v2r32(struct v2r32 v, struct v2r32 w);
 
 GIL_API struct v2r32 v2r32__abs(struct v2r32 v);
-GIL_API struct v2r32 v2r32__abs_sub(struct v2r32 v, struct v2r32 w);
+GIL_API struct v2r32 v2r32__abs_dist(struct v2r32 v, struct v2r32 w);
 
 GIL_API r32 v2r32__dot_v2r32(struct v2r32 v, struct v2r32 w);
 

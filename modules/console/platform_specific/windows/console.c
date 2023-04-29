@@ -14,8 +14,8 @@ struct console {
     u32    buffer_size;
 };
 
-console console__init_module(u32 max_message_length) {
-    console self = libc__malloc(sizeof(*self));
+console_t console__init_module(u32 max_message_length) {
+    console_t self = libc__malloc(sizeof(*self));
     self->buffer      = NULL;
     self->buffer_size = 0;
     self->out_handle  = INVALID_HANDLE_VALUE;
@@ -37,7 +37,7 @@ console console__init_module(u32 max_message_length) {
     return self;
 }
 
-void console__deinit_module(console self) {
+void console__deinit_module(console_t self) {
     FreeConsole();
 
     self->out_handle = INVALID_HANDLE_VALUE;
@@ -47,7 +47,7 @@ void console__deinit_module(console self) {
     }
 }
 
-void console__log(console self, char* msg, ...) {
+void console__log(console_t self, char* msg, ...) {
     if (self->out_handle != INVALID_HANDLE_VALUE) {
         va_list ap;
         va_start(ap, msg);

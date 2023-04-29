@@ -18,6 +18,14 @@ void libc__free(void* data) {
     }
 }
 
-void* libc__memcpy(void* dest, void* src, u64 size) {
+void* libc__memcpy(void* dest, const void* src, u64 size) {
     return memcpy(dest, src, size);
+}
+
+s32 libc__memcmp(const void *s1, const void *s2, u64 size) {
+    return memcmp(s1, s2, size);
+}
+
+void* libc__memset(void *dest, s32 value, u64 size) {
+    return memset(dest, value, size);
 }

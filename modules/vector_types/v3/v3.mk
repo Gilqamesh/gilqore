@@ -74,6 +74,10 @@ v3_clean: $(v3_clean_targets) ## remove and deinstall all v3 static and shared l
 v3_clean:
 	- $(RM) $(v3_clean_files)
 
+.PHONY: v3_re
+v3_re: v3_clean
+v3_re: v3_all
+
 .PHONY: v3_strip
 v3_strip: $(v3_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 v3_strip:

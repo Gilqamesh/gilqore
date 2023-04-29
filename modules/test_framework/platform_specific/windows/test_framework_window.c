@@ -28,7 +28,15 @@ GIL_API int WinMain(
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
         UNREACHABLE_CODE;
     }
-    u64 (*module_main)() = (u64 (*)()) GetProcAddress(module_handle, "test_module_main");
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#endif
+    void (*module_main)() = (void *) GetProcAddress(module_handle, "test_module_main");
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (module_main == NULL) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
         UNREACHABLE_CODE;
@@ -60,7 +68,7 @@ GIL_API int WinMain(
     LocalFree(wargv);
 
     // note: run the main function of the tester module
-    u32 test_exit_code = module_main();
+    module_main();
 
     // note: free resources
     for (s32 arg_index = 0; arg_index < argv_size; ++arg_index) {
@@ -68,7 +76,7 @@ GIL_API int WinMain(
     }
     libc__free(g_test_framework.argv);
 
-    return test_exit_code;
+    return 0;
 }
 
 s32    test_framework__argc() {

@@ -74,6 +74,10 @@ console_clean: $(console_clean_targets) ## remove and deinstall all console stat
 console_clean:
 	- $(RM) $(console_clean_files)
 
+.PHONY: console_re
+console_re: console_clean
+console_re: console_all
+
 .PHONY: console_strip
 console_strip: $(console_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 console_strip:

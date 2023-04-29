@@ -25,7 +25,7 @@ endif
 v2_static_objects               := $(patsubst %.c, %_static.o, $(v2_sources))
 v2_shared_objects               := $(patsubst %.c, %_shared.o, $(v2_sources))
 v2_depends                      := $(patsubst %.c, %.d, $(v2_sources))
-v2_depends_modules              :=  basic_types
+v2_depends_modules              :=  abs sqrt
 v2_depends_libs_static_path     = $(foreach module_base,$(v2_depends_modules),$($(module_base)_path_curdir))
 v2_depends_libs_static_src      = $(foreach path,$(v2_depends_libs_static_path),$(wildcard $(path)*.c))
 ifeq ($(PLATFORM), WINDOWS)
@@ -73,6 +73,10 @@ endif
 v2_clean: $(v2_clean_targets) ## remove and deinstall all v2 static and shared libraries
 v2_clean:
 	- $(RM) $(v2_clean_files)
+
+.PHONY: v2_re
+v2_re: v2_clean
+v2_re: v2_all
 
 .PHONY: v2_strip
 v2_strip: $(v2_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing

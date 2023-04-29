@@ -74,6 +74,10 @@ lerp_clean: $(lerp_clean_targets) ## remove and deinstall all lerp static and sh
 lerp_clean:
 	- $(RM) $(lerp_clean_files)
 
+.PHONY: lerp_re
+lerp_re: lerp_clean
+lerp_re: lerp_all
+
 .PHONY: lerp_strip
 lerp_strip: $(lerp_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 lerp_strip:

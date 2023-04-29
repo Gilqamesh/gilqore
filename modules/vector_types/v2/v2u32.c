@@ -1,6 +1,6 @@
 #include "v2u32.h"
 
-#include "basic_types/basic_types.h"
+#include "math/abs/abs.h"
 
 struct v2u32 v2u32(u32 x, u32 y) {
     struct v2u32 v = {x, y};
@@ -32,9 +32,9 @@ struct v2u32 v2u32__sub_v2u32(struct v2u32 v, struct v2u32 w) {
     );
 }
 
-struct v2u32 v2u32__abs_sub(struct v2u32 v, struct v2u32 w) {
-    v.x = u32__abs_sub(v.x, w.x);
-    v.y = u32__abs_sub(v.y, w.y);
+struct v2u32 v2u32__abs_dist(struct v2u32 v, struct v2u32 w) {
+    v.x = u32__abs_dist(v.x, w.x);
+    v.y = u32__abs_dist(v.y, w.y);
 
     return v;
 }

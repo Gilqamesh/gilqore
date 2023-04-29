@@ -74,6 +74,10 @@ v4_clean: $(v4_clean_targets) ## remove and deinstall all v4 static and shared l
 v4_clean:
 	- $(RM) $(v4_clean_files)
 
+.PHONY: v4_re
+v4_re: v4_clean
+v4_re: v4_all
+
 .PHONY: v4_strip
 v4_strip: $(v4_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 v4_strip:

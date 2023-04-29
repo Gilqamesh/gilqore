@@ -74,6 +74,10 @@ modules_clean: $(modules_clean_targets) ## remove and deinstall all modules stat
 modules_clean:
 	- $(RM) $(modules_clean_files)
 
+.PHONY: modules_re
+modules_re: modules_clean
+modules_re: modules_all
+
 .PHONY: modules_strip
 modules_strip: $(modules_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 modules_strip:

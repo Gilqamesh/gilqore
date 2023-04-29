@@ -74,6 +74,10 @@ data_structures_clean: $(data_structures_clean_targets) ## remove and deinstall 
 data_structures_clean:
 	- $(RM) $(data_structures_clean_files)
 
+.PHONY: data_structures_re
+data_structures_re: data_structures_clean
+data_structures_re: data_structures_all
+
 .PHONY: data_structures_strip
 data_structures_strip: $(data_structures_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 data_structures_strip:

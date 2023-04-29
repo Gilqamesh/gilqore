@@ -1,16 +1,14 @@
-#include "console/console.h"
 #include "test_framework/test_framework.h"
 
-u64 test_module_main() {
-    console c = console__init_module(16);
+#include "console/console.h"
 
-    if (c) {
-        console__log(c, "yoo\n");
+void test_module_main() {
+    console_t console = console__init_module(42);
 
-        console__deinit_module(c);
+    if (console) {
+        console__log(console, "yoo\n");
 
-        return 0;
-    } else {
-        return 1;
+        console__deinit_module(console);
+
     }
 }

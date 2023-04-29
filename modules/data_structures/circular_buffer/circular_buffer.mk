@@ -25,7 +25,7 @@ endif
 circular_buffer_static_objects               := $(patsubst %.c, %_static.o, $(circular_buffer_sources))
 circular_buffer_shared_objects               := $(patsubst %.c, %_shared.o, $(circular_buffer_sources))
 circular_buffer_depends                      := $(patsubst %.c, %.d, $(circular_buffer_sources))
-circular_buffer_depends_modules              :=  libc common compare
+circular_buffer_depends_modules              :=  libc common compare mod
 circular_buffer_depends_libs_static_path     = $(foreach module_base,$(circular_buffer_depends_modules),$($(module_base)_path_curdir))
 circular_buffer_depends_libs_static_src      = $(foreach path,$(circular_buffer_depends_libs_static_path),$(wildcard $(path)*.c))
 ifeq ($(PLATFORM), WINDOWS)
@@ -73,6 +73,10 @@ endif
 circular_buffer_clean: $(circular_buffer_clean_targets) ## remove and deinstall all circular_buffer static and shared libraries
 circular_buffer_clean:
 	- $(RM) $(circular_buffer_clean_files)
+
+.PHONY: circular_buffer_re
+circular_buffer_re: circular_buffer_clean
+circular_buffer_re: circular_buffer_all
 
 .PHONY: circular_buffer_strip
 circular_buffer_strip: $(circular_buffer_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing

@@ -74,6 +74,10 @@ random_clean: $(random_clean_targets) ## remove and deinstall all random static 
 random_clean:
 	- $(RM) $(random_clean_files)
 
+.PHONY: random_re
+random_re: random_clean
+random_re: random_all
+
 .PHONY: random_strip
 random_strip: $(random_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 random_strip:

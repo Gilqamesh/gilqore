@@ -25,7 +25,7 @@ endif
 file_static_objects               := $(patsubst %.c, %_static.o, $(file_sources))
 file_shared_objects               := $(patsubst %.c, %_shared.o, $(file_sources))
 file_depends                      := $(patsubst %.c, %.d, $(file_sources))
-file_depends_modules              :=  
+file_depends_modules              := common circular_buffer 
 file_depends_libs_static_path     = $(foreach module_base,$(file_depends_modules),$($(module_base)_path_curdir))
 file_depends_libs_static_src      = $(foreach path,$(file_depends_libs_static_path),$(wildcard $(path)*.c))
 ifeq ($(PLATFORM), WINDOWS)
@@ -60,7 +60,7 @@ $(file_install_path_static): $(file_static_objects)
 
 $(file_install_path_shared): | $(file_depends_libs_rules)
 $(file_install_path_shared): $(file_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(file_shared_lflags) $(file_shared_objects) $(file_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_shared_lflags) $(file_shared_objects) $(file_depends_libs_shared)
 
 .PHONY: file_all
 file_all: $(file_all_targets) ## build and install all file static and shared libraries
@@ -73,6 +73,10 @@ endif
 file_clean: $(file_clean_targets) ## remove and deinstall all file static and shared libraries
 file_clean:
 	- $(RM) $(file_clean_files)
+
+.PHONY: file_re
+file_re: file_clean
+file_re: file_all
 
 .PHONY: file_strip
 file_strip: $(file_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing

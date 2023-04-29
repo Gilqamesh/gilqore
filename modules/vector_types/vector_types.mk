@@ -74,6 +74,10 @@ vector_types_clean: $(vector_types_clean_targets) ## remove and deinstall all ve
 vector_types_clean:
 	- $(RM) $(vector_types_clean_files)
 
+.PHONY: vector_types_re
+vector_types_re: vector_types_clean
+vector_types_re: vector_types_all
+
 .PHONY: vector_types_strip
 vector_types_strip: $(vector_types_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
 vector_types_strip:

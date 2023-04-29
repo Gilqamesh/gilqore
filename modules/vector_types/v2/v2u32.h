@@ -16,7 +16,7 @@ GIL_API struct v2u32 v2u32__add_v2u32(struct v2u32 v, struct v2u32 w);
 
 GIL_API struct v2u32 v2u32__sub_v2u32(struct v2u32 v, struct v2u32 w);
 
-GIL_API struct v2u32 v2u32__abs_sub(struct v2u32 v, struct v2u32 w);
+GIL_API struct v2u32 v2u32__abs_dist(struct v2u32 v, struct v2u32 w);
 
 GIL_API bool v2u32__is_less(struct v2u32 v, struct v2u32 relative);
 

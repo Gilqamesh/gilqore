@@ -28,7 +28,7 @@
 # endif
 
 # if defined(__GNUC__)
-#  define UNREACHABLE_CODE __builtin_unreachable()
+#  define UNREACHABLE_CODE __builtin_unreachable(); ASSERT(false && "unreachable code")
 # endif
 
 # if !defined(UNREACHABLE_CODE)
