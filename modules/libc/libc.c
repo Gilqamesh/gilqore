@@ -29,3 +29,11 @@ s32 libc__memcmp(const void *s1, const void *s2, u64 size) {
 void* libc__memset(void *dest, s32 value, u64 size) {
     return memset(dest, value, size);
 }
+
+u64 libc__strlen(const char* str) {
+    return (u64) strlen(str);
+}
+
+s32 libc__strcmp(const char* str1, const char* str2) {
+    return strcmp(str1, str2);
+}

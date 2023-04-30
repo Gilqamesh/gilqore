@@ -21,7 +21,7 @@ void console__deinit_module(console_t self) {
     libc__free(self);
 }
 
-void console__log(console_t self, char* msg, ...) {
+u32 console__log(console_t self, const char* msg, ...) {
     if (self->place_holder == 42) {
         va_list ap;
         va_start(ap, msg);
@@ -30,4 +30,10 @@ void console__log(console_t self, char* msg, ...) {
 
         va_end(ap);
     }
+}
+
+u32 console__size(console_t self) {
+    (void) self;
+
+    return 0;
 }

@@ -26,7 +26,6 @@ GIL_API int WinMain(
     HMODULE module_handle = GetModuleHandleA(NULL);
     if (module_handle == NULL) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
-        UNREACHABLE_CODE;
     }
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
@@ -39,7 +38,6 @@ GIL_API int WinMain(
 #endif
     if (module_main == NULL) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
-        UNREACHABLE_CODE;
     }
 
     // note: get command line arguments and convert them to ascii
@@ -49,7 +47,6 @@ GIL_API int WinMain(
     );
     if (wargv == NULL) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TO_ARGVW);
-        UNREACHABLE_CODE;
     }
     s32 argv_size = g_test_framework.argc + 1;
     g_test_framework.argv = (char **) libc__malloc(argv_size * sizeof(*g_test_framework.argv));

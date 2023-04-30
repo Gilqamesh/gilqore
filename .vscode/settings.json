@@ -18,6 +18,9 @@
         "basic_types_defs.h": "c",
         "defs.h": "c",
         "compile_defs.h": "c",
-        "data_types.h": "c"
+        "data_types.h": "c",
+        "file.h": "c",
+        "file_platform_specific_defs.h": "c",
+        "fcntl.h": "c"
     }
 }

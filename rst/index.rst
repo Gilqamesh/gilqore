@@ -5,7 +5,6 @@ Gil Modules
 :Email: celicaw8@gmail.com
 
 .. toctree::
-   :maxdepth: 1
    :glob:
 
    module_docs/*

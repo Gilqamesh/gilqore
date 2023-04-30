@@ -1,0 +1,19 @@
+#ifndef FILE_PLATFORM_SPECIFIC_DEFS_H
+# define FILE_PLATFORM_SPECIFIC_DEFS_H
+
+# include "../../file_defs.h"
+
+enum FILE_ERROR_CODE_WINDOWS {
+    FILE_ERROR_CODE_WINDOWS_CLOSEHANDLE = FILE_ERROR_CODE_WINDOWS,
+    FILE_ERROR_CODE_WINDOWS_READ,
+    FILE_ERROR_CODE_WINDOWS_WRITE,
+    FILE_ERROR_CODE_WINDOWS_SEEK
+};
+
+#include <Windows.h>
+
+struct file {
+    HANDLE handle;
+};
+
+#endif

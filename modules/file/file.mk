@@ -25,7 +25,7 @@ endif
 file_static_objects               := $(patsubst %.c, %_static.o, $(file_sources))
 file_shared_objects               := $(patsubst %.c, %_shared.o, $(file_sources))
 file_depends                      := $(patsubst %.c, %.d, $(file_sources))
-file_depends_modules              := common circular_buffer 
+file_depends_modules              := common 
 file_depends_libs_static_path     = $(foreach module_base,$(file_depends_modules),$($(module_base)_path_curdir))
 file_depends_libs_static_src      = $(foreach path,$(file_depends_libs_static_path),$(wildcard $(path)*.c))
 ifeq ($(PLATFORM), WINDOWS)
