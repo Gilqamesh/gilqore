@@ -12,3 +12,5 @@ docs/*
 *.o
 *.a
 *.so
+.vscode
+.venv
