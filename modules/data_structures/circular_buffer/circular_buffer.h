@@ -31,9 +31,9 @@ GIL_API void circular_buffer__pop(circular_buffer_t self, void* out_item);
 GIL_API void circular_buffer__pop_multiple(circular_buffer_t self, void* out, u32 number_of_items);
 
 // @returns head pointer
-GIL_API void*  circular_buffer__get_head(circular_buffer_t self);
+GIL_API void*  circular_buffer__head(circular_buffer_t self);
 // @returns tail pointer
-GIL_API void*  circular_buffer__get_tail(circular_buffer_t self);
+GIL_API void*  circular_buffer__tail(circular_buffer_t self);
 // @returns begin pointer
 GIL_API void*  circular_buffer__begin(circular_buffer_t self);
 // @returns end pointer

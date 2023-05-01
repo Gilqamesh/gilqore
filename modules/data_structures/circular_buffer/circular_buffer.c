@@ -73,6 +73,7 @@ void circular_buffer__destroy(circular_buffer_t self) {
     if (self->buffer_is_owned) {
         libc__free(self->buffer);
     }
+    libc__free(self);
 }
 
 void circular_buffer__clear(circular_buffer_t self) {
@@ -82,18 +83,24 @@ void circular_buffer__clear(circular_buffer_t self) {
 }
 
 void circular_buffer__advance_head(circular_buffer_t self, s32 advance_by) {
+    if (advance_by == 0) {
+        return ;
+    }
     self->head_index = mod__s32((s32) self->head_index + advance_by, self->num_of_items_total);
     self->has_items = 1;
 }
 
 void circular_buffer__advance_tail(circular_buffer_t self, s32 advance_by) {
+    if (advance_by == 0) {
+        return ;
+    }
     self->tail_index = mod__s32((s32) self->tail_index + advance_by, self->num_of_items_total);
     self->has_items = self->head_index == self->tail_index ? 0 : 1;
 }
 
 
 void circular_buffer__push(circular_buffer_t self, const void* in_item) {
-    libc__memcpy(circular_buffer__get_head(self), in_item, self->size_of_item);
+    libc__memcpy(circular_buffer__head(self), in_item, self->size_of_item);
     circular_buffer__advance_and_wrap_head_by_one(self);
 
     self->has_items = 1;
@@ -108,20 +115,20 @@ void circular_buffer__push_multiple(circular_buffer_t self, const void* in, u32 
 
     u32 num_of_items_to_insert = min__u32(num_of_items, self->num_of_items_total - self->head_index);
     u32 size_of_items_to_insert = num_of_items_to_insert * self->size_of_item;
-    libc__memcpy(circular_buffer__get_head(self), in, size_of_items_to_insert);
+    libc__memcpy(circular_buffer__head(self), in, size_of_items_to_insert);
     circular_buffer__advance_and_wrap_head(self, num_of_items_to_insert);
     in = (void *) ((u8*) in + size_of_items_to_insert);
 
     num_of_items_to_insert = num_of_items - num_of_items_to_insert;
     size_of_items_to_insert = num_of_items_to_insert * self->size_of_item;
-    libc__memcpy(circular_buffer__get_head(self), in, size_of_items_to_insert);
+    libc__memcpy(circular_buffer__head(self), in, size_of_items_to_insert);
     circular_buffer__advance_and_wrap_head(self, num_of_items_to_insert);
 
     self->has_items = 1;
 }
 
 void circular_buffer__pop(circular_buffer_t self, void* out_item) {
-    libc__memcpy(out_item, circular_buffer__get_tail(self), self->size_of_item);
+    libc__memcpy(out_item, circular_buffer__tail(self), self->size_of_item);
     circular_buffer__advance_and_wrap_tail_by_one(self);
 
     self->has_items = self->head_index == self->tail_index ? 0 : 1;
@@ -136,23 +143,23 @@ void circular_buffer__pop_multiple(circular_buffer_t self, void* out, u32 num_of
 
     u32 num_of_items_to_extract = min__u32(num_of_items, self->num_of_items_total - self->tail_index);
     u32 size_of_items_to_extract = num_of_items_to_extract * self->size_of_item;
-    libc__memcpy(out, circular_buffer__get_tail(self), size_of_items_to_extract);
+    libc__memcpy(out, circular_buffer__tail(self), size_of_items_to_extract);
     circular_buffer__advance_and_wrap_tail(self, num_of_items_to_extract);
     out = (void*) ((u8*) out + size_of_items_to_extract);
 
     num_of_items_to_extract = num_of_items - num_of_items_to_extract;
     size_of_items_to_extract = num_of_items_to_extract * self->size_of_item;
-    libc__memcpy(out, circular_buffer__get_tail(self), size_of_items_to_extract);
+    libc__memcpy(out, circular_buffer__tail(self), size_of_items_to_extract);
     circular_buffer__advance_and_wrap_tail(self, num_of_items_to_extract);
 
     self->has_items = self->head_index == self->tail_index ? 0 : 1;
 }
 
-void*  circular_buffer__get_head(circular_buffer_t self) {
+void*  circular_buffer__head(circular_buffer_t self) {
     return (void*) ((u8*) self->buffer + self->head_index * self->size_of_item);
 }
 
-void*  circular_buffer__get_tail(circular_buffer_t self) {
+void*  circular_buffer__tail(circular_buffer_t self) {
     return (void*) ((u8*) self->buffer + self->tail_index * self->size_of_item);
 }
 

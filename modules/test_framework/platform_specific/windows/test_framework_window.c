@@ -10,6 +10,9 @@ struct test_framework_window {
     char** argv;
 };
 
+
+#include <stdio.h>
+
 static struct test_framework_window g_test_framework;
 
 GIL_API int WinMain(
@@ -64,8 +67,14 @@ GIL_API int WinMain(
     }
     LocalFree(wargv);
 
+    u32 before_test_allocated_memory_size = libc__unfreed_byte_count();
     // note: run the main function of the tester module
     module_main();
+    u32 after_test_allocated_memory_size = libc__unfreed_byte_count();
+    if (after_test_allocated_memory_size != before_test_allocated_memory_size) {
+        printf("Before: %u\nAfter: %u\n", before_test_allocated_memory_size, after_test_allocated_memory_size);
+        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_MEMLEAK);
+    }
 
     // note: free resources
     for (s32 arg_index = 0; arg_index < argv_size; ++arg_index) {

@@ -1,46 +1,37 @@
-v4_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
-v4_test_name_curdir          := $(notdir $(patsubst %/,%,$(v4_test_path_curdir)))
-v4_test_child_makefiles      := $(wildcard $(v4_test_path_curdir)*/*mk)
-v4_test_names                := $(basename $(notdir $(v4_test_child_makefiles)))
-v4_test_all_targets          := $(foreach v4_test,$(v4_test_names),$(v4_test)_all)
-v4_test_clean_targets        := $(foreach v4_test,$(v4_test_names),$(v4_test)_clean)
-v4_test_run_targets          := $(foreach v4_test,$(v4_test_names),$(v4_test)_run)
-v4_test_install_path_static  := $(v4_test_path_curdir)$(v4_test_name_curdir)_static$(EXT_EXE)
-v4_test_install_path_shared  := $(v4_test_path_curdir)$(v4_test_name_curdir)_shared$(EXT_EXE)
-v4_test_sources              := $(wildcard $(v4_test_path_curdir)*.c)
-v4_test_objects              := $(patsubst %.c, %.o, $(v4_test_sources))
-v4_test_depends              := $(patsubst %.c, %.d, $(v4_test_sources))
-v4_test_depends_modules      := 
-v4_test_libdepend_target     := $(v4_test_name_curdir)_all $(foreach module,$(v4_test_depends_modules),$(module)_all) test_framework_all
-v4_test_libdepend_static     := $(PATH_INSTALL)/$(v4_test_name_curdir)$(EXT_LIB_STATIC)
-v4_test_libdepend_static     += $(foreach module_base,$(v4_test_depends_modules),$(PATH_INSTALL)/$(module_base)$(EXT_LIB_STATIC))
-v4_test_libdepend_shared     := $(PATH_INSTALL)/lib$(v4_test_name_curdir)dll.a $(PATH_INSTALL)/libtest_frameworkdll.a
-v4_test_libdepend_shared     += $(foreach module_base,$(v4_test_depends_modules),$(PATH_INSTALL)/lib$(module_base)dll.a)
+v4_test_path_curdir				        := $(dir $(lastword $(MAKEFILE_LIST)))
+v4_test_child_makefiles			        := $(wildcard $(v4_test_path_curdir)*/*mk)
+v4_test_child_module_names		        := $(basename $(notdir $(v4_test_child_makefiles)))
+v4_test_child_all_targets		        := $(foreach test_module,$(v4_test_child_module_names),$(test_module)_all)
+v4_test_child_clean_targets		        := $(foreach test_module,$(v4_test_child_module_names),$(test_module)_clean)
+v4_test_child_run_targets		        := $(foreach test_module,$(v4_test_child_module_names),$(test_module)_run)
+v4_test_install_path_static		        := $(v4_test_path_curdir)v4_static$(EXT_EXE)
+v4_test_sources					        := $(wildcard $(v4_test_path_curdir)*.c)
+v4_test_objects					        := $(patsubst %.c, %.o, $(v4_test_sources))
+v4_test_depends					        := $(patsubst %.c, %.d, $(v4_test_sources))
+v4_test_depends_modules			        :=  v4 test_framework
+v4_test_libdepend_static_objs	        := $(foreach dep_module,$(v4_depends_modules),$($(dep_module)_static_objects))
+v4_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(v4_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
+v4_test_libdepend_static_objs	        += $(foreach dep_module,$(v4_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(v4_test_child_makefiles)
 
 $(v4_test_path_curdir)%.o: $(v4_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(v4_test_install_path_static): | $(v4_test_libdepend_target)
+$(v4_test_install_path_static): $(v4_test_libdepend_static_objs)
 $(v4_test_install_path_static): $(v4_test_objects)
-	$(CC) -o $@ $(v4_test_objects) -Wl,--whole-archive $(PATH_INSTALL)/test_framework.lib -Wl,--no-whole-archive $(v4_test_libdepend_static) $(LFLAGS_COMMON) -mconsole
-
-$(v4_test_install_path_shared): | $(v4_test_libdepend_target)
-$(v4_test_install_path_shared): $(v4_test_objects)
-	$(CC) -o $@ $(v4_test_objects) -Wl,--whole-archive $(v4_test_libdepend_shared) -Wl,--no-whole-archive $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(v4_test_objects) -Wl,--allow-multiple-definition $(v4_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: v4_test_all
-v4_test_all: $(v4_test_all_targets) ## build all v4_test tests
+v4_test_all: $(v4_test_child_all_targets) ## build all v4_test tests
 ifneq ($(v4_test_objects),)
 v4_test_all: $(v4_test_install_path_static)
-v4_test_all: $(v4_test_install_path_shared)
 endif
 
 .PHONY: v4_test_clean
-v4_test_clean: $(v4_test_clean_targets) ## remove all v4_test tests
+v4_test_clean: $(v4_test_child_clean_targets) ## remove all v4_test tests
 v4_test_clean:
-	- $(RM) $(v4_test_install_path_static) $(v4_test_install_path_shared) $(v4_test_objects) $(v4_test_depends)
+	- $(RM) $(v4_test_install_path_static) $(v4_test_objects) $(v4_test_depends)
 
 .PHONY: v4_test_re
 v4_test_re: v4_test_clean
@@ -48,7 +39,7 @@ v4_test_re: v4_test_all
 
 .PHONY: v4_test_run
 v4_test_run: v4_test_all ## build and run static v4_test
-v4_test_run: $(v4_test_run_targets)
+v4_test_run: $(v4_test_child_run_targets)
 ifneq ($(v4_test_objects),)
 v4_test_run:
 	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v4_test_install_path_static)

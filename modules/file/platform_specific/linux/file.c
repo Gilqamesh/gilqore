@@ -70,6 +70,10 @@ bool file__delete(const char* path) {
 }
 
 u32 file__read(struct file* self, void* out, u32 size) {
+    if (size == 0) {
+        return 0;
+    }
+
     s32 result;
 
     if ((result = read(self->fd, out, size)) == -1) {

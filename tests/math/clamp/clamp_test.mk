@@ -1,46 +1,37 @@
-clamp_test_path_curdir          := $(dir $(lastword $(MAKEFILE_LIST)))
-clamp_test_name_curdir          := $(notdir $(patsubst %/,%,$(clamp_test_path_curdir)))
-clamp_test_child_makefiles      := $(wildcard $(clamp_test_path_curdir)*/*mk)
-clamp_test_names                := $(basename $(notdir $(clamp_test_child_makefiles)))
-clamp_test_all_targets          := $(foreach clamp_test,$(clamp_test_names),$(clamp_test)_all)
-clamp_test_clean_targets        := $(foreach clamp_test,$(clamp_test_names),$(clamp_test)_clean)
-clamp_test_run_targets          := $(foreach clamp_test,$(clamp_test_names),$(clamp_test)_run)
-clamp_test_install_path_static  := $(clamp_test_path_curdir)$(clamp_test_name_curdir)_static$(EXT_EXE)
-clamp_test_install_path_shared  := $(clamp_test_path_curdir)$(clamp_test_name_curdir)_shared$(EXT_EXE)
-clamp_test_sources              := $(wildcard $(clamp_test_path_curdir)*.c)
-clamp_test_objects              := $(patsubst %.c, %.o, $(clamp_test_sources))
-clamp_test_depends              := $(patsubst %.c, %.d, $(clamp_test_sources))
-clamp_test_depends_modules      := 
-clamp_test_libdepend_target     := $(clamp_test_name_curdir)_all $(foreach module,$(clamp_test_depends_modules),$(module)_all) test_framework_all
-clamp_test_libdepend_static     := $(PATH_INSTALL)/$(clamp_test_name_curdir)$(EXT_LIB_STATIC)
-clamp_test_libdepend_static     += $(foreach module_base,$(clamp_test_depends_modules),$(PATH_INSTALL)/$(module_base)$(EXT_LIB_STATIC))
-clamp_test_libdepend_shared     := $(PATH_INSTALL)/lib$(clamp_test_name_curdir)dll.a $(PATH_INSTALL)/libtest_frameworkdll.a
-clamp_test_libdepend_shared     += $(foreach module_base,$(clamp_test_depends_modules),$(PATH_INSTALL)/lib$(module_base)dll.a)
+clamp_test_path_curdir				        := $(dir $(lastword $(MAKEFILE_LIST)))
+clamp_test_child_makefiles			        := $(wildcard $(clamp_test_path_curdir)*/*mk)
+clamp_test_child_module_names		        := $(basename $(notdir $(clamp_test_child_makefiles)))
+clamp_test_child_all_targets		        := $(foreach test_module,$(clamp_test_child_module_names),$(test_module)_all)
+clamp_test_child_clean_targets		        := $(foreach test_module,$(clamp_test_child_module_names),$(test_module)_clean)
+clamp_test_child_run_targets		        := $(foreach test_module,$(clamp_test_child_module_names),$(test_module)_run)
+clamp_test_install_path_static		        := $(clamp_test_path_curdir)clamp_static$(EXT_EXE)
+clamp_test_sources					        := $(wildcard $(clamp_test_path_curdir)*.c)
+clamp_test_objects					        := $(patsubst %.c, %.o, $(clamp_test_sources))
+clamp_test_depends					        := $(patsubst %.c, %.d, $(clamp_test_sources))
+clamp_test_depends_modules			        :=  clamp test_framework
+clamp_test_libdepend_static_objs	        := $(foreach dep_module,$(clamp_depends_modules),$($(dep_module)_static_objects))
+clamp_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(clamp_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
+clamp_test_libdepend_static_objs	        += $(foreach dep_module,$(clamp_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(clamp_test_child_makefiles)
 
 $(clamp_test_path_curdir)%.o: $(clamp_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(clamp_test_install_path_static): | $(clamp_test_libdepend_target)
+$(clamp_test_install_path_static): $(clamp_test_libdepend_static_objs)
 $(clamp_test_install_path_static): $(clamp_test_objects)
-	$(CC) -o $@ $(clamp_test_objects) -Wl,--whole-archive $(PATH_INSTALL)/test_framework.lib -Wl,--no-whole-archive $(clamp_test_libdepend_static) $(LFLAGS_COMMON) -mconsole
-
-$(clamp_test_install_path_shared): | $(clamp_test_libdepend_target)
-$(clamp_test_install_path_shared): $(clamp_test_objects)
-	$(CC) -o $@ $(clamp_test_objects) -Wl,--whole-archive $(clamp_test_libdepend_shared) -Wl,--no-whole-archive $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(clamp_test_objects) -Wl,--allow-multiple-definition $(clamp_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: clamp_test_all
-clamp_test_all: $(clamp_test_all_targets) ## build all clamp_test tests
+clamp_test_all: $(clamp_test_child_all_targets) ## build all clamp_test tests
 ifneq ($(clamp_test_objects),)
 clamp_test_all: $(clamp_test_install_path_static)
-clamp_test_all: $(clamp_test_install_path_shared)
 endif
 
 .PHONY: clamp_test_clean
-clamp_test_clean: $(clamp_test_clean_targets) ## remove all clamp_test tests
+clamp_test_clean: $(clamp_test_child_clean_targets) ## remove all clamp_test tests
 clamp_test_clean:
-	- $(RM) $(clamp_test_install_path_static) $(clamp_test_install_path_shared) $(clamp_test_objects) $(clamp_test_depends)
+	- $(RM) $(clamp_test_install_path_static) $(clamp_test_objects) $(clamp_test_depends)
 
 .PHONY: clamp_test_re
 clamp_test_re: clamp_test_clean
@@ -48,7 +39,7 @@ clamp_test_re: clamp_test_all
 
 .PHONY: clamp_test_run
 clamp_test_run: clamp_test_all ## build and run static clamp_test
-clamp_test_run: $(clamp_test_run_targets)
+clamp_test_run: $(clamp_test_child_run_targets)
 ifneq ($(clamp_test_objects),)
 clamp_test_run:
 	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(clamp_test_install_path_static)

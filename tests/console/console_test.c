@@ -12,14 +12,18 @@ void test_console_log(console_t console, const char* msg) {
     );
 }
 
+#define CONSOLE_BUFFER_SIZE 100
+
 void test_module_main() {
-    u32 console_buffer_size = 10;
-    console_t console = console__init_module(console_buffer_size);
+    console_t console = console__init_module(CONSOLE_BUFFER_SIZE);
 
     if (console) {
         test_console_log(console, "yoo\n");
         test_console_log(console, "");
-        test_console_log(console, "aaaaaaaaaaaaaaaaaaaaaaaaa\n");
+        char buffer[CONSOLE_BUFFER_SIZE << 1];
+        buffer[ARRAY_SIZE(buffer) - 1] = '\0';
+        libc__memset(buffer, (s32)'a', ARRAY_SIZE(buffer));
+        test_console_log(console, buffer);
 
         console__deinit_module(console);
     }

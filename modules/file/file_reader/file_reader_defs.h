@@ -1,0 +1,10 @@
+#ifndef FILE_READER_DEFS_H
+# define FILE_READER_DEFS_H
+
+# include "../file_defs.h"
+
+enum FILE_READER_ERROR_CODE {
+    FILE_READER_ERROR_CODE_FATAL = ERROR_CODE_FILE_READER
+};
+
+#endif

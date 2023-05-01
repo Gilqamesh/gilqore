@@ -23,6 +23,9 @@ void test_filled_circular_buffer(
         ASSERT(circular_buffer__size_current(circular_buffer) == (u32) circular_buffer_cur_size);
         advance_by_total = (advance_by_total + advance_by) % circular_buffer_total_size;
 
+        circular_buffer__advance_head(circular_buffer, 0);
+        circular_buffer__advance_tail(circular_buffer, 0);
+
         advance_by = i % circular_buffer_total_size;
         circular_buffer__pop_multiple(circular_buffer, auxiliary_array, advance_by);
         for (s32 j = 0; j < advance_by; ++j) {
@@ -182,4 +185,5 @@ void test_module_main() {
     libc__free(circular_buffer_r64_data);
     circular_buffer__destroy(circular_buffer_r64);
     circular_buffer__destroy(circular_buffer_s32);
+    circular_buffer__destroy(circular_buffer_test_type);
 }

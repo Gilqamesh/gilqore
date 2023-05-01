@@ -43,6 +43,7 @@ void console__deinit_module(console_t self) {
     if (self->buffer) {
         libc__free(self->buffer);
     }
+    libc__free(self);
 }
 
 u32 console__log(console_t self, const char* msg, ...) {
