@@ -4,7 +4,7 @@
 
 #include "data_structures/circular_buffer/circular_buffer.h"
 #include "libc/libc.h"
-#include "random/random.h"
+#include "math/random/random.h"
 #include "math/mod/mod.h"
 
 void test_filled_circular_buffer(
