@@ -5,6 +5,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
 
 static inline u32 file_access_mode(enum file_access_mode access_mode) {
     u32 result = 0;
@@ -60,8 +61,21 @@ void file__close(struct file* self) {
     }
 }
 
+bool file__exists(const char* path) {
+    return access(path, F_OK) == 0;
+}
+
 bool file__delete(const char* path) {
     if (unlink(path) == -1) {
+        // todo: diagnostic, check errno
+        return false;
+    }
+
+    return true;
+}
+
+bool file__move(const char* src_path, const char* dest_path) {
+    if (rename(src_path, dest_path) == -1) {
         // todo: diagnostic, check errno
         return false;
     }

@@ -4,9 +4,6 @@
 # include "directory_defs.h"
 
 struct directory;
-struct directory_entry;
-
-# define WINDOWS
 
 # if defined(WINDOWS)
 #  include "platform_specific/windows/directory_platform_specific_defs.h"
@@ -20,14 +17,13 @@ struct directory_entry;
 GIL_API bool directory__open(struct directory* self, const char* path);
 // @brief closes the directory handle
 GIL_API void directory__close(struct directory* self);
-// @brief returns the directory entry of the current entry's name in the opened directory, and moves to the next entry
-GIL_API struct directory_entry directory__read(struct directory* self);
+// @brief returns the name of the current file opened directory, and moves to the next file
+// @returns true on success, false if no more files are in the directory
+GIL_API bool directory__read(struct directory* self, char* buffer, u32 buffer_size);
 
 // @brief if it doesn't already exist, create a directory
 GIL_API bool directory__create(const char* path);
 // @brief deletes a directory if exists and empty
 GIL_API bool directory__delete(const char* path);
-// @brief renames a directory if exists
-GIL_API bool directory__rename(const char* path);
 
 #endif

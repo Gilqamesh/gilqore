@@ -3,16 +3,15 @@
 
 # include "../../directory_defs.h"
 
-// todo: error code
+enum DIRECTORY_ERROR_CODE_LINUX {
+    DIRECTORY_ERROR_CODE_LINUX_CLOSEDIR = DIRECTORY_ERROR_CODE_LINUX,
+    DIRECTORY_ERROR_CODE_LINUX_INVALID_DIRECTORY_READ_INPUT
+};
 
 # include <dirent.h>
 
 struct directory {
     DIR* handle;
 };
-
-struct directory_entry {
-    const char* file_name;
-}
 
 #endif

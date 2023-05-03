@@ -3,7 +3,7 @@
 
 # include "lerp_defs.h"
 
-# include "color/color.h"
+# include "graphics/color/color.h"
 
 GIL_API u32 lerp__u32(u32 a, r32 normalized_value, u32 b);
 

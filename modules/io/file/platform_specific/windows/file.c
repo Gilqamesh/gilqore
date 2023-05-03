@@ -1,4 +1,4 @@
-#include "file/file.h"
+#include "../../file.h"
 #include "file_platform_specific_defs.h"
 
 #include "common/error_code.h"
@@ -61,8 +61,21 @@ void file__close(struct file* self) {
     }
 }
 
+bool file__exists(const char* path) {
+    return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
+}
+
 bool file__delete(const char* path) {
     if (DeleteFile(path) == FALSE) {
+        // todo: diagnostics, GetLastError()
+        return false;
+    }
+
+    return true;
+}
+
+bool file__move(const char* src_path, const char* dest_path) {
+    if (MoveFile(src_path, dest_path) == FALSE) {
         // todo: diagnostics, GetLastError()
         return false;
     }

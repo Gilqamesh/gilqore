@@ -21,7 +21,7 @@ endif
 directory_static_objects			:= $(patsubst %.c, %_static.o, $(directory_sources))
 directory_shared_objects			:= $(patsubst %.c, %_shared.o, $(directory_sources))
 directory_depends					:= $(patsubst %.c, %.d, $(directory_sources))
-directory_depends_modules			:=  
+directory_depends_modules			:= compare libc common 
 directory_depends_libs_shared		:= $(foreach module,$(directory_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 directory_depends_libs_targets		:= $(foreach module,$(directory_depends_modules),$(module)_all)
 directory_clean_files				:=
@@ -42,7 +42,7 @@ $(directory_path_curdir)%_shared.o: $(directory_path_curdir)%.c
 $(directory_install_path_shared): $(directory_depends_libs_shared)
 $(directory_install_path_shared): $(directory_static_objects)
 $(directory_install_path_shared): $(directory_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(directory_shared_lflags) $(directory_shared_objects) $(directory_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(directory_shared_lflags) $(directory_shared_objects) $(directory_depends_libs_shared)
 
 .PHONY: directory_all
 directory_all: $(directory_child_all_targets) ## build and install all directory static and shared libraries

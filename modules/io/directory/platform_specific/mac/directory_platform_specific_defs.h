@@ -5,6 +5,5 @@
 
 // todo: error code
 // todo: define struct directory
-// todo: define directory_entry
 
 #endif

@@ -17,7 +17,7 @@ struct module {
     int transient_flag_for_processing;
 };
 
-void module_add_child(struct module* pm, struct module* sm, const char* sm_name);
+struct module* module_add_child(struct module* pm, const char* sm_name);
 
 void module_add_dependency(struct module* m, struct module* dm);
 

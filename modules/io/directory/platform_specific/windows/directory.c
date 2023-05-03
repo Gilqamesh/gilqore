@@ -2,12 +2,14 @@
 #include "../../directory.h"
 
 #include "common/error_code.h"
+#include "libc/libc.h"
+#include "math/compare/compare.h"
 
 bool directory__open(struct directory* self, const char* path) {
-    if (FindFirstFileA(
+    if ((self->handle = FindFirstFileA(
         path,
         &self->current_file_info
-    ) == INVALID_HANDLE_VALUE ) {
+    )) == INVALID_HANDLE_VALUE ) {
         // todo: diagnostics, GetLastError()
         return false;
     }
@@ -18,18 +20,54 @@ bool directory__open(struct directory* self, const char* path) {
 void directory__close(struct directory* self) {
     if (FindClose(self->handle) == FALSE) {
         // todo: diagnostics, GetLastError()
-        error_code__exit();
+        error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_FINDCLOSE);
     }
 }
 
-struct directory_entry directory__read(struct directory* self) {
+bool directory__read(struct directory* self, char* buffer, u32 buffer_size) {    
+    if (buffer == NULL || buffer_size == 0) {
+        error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_INVALID_DIRECTORY_READ_INPUT);
+    }
+
+    if (FindNextFileA(
+        self->handle,
+        &self->current_file_info
+    ) == FALSE) {
+        if (GetLastError() == ERROR_NO_MORE_FILES) {
+            return false;
+        } else {
+            // todo: diagnostics, GetLastError()
+            error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_FIND_NEXT_FILE);
+        }
+    }
+    u64 bytes_to_write = min__u64(
+        libc__strlen(self->current_file_info.cFileName),
+        buffer_size - 1
+    );
+    libc__memcpy(
+        buffer,
+        self->current_file_info.cFileName,
+        bytes_to_write
+    );
+    buffer[bytes_to_write] = '\0';
+
+    return true;
 }
 
 bool directory__create(const char* path) {
+    if (CreateDirectoryA(path, NULL) == FALSE) {
+        // todo: diagnostics, GetLastError(), ERROR_ALREADY_EXISTS, ERROR_PATH_NOT_FOUND
+        return false;
+    }
+
+    return true;
 }
 
 bool directory__delete(const char* path) {
-}
+    if (RemoveDirectoryA(path) == FALSE) {
+        // todo: diagnostics, GetLastError()
+        return false;
+    }
 
-bool directory__rename(const char* path) {
+    return true;
 }

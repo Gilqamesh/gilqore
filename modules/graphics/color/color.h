@@ -3,7 +3,7 @@
 
 # include "color_defs.h"
 
-# include "vector_types/v4/v4u8.h"
+# include "types/vector_types/v4/v4u8.h"
 
 struct color {
     struct v4u8 argb; // format: ARGB
