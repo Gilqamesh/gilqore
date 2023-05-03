@@ -5,14 +5,29 @@
 #include "libc/libc.h"
 #include "math/compare/compare.h"
 
+#include <stdio.h>
+
 bool directory__open(struct directory* self, const char* path) {
-    if ((self->handle = FindFirstFileA(
+    char buffer[256];
+    const char* wildcard = "\\*";
+    u64 wildcard_len = libc__strlen(wildcard);
+    u64 bytes_to_copy = min__u64(libc__strlen(path), ARRAY_SIZE(buffer) - wildcard_len - 1);
+    libc__memcpy(
+        buffer,
         path,
+        bytes_to_copy
+    );
+    buffer[bytes_to_copy] = '\0';
+    libc__strcat(buffer, wildcard);
+    if ((self->handle = FindFirstFileA(
+        buffer,
         &self->current_file_info
     )) == INVALID_HANDLE_VALUE ) {
         // todo: diagnostics, GetLastError()
         return false;
     }
+
+    self->no_more_files = false;
 
     return true;
 }
@@ -29,17 +44,10 @@ bool directory__read(struct directory* self, char* buffer, u32 buffer_size) {
         error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_INVALID_DIRECTORY_READ_INPUT);
     }
 
-    if (FindNextFileA(
-        self->handle,
-        &self->current_file_info
-    ) == FALSE) {
-        if (GetLastError() == ERROR_NO_MORE_FILES) {
-            return false;
-        } else {
-            // todo: diagnostics, GetLastError()
-            error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_FIND_NEXT_FILE);
-        }
+    if (self->no_more_files) {
+        return false;
     }
+
     u64 bytes_to_write = min__u64(
         libc__strlen(self->current_file_info.cFileName),
         buffer_size - 1
@@ -50,6 +58,18 @@ bool directory__read(struct directory* self, char* buffer, u32 buffer_size) {
         bytes_to_write
     );
     buffer[bytes_to_write] = '\0';
+
+    if (FindNextFileA(
+        self->handle,
+        &self->current_file_info
+    ) == FALSE) {
+        if (GetLastError() == ERROR_NO_MORE_FILES) {
+            self->no_more_files = true;
+        } else {
+            // todo: diagnostics, GetLastError()
+            error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_FIND_NEXT_FILE);
+        }
+    }
 
     return true;
 }

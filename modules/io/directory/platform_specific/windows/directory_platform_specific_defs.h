@@ -14,6 +14,7 @@ enum DIRECTORY_ERROR_CODE_WINDOWS {
 struct directory {
     HANDLE            handle;
     WIN32_FIND_DATAA  current_file_info;
+    bool              no_more_files;
 };
 
 #endif

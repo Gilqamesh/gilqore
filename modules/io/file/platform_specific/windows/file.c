@@ -65,6 +65,14 @@ bool file__exists(const char* path) {
     return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
 }
 
+bool file__is_directory(const char* path) {
+    DWORD file_attributes = GetFileAttributesA(path);
+
+    return
+    file_attributes != INVALID_FILE_ATTRIBUTES &&
+    (file_attributes & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 bool file__delete(const char* path) {
     if (DeleteFile(path) == FALSE) {
         // todo: diagnostics, GetLastError()

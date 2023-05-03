@@ -35,6 +35,7 @@ GIL_API bool file__open(
 GIL_API void file__close(struct file* self);
 
 GIL_API bool file__exists(const char* path);
+GIL_API bool file__is_directory(const char* path);
 GIL_API bool file__delete(const char* path);
 // @brief renames or moves a directory (including its children) if exists
 GIL_API bool file__move(const char* src_path, const char* dest_path);

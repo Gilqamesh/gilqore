@@ -93,3 +93,7 @@ u64 libc__strlen(const char* str) {
 s32 libc__strcmp(const char* str1, const char* str2) {
     return strcmp(str1, str2);
 }
+
+void* libc__strcat(char* dest, const char* src) {
+    return strcat(dest, src);
+}

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 static inline u32 file_access_mode(enum file_access_mode access_mode) {
     u32 result = 0;
@@ -63,6 +64,16 @@ void file__close(struct file* self) {
 
 bool file__exists(const char* path) {
     return access(path, F_OK) == 0;
+}
+
+bool file__is_directory(const char* path) {
+    struct stat file_info;
+    if (stat(path, &file_info) == -1) {
+        // todo: diagnostic, check errno
+        error_code__exit(FILE_ERROR_CODE_LINUX_IS_DIRECTORY);
+    }
+
+    return S_ISDIR(file_info.st_mode);
 }
 
 bool file__delete(const char* path) {
