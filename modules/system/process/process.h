@@ -13,15 +13,12 @@ struct process;
 #  include "platform_specific/mac/process_platform_specific_defs.h"
 # endif
 
-# define PROCESS_MAX_PATH_LENGTH 256
-# define PROCESS_MAX_CMD_LINE_ARGS 10
-# define PROCESS_MAX_CMD_LINE_ARG_SIZE 64
+# define PROCESS_MAX_PATH_LENGTH 512
 
 // @brief creates a new process
 // @param path to the executable, max length of PROCESS_MAX_PATH_LENGTH
-// @param arg0 NULL-terminated lists of arguments that together form the command line after the path of the executable
-// @note example: process__create(&self, "ls", "-la" "testdir", NULL)
-GIL_API bool process__create(struct process* self, const char* path, const char* arg0, ...);
+// @note example: process__create(&self, "ls -la testdir")
+GIL_API bool process__create(struct process* self, const char* path);
 // @brief terminates the process, regardless if it has stopped its execution or not
 // @returns the exit code of the process,
 // PROCESS_ERROR_CODE_FORCED_TO_TERMINATE if it has been forcefully stopped or

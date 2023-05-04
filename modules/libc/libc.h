@@ -20,4 +20,6 @@ GIL_API void* libc__strcat(char* dest, const char* src);
 
 GIL_API s32 libc__snprintf(char *buffer, u64 size, const char* format, ...);
 
+GIL_API bool libc__isspace(char c);
+
 #endif

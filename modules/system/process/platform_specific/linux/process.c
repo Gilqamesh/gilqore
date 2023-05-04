@@ -8,23 +8,45 @@
 
 #include "common/error_code.h"
 #include "system/platform_specific/linux/system_linux.h"
+#include "libc/libc.h"
 
 #define EXIT_CODE_UNINITIALIZED -1
 
-bool process__create(struct process* self, const char* path, const char* arg0, ...) {
+#define ARBITRARY_MAX_ARGC 20
+
+bool process__create(struct process* self, const char* path) {
     self->exit_code = EXIT_CODE_UNINITIALIZED;
 
-    va_list ap;
-    va_start(ap, arg0);
-    char* argv[PROCESS_MAX_CMD_LINE_ARGS];
+    // todo: split path by whitespace
+    char arg_buffer[PROCESS_MAX_PATH_LENGTH + ARBITRARY_MAX_ARGC] = { 0 };
+    char* arg_buffer_start = arg_buffer;
+    char* arg_buffer_end = arg_buffer + ARRAY_SIZE(arg_buffer);
+    char* argv[ARBITRARY_MAX_ARGC] = { 0 };
     u32 argc = 0;
-    argv[argc++] = path;
-    while (argc < PROCESS_MAX_CMD_LINE_ARGS) {
-        if ((argv[argc++] = va_arg(ap, char*)) == NULL) {
-            break ;
+    while (argc < ARBITRARY_MAX_ARGC && *path != '\0') {
+        argv[argc] = arg_buffer_start;
+        while (*path != '\0' && libc__isspace(*path) == true) {
+            ++path;
         }
+        u32 i = 0;
+        while (
+            *path != '\0' &&
+            arg_buffer_start + 1 < arg_buffer_end &&
+            libc__isspace(*path) == false
+        ) {
+            *arg_buffer_start++ = *path;
+            ++path;
+        }
+        *arg_buffer_start++ = '\0';
+        while (*path != '\0' && libc__isspace(*path) == true) {
+            ++path;
+        }
+        ++argc;
     }
-    va_end(ap);
+    argv[argc] = NULL;
+    if (argc == ARBITRARY_MAX_ARGC) {
+        error_code__exit(PROCESS_ERROR_CODE_LINUX_ARBITRARY_MAX_ARGC);
+    }
 
     int tmp_pipe[2];
     system_linux__pipe2(tmp_pipe, O_CLOEXEC);
@@ -32,7 +54,7 @@ bool process__create(struct process* self, const char* path, const char* arg0, .
 
     if (self->pid == 0) {
         system_linux__close(tmp_pipe[0]);
-        if (execv(path, argv) == -1) {
+        if (execv(argv[0], argv) == -1) {
             u32 err_code = PROCESS_ERROR_CODE_LINUX_EXECV;
             system_linux__write(tmp_pipe[1], &err_code, sizeof(err_code));
             system_linux__close(tmp_pipe[1]);
