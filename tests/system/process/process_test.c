@@ -30,28 +30,32 @@ void test_module_main() {
         "printf(\"finished mining\\n\");\n"
         "return 5;\n"
     "}";
-    
+
     u32 filecontent_size = libc__strlen(filecontent);
     ASSERT(file__write(&file, filecontent, filecontent_size) == filecontent_size);
     file__close(&file);
 
-    ASSERT(process__create(&process, "cc", test_program_source, "-o", test_program_exe));
+    ASSERT(process__create(&process, "cc test_program.c -o test_program.exe"));
     process__wait_execution(&process);
-    ASSERT(process__destroy(&process) == 0);
+    u32 exit_code = process__destroy(&process);
+    printf("exit_code: %u\n", exit_code);
+    ASSERT(exit_code == 0);
 
     ASSERT(file__exists(test_program_exe));
 
-    ASSERT(process__create(&process, test_program_exe, "yo", "whats", "good", "hello", NULL));
+    ASSERT(process__create(&process, "test_program.exe yo whats good hello"));
     ASSERT(process__destroy(&process) == PROCESS_ERROR_CODE_FORCED_TO_TERMINATE);
 
-    ASSERT(process__create(&process, test_program_exe, NULL));
+    ASSERT(process__create(&process, test_program_exe));
     process__wait_timeout(&process, 1000);
     ASSERT(process__destroy(&process) == PROCESS_ERROR_CODE_FORCED_TO_TERMINATE);
 
-    ASSERT(process__create(&process, test_program_exe, NULL));
+    ASSERT(process__create(&process, test_program_exe));
     process__wait_execution(&process);
     ASSERT(process__destroy(&process) == 5);
 
     ASSERT(file__delete(test_program_exe));
+    ASSERT(file__exists(test_program_exe) == false);
     ASSERT(file__delete(test_program_source));
+    ASSERT(file__exists(test_program_source) == false);
 }

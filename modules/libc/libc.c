@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "common/error_code.h"
 
@@ -118,4 +119,8 @@ s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
     va_end(ap);
 
     return written_bytes;
+}
+
+bool libc__isspace(char c) {
+    return isspace(c);
 }

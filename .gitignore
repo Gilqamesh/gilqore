@@ -14,3 +14,4 @@ docs/*
 *.so
 .vscode
 .venv
+*.out
