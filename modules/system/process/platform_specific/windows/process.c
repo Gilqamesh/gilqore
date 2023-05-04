@@ -6,8 +6,6 @@
 #include "libc/libc.h"
 #include "common/error_code.h"
 
-#include <stdio.h>
-
 bool process__create(struct process* self, const char* path, const char* arg0, ...) {
     char cmd_line_buffer[PROCESS_MAX_PATH_LENGTH + PROCESS_MAX_CMD_LINE_ARGS * (PROCESS_MAX_CMD_LINE_ARG_SIZE + 1) + 1];
 
@@ -46,8 +44,10 @@ bool process__create(struct process* self, const char* path, const char* arg0, .
     STARTUPINFO startup_info;
     ZeroMemory(&startup_info, sizeof(startup_info));
     startup_info.cb = sizeof(startup_info);
-    startup_info.hStdOutput = out_handle;
-    startup_info.dwFlags |= STARTF_USESTDHANDLES;
+    // startup_info.hStdOutput = out_handle;
+    startup_info.dwFlags = STARTF_USESHOWWINDOW;
+    // startup_info.dwFlags |= STARTF_USESTDHANDLES;
+    startup_info.wShowWindow = STARTF_USESHOWWINDOW;
 
     if (CreateProcessA(
         NULL,
