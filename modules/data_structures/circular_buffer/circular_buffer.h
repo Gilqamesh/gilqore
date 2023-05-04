@@ -14,11 +14,11 @@ GIL_API circular_buffer_t circular_buffer__create_from_data(void* data, u32 item
 // @brief destroys the buffer object, if circular_buffer__create_from_data was called to create the buffer, it does not free data
 GIL_API void circular_buffer__destroy(circular_buffer_t self);
 
-// @brief clears the buffer
+// @brief clears the buffer and sets the head equal to the tail
 GIL_API void circular_buffer__clear(circular_buffer_t self);
-// @brief advances head position and wrap around the total size
+// @brief advances head position and wrap around by the total size of the buffer
 GIL_API void circular_buffer__advance_tail(circular_buffer_t self, s32 advance_by);
-// @brief advances tail position and wrap around the total size
+// @brief advances tail position and wrap around by the total size of the buffer
 GIL_API void circular_buffer__advance_head(circular_buffer_t self, s32 advance_by);
 
 // @brief push 1 item into the buffer and advances the head pointer by 1

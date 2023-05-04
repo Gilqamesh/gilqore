@@ -107,6 +107,14 @@ void* libc__strcat(char* dest, const char* src) {
     return strcat(dest, src);
 }
 
+char* libc__strcpy(char* dest, const char* src) {
+    return strcpy(dest, src);
+}
+
+char* libc__strncpy(char* dest, const char* src, u64 size) {
+    return strncpy(dest, src, size);
+}
+
 s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
     va_list  ap;
     s32      written_bytes;

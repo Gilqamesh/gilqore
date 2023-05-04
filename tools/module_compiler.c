@@ -3,62 +3,64 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "system/process/process.h"
+#include "io/file/file.h"
+#include "libc/libc.h"
+
 struct module g_modules[1024];
-int g_modules_size;
+s32 g_modules_size;
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+static void module_compiler__update(struct module* parent, struct module* child, s32 child_index);
+static void module_compiler__update_branch(struct module* pm);
+static void module_compiler__clear_transient_flags(void);
+static void module_compiler__print_dependencies(struct module* self);
 
-static void module_update(struct module* pm, struct module* sm, int sm_index);
-static void module_update_branch(struct module* pm);
-static void modules_prepare_processing(void);
-static void module_print_dependencies(struct module* m);
-
-static void modules_prepare_processing(void) {
-    for (int i = 0; i < g_modules_size; ++i) {
+static void module_compiler__clear_transient_flags(void) {
+    for (s32 i = 0; i < g_modules_size; ++i) {
         g_modules[i].transient_flag_for_processing = 0;
     }
 }
 
 // @brief update sm based on pm
-static void module_update(struct module* pm, struct module* sm, int sm_index) {
-    sm->start = pm->start_child + sm_index * pm->disposition;
-    sm->end = sm->start + pm->disposition - 1;
-    sm->start_child = sm->start + sm->unique_n_of_errors;
-    sm->disposition = (sm->end - sm->start_child + 1) / (sm->number_of_submodules + 1);
+static void module_compiler__update(struct module* parent, struct module* child, s32 child_index) {
+    child->starting_error_code = parent->children_starting_error_code + child_index * parent->children_disposition;
+    child->ending_error_code = child->starting_error_code + parent->children_disposition - 1;
+    child->children_starting_error_code = child->starting_error_code + child->num_of_errors;
+    child->children_disposition = (child->ending_error_code - child->children_starting_error_code + 1) / (child->number_of_submodules + 1);
 }
 
-static void module_update_branch(struct module* pm) {
+static void module_compiler__update_branch(struct module* pm) {
     struct module* child = pm->first_child;
-    for (int i = 0; child; ++i) {
-        module_update(pm, child, i);
-        module_update_branch(child);
-        child = child->next;
+    for (s32 i = 0; child; ++i) {
+        module_compiler__update(pm, child, i);
+        module_compiler__update_branch(child);
+        child = child->next_sibling;
     }
 }
 
-struct module* module_add_child(struct module* pm, const char* sm_name) {
-    struct module* sm = &g_modules[g_modules_size++];
+struct module* module_compiler__add_child(struct module* self, const char* child_module_name) {
+    struct module* child = &g_modules[g_modules_size++];
 
-    memset(sm, 0, sizeof(*sm));
-    int i = 0;
-    for (i = 0; sm_name[i] != '\0'; ++i) {
-        sm->name[i] = sm_name[i];
+    s32 i = 0;
+    for (; i + 1 < ARRAY_SIZE(child->name) && child_module_name[i] != '\0'; ++i) {
+        child->name[i] = child_module_name[i];
     }
-    sm->unique_n_of_errors = 10; // hardcoded, todo: parse from config file
+    child->name[i] = '\0';
+    child->num_of_errors = 10; // hardcoded, todo: parse from config file
 
-    struct module* first_child = pm->first_child;
-    pm->first_child = sm;
-    sm->next = first_child;
-    pm->disposition = (pm->end - pm->start_child + 1) / (pm->number_of_submodules++ + 1);
+    struct module* first_child = self->first_child;
+    self->first_child = child;
+    child->next_sibling = first_child;
+    self->children_disposition = (self->ending_error_code - self->children_starting_error_code + 1) / (self->number_of_submodules++ + 1);
     // update the whole branch from here
-    module_update_branch(pm);
+    module_compiler__update_branch(self);
 
     return sm;
 }
 
 void module_add_dependency(struct module* m, struct module* dm) {
-    int hash_value = (dm->start * 56237) & ARRAY_SIZE(m->dependencies);
-    for (int i = hash_value; i < ARRAY_SIZE(m->dependencies); ++i) {
+    s32 hash_value = (dm->starting_error_code * 56237) & ARRAY_SIZE(m->dependencies);
+    for (s32 i = hash_value; i < ARRAY_SIZE(m->dependencies); ++i) {
         if (m->dependencies[i] == dm) {
             // no need to add the dependency again
             return ;
@@ -68,7 +70,7 @@ void module_add_dependency(struct module* m, struct module* dm) {
             return ;
         }
     }
-    for (int i = 0; i < hash_value; ++i) {
+    for (s32 i = 0; i < hash_value; ++i) {
         if (m->dependencies[i] == dm) {
             // no need to add the dependency again
             return ;
@@ -83,10 +85,10 @@ void module_add_dependency(struct module* m, struct module* dm) {
     exit(1);
 }
 
-static void module_check_cyclic_dependency_helper(struct module* m) {
-    if (m->transient_flag_for_processing > 0) {
+static void module_compiler__check_cyclic_dependency_helper(struct module* self) {
+    if (self->transient_flag_for_processing > 0) {
         printf("\ncyclic dependency detected between these modules: ");
-        for (int i = 0; i < g_modules_size; ++i) {
+        for (s32 i = 0; i < g_modules_size; ++i) {
             if (g_modules[i].transient_flag_for_processing > 0) {
                 printf("%s ", g_modules[i].name);
             }
@@ -95,83 +97,82 @@ static void module_check_cyclic_dependency_helper(struct module* m) {
         exit(1);
         return ;
     }
-    m->transient_flag_for_processing = 1;
-    for (int i = 0; i < ARRAY_SIZE(m->dependencies); ++i) {
-        if (m->dependencies[i] != NULL) {
-            module_check_cyclic_dependency_helper(m->dependencies[i]);
+    self->transient_flag_for_processing = 1;
+    for (s32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
+        if (self->dependencies[i] != NULL) {
+            module_compiler__check_cyclic_dependency_helper(self->dependencies[i]);
         }
     }
-    m->transient_flag_for_processing = 0;
+    self->transient_flag_for_processing = 0;
 }
 
-static void module_check_cyclic_dependency(void) {
-    modules_prepare_processing();
-    module_check_cyclic_dependency_helper(&g_modules[0]);
+static void module_compiler__check_cyclic_dependency(void) {
+    module_compiler__clear_transient_flags();
+    module_compiler__check_cyclic_dependency_helper(&g_modules[0]);
 }
 
-static void module_print_dependencies(struct module* m) {
-    m->transient_flag_for_processing = 1;
-    for (int i = 0; i < ARRAY_SIZE(m->dependencies); ++i) {
-        if (m->dependencies[i] != NULL && m->dependencies[i]->transient_flag_for_processing == 0) {
-            printf("%s ", m->dependencies[i]->name);
-            module_print_dependencies(m->dependencies[i]);
+static void module_compiler__print_dependencies(struct module* self) {
+    self->transient_flag_for_processing = 1;
+    for (s32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
+        if (self->dependencies[i] != NULL && self->dependencies[i]->transient_flag_for_processing == 0) {
+            printf("%s ", self->dependencies[i]->name);
+            module_compiler__print_dependencies(self->dependencies[i]);
         }
     }
 }
 
-static void module_print_helper(struct module* m, int depth) {
+static void module_compiler__print_branch_helper(struct module* self, s32 depth) {
     printf("%*s --== %s ==-- \n %*sstart: %d\n %*sstart_child: %d\n %*send: %d\n %*snumber of submodules: %d\n %*sdisposition: %d\n %*sunique number of errors: %d\n %*sdependencies: ",
-    depth, "", m->name,
-    depth, "", m->start,
-    depth, "", m->start_child,
-    depth, "", m->end,
-    depth, "", m->number_of_submodules,
-    depth, "", m->disposition,
-    depth, "", m->unique_n_of_errors,
+    depth, "", self->name,
+    depth, "", self->starting_error_code,
+    depth, "", self->children_starting_error_code,
+    depth, "", self->ending_error_code,
+    depth, "", self->number_of_submodules,
+    depth, "", self->children_disposition,
+    depth, "", self->num_of_errors,
     depth, "");
 
-    modules_prepare_processing();
-    module_print_dependencies(m);
+    module_compiler__clear_transient_flags();
+    module_compiler__print_dependencies(self);
     printf("\n\n");
-    struct module* child = m->first_child;
+    struct module* child = self->first_child;
     while (child) {
-        module_print_helper(child, depth + 4);
-        child = child->next;
+        module_compiler__print_branch_helper(child, depth + 4);
+        child = child->next_sibling;
     }
 }
-void module_print(struct module* m) {
-    module_print_helper(m, 0);
+void module_compiler__print_branch(struct module* self) {
+    module_compiler__print_branch_helper(self, 0);
 }
 
-int main() {
-    struct module* pm = &g_modules[g_modules_size++];
-    const char* pm_name = "top level module";
-    memcpy(pm->name, pm_name, strlen(pm_name));
-    pm->start = 1;
-    pm->start_child = 1;
-    pm->end = 1000000;
-    pm->disposition = 1000000;
+s32 main() {
+    struct module* parent_module = &g_modules[g_modules_size++];
+    const char* parent_module_name = "top level module";
+    memcpy(parent_module->name, parent_module_name, strlen(parent_module_name));
+    parent_module->starting_error_code = 1;
+    parent_module->children_starting_error_code = 1;
+    parent_module->ending_error_code = 100000000;
 
-    struct module* common = module_add_child(pm, "common");
-    struct module* io = module_add_child(pm, "io");
-    struct module* libc = module_add_child(pm, "libc");
-    struct module* data_structures = module_add_child(pm, "data_structures");
-    struct module* graphics = module_add_child(pm, "graphics");
+    struct module* common = module_compiler__add_child(parent_module, "common");
+    struct module* io = module_compiler__add_child(parent_module, "io");
+    struct module* libc = module_compiler__add_child(parent_module, "libc");
+    struct module* data_structures = module_compiler__add_child(parent_module, "data_structures");
+    struct module* graphics = module_compiler__add_child(parent_module, "graphics");
 
-    struct module* file = module_add_child(io, "file");
-    struct module* directory = module_add_child(io, "directory");
-    struct module* console = module_add_child(io, "console");
+    struct module* file = module_compiler__add_child(io, "file");
+    struct module* directory = module_compiler__add_child(io, "directory");
+    struct module* console = module_compiler__add_child(io, "console");
 
-    struct module* color = module_add_child(graphics, "color");
-    struct module* renderer = module_add_child(graphics, "renderer");
-    struct module* window = module_add_child(graphics, "window");
+    struct module* color = module_compiler__add_child(graphics, "color");
+    struct module* renderer = module_compiler__add_child(graphics, "renderer");
+    struct module* window = module_compiler__add_child(graphics, "window");
 
-    struct module* file_reader = module_add_child(file, "file_reader");
-    struct module* riff_loader = module_add_child(file, "riff_loader");
+    struct module* file_reader = module_compiler__add_child(file, "file_reader");
+    struct module* riff_loader = module_compiler__add_child(file, "riff_loader");
 
-    struct module* wav_parser = module_add_child(riff_loader, "wav_parser");
+    struct module* wav_parser = module_compiler__add_child(riff_loader, "wav_parser");
 
-    struct module* circular_buffer = module_add_child(data_structures, "circular_buffer");
+    struct module* circular_buffer = module_compiler__add_child(data_structures, "circular_buffer");
 
     module_add_dependency(file, common);
     module_add_dependency(file, color);
@@ -204,7 +205,7 @@ int main() {
     module_add_dependency(data_structures, io);
     module_add_dependency(data_structures, riff_loader);
 
-    module_check_cyclic_dependency();
+    module_compiler__check_cyclic_dependency();
 
-    module_print(pm);
+    module_compiler__print_branch(parent_module);
 }

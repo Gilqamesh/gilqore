@@ -1,8 +1,6 @@
 #ifndef MODULE_COMPILER_H
 # define MODULE_COMPILER_H
 
-struct dependency;
-
 struct module {
     char name[64];
     int start; // start error code this module has access to
