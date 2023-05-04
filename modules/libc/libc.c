@@ -2,6 +2,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "common/error_code.h"
 
 #if defined(GIL_DEBUG)
 struct debug_memory_entry {
@@ -94,6 +98,24 @@ s32 libc__strcmp(const char* str1, const char* str2) {
     return strcmp(str1, str2);
 }
 
+s32 libc__strncmp(const char* str1, const char* str2, u64 size) {
+    return strncmp(str1, str2, size);
+}
+
 void* libc__strcat(char* dest, const char* src) {
     return strcat(dest, src);
+}
+
+s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
+    va_list  ap;
+    s32      written_bytes;
+
+    va_start(ap, format);
+    written_bytes = vsnprintf(buffer, size, format, ap);
+    if (written_bytes < 0) {
+        error_code__exit(LIBC_ERROR_CODE_VSNPRINTF);
+    }
+    va_end(ap);
+
+    return written_bytes;
 }

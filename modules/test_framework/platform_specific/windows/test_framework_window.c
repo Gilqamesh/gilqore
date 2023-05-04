@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include <stdio.h>
+
 #include "common/error_code.h"
 #include "libc/libc.h"
 
@@ -9,9 +11,6 @@ struct test_framework_window {
     s32    argc;
     char** argv;
 };
-
-
-#include <stdio.h>
 
 static struct test_framework_window g_test_framework;
 

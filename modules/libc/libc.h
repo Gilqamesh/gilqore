@@ -15,6 +15,9 @@ GIL_API void* libc__memset(void *dest, s32 value, u64 size);
 
 GIL_API u64 libc__strlen(const char* str);
 GIL_API s32 libc__strcmp(const char* str1, const char* str2);
+GIL_API s32 libc__strncmp(const char* str1, const char* str2, u64 size);
 GIL_API void* libc__strcat(char* dest, const char* src);
+
+GIL_API s32 libc__snprintf(char *buffer, u64 size, const char* format, ...);
 
 #endif

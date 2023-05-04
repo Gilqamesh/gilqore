@@ -7,53 +7,38 @@
 #include "libc/libc.h"
 
 #define N_OF_TEST_FILES 10
-#define TESTDIR_NAME "testdir"
-#define TESTFILE_NAME "/file"
 
-static void delete_test_files(const char* file_prefix);
-static void create_test_files(const char* file_prefix, const char* filename);
+static void create_test_files(const char* file_prefix);
 static void directory_delete_recursive(const char* dirname);
 
 static void directory_delete_recursive(const char* dirname) {
     struct directory dir;
     ASSERT(file__exists(dirname));
-    ASSERT(directory__open(&dir, dirname));
+    ASSERT(directory__open(&dir, dirname) == true);
     char buffer[256];
-    for (u32 i = 0; i < N_OF_TEST_FILES + 2; ++i) {
-        ASSERT(directory__read(&dir, buffer, ARRAY_SIZE(buffer)) == true);
-        printf("yo: %s\n", buffer);
-        if (libc__strcmp(buffer, ".") != 0 && libc__strcmp(buffer, "..")) {
-            sprintf(buffer, "%s/%s", dirname, buffer);
-            delete_test_files(buffer);
+    char buffer2[256];
+    u32 bytes_written;
+    while (directory__read(&dir, buffer, ARRAY_SIZE(buffer), &bytes_written) == true) {
+        if ((bytes_written >= 1 && buffer[bytes_written - 1] == '.') ||
+            (bytes_written >= 2 && libc__strcmp(buffer + (bytes_written - 2), "..") == 0)
+        ) {
+            continue ;
+        }
+        sprintf(buffer2, "%s/%s", dirname, buffer);
+        if (file__is_directory(buffer2)) {
+            directory_delete_recursive(buffer2);
+        } else {
+            ASSERT(file__delete(buffer2) == true);
         }
     }
     directory__close(&dir);
+    directory__delete(dirname);
 }
 
-static void delete_test_files(const char* file_prefix) {
+static void create_test_files(const char* file_prefix) {
     char buffer[256];
     for (u32 i = 0; i < N_OF_TEST_FILES; ++i) {
-        libc__memset(buffer, 0, ARRAY_SIZE(buffer));
-        libc__memcpy(buffer, file_prefix, libc__strlen(file_prefix));
-        libc__strcat(buffer, TESTFILE_NAME);
-        char tmp_buf[8];
-        tmp_buf[0] = i + '0';
-        tmp_buf[1] = '\0';
-        libc__strcat(buffer, tmp_buf);
-        file__delete(buffer);
-    }
-}
-
-static void create_test_files(const char* file_prefix, const char* filename) {
-    char buffer[256];
-    for (u32 i = 0; i < N_OF_TEST_FILES; ++i) {
-        libc__memset(buffer, 0, ARRAY_SIZE(buffer));
-        libc__memcpy(buffer, file_prefix, libc__strlen(file_prefix));
-        libc__strcat(buffer, filename);
-        char tmp_buf[8];
-        tmp_buf[0] = i + '0';
-        tmp_buf[1] = '\0';
-        libc__strcat(buffer, tmp_buf);
+        sprintf(buffer, "%s/%s%d", file_prefix, "file", i);
         struct file file;
         ASSERT(file__open(&file, buffer, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_CREATE) == true);
         file__close(&file);
@@ -61,37 +46,35 @@ static void create_test_files(const char* file_prefix, const char* filename) {
 }
 
 void test_module_main() {
-    if (file__exists(TESTDIR_NAME)) {
-        directory_delete_recursive(TESTDIR_NAME);
-        ASSERT(file__exists(TESTDIR_NAME) == false);
+    const char* testdir_name = "testdir";
+    if (file__exists(testdir_name)) {
+        directory_delete_recursive(testdir_name);
+        ASSERT(file__exists(testdir_name) == false);
     }
 
-    ASSERT(directory__create(TESTDIR_NAME) == true);
-    directory__create(TESTDIR_NAME);
-    ASSERT(file__exists(TESTDIR_NAME) == true);
+    ASSERT(directory__create(testdir_name) == true);
+    directory__create(testdir_name);
+    ASSERT(file__exists(testdir_name) == true);
 
-    ASSERT(directory__delete(TESTDIR_NAME) == true);
-    ASSERT(file__exists(TESTDIR_NAME) == false);
+    ASSERT(directory__delete(testdir_name) == true);
+    ASSERT(file__exists(testdir_name) == false);
 
-    ASSERT(directory__create(TESTDIR_NAME) == true);
-    ASSERT(file__exists(TESTDIR_NAME) == true);
+    ASSERT(directory__create(testdir_name) == true);
+    ASSERT(file__exists(testdir_name) == true);
 
-    delete_test_files(TESTDIR_NAME);
-
-    create_test_files(TESTDIR_NAME, TESTFILE_NAME);
-
-    struct directory dir;
-    ASSERT(directory__open(&dir, TESTDIR_NAME) == true);
+    create_test_files(testdir_name);
 
     char buffer[256];
-    printf("Files in directory %s:\n", TESTDIR_NAME);
-    for (u32 i = 0; i < N_OF_TEST_FILES + 2; ++i) {
-        ASSERT(directory__read(&dir, buffer, ARRAY_SIZE(buffer)) == true);
-        printf("%s\n", buffer);
+    for (u32 i = 0; i < 15; ++i) {
+        sprintf(buffer, "%s/%s%d", testdir_name, testdir_name, i);
+        ASSERT(directory__create(buffer) == true);
+        create_test_files(buffer);
     }
 
-    delete_test_files(TESTDIR_NAME);
-
-    directory__close(&dir);
-    ASSERT(directory__delete(TESTDIR_NAME) == true);
+    const char* testdir_name2 = "testdir2";
+    ASSERT(file__move(testdir_name, testdir_name2) == true);
+    ASSERT(file__exists(testdir_name) == false);
+    if (file__exists(testdir_name2)) {
+        directory_delete_recursive(testdir_name2);
+    }
 }

@@ -21,7 +21,7 @@ endif
 process_static_objects			:= $(patsubst %.c, %_static.o, $(process_sources))
 process_shared_objects			:= $(patsubst %.c, %_shared.o, $(process_sources))
 process_depends					:= $(patsubst %.c, %.d, $(process_sources))
-process_depends_modules			:=  
+process_depends_modules			:= common libc 
 process_depends_libs_shared		:= $(foreach module,$(process_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 process_depends_libs_targets		:= $(foreach module,$(process_depends_modules),$(module)_all)
 process_clean_files				:=

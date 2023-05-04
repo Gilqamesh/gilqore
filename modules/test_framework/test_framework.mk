@@ -21,7 +21,7 @@ endif
 test_framework_static_objects			:= $(patsubst %.c, %_static.o, $(test_framework_sources))
 test_framework_shared_objects			:= $(patsubst %.c, %_shared.o, $(test_framework_sources))
 test_framework_depends					:= $(patsubst %.c, %.d, $(test_framework_sources))
-test_framework_depends_modules			:=  common libc
+test_framework_depends_modules			:= console common libc 
 test_framework_depends_libs_shared		:= $(foreach module,$(test_framework_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 test_framework_depends_libs_targets		:= $(foreach module,$(test_framework_depends_modules),$(module)_all)
 test_framework_clean_files				:=

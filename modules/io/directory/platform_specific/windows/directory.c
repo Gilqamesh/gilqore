@@ -22,7 +22,7 @@ bool directory__open(struct directory* self, const char* path) {
     if ((self->handle = FindFirstFileA(
         buffer,
         &self->current_file_info
-    )) == INVALID_HANDLE_VALUE ) {
+    )) == INVALID_HANDLE_VALUE) {
         // todo: diagnostics, GetLastError()
         return false;
     }
@@ -39,7 +39,7 @@ void directory__close(struct directory* self) {
     }
 }
 
-bool directory__read(struct directory* self, char* buffer, u32 buffer_size) {    
+bool directory__read(struct directory* self, char* buffer, u32 buffer_size, u32* bytes_written) {    
     if (buffer == NULL || buffer_size == 0) {
         error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_INVALID_DIRECTORY_READ_INPUT);
     }
@@ -58,6 +58,9 @@ bool directory__read(struct directory* self, char* buffer, u32 buffer_size) {
         bytes_to_write
     );
     buffer[bytes_to_write] = '\0';
+    if (bytes_written != NULL) {
+        *bytes_written = bytes_to_write;
+    }
 
     if (FindNextFileA(
         self->handle,

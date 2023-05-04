@@ -18,8 +18,9 @@ GIL_API bool directory__open(struct directory* self, const char* path);
 // @brief closes the directory handle
 GIL_API void directory__close(struct directory* self);
 // @brief returns the name of the current file opened directory, and moves to the next file
+// @param bytes_written optional parameter to retrieve the number of bytes written into the buffer
 // @returns true on success, false if no more files are in the directory
-GIL_API bool directory__read(struct directory* self, char* buffer, u32 buffer_size);
+GIL_API bool directory__read(struct directory* self, char* buffer, u32 buffer_size, u32* bytes_written);
 
 // @brief if it doesn't already exist, create a directory
 GIL_API bool directory__create(const char* path);

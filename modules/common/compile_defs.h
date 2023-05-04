@@ -1,6 +1,16 @@
 #ifndef COMPILE_DEFS_H
 # define COMPILE_DEFS_H
 
+# if defined (_WIN32)
+#  define WINDOWS
+# elif defined(__linux__)
+#  define LINUX
+# elif defined(__APPLE__)
+#  define MAC
+# else
+#  error "unknown os"
+# endif
+
 # if defined(WINDOWS)
 #  if defined(GIL_LIB_SHARED_EXPORT)
 #   define GIL_API __declspec(dllexport)
