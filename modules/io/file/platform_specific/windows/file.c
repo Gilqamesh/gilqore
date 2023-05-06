@@ -2,6 +2,7 @@
 #include "file_platform_specific_defs.h"
 
 #include "common/error_code.h"
+#include "time/time.h"
 
 static inline DWORD file_access_mode(enum file_access_mode access_mode) {
     DWORD result = 0;
@@ -42,7 +43,7 @@ bool file__open(
     if ((self->handle = CreateFileA(
         path,
         file_access_mode(access_mode),
-        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL,
         file_creation_mode(creation_mode),
         FILE_ATTRIBUTE_NORMAL,
@@ -65,14 +66,6 @@ bool file__exists(const char* path) {
     return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
 }
 
-bool file__is_directory(const char* path) {
-    DWORD file_attributes = GetFileAttributesA(path);
-
-    return
-    file_attributes != INVALID_FILE_ATTRIBUTES &&
-    (file_attributes & FILE_ATTRIBUTE_DIRECTORY);
-}
-
 bool file__delete(const char* path) {
     if (DeleteFile(path) == FALSE) {
         // todo: diagnostics, GetLastError()
@@ -87,6 +80,32 @@ bool file__move(const char* src_path, const char* dest_path) {
         // todo: diagnostics, GetLastError()
         return false;
     }
+
+    return true;
+}
+
+bool file__last_modified(const char* path, struct time* last_modified) {
+    struct file file;
+
+    if (file__open(&file, path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN) == false) {
+        return false;
+    }
+    if (GetFileTime(file.handle, NULL, NULL, &last_modified->val) == false) {
+        return false;
+    }
+
+    file__close(&file);
+
+    return true;
+}
+
+bool file__stat(const char* path, enum file_type* file_type) {
+    DWORD file_attributes = GetFileAttributesA(path);
+    if (file_attributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+
+    *file_type = file_attributes & FILE_ATTRIBUTE_DIRECTORY ? FILE_TYPE_DIRECTORY : FILE_TYPE_FILE;
 
     return true;
 }

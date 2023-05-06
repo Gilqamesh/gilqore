@@ -4,14 +4,17 @@
 #include "common/error_code.h"
 #include "libc/libc.h"
 #include "math/compare/compare.h"
-
-#include <stdio.h>
+#include "io/file/file.h"
 
 bool directory__open(struct directory* self, const char* path) {
-    char buffer[256];
+    char buffer[MAX_PATH];
     const char* wildcard = "\\*";
     u64 wildcard_len = libc__strlen(wildcard);
-    u64 bytes_to_copy = min__u64(libc__strlen(path), ARRAY_SIZE(buffer) - wildcard_len - 1);
+    u64 path_len = libc__strlen(path);
+    u64 bytes_to_copy = min__u64(path_len, ARRAY_SIZE(buffer) - wildcard_len - 1);
+    if (bytes_to_copy == ARRAY_SIZE(buffer) - wildcard_len - 1) {
+        error_code__exit(DIRECTORY_ERROR_CODE_WINDOWS_PATH_TRUNCATED);
+    }
     libc__memcpy(
         buffer,
         path,
@@ -93,4 +96,43 @@ bool directory__delete(const char* path) {
     }
 
     return true;
+}
+
+void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags) {
+    directory__foreach(path, fn, file_type_flags, 0);
+}
+
+void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags) {
+    directory__foreach(path, fn, file_type_flags, (u32) -1);
+}
+
+void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth) {
+    struct directory dir;
+    char* buffer = libc__malloc(MAX_PATH);
+    char* buffer2 = libc__malloc(MAX_PATH);
+    if (directory__open(&dir, path)) {
+        u32 bytes_written;
+        while (directory__read(&dir, buffer, MAX_PATH, &bytes_written) == true) {
+            if ((bytes_written >= 1 && buffer[bytes_written - 1] == '.') ||
+                (bytes_written >= 2 && libc__strcmp(buffer + (bytes_written - 2), "..") == 0)
+            ) {
+                continue ;
+            }
+            libc__snprintf(buffer2, MAX_PATH, "%s/%s", path, buffer);
+            enum file_type type;
+            if (file__stat(buffer2, &type) == false) {
+                continue ;
+            }
+
+            if (depth > 0 && type == FILE_TYPE_DIRECTORY) {
+                directory__foreach(buffer2, fn, file_type_flags, depth - 1);
+            }
+            if (type & file_type_flags) {
+                fn(buffer2);
+            }
+        }
+        directory__close(&dir);
+    }
+    libc__free(buffer2);
+    libc__free(buffer);
 }

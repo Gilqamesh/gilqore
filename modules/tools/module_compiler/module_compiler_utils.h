@@ -9,7 +9,8 @@ struct module {
     struct module* first_child; // first child module
     struct module* next_sibling; // next sibling
     struct module* dependencies[16]; // hard limit (must be pow of 2) on the number of dependencies
-    char name[64];
+    struct module* parent;
+    char basename[64];
     s32 starting_error_code; // start error code this module has access to
     s32 children_starting_error_code;
     s32 ending_error_code; // end error code this module has access to
@@ -19,7 +20,7 @@ struct module {
     s32 transient_flag_for_processing;
 };
 
-struct module* module_compiler__add_child(struct module* self, const char* child_module_name);
+struct module* module_compiler__add_child(struct module* self, const char* child_module_basename);
 
 // @brief update child module based on its parent
 // @param child_index index of the child relative to its siblings

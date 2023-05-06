@@ -27,4 +27,12 @@ GIL_API bool directory__create(const char* path);
 // @brief deletes a directory if exists and empty
 GIL_API bool directory__delete(const char* path);
 
+// @brief apply fn on each file_type on path one level deep
+GIL_API void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+// @brief apply fn on each file_type on path recursively
+GIL_API void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+// @brief apply fn on each file_type on path depth level deep
+// @param depth 0 depth is equal to a for each shallow
+GIL_API void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth);
+
 #endif

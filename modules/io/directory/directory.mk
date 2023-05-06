@@ -21,7 +21,7 @@ endif
 directory_static_objects			:= $(patsubst %.c, %_static.o, $(directory_sources))
 directory_shared_objects			:= $(patsubst %.c, %_shared.o, $(directory_sources))
 directory_depends					:= $(patsubst %.c, %.d, $(directory_sources))
-directory_depends_modules			:= compare libc common 
+directory_depends_modules			:= compare libc common file 
 directory_depends_libs_shared		:= $(foreach module,$(directory_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 directory_depends_libs_targets		:= $(foreach module,$(directory_depends_modules),$(module)_all)
 directory_clean_files				:=

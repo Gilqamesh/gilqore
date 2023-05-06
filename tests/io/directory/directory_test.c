@@ -7,74 +7,67 @@
 #include "libc/libc.h"
 
 #define N_OF_TEST_FILES 10
+#define TESTDIR_NAME "testdir"
+#define TESTDIR_NAME2 "testdir2"
 
-static void create_test_files(const char* file_prefix);
-static void directory_delete_recursive(const char* dirname);
+static bool create_test_files(const char* dirpath);
 
-static void directory_delete_recursive(const char* dirname) {
-    struct directory dir;
-    ASSERT(file__exists(dirname));
-    ASSERT(directory__open(&dir, dirname) == true);
-    char buffer[256];
-    char buffer2[256];
-    u32 bytes_written;
-    while (directory__read(&dir, buffer, ARRAY_SIZE(buffer), &bytes_written) == true) {
-        if ((bytes_written >= 1 && buffer[bytes_written - 1] == '.') ||
-            (bytes_written >= 2 && libc__strcmp(buffer + (bytes_written - 2), "..") == 0)
-        ) {
-            continue ;
-        }
-        sprintf(buffer2, "%s/%s", dirname, buffer);
-        if (file__is_directory(buffer2)) {
-            directory_delete_recursive(buffer2);
-        } else {
-            ASSERT(file__delete(buffer2) == true);
-        }
-    }
-    directory__close(&dir);
-    directory__delete(dirname);
-}
-
-static void create_test_files(const char* file_prefix) {
+static bool create_test_files(const char* dirpath) {
     char buffer[256];
     for (u32 i = 0; i < N_OF_TEST_FILES; ++i) {
-        sprintf(buffer, "%s/%s%d", file_prefix, "file", i);
+        libc__snprintf(buffer, ARRAY_SIZE(buffer), "%s/%s%d", dirpath, "file", i);
         struct file file;
         ASSERT(file__open(&file, buffer, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_CREATE) == true);
         file__close(&file);
+        libc__snprintf(buffer, ARRAY_SIZE(buffer), "%s/%s%d", dirpath, TESTDIR_NAME, i);
+        directory__create(buffer);
     }
+
+    return true;
+}
+
+bool file_del(const char* path) {
+    enum file_type type;
+    if (file__stat(path, &type) == false) {
+        return false;
+    }
+
+    if (type == FILE_TYPE_FILE) {
+        return file__delete(path);
+    } else if (type == FILE_TYPE_DIRECTORY) {
+        return directory__delete(path);
+    }
+
+    return false;
 }
 
 void test_module_main() {
-    const char* testdir_name = "testdir";
-    if (file__exists(testdir_name)) {
-        directory_delete_recursive(testdir_name);
-        ASSERT(file__exists(testdir_name) == false);
+    if (file__exists(TESTDIR_NAME)) {
+        directory__foreach_deep(TESTDIR_NAME, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+        ASSERT(directory__delete(TESTDIR_NAME) == true);
+        ASSERT(file__exists(TESTDIR_NAME) == false);
+    }
+    if (file__exists(TESTDIR_NAME2)) {
+        directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+        ASSERT(directory__delete(TESTDIR_NAME2) == true);
+        ASSERT(file__exists(TESTDIR_NAME2) == false);
     }
 
-    ASSERT(directory__create(testdir_name) == true);
-    directory__create(testdir_name);
-    ASSERT(file__exists(testdir_name) == true);
+    ASSERT(directory__create(TESTDIR_NAME) == true);
+    ASSERT(file__exists(TESTDIR_NAME) == true);
 
-    ASSERT(directory__delete(testdir_name) == true);
-    ASSERT(file__exists(testdir_name) == false);
+    ASSERT(directory__delete(TESTDIR_NAME) == true);
+    ASSERT(file__exists(TESTDIR_NAME) == false);
 
-    ASSERT(directory__create(testdir_name) == true);
-    ASSERT(file__exists(testdir_name) == true);
+    ASSERT(directory__create(TESTDIR_NAME) == true);
+    ASSERT(file__exists(TESTDIR_NAME) == true);
 
-    create_test_files(testdir_name);
+    create_test_files(TESTDIR_NAME);
+    directory__foreach_shallow(TESTDIR_NAME, &create_test_files, FILE_TYPE_DIRECTORY);
 
-    char buffer[256];
-    for (u32 i = 0; i < 15; ++i) {
-        sprintf(buffer, "%s/%s%d", testdir_name, testdir_name, i);
-        ASSERT(directory__create(buffer) == true);
-        create_test_files(buffer);
-    }
-
-    const char* testdir_name2 = "testdir2";
-    ASSERT(file__move(testdir_name, testdir_name2) == true);
-    ASSERT(file__exists(testdir_name) == false);
-    if (file__exists(testdir_name2)) {
-        directory_delete_recursive(testdir_name2);
-    }
+    ASSERT(file__move(TESTDIR_NAME, TESTDIR_NAME2) == true);
+    ASSERT(file__exists(TESTDIR_NAME) == false);
+    ASSERT(file__exists(TESTDIR_NAME2) == true);
+    directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+    ASSERT(directory__delete(TESTDIR_NAME2) == true);
 }

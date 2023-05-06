@@ -10,4 +10,10 @@ enum IO_ERROR_CODE {
     ERROR_CODE_FILE = ERROR_CODE_DIRECTORY + 50
 };
 
+// todo: differentiate from pipe/socket and other types of files
+enum file_type {
+    FILE_TYPE_DIRECTORY = 1 << 0,
+    FILE_TYPE_FILE      = 1 << 1
+};
+
 #endif

@@ -30,14 +30,15 @@ void module_compiler__update_branch(struct module* self) {
     }
 }
 
-struct module* module_compiler__add_child(struct module* self, const char* child_module_name) {
+struct module* module_compiler__add_child(struct module* self, const char* child_module_basename) {
     struct module* child = &g_modules[g_modules_size++];
+    child->parent = self;
 
     u32 name_index = 0;
-    for (; name_index + 1 < ARRAY_SIZE(child->name) && child_module_name[name_index] != '\0'; ++name_index) {
-        child->name[name_index] = child_module_name[name_index];
+    for (; name_index + 1 < ARRAY_SIZE(child->basename) && child_module_basename[name_index] != '\0'; ++name_index) {
+        child->basename[name_index] = child_module_basename[name_index];
     }
-    child->name[name_index] = '\0';
+    child->basename[name_index] = '\0';
     child->num_of_errors = 10; // hardcoded, todo: parse from config file
 
     struct module* first_child = self->first_child;
@@ -73,7 +74,7 @@ void module_compiler__add_dependency(struct module* self, struct module* depende
         }
     }
     printf("hard limit (%lld) on the number of dependencies reached for module: %s\n",
-    ARRAY_SIZE(self->dependencies), self->name);
+    ARRAY_SIZE(self->dependencies), self->basename);
     exit(1);
 }
 
@@ -82,7 +83,7 @@ static void module_compiler__check_cyclic_dependency_helper(struct module* self)
         printf("\ncyclic dependency detected between these modules: ");
         for (u32 i = 0; i < g_modules_size; ++i) {
             if (g_modules[i].transient_flag_for_processing > 0) {
-                printf("%s ", g_modules[i].name);
+                printf("%s ", g_modules[i].basename);
             }
         }
         printf("\n");
@@ -107,7 +108,7 @@ void module_compiler__print_dependencies(struct module* self) {
     self->transient_flag_for_processing = 1;
     for (u32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
         if (self->dependencies[i] != NULL && self->dependencies[i]->transient_flag_for_processing == 0) {
-            printf("%s ", self->dependencies[i]->name);
+            printf("%s ", self->dependencies[i]->basename);
             module_compiler__print_dependencies(self->dependencies[i]);
         }
     }
@@ -115,7 +116,7 @@ void module_compiler__print_dependencies(struct module* self) {
 
 static void module_compiler__print_branch_helper(struct module* self, s32 depth) {
     printf("%*s --== %s ==-- \n %*sstart: %d\n %*sstart_child: %d\n %*send: %d\n %*snumber of submodules: %d\n %*sdisposition: %d\n %*sunique number of errors: %d\n %*sdependencies: ",
-    depth, "", self->name,
+    depth, "", self->basename,
     depth, "", self->starting_error_code,
     depth, "", self->children_starting_error_code,
     depth, "", self->ending_error_code,

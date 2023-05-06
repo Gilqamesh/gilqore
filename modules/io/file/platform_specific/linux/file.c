@@ -2,6 +2,7 @@
 #include "file_platform_specific_defs.h"
 
 #include "common/error_code.h"
+#include "time/time.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -66,16 +67,6 @@ bool file__exists(const char* path) {
     return access(path, F_OK) == 0;
 }
 
-bool file__is_directory(const char* path) {
-    struct stat file_info;
-    if (stat(path, &file_info) == -1) {
-        // todo: diagnostic, check errno
-        error_code__exit(FILE_ERROR_CODE_LINUX_IS_DIRECTORY);
-    }
-
-    return S_ISDIR(file_info.st_mode);
-}
-
 bool file__delete(const char* path) {
     if (unlink(path) == -1) {
         // todo: diagnostic, check errno
@@ -90,6 +81,31 @@ bool file__move(const char* src_path, const char* dest_path) {
         // todo: diagnostic, check errno
         return false;
     }
+
+    return true;
+}
+
+bool file__last_modified(const char* path, struct time* last_modified) {
+    struct stat file_info;
+    if (stat(path, &file_info) == -1) {
+        // todo: diagnostics, check errno
+        return false;
+    }
+
+    last_modified->val = file_info.st_mtime;
+
+    return true;
+}
+
+bool file__stat(const char* path, enum file_type* file_type) {
+    struct stat file_info;
+    if (stat(path, &file_info) == -1) {
+        // todo: diagnostics, check errno
+        return false;
+    }
+
+    *file_type = 0;
+    *file_type = S_ISDIR(file_info.st_mode) ? FILE_TYPE_DIRECTORY : FILE_TYPE_FILE;
 
     return true;
 }

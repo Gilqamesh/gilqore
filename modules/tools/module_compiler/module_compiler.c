@@ -5,15 +5,27 @@
 #include "io/file/file_reader/file_reader.h"
 #include "libc/libc.h"
 #include "system/process/process.h"
+#include "time/time.h"
 
 #include <stdio.h>
 
 #define LIBDEPS_EXTENSION ".libdeps"
+#define MODULE_MAX_PATH_LENGTH 511
 
-void module_compiler__parse_dependencies(struct module* self, const char* module_path) {
+extern struct module g_modules[1024];
+extern s32 g_modules_size;
+
+// struct module* module_compiler__find_module_by_name(const char* basename) {
+//     (void) path;
+//     return NULL;
+// }
+
+void module_compiler__parse_dependencies(struct module* self) {
     struct file dependency_file;
-    char dependency_file_name[256];
-    snprintf(dependency_file_name, ARRAY_SIZE(dependency_file_name), "%s%s%s", module_path, self->name, LIBDEPS_EXTENSION);
+    char dependency_file_name[MODULE_MAX_PATH_LENGTH + 1];
+    u32 dependency_file_name_length = libc__strlen(self->basename);
+    struct module* cur_parent = self->parent;
+    snprintf(dependency_file_name, ARRAY_SIZE(dependency_file_name), "%s%s", self->basename, LIBDEPS_EXTENSION);
 
     if (file__exists(dependency_file_name)) {
         ASSERT(file__open(&dependency_file, dependency_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
@@ -25,13 +37,11 @@ void module_compiler__parse_dependencies(struct module* self, const char* module
     }
 }
 
-extern struct module g_modules[1024];
-extern s32 g_modules_size;
-
 void module_compiler__compile(void) {
     struct module* parent_module = &g_modules[g_modules_size++];
-    const char* parent_module_name = "top level module";
-    memcpy(parent_module->name, parent_module_name, strlen(parent_module_name));
+    const char* parent_module_name = "modules";
+    libc__strncpy(parent_module->basename, parent_module_name, ARRAY_SIZE(parent_module->basename));
+    memcpy(parent_module->basename, parent_module_name, strlen(parent_module_name));
     parent_module->starting_error_code = 1;
     parent_module->children_starting_error_code = 1;
     parent_module->ending_error_code = 100000000;
