@@ -28,8 +28,8 @@ static inline u32 file_access_mode(enum file_access_mode access_mode) {
 static inline u32 file_creation_mode(enum file_creation_mode creation_mode) {
     u32 result = 0;
 
-    if (result == FILE_CREATION_MODE_OPEN) {
-    } else if (result == FILE_CREATION_MODE_CREATE) {
+    if (creation_mode == FILE_CREATION_MODE_OPEN) {
+    } else if (creation_mode == FILE_CREATION_MODE_CREATE) {
         result = O_CREAT | O_TRUNC;
     } else {
         error_code__exit(FILE_ERROR_CODE_OPEN_CREATION_INVALID);

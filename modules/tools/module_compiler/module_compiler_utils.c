@@ -7,6 +7,7 @@
 
 struct module g_modules[1024];
 u32 g_modules_size;
+u32 g_error_code = 1;
 
 void module_compiler__clear_transient_flags(void) {
     for (u32 i = 0; i < g_modules_size; ++i) {
@@ -14,45 +15,29 @@ void module_compiler__clear_transient_flags(void) {
     }
 }
 
-// @brief update sm based on pm
-void module_compiler__update_child(struct module* self, struct module* child, s32 child_index) {
-    child->starting_error_code = self->children_starting_error_code + child_index * self->children_disposition;
-    child->ending_error_code = child->starting_error_code + self->children_disposition - 1;
-    child->children_starting_error_code = child->starting_error_code + child->num_of_errors;
-    child->children_disposition = (child->ending_error_code - child->children_starting_error_code + 1) / (child->number_of_submodules + 1);
-}
-
-void module_compiler__update_branch(struct module* self) {
-    struct module* child = self->first_child;
-    for (s32 i = 0; child != NULL; ++i, child = child->next_sibling) {
-        module_compiler__update_child(self, child, i);
-        module_compiler__update_branch(child);
-    }
-}
-
 struct module* module_compiler__add_child(struct module* self, const char* child_module_basename) {
     struct module* child = &g_modules[g_modules_size++];
     child->parent = self;
+    s32 written_bytes = libc__snprintf(child->dirprefix, ARRAY_SIZE(child->dirprefix), "%s/%s", self->dirprefix, child_module_basename);
+    if (written_bytes == ARRAY_SIZE(child->dirprefix)) {
+        error_code__exit(MODULE_COMPILER_ERROR_CODE_PATH_TOO_LONG);
+    }
 
     u32 name_index = 0;
     for (; name_index + 1 < ARRAY_SIZE(child->basename) && child_module_basename[name_index] != '\0'; ++name_index) {
         child->basename[name_index] = child_module_basename[name_index];
     }
     child->basename[name_index] = '\0';
-    child->num_of_errors = 10; // hardcoded, todo: parse from config file
 
     struct module* first_child = self->first_child;
     self->first_child = child;
     child->next_sibling = first_child;
-    self->children_disposition = (self->ending_error_code - self->children_starting_error_code + 1) / (self->number_of_submodules++ + 1);
-    // update the whole branch from here
-    module_compiler__update_branch(self);
 
     return child;
 }
 
 void module_compiler__add_dependency(struct module* self, struct module* dependency) {
-    u32 hash_value = (dependency->starting_error_code * 56237) & ARRAY_SIZE(self->dependencies);
+    u32 hash_value = (dependency->basename[0] * 56237) & ARRAY_SIZE(self->dependencies);
     for (u32 i = hash_value; i < ARRAY_SIZE(self->dependencies); ++i) {
         if (self->dependencies[i] == dependency) {
             // no need to add the dependency again
@@ -115,14 +100,9 @@ void module_compiler__print_dependencies(struct module* self) {
 }
 
 static void module_compiler__print_branch_helper(struct module* self, s32 depth) {
-    printf("%*s --== %s ==-- \n %*sstart: %d\n %*sstart_child: %d\n %*send: %d\n %*snumber of submodules: %d\n %*sdisposition: %d\n %*sunique number of errors: %d\n %*sdependencies: ",
+    printf("%*s --== %s ==-- \n %*snumber of submodules: %d\n %*sdependencies: ",
     depth, "", self->basename,
-    depth, "", self->starting_error_code,
-    depth, "", self->children_starting_error_code,
-    depth, "", self->ending_error_code,
     depth, "", self->number_of_submodules,
-    depth, "", self->children_disposition,
-    depth, "", self->num_of_errors,
     depth, "");
 
     module_compiler__clear_transient_flags();
@@ -137,4 +117,8 @@ static void module_compiler__print_branch_helper(struct module* self, s32 depth)
 
 void module_compiler__print_branch(struct module* self) {
     module_compiler__print_branch_helper(self, 0);
+}
+
+u32 module_compiler__get_error_code(void) {
+    return g_error_code++;
 }

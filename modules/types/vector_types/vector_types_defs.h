@@ -1,7 +1,7 @@
 #ifndef VECTOR_TYPES_DEFS_H
 # define VECTOR_TYPES_DEFS_H
 
-# include "defs.h"
+# include "../types_defs.h"
 
 enum VECTOR_TYPES_ERROR_CODE {
     VECTOR_TYPES_ERROR_CODE_FATAL = ERROR_CODE_VECTOR_TYPES

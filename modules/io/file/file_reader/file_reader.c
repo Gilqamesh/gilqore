@@ -26,7 +26,7 @@ void file_reader__clear(struct file_reader* self) {
 static void file_reader__ensure_fill(struct file_reader* self) {
     if (
         self->eof_reached == false &&
-        circular_buffer__size_current(self->circular_buffer) == 0
+        circular_buffer__size_current(self->circular_buffer) < circular_buffer__size_total(self->circular_buffer)
     ) {
         void* head = circular_buffer__head(self->circular_buffer);
         void* end  = circular_buffer__end(self->circular_buffer);
@@ -45,6 +45,14 @@ static void file_reader__ensure_fill(struct file_reader* self) {
             }
         }
     }
+}
+
+char file_reader__peek(struct file_reader* self) {
+    file_reader__ensure_fill(self);
+    if (circular_buffer__size_current(self->circular_buffer) == 0) {
+        error_code__exit(FILE_READER_ERROR_NOTHING_TO_PEEK);
+    }
+    return *(char*) circular_buffer__tail(self->circular_buffer);
 }
 
 u32 file_reader__read_one(struct file_reader* self, void* out, u32 size) {
@@ -87,7 +95,9 @@ u32 file_reader__read_while_not(struct file_reader* self, void* out, u32 size, c
         (out == NULL || size > 0) &&
         (self->eof_reached == false || circular_buffer_cur_size > 0)
     ) {
-        file_reader__ensure_fill(self);
+        if (circular_buffer_cur_size == 0) {
+            file_reader__ensure_fill(self);
+        }
         circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
         if (circular_buffer_cur_size > 0) {
             unsigned char c = *(u8*) circular_buffer__tail(self->circular_buffer);
@@ -122,7 +132,9 @@ u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const
         (out == NULL || size > 0) &&
         (self->eof_reached == false || circular_buffer_cur_size > 0)
     ) {
-        file_reader__ensure_fill(self);
+        if (circular_buffer_cur_size == 0) {
+            file_reader__ensure_fill(self);
+        }
         circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
         if (circular_buffer_cur_size > 0) {
             unsigned char c = *(u8*) circular_buffer__tail(self->circular_buffer);

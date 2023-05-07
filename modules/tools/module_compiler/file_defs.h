@@ -1,9 +1,0 @@
-#ifndef FILE_DEFS_H
-# define FILE_DEFS_H
-
-enum file_error_code {
-    FILE_ERROR_INPUT_ACCESS_MODE_INVALID,
-    FILE_ERROR_INPUT_CREATION_MODE_INVALID
-};
-
-#endif

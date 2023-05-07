@@ -43,12 +43,14 @@ bool file_del(const char* path) {
 
 void test_module_main() {
     if (file__exists(TESTDIR_NAME)) {
-        directory__foreach_deep(TESTDIR_NAME, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+        directory__foreach_deep(TESTDIR_NAME, &file_del, FILE_TYPE_FILE);
+        directory__foreach_deep(TESTDIR_NAME, &file_del, FILE_TYPE_DIRECTORY);
         ASSERT(directory__delete(TESTDIR_NAME) == true);
         ASSERT(file__exists(TESTDIR_NAME) == false);
     }
     if (file__exists(TESTDIR_NAME2)) {
-        directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+        directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE);
+        directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_DIRECTORY);
         ASSERT(directory__delete(TESTDIR_NAME2) == true);
         ASSERT(file__exists(TESTDIR_NAME2) == false);
     }
@@ -63,11 +65,12 @@ void test_module_main() {
     ASSERT(file__exists(TESTDIR_NAME) == true);
 
     create_test_files(TESTDIR_NAME);
-    directory__foreach_shallow(TESTDIR_NAME, &create_test_files, FILE_TYPE_DIRECTORY);
+    directory__foreach_deep(TESTDIR_NAME, &create_test_files, FILE_TYPE_DIRECTORY);
 
     ASSERT(file__move(TESTDIR_NAME, TESTDIR_NAME2) == true);
     ASSERT(file__exists(TESTDIR_NAME) == false);
     ASSERT(file__exists(TESTDIR_NAME2) == true);
-    directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE | FILE_TYPE_DIRECTORY);
+    directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_FILE);
+    directory__foreach_deep(TESTDIR_NAME2, &file_del, FILE_TYPE_DIRECTORY);
     ASSERT(directory__delete(TESTDIR_NAME2) == true);
 }

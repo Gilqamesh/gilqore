@@ -7,11 +7,11 @@
 static inline DWORD file_access_mode(enum file_access_mode access_mode) {
     DWORD result = 0;
 
-    if (access_mode & FILE_ACCESS_MODE_READ) {
+    if (access_mode == FILE_ACCESS_MODE_READ) {
         result = GENERIC_READ;
-    } else if (access_mode & FILE_ACCESS_MODE_WRITE) {
+    } else if (access_mode == FILE_ACCESS_MODE_WRITE) {
         result = GENERIC_WRITE;
-    } else if (access_mode & FILE_ACCESS_MODE_RDWR) {
+    } else if (access_mode == FILE_ACCESS_MODE_RDWR) {
         result = GENERIC_READ | GENERIC_WRITE;
     } else {
         error_code__exit(FILE_ERROR_CODE_OPEN_ACCESS_INVALID);
@@ -23,9 +23,9 @@ static inline DWORD file_access_mode(enum file_access_mode access_mode) {
 static inline DWORD file_creation_mode(enum file_creation_mode creation_mode) {
     DWORD result = 0;
 
-    if (creation_mode & FILE_CREATION_MODE_OPEN) {
+    if (creation_mode == FILE_CREATION_MODE_OPEN) {
         result = OPEN_EXISTING;
-    } else if (creation_mode & FILE_CREATION_MODE_CREATE) {
+    } else if (creation_mode == FILE_CREATION_MODE_CREATE) {
         result = CREATE_ALWAYS;
     } else {
         error_code__exit(FILE_ERROR_CODE_OPEN_CREATION_INVALID);

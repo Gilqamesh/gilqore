@@ -124,11 +124,12 @@ void directory__foreach(const char* path, bool (*fn)(const char* path), enum fil
                 continue ;
             }
 
-            if (depth > 0 && type == FILE_TYPE_DIRECTORY) {
-                directory__foreach(buffer2, fn, file_type_flags, depth - 1);
-            }
+            bool should_recurse = depth > 0;
             if (type & file_type_flags) {
-                fn(buffer2);
+                should_recurse &= fn(buffer2);
+            }
+            if (should_recurse && type == FILE_TYPE_DIRECTORY) {
+                directory__foreach(buffer2, fn, file_type_flags, depth - 1);
             }
         }
         directory__close(&dir);

@@ -20,6 +20,8 @@ GIL_API void file_reader__destroy(struct file_reader* self);
 // @brief sets file pointer to the beginning of the file
 GIL_API void file_reader__clear(struct file_reader* self);
 
+// @returns the top most byte without advancing the file stream
+GIL_API char file_reader__peek(struct file_reader* self);
 // @brief reads size bytes into out or until eof hasn't been met
 // @param out optional
 // @returns amount of bytes read

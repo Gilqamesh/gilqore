@@ -18,14 +18,20 @@ struct time;
 # endif
 
 enum file_access_mode {
-    FILE_ACCESS_MODE_READ  = 1 << 0, // open file in read only mode
-    FILE_ACCESS_MODE_WRITE = 1 << 1, // open file in write only mode
-    FILE_ACCESS_MODE_RDWR  = 1 << 2  // open file in write and read mode
+    FILE_ACCESS_MODE_READ,  // open file in read only mode
+    FILE_ACCESS_MODE_WRITE, // open file in write only mode
+    FILE_ACCESS_MODE_RDWR   // open file in write and read mode
 };
 
 enum file_creation_mode {
-    FILE_CREATION_MODE_OPEN   = 1 << 0, // open existing file
-    FILE_CREATION_MODE_CREATE = 1 << 1  // create new file or truncate if exists
+    FILE_CREATION_MODE_OPEN,  // open existing file
+    FILE_CREATION_MODE_CREATE // create new file or truncate if exists
+};
+
+// todo: differentiate from pipe/socket and other types of files
+enum file_type {
+    FILE_TYPE_DIRECTORY = 1 << 0,
+    FILE_TYPE_FILE      = 1 << 1
 };
 
 GIL_API bool file__open(

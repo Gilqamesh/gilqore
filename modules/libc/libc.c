@@ -115,6 +115,30 @@ char* libc__strncpy(char* dest, const char* src, u64 size) {
     return strncpy(dest, src, size);
 }
 
+char* libc__strchr(const char* str, char c) {
+    while (*str != '\0') {
+        if (*str == c) {
+            return (char*) str;
+        }
+        ++str;
+    }
+
+    return NULL;
+}
+
+char* libc__strrchr(const char* str, char c) {
+    char* last = NULL;
+
+    while (*str != '\0') {
+        if (*str == c) {
+            last = (char*) str;
+        }
+        ++str;
+    }
+
+    return (char*) last;
+}
+
 s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
     va_list  ap;
     s32      written_bytes;
