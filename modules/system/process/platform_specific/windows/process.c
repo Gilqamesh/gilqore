@@ -38,16 +38,18 @@ u32 process__destroy(struct process* self) {
     DWORD exit_code;
     if (GetExitCodeProcess(self->process_info.hProcess, &exit_code) == FALSE) {
         // todo: diagnostics, GetLastError()
-        error_code__exit(PROCESS_ERROR_CODE_WINDOWS_GET_EXIT_CODE_PROCESS);
+        // error_code__exit(PROCESS_ERROR_CODE_WINDOWS_GET_EXIT_CODE_PROCESS);
     }
     // todo: thanks to windows, need to sure STILL_ACTIVE is not a valid error code in the entire module library
     if (exit_code == STILL_ACTIVE) {
-        TerminateProcess(self->process_info.hProcess, PROCESS_ERROR_CODE_FORCED_TO_TERMINATE);
+        // TerminateProcess(self->process_info.hProcess, PROCESS_ERROR_CODE_FORCED_TO_TERMINATE);
+        TerminateProcess(self->process_info.hProcess, 999);
         if (WaitForSingleObject(self->process_info.hProcess, 0) == WAIT_FAILED) {
             // todo: diagnostics, GetLastError()
-            error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
+            // error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
         }
-        exit_code = PROCESS_ERROR_CODE_FORCED_TO_TERMINATE;
+        // exit_code = PROCESS_ERROR_CODE_FORCED_TO_TERMINATE;
+        exit_code = 999;
     }
     if (CloseHandle(self->process_info.hProcess) == FALSE) {
         // todo: diagnostics, GetLastError()
@@ -60,13 +62,13 @@ u32 process__destroy(struct process* self) {
 void process__wait_execution(struct process* self) {
     if (WaitForSingleObject(self->process_info.hProcess, INFINITE) == WAIT_FAILED) {
         // todo: diagnostics, GetLastError()
-        error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
+        // error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
     }
 }
 
 void process__wait_timeout(struct process* self, u32 milliseconds) {
     if (WaitForSingleObject(self->process_info.hProcess, milliseconds) == WAIT_FAILED) {
         // todo: diagnostics, GetLastError()
-        error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
+        // error_code__exit(PROCESS_ERROR_CODE_WINDOWS_WAIT_FOR_SINGLE_OBJECT);
     }
 }

@@ -1,8 +1,3 @@
 unique_error_codes: [
-    SMTHIN_WENT_WRONG: ayyyoo idk wadap yoo, something bad happened
-    IDK_WHAT_HAPPENED: breh
-    SHOULD_FIX: should fiix dis
-    MANN: idk_breh
-    INPUT_NOT_CORRECT: input not correct, expected rang [1, 10]
 ]
 module_dependencies:

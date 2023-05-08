@@ -8,7 +8,9 @@ file_formats_test_install_path_static		        := $(file_formats_test_path_curdi
 file_formats_test_sources					        := $(wildcard $(file_formats_test_path_curdir)*.c)
 file_formats_test_objects					        := $(patsubst %.c, %.o, $(file_formats_test_sources))
 file_formats_test_depends					        := $(patsubst %.c, %.d, $(file_formats_test_sources))
-file_formats_test_depends_modules			        :=  file_formats test_framework
+file_formats_test_depends_modules			        := 
+# file_formats_test_depends_modules			        += test_framework
+file_formats_test_depends_modules			        += file_formats
 file_formats_test_libdepend_static_objs	        := $(foreach dep_module,$(file_formats_depends_modules),$($(dep_module)_static_objects))
 file_formats_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(file_formats_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 file_formats_test_libdepend_static_objs	        += $(foreach dep_module,$(file_formats_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ file_formats_test_clean:
 file_formats_test_re: file_formats_test_clean
 file_formats_test_re: file_formats_test_all
 
-.PHONY: file_formats_test_run
-file_formats_test_run: file_formats_test_all ## build and run static file_formats_test
-file_formats_test_run: $(file_formats_test_child_run_targets)
+.PHONY: file_formats_test_run_all
+file_formats_test_run_all: file_formats_test_all ## build and run static file_formats_test
+file_formats_test_run_all: $(file_formats_test_child_run_targets)
 ifneq ($(file_formats_test_objects),)
-file_formats_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_formats_test_install_path_static)
+file_formats_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(file_formats_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_formats_test_install_path_static)
+endif
+
+.PHONY: file_formats_test_run
+file_formats_test_run: file_formats_test_all
+ifneq ($(file_formats_test_objects),)
+file_formats_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(file_formats_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_formats_test_install_path_static)
 endif
 
 -include $(file_formats_test_depends)

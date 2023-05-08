@@ -6,11 +6,8 @@
 
 #include "common/error_code.h"
 #include "libc/libc.h"
-
-struct test_framework_window {
-    s32    argc;
-    char** argv;
-};
+#include "system/process/process.h"
+#include "tools/module_compiler/module_compiler.h"
 
 static struct test_framework_window g_test_framework;
 
@@ -25,30 +22,13 @@ GIL_API int WinMain(
     (void) cmd_line;
     (void) show_cmd;
 
-    HMODULE module_handle = GetModuleHandleA(NULL);
-    if (module_handle == NULL) {
-        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
-    }
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#pragma GCC diagnostic ignored "-Wpragmas"
-#endif
-    void (*module_main)() = (void *) GetProcAddress(module_handle, "test_module_main");
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-    if (module_main == NULL) {
-        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_UNDEFINED);
-    }
-
     // note: get command line arguments and convert them to ascii
     LPWSTR* wargv = CommandLineToArgvW(
         GetCommandLineW(),
         &g_test_framework.argc
     );
     if (wargv == NULL) {
-        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TO_ARGVW);
+        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TO_ARGV_W_FAILED);
     }
     s32 argv_size = g_test_framework.argc + 1;
     g_test_framework.argv = (char **) libc__malloc(argv_size * sizeof(*g_test_framework.argv));
@@ -66,13 +46,43 @@ GIL_API int WinMain(
     }
     LocalFree(wargv);
 
-    u32 before_test_allocated_memory_size = libc__unfreed_byte_count();
+    struct process module_process;
+    char command_line[512];
+    u32 command_line_index = 0;
+    for (u32 cmd_index = 1; cmd_index < (u32) test_framework__argc(); ++cmd_index) {
+        char* cur_cmd = test_framework__argv()[cmd_index];
+        while (*cur_cmd != '\0' && command_line_index + 1 < ARRAY_SIZE(command_line)) {
+            command_line[command_line_index++] = *cur_cmd;
+            ++cur_cmd;
+        }
+        if (cmd_index + 1 < (u32) test_framework__argc()) {
+            command_line[command_line_index++] = ' ';
+            if (command_line_index >= ARRAY_SIZE(command_line)) {
+                error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TOO_LONG);
+            }
+        }
+    }
+    command_line[command_line_index] = '\0';
+    printf("%s:\n", command_line);
     // note: run the main function of the tester module
-    module_main();
+    u32 before_test_allocated_memory_size = libc__unfreed_byte_count();
+    if (process__create(&module_process, command_line) == false) {
+        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_PROCESS_CREATE_FAILED);
+    }
+    process__wait_execution(&module_process);
+    u32 module_process_exit_code = process__destroy(&module_process);
+    char error_code_msg[512];
+    if (module_process_exit_code > 0) {
+        module_compiler__translate_error_code(module_process_exit_code, error_code_msg, ARRAY_SIZE(error_code_msg));
+        printf("Error code: %u\nReason: %s\n", module_process_exit_code, error_code_msg);
+    } else {
+        printf("Success\n");
+    }
+
     u32 after_test_allocated_memory_size = libc__unfreed_byte_count();
     if (after_test_allocated_memory_size != before_test_allocated_memory_size) {
         printf("Before: %u\nAfter: %u\n", before_test_allocated_memory_size, after_test_allocated_memory_size);
-        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MODULE_MAIN_MEMLEAK);
+        error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MEMORY_LEAK_IN_TESTED_MODULE);
     }
 
     // note: free resources
@@ -82,12 +92,4 @@ GIL_API int WinMain(
     libc__free(g_test_framework.argv);
 
     return 0;
-}
-
-s32    test_framework__argc() {
-    return g_test_framework.argc;
-}
-
-char** test_framework__argv() {
-    return g_test_framework.argv;
 }

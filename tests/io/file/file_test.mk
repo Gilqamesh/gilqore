@@ -8,7 +8,9 @@ file_test_install_path_static		        := $(file_test_path_curdir)file_static$(E
 file_test_sources					        := $(wildcard $(file_test_path_curdir)*.c)
 file_test_objects					        := $(patsubst %.c, %.o, $(file_test_sources))
 file_test_depends					        := $(patsubst %.c, %.d, $(file_test_sources))
-file_test_depends_modules			        := libc random time file test_framework
+file_test_depends_modules			        := libc random time
+# file_test_depends_modules			        += test_framework
+file_test_depends_modules			        += file
 file_test_libdepend_static_objs	        := $(foreach dep_module,$(file_depends_modules),$($(dep_module)_static_objects))
 file_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(file_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 file_test_libdepend_static_objs	        += $(foreach dep_module,$(file_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ file_test_clean:
 file_test_re: file_test_clean
 file_test_re: file_test_all
 
-.PHONY: file_test_run
-file_test_run: file_test_all ## build and run static file_test
-file_test_run: $(file_test_child_run_targets)
+.PHONY: file_test_run_all
+file_test_run_all: file_test_all ## build and run static file_test
+file_test_run_all: $(file_test_child_run_targets)
 ifneq ($(file_test_objects),)
-file_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_test_install_path_static)
+file_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(file_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_test_install_path_static)
+endif
+
+.PHONY: file_test_run
+file_test_run: file_test_all
+ifneq ($(file_test_objects),)
+file_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(file_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(file_test_install_path_static)
 endif
 
 -include $(file_test_depends)

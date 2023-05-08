@@ -21,7 +21,7 @@ static struct debug_memory_entry memory_entries[4096];
 void* libc__malloc(u32 size_bytes) {
     void* result = malloc(size_bytes);
     if (result == NULL) {
-        error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
+        // error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
     }
 #if defined(GIL_DEBUG)
     u64 memory_hash = ((u64) result * 17) % ARRAY_SIZE(memory_entries);
@@ -146,7 +146,7 @@ s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
     va_start(ap, format);
     written_bytes = vsnprintf(buffer, size, format, ap);
     if (written_bytes < 0) {
-        error_code__exit(LIBC_ERROR_CODE_VSNPRINTF);
+        // error_code__exit(LIBC_ERROR_CODE_VSNPRINTF);
     }
     va_end(ap);
 
@@ -155,4 +155,27 @@ s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
 
 bool libc__isspace(char c) {
     return isspace(c);
+}
+
+char* libc__itoa(s64 n, char* buffer, u32 radix) {
+    return itoa(n, buffer, radix);
+}
+
+s64 libc__atoi(const char* str, u32 radix) {
+    (void) radix;
+    return atoi(str);
+}
+
+s32 libc__vsscanf(const char* str, const char* format, ...) {
+    va_list  ap;
+    s32      parsed_fields;
+
+    va_start(ap, format);
+    parsed_fields = vsscanf(str, format, ap);
+    if (parsed_fields < 0) {
+        // error_code__exit(VSSCANF);
+    }
+    va_end(ap);
+
+    return parsed_fields;
 }

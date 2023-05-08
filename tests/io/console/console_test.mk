@@ -8,7 +8,9 @@ console_test_install_path_static		        := $(console_test_path_curdir)console_
 console_test_sources					        := $(wildcard $(console_test_path_curdir)*.c)
 console_test_objects					        := $(patsubst %.c, %.o, $(console_test_sources))
 console_test_depends					        := $(patsubst %.c, %.d, $(console_test_sources))
-console_test_depends_modules			        := libc console test_framework
+console_test_depends_modules			        := libc
+# console_test_depends_modules			        += test_framework
+console_test_depends_modules			        += console
 console_test_libdepend_static_objs	        := $(foreach dep_module,$(console_depends_modules),$($(dep_module)_static_objects))
 console_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(console_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 console_test_libdepend_static_objs	        += $(foreach dep_module,$(console_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ console_test_clean:
 console_test_re: console_test_clean
 console_test_re: console_test_all
 
-.PHONY: console_test_run
-console_test_run: console_test_all ## build and run static console_test
-console_test_run: $(console_test_child_run_targets)
+.PHONY: console_test_run_all
+console_test_run_all: console_test_all ## build and run static console_test
+console_test_run_all: $(console_test_child_run_targets)
 ifneq ($(console_test_objects),)
-console_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(console_test_install_path_static)
+console_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(console_test_install_path_static)
+endif
+
+.PHONY: console_test_run
+console_test_run: console_test_all
+ifneq ($(console_test_objects),)
+console_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(console_test_install_path_static)
 endif
 
 -include $(console_test_depends)

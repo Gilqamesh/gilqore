@@ -3,9 +3,9 @@
 
 # include "../file_defs.h"
 
-enum FILE_READER_ERROR_CODE {
-    FILE_READER_ERROR_CODE_FATAL = ERROR_CODE_FILE_READER,
-    FILE_READER_ERROR_NOTHING_TO_PEEK
+enum file_reader_error_code {
+    FILE_READER_ERROR_CODE_START,
+    FILE_READER_ERROR_CODE_NOTHING_TO_PEEK = 28,
 };
 
 #endif

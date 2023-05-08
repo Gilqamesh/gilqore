@@ -3,8 +3,8 @@
 
 # include "../math_defs.h"
 
-enum CLAMP_ERROR_CODE {
-    CLAMP_ERROR_CODE_FATAL = ERROR_CODE_CLAMP
+enum clamp_error_code {
+    CLAMP_ERROR_CODE_START,
 };
 
 #endif

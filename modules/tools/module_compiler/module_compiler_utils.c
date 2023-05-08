@@ -20,7 +20,7 @@ struct module* module_compiler__add_child(struct module* self, const char* child
     child->parent = self;
     s32 written_bytes = libc__snprintf(child->dirprefix, ARRAY_SIZE(child->dirprefix), "%s/%s", self->dirprefix, child_module_basename);
     if (written_bytes == ARRAY_SIZE(child->dirprefix)) {
-        error_code__exit(MODULE_COMPILER_ERROR_CODE_PATH_TOO_LONG);
+        // error_code__exit(CHILD_PREFIX_TOO_LONG);
     }
 
     u32 name_index = 0;

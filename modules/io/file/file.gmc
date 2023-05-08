@@ -1,0 +1,5 @@
+unique_error_codes: [
+    ACCESS_MODE_INVALID: enum file_access_mode provided is incorrect
+    CREATION_MODE_INVALID: enum file_creation_mode provided is incorrect
+]
+module_dependencies: 

@@ -8,7 +8,9 @@ process_test_install_path_static		        := $(process_test_path_curdir)process_
 process_test_sources					        := $(wildcard $(process_test_path_curdir)*.c)
 process_test_objects					        := $(patsubst %.c, %.o, $(process_test_sources))
 process_test_depends					        := $(patsubst %.c, %.d, $(process_test_sources))
-process_test_depends_modules			        := console file libc process test_framework
+process_test_depends_modules			        := console file libc
+# process_test_depends_modules			        += test_framework
+process_test_depends_modules			        += process
 process_test_libdepend_static_objs	        := $(foreach dep_module,$(process_depends_modules),$($(dep_module)_static_objects))
 process_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(process_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 process_test_libdepend_static_objs	        += $(foreach dep_module,$(process_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ process_test_clean:
 process_test_re: process_test_clean
 process_test_re: process_test_all
 
-.PHONY: process_test_run
-process_test_run: process_test_all ## build and run static process_test
-process_test_run: $(process_test_child_run_targets)
+.PHONY: process_test_run_all
+process_test_run_all: process_test_all ## build and run static process_test
+process_test_run_all: $(process_test_child_run_targets)
 ifneq ($(process_test_objects),)
-process_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(process_test_install_path_static)
+process_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(process_test_install_path_static)
+endif
+
+.PHONY: process_test_run
+process_test_run: process_test_all
+ifneq ($(process_test_objects),)
+process_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(process_test_install_path_static)
 endif
 
 -include $(process_test_depends)

@@ -8,7 +8,9 @@ io_test_install_path_static		        := $(io_test_path_curdir)io_static$(EXT_EXE
 io_test_sources					        := $(wildcard $(io_test_path_curdir)*.c)
 io_test_objects					        := $(patsubst %.c, %.o, $(io_test_sources))
 io_test_depends					        := $(patsubst %.c, %.d, $(io_test_sources))
-io_test_depends_modules			        :=  io test_framework
+io_test_depends_modules			        := 
+# io_test_depends_modules			        += test_framework
+io_test_depends_modules			        += io
 io_test_libdepend_static_objs	        := $(foreach dep_module,$(io_depends_modules),$($(dep_module)_static_objects))
 io_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(io_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 io_test_libdepend_static_objs	        += $(foreach dep_module,$(io_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ io_test_clean:
 io_test_re: io_test_clean
 io_test_re: io_test_all
 
-.PHONY: io_test_run
-io_test_run: io_test_all ## build and run static io_test
-io_test_run: $(io_test_child_run_targets)
+.PHONY: io_test_run_all
+io_test_run_all: io_test_all ## build and run static io_test
+io_test_run_all: $(io_test_child_run_targets)
 ifneq ($(io_test_objects),)
-io_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(io_test_install_path_static)
+io_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(io_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(io_test_install_path_static)
+endif
+
+.PHONY: io_test_run
+io_test_run: io_test_all
+ifneq ($(io_test_objects),)
+io_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(io_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(io_test_install_path_static)
 endif
 
 -include $(io_test_depends)

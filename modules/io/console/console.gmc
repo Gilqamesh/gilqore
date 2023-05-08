@@ -1,0 +1,7 @@
+unique_error_codes: [
+    ATTACH_CONSOLE: AttachConsole has failed
+    GET_STD_HANDLE: GetStdHandle has failed
+    VSNPRINTF: vsnprintf returned negative value
+    WRITE_CONSOLE_A: WriteConsoleA has failed
+]
+module_dependencies: 

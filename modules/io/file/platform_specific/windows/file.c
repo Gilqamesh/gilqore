@@ -14,7 +14,7 @@ static inline DWORD file_access_mode(enum file_access_mode access_mode) {
     } else if (access_mode == FILE_ACCESS_MODE_RDWR) {
         result = GENERIC_READ | GENERIC_WRITE;
     } else {
-        error_code__exit(FILE_ERROR_CODE_OPEN_ACCESS_INVALID);
+        // error_code__exit(FILE_ERROR_CODE_OPEN_ACCESS_INVALID);
     }
 
     return result;
@@ -28,7 +28,7 @@ static inline DWORD file_creation_mode(enum file_creation_mode creation_mode) {
     } else if (creation_mode == FILE_CREATION_MODE_CREATE) {
         result = CREATE_ALWAYS;
     } else {
-        error_code__exit(FILE_ERROR_CODE_OPEN_CREATION_INVALID);
+        // error_code__exit(FILE_ERROR_CODE_OPEN_CREATION_INVALID);
     }
 
     return result;

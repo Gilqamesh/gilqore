@@ -1,0 +1,5 @@
+unique_error_codes: [
+    FORCED_TO_TERMINATE: process is forced to terminate
+    WAIT_FOR_SINGLE_OBJECT_FAILED: WaitForSingleObject failed in process
+]
+module_dependencies: 

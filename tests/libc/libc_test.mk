@@ -8,7 +8,9 @@ libc_test_install_path_static		        := $(libc_test_path_curdir)libc_static$(E
 libc_test_sources					        := $(wildcard $(libc_test_path_curdir)*.c)
 libc_test_objects					        := $(patsubst %.c, %.o, $(libc_test_sources))
 libc_test_depends					        := $(patsubst %.c, %.d, $(libc_test_sources))
-libc_test_depends_modules			        :=  libc test_framework
+libc_test_depends_modules			        := 
+# libc_test_depends_modules			        += test_framework
+libc_test_depends_modules			        += libc
 libc_test_libdepend_static_objs	        := $(foreach dep_module,$(libc_depends_modules),$($(dep_module)_static_objects))
 libc_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(libc_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 libc_test_libdepend_static_objs	        += $(foreach dep_module,$(libc_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ libc_test_clean:
 libc_test_re: libc_test_clean
 libc_test_re: libc_test_all
 
-.PHONY: libc_test_run
-libc_test_run: libc_test_all ## build and run static libc_test
-libc_test_run: $(libc_test_child_run_targets)
+.PHONY: libc_test_run_all
+libc_test_run_all: libc_test_all ## build and run static libc_test
+libc_test_run_all: $(libc_test_child_run_targets)
 ifneq ($(libc_test_objects),)
-libc_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(libc_test_install_path_static)
+libc_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(libc_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(libc_test_install_path_static)
+endif
+
+.PHONY: libc_test_run
+libc_test_run: libc_test_all
+ifneq ($(libc_test_objects),)
+libc_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(libc_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(libc_test_install_path_static)
 endif
 
 -include $(libc_test_depends)

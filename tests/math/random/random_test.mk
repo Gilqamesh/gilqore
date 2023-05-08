@@ -8,7 +8,9 @@ random_test_install_path_static		        := $(random_test_path_curdir)random_sta
 random_test_sources					        := $(wildcard $(random_test_path_curdir)*.c)
 random_test_objects					        := $(patsubst %.c, %.o, $(random_test_sources))
 random_test_depends					        := $(patsubst %.c, %.d, $(random_test_sources))
-random_test_depends_modules			        :=  random test_framework
+random_test_depends_modules			        := 
+# random_test_depends_modules			        += test_framework
+random_test_depends_modules			        += random
 random_test_libdepend_static_objs	        := $(foreach dep_module,$(random_depends_modules),$($(dep_module)_static_objects))
 random_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(random_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 random_test_libdepend_static_objs	        += $(foreach dep_module,$(random_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ random_test_clean:
 random_test_re: random_test_clean
 random_test_re: random_test_all
 
-.PHONY: random_test_run
-random_test_run: random_test_all ## build and run static random_test
-random_test_run: $(random_test_child_run_targets)
+.PHONY: random_test_run_all
+random_test_run_all: random_test_all ## build and run static random_test
+random_test_run_all: $(random_test_child_run_targets)
 ifneq ($(random_test_objects),)
-random_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(random_test_install_path_static)
+random_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(random_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(random_test_install_path_static)
+endif
+
+.PHONY: random_test_run
+random_test_run: random_test_all
+ifneq ($(random_test_objects),)
+random_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(random_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(random_test_install_path_static)
 endif
 
 -include $(random_test_depends)

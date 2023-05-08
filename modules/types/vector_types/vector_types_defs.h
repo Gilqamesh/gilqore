@@ -3,8 +3,8 @@
 
 # include "../types_defs.h"
 
-enum VECTOR_TYPES_ERROR_CODE {
-    VECTOR_TYPES_ERROR_CODE_FATAL = ERROR_CODE_VECTOR_TYPES
+enum vector_types_error_code {
+    VECTOR_TYPES_ERROR_CODE_START,
 };
 
 #endif

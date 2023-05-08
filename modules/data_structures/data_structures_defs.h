@@ -1,10 +1,10 @@
 #ifndef DATA_STRUCTURES_DEFS_H
 # define DATA_STRUCTURES_DEFS_H
 
-# include "defs.h"
+# include "../modules_defs.h"
 
-enum DATA_STRUCTURES_ERROR_CODE {
-    DATA_STRUCTURES_ERROR_CODE_FATAL = ERROR_CODE_DATA_STRUCTURES
+enum data_structures_error_code {
+    DATA_STRUCTURES_ERROR_CODE_START,
 };
 
 #endif

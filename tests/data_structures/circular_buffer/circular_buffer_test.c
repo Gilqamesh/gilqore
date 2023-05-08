@@ -1,5 +1,3 @@
-#include "test_framework/test_framework.h"
-
 #include <stdio.h>
 
 #include "data_structures/circular_buffer/circular_buffer.h"
@@ -103,7 +101,7 @@ void clear_circular_buffer(circular_buffer_t circular_buffer) {
 #define CIRCULAR_BUFFER_R64_SIZE ((s32) 1)
 #define CIRCULAR_BUFFER_TEST_TYPE_SIZE ((s32) 117)
 
-void test_module_main() {
+int main() {
     s32 auxiliary_array_s32[CIRCULAR_BUFFER_S32_SIZE];
     r64 auxiliary_array_r64[CIRCULAR_BUFFER_R64_SIZE];
     struct test_type auxiliary_array_test_type[CIRCULAR_BUFFER_TEST_TYPE_SIZE];
@@ -186,4 +184,6 @@ void test_module_main() {
     circular_buffer__destroy(circular_buffer_r64);
     circular_buffer__destroy(circular_buffer_s32);
     circular_buffer__destroy(circular_buffer_test_type);
+
+    return 0;
 }

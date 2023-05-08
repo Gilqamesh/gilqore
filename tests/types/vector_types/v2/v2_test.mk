@@ -8,7 +8,9 @@ v2_test_install_path_static		        := $(v2_test_path_curdir)v2_static$(EXT_EXE
 v2_test_sources					        := $(wildcard $(v2_test_path_curdir)*.c)
 v2_test_objects					        := $(patsubst %.c, %.o, $(v2_test_sources))
 v2_test_depends					        := $(patsubst %.c, %.d, $(v2_test_sources))
-v2_test_depends_modules			        :=  v2 test_framework
+v2_test_depends_modules			        := 
+# v2_test_depends_modules			        += test_framework
+v2_test_depends_modules			        += v2
 v2_test_libdepend_static_objs	        := $(foreach dep_module,$(v2_depends_modules),$($(dep_module)_static_objects))
 v2_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(v2_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 v2_test_libdepend_static_objs	        += $(foreach dep_module,$(v2_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ v2_test_clean:
 v2_test_re: v2_test_clean
 v2_test_re: v2_test_all
 
-.PHONY: v2_test_run
-v2_test_run: v2_test_all ## build and run static v2_test
-v2_test_run: $(v2_test_child_run_targets)
+.PHONY: v2_test_run_all
+v2_test_run_all: v2_test_all ## build and run static v2_test
+v2_test_run_all: $(v2_test_child_run_targets)
 ifneq ($(v2_test_objects),)
-v2_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v2_test_install_path_static)
+v2_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v2_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v2_test_install_path_static)
+endif
+
+.PHONY: v2_test_run
+v2_test_run: v2_test_all
+ifneq ($(v2_test_objects),)
+v2_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v2_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v2_test_install_path_static)
 endif
 
 -include $(v2_test_depends)

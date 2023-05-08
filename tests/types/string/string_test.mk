@@ -8,7 +8,9 @@ string_test_install_path_static		        := $(string_test_path_curdir)string_sta
 string_test_sources					        := $(wildcard $(string_test_path_curdir)*.c)
 string_test_objects					        := $(patsubst %.c, %.o, $(string_test_sources))
 string_test_depends					        := $(patsubst %.c, %.d, $(string_test_sources))
-string_test_depends_modules			        :=  string test_framework
+string_test_depends_modules			        := 
+# string_test_depends_modules			        += test_framework
+string_test_depends_modules			        += string
 string_test_libdepend_static_objs	        := $(foreach dep_module,$(string_depends_modules),$($(dep_module)_static_objects))
 string_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(string_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 string_test_libdepend_static_objs	        += $(foreach dep_module,$(string_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ string_test_clean:
 string_test_re: string_test_clean
 string_test_re: string_test_all
 
-.PHONY: string_test_run
-string_test_run: string_test_all ## build and run static string_test
-string_test_run: $(string_test_child_run_targets)
+.PHONY: string_test_run_all
+string_test_run_all: string_test_all ## build and run static string_test
+string_test_run_all: $(string_test_child_run_targets)
 ifneq ($(string_test_objects),)
-string_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(string_test_install_path_static)
+string_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(string_test_install_path_static)
+endif
+
+.PHONY: string_test_run
+string_test_run: string_test_all
+ifneq ($(string_test_objects),)
+string_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(string_test_install_path_static)
 endif
 
 -include $(string_test_depends)

@@ -1,13 +1,10 @@
 #ifndef IO_DEFS_H
 # define IO_DEFS_H
 
-# include "../defs.h"
+# include "../modules_defs.h"
 
-enum IO_ERROR_CODE {
-    IO_ERROR_CODE_FATAL = ERROR_CODE_IO,
-
-    ERROR_CODE_DIRECTORY,
-    ERROR_CODE_FILE = ERROR_CODE_DIRECTORY + 50
+enum io_error_code {
+    IO_ERROR_CODE_START,
 };
 
 #endif

@@ -8,7 +8,9 @@ sqrt_test_install_path_static		        := $(sqrt_test_path_curdir)sqrt_static$(E
 sqrt_test_sources					        := $(wildcard $(sqrt_test_path_curdir)*.c)
 sqrt_test_objects					        := $(patsubst %.c, %.o, $(sqrt_test_sources))
 sqrt_test_depends					        := $(patsubst %.c, %.d, $(sqrt_test_sources))
-sqrt_test_depends_modules			        :=  sqrt test_framework
+sqrt_test_depends_modules			        := 
+# sqrt_test_depends_modules			        += test_framework
+sqrt_test_depends_modules			        += sqrt
 sqrt_test_libdepend_static_objs	        := $(foreach dep_module,$(sqrt_depends_modules),$($(dep_module)_static_objects))
 sqrt_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(sqrt_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 sqrt_test_libdepend_static_objs	        += $(foreach dep_module,$(sqrt_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ sqrt_test_clean:
 sqrt_test_re: sqrt_test_clean
 sqrt_test_re: sqrt_test_all
 
-.PHONY: sqrt_test_run
-sqrt_test_run: sqrt_test_all ## build and run static sqrt_test
-sqrt_test_run: $(sqrt_test_child_run_targets)
+.PHONY: sqrt_test_run_all
+sqrt_test_run_all: sqrt_test_all ## build and run static sqrt_test
+sqrt_test_run_all: $(sqrt_test_child_run_targets)
 ifneq ($(sqrt_test_objects),)
-sqrt_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(sqrt_test_install_path_static)
+sqrt_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(sqrt_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(sqrt_test_install_path_static)
+endif
+
+.PHONY: sqrt_test_run
+sqrt_test_run: sqrt_test_all
+ifneq ($(sqrt_test_objects),)
+sqrt_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(sqrt_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(sqrt_test_install_path_static)
 endif
 
 -include $(sqrt_test_depends)

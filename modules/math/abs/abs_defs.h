@@ -3,8 +3,8 @@
 
 # include "../math_defs.h"
 
-enum ABS_ERROR_CODE {
-    ABS_ERROR_CODE_FATAL = ERROR_CODE_ABS
+enum abs_error_code {
+    ABS_ERROR_CODE_START,
 };
 
 #endif

@@ -26,4 +26,9 @@ GIL_API s32 libc__snprintf(char *buffer, u64 size, const char* format, ...);
 
 GIL_API bool libc__isspace(char c);
 
+GIL_API char* libc__itoa(s64 n, char* buffer, u32 radix);
+GIL_API s64 libc__atoi(const char* str, u32 radix);
+
+GIL_API s32 libc__vsscanf(const char* str, const char* format, ...);
+
 #endif

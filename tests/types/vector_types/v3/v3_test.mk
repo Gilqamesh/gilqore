@@ -8,7 +8,9 @@ v3_test_install_path_static		        := $(v3_test_path_curdir)v3_static$(EXT_EXE
 v3_test_sources					        := $(wildcard $(v3_test_path_curdir)*.c)
 v3_test_objects					        := $(patsubst %.c, %.o, $(v3_test_sources))
 v3_test_depends					        := $(patsubst %.c, %.d, $(v3_test_sources))
-v3_test_depends_modules			        :=  v3 test_framework
+v3_test_depends_modules			        := 
+# v3_test_depends_modules			        += test_framework
+v3_test_depends_modules			        += v3
 v3_test_libdepend_static_objs	        := $(foreach dep_module,$(v3_depends_modules),$($(dep_module)_static_objects))
 v3_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(v3_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 v3_test_libdepend_static_objs	        += $(foreach dep_module,$(v3_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ v3_test_clean:
 v3_test_re: v3_test_clean
 v3_test_re: v3_test_all
 
-.PHONY: v3_test_run
-v3_test_run: v3_test_all ## build and run static v3_test
-v3_test_run: $(v3_test_child_run_targets)
+.PHONY: v3_test_run_all
+v3_test_run_all: v3_test_all ## build and run static v3_test
+v3_test_run_all: $(v3_test_child_run_targets)
 ifneq ($(v3_test_objects),)
-v3_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v3_test_install_path_static)
+v3_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v3_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v3_test_install_path_static)
+endif
+
+.PHONY: v3_test_run
+v3_test_run: v3_test_all
+ifneq ($(v3_test_objects),)
+v3_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v3_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(v3_test_install_path_static)
 endif
 
 -include $(v3_test_depends)

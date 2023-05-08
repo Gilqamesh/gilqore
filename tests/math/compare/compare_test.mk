@@ -8,7 +8,9 @@ compare_test_install_path_static		        := $(compare_test_path_curdir)compare_
 compare_test_sources					        := $(wildcard $(compare_test_path_curdir)*.c)
 compare_test_objects					        := $(patsubst %.c, %.o, $(compare_test_sources))
 compare_test_depends					        := $(patsubst %.c, %.d, $(compare_test_sources))
-compare_test_depends_modules			        :=  compare test_framework
+compare_test_depends_modules			        := 
+# compare_test_depends_modules			        += test_framework
+compare_test_depends_modules			        += compare
 compare_test_libdepend_static_objs	        := $(foreach dep_module,$(compare_depends_modules),$($(dep_module)_static_objects))
 compare_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(compare_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 compare_test_libdepend_static_objs	        += $(foreach dep_module,$(compare_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ compare_test_clean:
 compare_test_re: compare_test_clean
 compare_test_re: compare_test_all
 
-.PHONY: compare_test_run
-compare_test_run: compare_test_all ## build and run static compare_test
-compare_test_run: $(compare_test_child_run_targets)
+.PHONY: compare_test_run_all
+compare_test_run_all: compare_test_all ## build and run static compare_test
+compare_test_run_all: $(compare_test_child_run_targets)
 ifneq ($(compare_test_objects),)
-compare_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(compare_test_install_path_static)
+compare_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(compare_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(compare_test_install_path_static)
+endif
+
+.PHONY: compare_test_run
+compare_test_run: compare_test_all
+ifneq ($(compare_test_objects),)
+compare_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(compare_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(compare_test_install_path_static)
 endif
 
 -include $(compare_test_depends)

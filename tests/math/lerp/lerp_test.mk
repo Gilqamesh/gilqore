@@ -8,7 +8,9 @@ lerp_test_install_path_static		        := $(lerp_test_path_curdir)lerp_static$(E
 lerp_test_sources					        := $(wildcard $(lerp_test_path_curdir)*.c)
 lerp_test_objects					        := $(patsubst %.c, %.o, $(lerp_test_sources))
 lerp_test_depends					        := $(patsubst %.c, %.d, $(lerp_test_sources))
-lerp_test_depends_modules			        :=  lerp test_framework
+lerp_test_depends_modules			        := 
+# lerp_test_depends_modules			        += test_framework
+lerp_test_depends_modules			        += lerp
 lerp_test_libdepend_static_objs	        := $(foreach dep_module,$(lerp_depends_modules),$($(dep_module)_static_objects))
 lerp_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(lerp_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 lerp_test_libdepend_static_objs	        += $(foreach dep_module,$(lerp_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ lerp_test_clean:
 lerp_test_re: lerp_test_clean
 lerp_test_re: lerp_test_all
 
-.PHONY: lerp_test_run
-lerp_test_run: lerp_test_all ## build and run static lerp_test
-lerp_test_run: $(lerp_test_child_run_targets)
+.PHONY: lerp_test_run_all
+lerp_test_run_all: lerp_test_all ## build and run static lerp_test
+lerp_test_run_all: $(lerp_test_child_run_targets)
 ifneq ($(lerp_test_objects),)
-lerp_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(lerp_test_install_path_static)
+lerp_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(lerp_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(lerp_test_install_path_static)
+endif
+
+.PHONY: lerp_test_run
+lerp_test_run: lerp_test_all
+ifneq ($(lerp_test_objects),)
+lerp_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(lerp_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(lerp_test_install_path_static)
 endif
 
 -include $(lerp_test_depends)

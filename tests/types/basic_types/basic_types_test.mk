@@ -8,7 +8,9 @@ basic_types_test_install_path_static		        := $(basic_types_test_path_curdir)
 basic_types_test_sources					        := $(wildcard $(basic_types_test_path_curdir)*.c)
 basic_types_test_objects					        := $(patsubst %.c, %.o, $(basic_types_test_sources))
 basic_types_test_depends					        := $(patsubst %.c, %.d, $(basic_types_test_sources))
-basic_types_test_depends_modules			        :=  basic_types test_framework
+basic_types_test_depends_modules			        := 
+# basic_types_test_depends_modules			        += test_framework
+basic_types_test_depends_modules			        += basic_types
 basic_types_test_libdepend_static_objs	        := $(foreach dep_module,$(basic_types_depends_modules),$($(dep_module)_static_objects))
 basic_types_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(basic_types_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 basic_types_test_libdepend_static_objs	        += $(foreach dep_module,$(basic_types_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ basic_types_test_clean:
 basic_types_test_re: basic_types_test_clean
 basic_types_test_re: basic_types_test_all
 
-.PHONY: basic_types_test_run
-basic_types_test_run: basic_types_test_all ## build and run static basic_types_test
-basic_types_test_run: $(basic_types_test_child_run_targets)
+.PHONY: basic_types_test_run_all
+basic_types_test_run_all: basic_types_test_all ## build and run static basic_types_test
+basic_types_test_run_all: $(basic_types_test_child_run_targets)
 ifneq ($(basic_types_test_objects),)
-basic_types_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(basic_types_test_install_path_static)
+basic_types_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(basic_types_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(basic_types_test_install_path_static)
+endif
+
+.PHONY: basic_types_test_run
+basic_types_test_run: basic_types_test_all
+ifneq ($(basic_types_test_objects),)
+basic_types_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(basic_types_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(basic_types_test_install_path_static)
 endif
 
 -include $(basic_types_test_depends)

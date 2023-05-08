@@ -1,0 +1,4 @@
+unique_error_codes: [
+    NOTHING_TO_PEEK: file_reader__peek couldn't return anything, probably because eof has been reached or empty file
+]
+module_dependencies: 

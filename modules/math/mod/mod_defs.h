@@ -3,8 +3,8 @@
 
 # include "../math_defs.h"
 
-enum MOD_ERROR_CODE {
-    MOD_ERROR_CODE_FATAL = ERROR_CODE_MOD
+enum mod_error_code {
+    MOD_ERROR_CODE_START,
 };
 
 #endif

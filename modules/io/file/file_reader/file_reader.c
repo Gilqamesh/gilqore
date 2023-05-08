@@ -50,7 +50,7 @@ static void file_reader__ensure_fill(struct file_reader* self) {
 char file_reader__peek(struct file_reader* self) {
     file_reader__ensure_fill(self);
     if (circular_buffer__size_current(self->circular_buffer) == 0) {
-        error_code__exit(FILE_READER_ERROR_NOTHING_TO_PEEK);
+        // error_code__exit(FILE_READER_ERROR_NOTHING_TO_PEEK);
     }
     return *(char*) circular_buffer__tail(self->circular_buffer);
 }

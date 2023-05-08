@@ -8,7 +8,9 @@ thread_test_install_path_static		        := $(thread_test_path_curdir)thread_sta
 thread_test_sources					        := $(wildcard $(thread_test_path_curdir)*.c)
 thread_test_objects					        := $(patsubst %.c, %.o, $(thread_test_sources))
 thread_test_depends					        := $(patsubst %.c, %.d, $(thread_test_sources))
-thread_test_depends_modules			        :=  thread test_framework
+thread_test_depends_modules			        := 
+# thread_test_depends_modules			        += test_framework
+thread_test_depends_modules			        += thread
 thread_test_libdepend_static_objs	        := $(foreach dep_module,$(thread_depends_modules),$($(dep_module)_static_objects))
 thread_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(thread_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 thread_test_libdepend_static_objs	        += $(foreach dep_module,$(thread_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ thread_test_clean:
 thread_test_re: thread_test_clean
 thread_test_re: thread_test_all
 
-.PHONY: thread_test_run
-thread_test_run: thread_test_all ## build and run static thread_test
-thread_test_run: $(thread_test_child_run_targets)
+.PHONY: thread_test_run_all
+thread_test_run_all: thread_test_all ## build and run static thread_test
+thread_test_run_all: $(thread_test_child_run_targets)
 ifneq ($(thread_test_objects),)
-thread_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(thread_test_install_path_static)
+thread_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(thread_test_install_path_static)
+endif
+
+.PHONY: thread_test_run
+thread_test_run: thread_test_all
+ifneq ($(thread_test_objects),)
+thread_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(thread_test_install_path_static)
 endif
 
 -include $(thread_test_depends)

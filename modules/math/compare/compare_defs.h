@@ -3,8 +3,8 @@
 
 # include "../math_defs.h"
 
-enum COMPARE_ERROR_CODE {
-    COMPARE_ERROR_CODE_FATAL = ERROR_CODE_COMPARE
+enum compare_error_code {
+    COMPARE_ERROR_CODE_START,
 };
 
 #endif

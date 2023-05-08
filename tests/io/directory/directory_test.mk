@@ -8,7 +8,9 @@ directory_test_install_path_static		        := $(directory_test_path_curdir)dire
 directory_test_sources					        := $(wildcard $(directory_test_path_curdir)*.c)
 directory_test_objects					        := $(patsubst %.c, %.o, $(directory_test_sources))
 directory_test_depends					        := $(patsubst %.c, %.d, $(directory_test_sources))
-directory_test_depends_modules			        := file directory test_framework
+directory_test_depends_modules			        := file
+# directory_test_depends_modules			        += test_framework
+directory_test_depends_modules			        += directory
 directory_test_libdepend_static_objs	        := $(foreach dep_module,$(directory_depends_modules),$($(dep_module)_static_objects))
 directory_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(directory_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 directory_test_libdepend_static_objs	        += $(foreach dep_module,$(directory_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ directory_test_clean:
 directory_test_re: directory_test_clean
 directory_test_re: directory_test_all
 
-.PHONY: directory_test_run
-directory_test_run: directory_test_all ## build and run static directory_test
-directory_test_run: $(directory_test_child_run_targets)
+.PHONY: directory_test_run_all
+directory_test_run_all: directory_test_all ## build and run static directory_test
+directory_test_run_all: $(directory_test_child_run_targets)
 ifneq ($(directory_test_objects),)
-directory_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(directory_test_install_path_static)
+directory_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(directory_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(directory_test_install_path_static)
+endif
+
+.PHONY: directory_test_run
+directory_test_run: directory_test_all
+ifneq ($(directory_test_objects),)
+directory_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(directory_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(directory_test_install_path_static)
 endif
 
 -include $(directory_test_depends)

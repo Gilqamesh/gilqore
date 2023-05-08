@@ -1,14 +1,10 @@
 #ifndef TIME_DEFS_H
 # define TIME_DEFS_H
 
-# include "../defs.h"
+# include "../modules_defs.h"
 
-enum TIME_ERROR_CODE {
-    TIME_ERROR_CODE_FATAL = ERROR_CODE_TIME,
-
-    TIME_ERROR_CODE_WINDOWS,
-    TIME_ERROR_CODE_LINUX,
-    TIME_ERROR_CODE_MAC
+enum time_error_code {
+    TIME_ERROR_CODE_START,
 };
 
 #endif

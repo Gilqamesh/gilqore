@@ -1,0 +1,8 @@
+unique_error_codes: [
+    GET_PROC_ADDRESS_FAILED: GetProcAddress failed in test_framework, probabl because test_module_main is not defined for the tested module
+    COMMAND_LINE_TO_ARGV_W_FAILED: CommandLineToArgvW has failed in test_framework
+    MEMORY_LEAK_IN_TESTED_MODULE: Memory leak detected in the tested module
+    PROCESS_CREATE_FAILED: process__create failed in test_framework
+    COMMAND_LINE_TOO_LONG: command line is too long in test_framework
+]
+module_dependencies: 

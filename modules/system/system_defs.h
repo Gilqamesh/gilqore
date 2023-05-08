@@ -1,15 +1,10 @@
 #ifndef SYSTEM_DEFS_H
 # define SYSTEM_DEFS_H
 
-# include "../defs.h"
+# include "../modules_defs.h"
 
-enum SYSTEM_ERROR_CODE {
-    SYSTEM_ERROR_CODE_FATAL = ERROR_CODE_SYSTEM,
-    ERROR_CODE_PROCESS,
-
-    ERROR_CODE_SYSTEM_WINDOWS,
-    ERROR_CODE_SYSTEM_LINUX,
-    ERROR_CODE_SYSTEM_MAC
+enum system_error_code {
+    SYSTEM_ERROR_CODE_START,
 };
 
 #endif

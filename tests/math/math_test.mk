@@ -8,7 +8,9 @@ math_test_install_path_static		        := $(math_test_path_curdir)math_static$(E
 math_test_sources					        := $(wildcard $(math_test_path_curdir)*.c)
 math_test_objects					        := $(patsubst %.c, %.o, $(math_test_sources))
 math_test_depends					        := $(patsubst %.c, %.d, $(math_test_sources))
-math_test_depends_modules			        :=  math test_framework
+math_test_depends_modules			        := 
+# math_test_depends_modules			        += test_framework
+math_test_depends_modules			        += math
 math_test_libdepend_static_objs	        := $(foreach dep_module,$(math_depends_modules),$($(dep_module)_static_objects))
 math_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(math_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 math_test_libdepend_static_objs	        += $(foreach dep_module,$(math_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ math_test_clean:
 math_test_re: math_test_clean
 math_test_re: math_test_all
 
-.PHONY: math_test_run
-math_test_run: math_test_all ## build and run static math_test
-math_test_run: $(math_test_child_run_targets)
+.PHONY: math_test_run_all
+math_test_run_all: math_test_all ## build and run static math_test
+math_test_run_all: $(math_test_child_run_targets)
 ifneq ($(math_test_objects),)
-math_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(math_test_install_path_static)
+math_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(math_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(math_test_install_path_static)
+endif
+
+.PHONY: math_test_run
+math_test_run: math_test_all
+ifneq ($(math_test_objects),)
+math_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(math_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(math_test_install_path_static)
 endif
 
 -include $(math_test_depends)

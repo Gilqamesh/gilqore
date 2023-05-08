@@ -8,7 +8,9 @@ test_framework_test_install_path_static		        := $(test_framework_test_path_c
 test_framework_test_sources					        := $(wildcard $(test_framework_test_path_curdir)*.c)
 test_framework_test_objects					        := $(patsubst %.c, %.o, $(test_framework_test_sources))
 test_framework_test_depends					        := $(patsubst %.c, %.d, $(test_framework_test_sources))
-test_framework_test_depends_modules			        :=  test_framework test_framework
+test_framework_test_depends_modules			        := 
+# test_framework_test_depends_modules			        += test_framework
+test_framework_test_depends_modules			        += test_framework
 test_framework_test_libdepend_static_objs	        := $(foreach dep_module,$(test_framework_depends_modules),$($(dep_module)_static_objects))
 test_framework_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(test_framework_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 test_framework_test_libdepend_static_objs	        += $(foreach dep_module,$(test_framework_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ test_framework_test_clean:
 test_framework_test_re: test_framework_test_clean
 test_framework_test_re: test_framework_test_all
 
-.PHONY: test_framework_test_run
-test_framework_test_run: test_framework_test_all ## build and run static test_framework_test
-test_framework_test_run: $(test_framework_test_child_run_targets)
+.PHONY: test_framework_test_run_all
+test_framework_test_run_all: test_framework_test_all ## build and run static test_framework_test
+test_framework_test_run_all: $(test_framework_test_child_run_targets)
 ifneq ($(test_framework_test_objects),)
-test_framework_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(test_framework_test_install_path_static)
+test_framework_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(test_framework_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(test_framework_test_install_path_static)
+endif
+
+.PHONY: test_framework_test_run
+test_framework_test_run: test_framework_test_all
+ifneq ($(test_framework_test_objects),)
+test_framework_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(test_framework_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(test_framework_test_install_path_static)
 endif
 
 -include $(test_framework_test_depends)

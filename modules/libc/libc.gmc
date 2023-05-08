@@ -1,0 +1,5 @@
+unique_error_codes: [
+    MALLOC_FAILED: malloc failed
+    VSNPRINTF: vsnprintf returned negative value
+]
+module_dependencies: 

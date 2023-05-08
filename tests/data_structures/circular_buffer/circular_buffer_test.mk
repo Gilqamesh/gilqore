@@ -8,7 +8,9 @@ circular_buffer_test_install_path_static		        := $(circular_buffer_test_path
 circular_buffer_test_sources					        := $(wildcard $(circular_buffer_test_path_curdir)*.c)
 circular_buffer_test_objects					        := $(patsubst %.c, %.o, $(circular_buffer_test_sources))
 circular_buffer_test_depends					        := $(patsubst %.c, %.d, $(circular_buffer_test_sources))
-circular_buffer_test_depends_modules			        := libc random mod circular_buffer test_framework
+circular_buffer_test_depends_modules			        := libc random mod
+# circular_buffer_test_depends_modules			        += test_framework
+circular_buffer_test_depends_modules			        += circular_buffer
 circular_buffer_test_libdepend_static_objs	        := $(foreach dep_module,$(circular_buffer_depends_modules),$($(dep_module)_static_objects))
 circular_buffer_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(circular_buffer_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 circular_buffer_test_libdepend_static_objs	        += $(foreach dep_module,$(circular_buffer_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ circular_buffer_test_clean:
 circular_buffer_test_re: circular_buffer_test_clean
 circular_buffer_test_re: circular_buffer_test_all
 
-.PHONY: circular_buffer_test_run
-circular_buffer_test_run: circular_buffer_test_all ## build and run static circular_buffer_test
-circular_buffer_test_run: $(circular_buffer_test_child_run_targets)
+.PHONY: circular_buffer_test_run_all
+circular_buffer_test_run_all: circular_buffer_test_all ## build and run static circular_buffer_test
+circular_buffer_test_run_all: $(circular_buffer_test_child_run_targets)
 ifneq ($(circular_buffer_test_objects),)
-circular_buffer_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(circular_buffer_test_install_path_static)
+circular_buffer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(circular_buffer_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(circular_buffer_test_install_path_static)
+endif
+
+.PHONY: circular_buffer_test_run
+circular_buffer_test_run: circular_buffer_test_all
+ifneq ($(circular_buffer_test_objects),)
+circular_buffer_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(circular_buffer_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $(circular_buffer_test_install_path_static)
 endif
 
 -include $(circular_buffer_test_depends)

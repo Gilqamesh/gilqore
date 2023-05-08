@@ -20,13 +20,14 @@ console_t console__init_module(u32 max_message_length) {
     self->buffer_size = 0;
     self->out_handle  = INVALID_HANDLE_VALUE;
 
-    // TODO(david): diagnostics
     if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
-        error_code__exit(CONSOLE_ERROR_CODE_ATTACH_CONSOLE);
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(CONSOLE_ERROR_CODE_ATTACH_CONSOLE);
     }
 
     if ((self->out_handle = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE) {
-        error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
     }
 
     self->buffer_size = max_message_length + 1;
@@ -54,14 +55,15 @@ u32 console__log(console_t self, const char* msg, ...) {
 
         s32 number_of_characters_written = vsnprintf(self->buffer, self->buffer_size, msg, ap);
         if (number_of_characters_written < 0) {
-            error_code__exit(CONSOLE_ERROR_CODE_VSNPRINTF);
+            // error_code__exit(CONSOLE_ERROR_CODE_VSNPRINTF);
         }
         if (self->buffer_size <= (u32) number_of_characters_written) {
             // todo(david): diagnostic, truncated msg
         }
 
         if (WriteConsoleA(self->out_handle, self->buffer, strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == 0) {
-            // TODO(david): diagnostic, error
+            // error_code__exit(WRITE_CONSOLE_A);
+            // TODO(david): diagnostic, GetLastError()
         }
 
         va_end(ap);

@@ -75,7 +75,6 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
     struct file def_file_template;
     ASSERT(file__open(&def_file_template, "misc/def_file_template.h", FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
 
-    printf("def_file: %s\n", def_file_name);
     ASSERT(file__open(&def_file, def_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
     // todo: start filling in from the template
     libc__snprintf(buffer2, ARRAY_SIZE(buffer2), "%s", self->basename);
@@ -133,7 +132,7 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
         while (parsed_everything == false) {
             u32 read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), ":");
             if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
-                error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_TOO_LONG);
+                // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_TOO_LONG);
             }
             buffer[read_bytes] = '\0';
             ASSERT(file_reader__read_one(&config_file_reader, NULL, sizeof(char)) == 1);
@@ -150,19 +149,24 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
                         break ;
                     }
                     if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
-                        error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_KEY_TOO_LONG);
+                        // error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_KEY_TOO_LONG);
                     }
                     buffer[read_bytes] = '\0';
+                    u32 error_code = module_compiler__get_error_code();
+                    libc__itoa(error_code, buffer2, 10);
+                    bytes_to_write = libc__strlen(buffer2);
+                    ASSERT(file__write(error_codes_file, buffer2, bytes_to_write) == bytes_to_write);
+                    ASSERT(file__write(error_codes_file, " ", 1) == 1);
                     ASSERT(file__write(error_codes_file, buffer, read_bytes) == read_bytes);
                     ASSERT(file__write(error_codes_file, " \"", 2) == 2);
                     ASSERT(file__write(&def_file, error_code_prefix, error_code_prefix_len) == error_code_prefix_len);
                     ASSERT(file__write(&def_file, buffer, read_bytes) == read_bytes);
-                    u32 bytes_to_write = libc__snprintf(buffer, ARRAY_SIZE(buffer), " = %u,\n", module_compiler__get_error_code());
+                    u32 bytes_to_write = libc__snprintf(buffer, ARRAY_SIZE(buffer), " = %u,\n", error_code);
                     ASSERT(file__write(&def_file, buffer, bytes_to_write) == bytes_to_write);
                     file_reader__read_while(&config_file_reader, NULL, 0, ": ");
                     read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), "\r\n");
                     if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
-                        error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_VALUE_TOO_LONG);
+                        // error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_VALUE_TOO_LONG);
                     }
                     buffer[read_bytes] = '\0';
                     ASSERT(file__write(error_codes_file, buffer, read_bytes) == read_bytes);
@@ -181,19 +185,19 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
                         break ;
                     }
                     if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
-                        error_code__exit(MODULE_COMPILER_ERROR_CODE_PATH_TOO_LONG);
+                        // error_code__exit(DEPENDENCY_MODULE_TOO_LONG);
                     }
                     buffer[read_bytes] = '\0';
                     // note: add the dependency to the module
                     struct module* found_module = module_compiler__find_module_by_name(buffer);
                     if (found_module == NULL) {
-                        error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_MODULE_DEPENDENCY_NOT_FOUND);
+                        // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_MODULE_DEPENDENCY_NOT_FOUND);
                     }
                     module_compiler__add_dependency(self, found_module);
                 } while (1);
             } else {
                 printf("[%s]\n", buffer);
-                error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_UNKNOWN);
+                // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_UNKNOWN);
             }
             parsed_everything = parsed_module_dependencies && parsed_unique_error_codes;
         }
@@ -263,7 +267,6 @@ bool pr_dir_name(const char* path) {
 void module_compier__explore_children(struct module* self) {
     struct directory dir;
 
-    printf("self->dirprefix: %s\n", self->dirprefix);
     ASSERT(directory__open(&dir, self->dirprefix) == true);
     directory__foreach_deep(self->dirprefix, &pr_dir_name, FILE_TYPE_DIRECTORY);
 }
@@ -280,4 +283,60 @@ void module_compiler__compile(void) {
     module_compiler__check_cyclic_dependency();
 
     module_compiler__print_branch(parent_module);
+}
+
+void module_compiler__translate_error_code(u32 error_code, char* buffer, u32 buffer_size) {
+    char line_buffer[512];
+    char enum_buffer[512];
+    char message_buffer[512];
+    char format_string_buffer[128];
+    if (libc__snprintf(
+        format_string_buffer,
+        ARRAY_SIZE(format_string_buffer),
+        "%%u %%%ds \"%%%d[^\"]\"",
+        ARRAY_SIZE(enum_buffer) - 1,
+        ARRAY_SIZE(message_buffer) - 1
+    ) == ARRAY_SIZE(format_string_buffer)) {
+        error_code__exit(MODULE_COMPILER_ERROR_CODE_FORMAT_STRING_BUFFER_TOO_SMALL);
+    }
+
+    struct file error_codes_file;
+    if (file__open(&error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == false) {
+        error_code__exit(MODULE_COMPILER_ERROR_CODE_ERROR_CODES_FILE_OPEN_FAIL);
+    }
+    struct file_reader reader;
+    file_reader__create(&reader, &error_codes_file);
+    u32 bytes_read;
+    do {
+        bytes_read = file_reader__read_while_not(&reader, line_buffer, ARRAY_SIZE(line_buffer), "\r\n");
+        if (bytes_read == 0) {
+            error_code__exit(MODULE_COMPILER_ERROR_CODE_UNEXPECTED_EOF_REACHED_ERROR_CODES);
+        }
+        if (bytes_read == ARRAY_SIZE(line_buffer)) {
+            error_code__exit(MODULE_COMPILER_ERROR_CODE_LINE_BUFFER_SIZE_TOO_SMALL_ERROR_CODES);
+        }
+        line_buffer[bytes_read] = '\0';
+        u32 parsed_error_code;
+        if (libc__vsscanf(
+            line_buffer,
+            format_string_buffer,
+            &parsed_error_code,
+            enum_buffer,
+            message_buffer
+        ) != 3) {
+            error_code__exit(MODULE_COMPILER_ERROR_CODE_VSSCANF_FAILED_TO_PARSE_LINE_ERROR_CODES);
+        }
+        if (parsed_error_code == error_code) {
+            if (libc__snprintf(buffer, buffer_size, "%s", message_buffer) == (s32) buffer_size) {
+                error_code__exit(MODULE_COMPILER_ERROR_CODE_BUFFER_SIZE_TOO_SMALL_ERROR_CODES);
+            }
+            return ;
+        }
+        file_reader__read_while(&reader, NULL, 0, "\r\n");
+    } while (bytes_read > 0);
+
+    file_reader__destroy(&reader);
+    file__close(&error_codes_file);
+
+    error_code__exit(MODULE_COMPILER_ERROR_CODE_DID_NOT_FIND_ERROR_CODE);
 }

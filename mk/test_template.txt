@@ -8,7 +8,9 @@ $(MODULE_NAME)_test_install_path_static		        := $($(MODULE_NAME)_test_path_c
 $(MODULE_NAME)_test_sources					        := $(wildcard $($(MODULE_NAME)_test_path_curdir)*.c)
 $(MODULE_NAME)_test_objects					        := $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends					        := $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
-$(MODULE_NAME)_test_depends_modules			        := $(MODULE_LIBDEP_MODULES) $(MODULE_NAME) test_framework
+$(MODULE_NAME)_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
+# $(MODULE_NAME)_test_depends_modules			        += test_framework
+$(MODULE_NAME)_test_depends_modules			        += $(MODULE_NAME)
 $(MODULE_NAME)_test_libdepend_static_objs	        := $(foreach dep_module,$($(MODULE_NAME)_depends_modules),$($(dep_module)_static_objects))
 $(MODULE_NAME)_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$($(MODULE_NAME)_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 $(MODULE_NAME)_test_libdepend_static_objs	        += $(foreach dep_module,$($(MODULE_NAME)_test_depends_modules),$($(dep_module)_static_objects))
@@ -37,12 +39,21 @@ $(MODULE_NAME)_test_clean:
 $(MODULE_NAME)_test_re: $(MODULE_NAME)_test_clean
 $(MODULE_NAME)_test_re: $(MODULE_NAME)_test_all
 
-.PHONY: $(MODULE_NAME)_test_run
-$(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all ## build and run static $(MODULE_NAME)_test
-$(MODULE_NAME)_test_run: $($(MODULE_NAME)_test_child_run_targets)
+.PHONY: $(MODULE_NAME)_test_run_all
+$(MODULE_NAME)_test_run_all: $(MODULE_NAME)_test_all ## build and run static $(MODULE_NAME)_test
+$(MODULE_NAME)_test_run_all: $($(MODULE_NAME)_test_child_run_targets)
 ifneq ($($(MODULE_NAME)_test_objects),)
-$(MODULE_NAME)_test_run:
-	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $($(MODULE_NAME)_test_install_path_static)
+$(MODULE_NAME)_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $($(MODULE_NAME)_test_install_path_static)
+endif
+
+.PHONY: $(MODULE_NAME)_test_run
+$(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all
+ifneq ($($(MODULE_NAME)_test_objects),)
+$(MODULE_NAME)_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path_static)
+#	@$(PYTHON) $(PATH_MK_FILES)/pytester.py $($(MODULE_NAME)_test_install_path_static)
 endif
 
 -include $($(MODULE_NAME)_test_depends)

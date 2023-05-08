@@ -3,8 +3,8 @@
 
 # include "../math_defs.h"
 
-enum SQRT_ERROR_CODE {
-    SQRT_ERROR_CODE_FATAL = ERROR_CODE_SQRT
+enum sqrt_error_code {
+    SQRT_ERROR_CODE_START,
 };
 
 #endif
