@@ -1,0 +1,8 @@
+unique_error_codes: [
+    REACHED_MAXIMUM_AMOUNT_OF_REPLACEMENTS: reached maximum amount of replacements in string replacer, can't replace more
+    REACHED_MAXIMUM_WITH_BUFFER_SIZE: reached maximum "with" buffer size in string_replacer
+    WHAT_POSITION_ALREADY_EXISTS: supplied what_position already exists in string_replacer__replace
+    WHAT_STRADDLES_ANOTHER_WHAT: supplied what_position + what_length straddles over a previously replaced what in string_replacer__replace
+    WHAT_POSITION_OUTSIDE_OF_ORIGINAL: supplied what_position is outside of the bounds of the original string in string_replacer__replace
+]
+module_dependencies: 

@@ -17,7 +17,7 @@ struct circular_buffer {
 
 static inline circular_buffer_t circular_buffer_init(void* data, u32 size_of_item, u32 num_of_items_total, bool buffer_is_owned) {
     if (size_of_item == 0 || num_of_items_total == 0) {
-        // error_code__exit(CIRCULAR_BUFFER_ERROR_CODE_INVALID_PARAMETERS_DURING_CREATION);
+        error_code__exit(CIRCULAR_BUFFER_ERROR_CODE_INVALID_PARAMETERS_DURING_CREATION);
     }
 
     circular_buffer_t self = libc__malloc(sizeof(*self));

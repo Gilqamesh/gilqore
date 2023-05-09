@@ -6,7 +6,7 @@
 # include "../file.h"
 # include "data_structures/circular_buffer/circular_buffer.h"
 
-struct file_reader {
+struct file_reader { // note: the file's read pointer is not consistent with the amount of reads, so this api is only for reading the file once
     struct file* file;
     circular_buffer_t circular_buffer;
     bool eof_reached;
@@ -34,5 +34,8 @@ GIL_API u32 file_reader__read_while_not(struct file_reader* self, void* out, u32
 // @param out optional, if not provided size is ignored as well
 // @returns amount of bytes read
 GIL_API u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const char* set);
+// @brief out is not optional and must be provided
+// @returns amount of bytes_read
+GIL_API u32 file_reader__read_format(struct file_reader* self, void* out, u32 size, const char* format, ...);
 
 #endif

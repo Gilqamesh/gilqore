@@ -1,5 +1,3 @@
-#include "test_framework/test_framework.h"
-
 #include "io/file/file_reader/file_reader.h"
 #include "math/random/random.h"
 #include "libc/libc.h"
@@ -7,7 +5,7 @@
 #define FILE_SIZE  MEGABYTES(64)
 #define CHUNK_SIZE 4096
 
-void test_module_main() {
+int main() {
     struct file file;
     const char* filename = "tmp_file_name";
     ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE) == true);
@@ -60,4 +58,6 @@ void test_module_main() {
     ASSERT(file__delete(filename));
 
     libc__free(buffer);
+
+    return 0;
 }

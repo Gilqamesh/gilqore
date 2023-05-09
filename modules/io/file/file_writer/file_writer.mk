@@ -21,7 +21,7 @@ endif
 file_writer_static_objects			:= $(patsubst %.c, %_static.o, $(file_writer_sources))
 file_writer_shared_objects			:= $(patsubst %.c, %_shared.o, $(file_writer_sources))
 file_writer_depends					:= $(patsubst %.c, %.d, $(file_writer_sources))
-file_writer_depends_modules			:=  
+file_writer_depends_modules			:=  file libc common
 file_writer_depends_libs_shared		:= $(foreach module,$(file_writer_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 file_writer_depends_libs_targets		:= $(foreach module,$(file_writer_depends_modules),$(module)_all)
 file_writer_clean_files				:=

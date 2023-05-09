@@ -45,4 +45,8 @@
 #  define UNREACHABLE_CODE ASSERT(false && "unreachable code")
 # endif
 
+# if defined(GIL_TEST_SHOULD_PRINT)
+#  define TEST_FRAMEWORK_SHOULD_PRINT
+# endif
+
 #endif

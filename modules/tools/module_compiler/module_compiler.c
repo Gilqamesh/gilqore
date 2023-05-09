@@ -63,17 +63,58 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
     libc__snprintf(error_code_prefix, ARRAY_SIZE(error_code_prefix), "    %s_ERROR_CODE_", self->basename);
     string__to_upper(error_code_prefix);
     u32 error_code_prefix_len = libc__strlen(error_code_prefix);
+    char error_code_prefix_platform_specific[128];
+    libc__snprintf(error_code_prefix_platform_specific, ARRAY_SIZE(error_code_prefix_platform_specific), "    %s_PLATFORM_SPECIFIC_ERROR_CODE_", self->basename);
+    string__to_upper(error_code_prefix_platform_specific);
+    u32 error_code_prefix_len_platform_specific = libc__strlen(error_code_prefix_platform_specific);
+    (void) error_code_prefix_len_platform_specific;
 
     struct file config_file;
     char config_file_name[512];
     libc__snprintf(config_file_name, ARRAY_SIZE(config_file_name), "%s/%s.%s", self->dirprefix, self->basename, CONFIG_EXTENSION);
 
+#if defined(WINDOWS)
+    const char* platform_dir = "windows";
+#elif defined(LINUX)
+    const char* platform_dir = "linux";
+#elif defined(MAC)
+    const char* platform_dir = "mac";
+#endif
+
+    struct file config_file_platform_specific;
+    (void) config_file_platform_specific;
+    char config_file_platform_specific_name[512];
+    if (libc__snprintf(
+        config_file_platform_specific_name,
+        ARRAY_SIZE(config_file_platform_specific_name),
+        "%s/%s/platform_specific/%s/%s_platform_specific.%s",
+        self->dirprefix,
+        self->basename,
+        platform_dir,
+        self->basename,
+        CONFIG_EXTENSION
+    ) == ARRAY_SIZE(config_file_platform_specific_name)) {
+        // error_code__exit(CONFIG_FILE_PLATFORM_SPECIFIC_NAME_BUFFER_TOO_SMALL);
+    }
+
     char def_file_name[512];
     libc__snprintf(def_file_name, ARRAY_SIZE(def_file_name), "%s/%s_defs.h", self->dirprefix, self->basename);
     struct file def_file;
 
-    struct file def_file_template;
-    ASSERT(file__open(&def_file_template, "misc/def_file_template.h", FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    struct file def_file_platform_specific;
+    (void) def_file_platform_specific;
+    char def_file_platform_specific_name[512];
+    if (libc__snprintf(
+        def_file_platform_specific_name,
+        ARRAY_SIZE(def_file_platform_specific_name),
+        "%s/%s/platform_specific/%s/%s_platform_specific_defs.h",
+        self->dirprefix,
+        self->basename,
+        platform_dir,
+        self->basename
+    ) == ARRAY_SIZE(def_file_platform_specific_name)) {
+        // error_code__exit(DEF_FILE_PLATFORM_SPECIFIC_NAME_BUFFER_TOO_SMALL);
+    }
 
     ASSERT(file__open(&def_file, def_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
     // todo: start filling in from the template
@@ -121,6 +162,32 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
     );
     ASSERT(bytes_to_write < ARRAY_SIZE(buffer));
     ASSERT(file__write(&def_file, buffer, bytes_to_write) == bytes_to_write);
+
+    // bytes_to_write = libc__snprintf(
+    //     buffer,
+    //     ARRAY_SIZE(buffer),
+    //     "#ifndef %s_PLATFORM_SPECIFIC_DEFS_H\n"
+    //     "# define %s_PLATFORM_SPECIFIC_DEFS_H\n"
+    //     "\n"
+    //     "# include \"../../%s_defs.h\"\n"
+    //     "\n"
+    //     "enum %s_platform_specific_error_code {\n"
+    //     "%sSTART,\n",
+    //     buffer2,
+    //     buffer2,
+    //     self->parent->basename,
+    //     self->basename,
+    //     error_code_prefix_platform_specific
+    // );
+    // ASSERT(bytes_to_write < ARRAY_SIZE(buffer));
+    // if (file__exists(def_file_platform_specific)) {
+    //     // read until the START,\n
+    //     ASSERT(file__open(&def_file_platform_specific, def_file_platform_specific_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    //     ASSERT(file__read(&def_file_platform_specific, buffer, bytes_to_write) == bytes_to_write);
+    // } else {
+    //     ASSERT(file__open(&def_file_platform_specific, def_file_platform_specific_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
+    //     ASSERT(file__write(&def_file_platform_specific, buffer, bytes_to_write) == bytes_to_write);
+    // }
 
     if (file__exists(config_file_name)) {
         ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
@@ -219,6 +286,103 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
         file__close(&config_file);
     }
 
+    // if (file__exists(config_file_platform_specific_name)) {
+    //     ASSERT(file__open(&config_file_platform_specific, config_file_platform_specific_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    //     struct file_reader config_file_reader;
+    //     ASSERT(file_reader__create(&config_file_reader, &config_file_platform_specific) == true);
+    //     bool parsed_unique_error_codes = false;
+    //     bool parsed_module_dependencies = false;
+    //     bool parsed_everything = parsed_module_dependencies && parsed_unique_error_codes;
+    //     while (parsed_everything == false) {
+    //         u32 read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), ":");
+    //         if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
+    //             // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_TOO_LONG);
+    //         }
+    //         buffer[read_bytes] = '\0';
+    //         ASSERT(file_reader__read_one(&config_file_reader, NULL, sizeof(char)) == 1);
+    //         if (libc__strcmp(buffer, KEY_UNIQUE_ERROR_CODES) == 0) {
+    //             parsed_unique_error_codes = true;
+    //             // note: read key-value pairs of unique error code
+    //             do {
+    //                 file_reader__read_while(&config_file_reader, buffer, ARRAY_SIZE(buffer), " [\r\n");
+    //                 read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), ":]");
+    //                 if (file_reader__peek(&config_file_reader) == ']') {
+    //                     // note: done reading unique_error_codes entry
+    //                     file_reader__read_while_not(&config_file_reader, NULL, 0, "\r\n");
+    //                     file_reader__read_while(&config_file_reader, NULL, 0, "\r\n");
+    //                     break ;
+    //                 }
+    //                 if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
+    //                     // error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_KEY_TOO_LONG);
+    //                 }
+    //                 buffer[read_bytes] = '\0';
+    //                 u32 error_code = module_compiler__get_error_code();
+    //                 libc__itoa(error_code, buffer2, 10);
+    //                 bytes_to_write = libc__strlen(buffer2);
+    //                 ASSERT(file__write(error_codes_file, buffer2, bytes_to_write) == bytes_to_write);
+    //                 ASSERT(file__write(error_codes_file, " ", 1) == 1);
+    //                 ASSERT(file__write(error_codes_file, buffer, read_bytes) == read_bytes);
+    //                 ASSERT(file__write(error_codes_file, " \"", 2) == 2);
+    //                 ASSERT(file__write(&def_file, error_code_prefix, error_code_prefix_len) == error_code_prefix_len);
+    //                 ASSERT(file__write(&def_file, buffer, read_bytes) == read_bytes);
+    //                 u32 bytes_to_write = libc__snprintf(buffer, ARRAY_SIZE(buffer), " = %u,\n", error_code);
+    //                 ASSERT(file__write(&def_file, buffer, bytes_to_write) == bytes_to_write);
+    //                 file_reader__read_while(&config_file_reader, NULL, 0, ": ");
+    //                 read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), "\r\n");
+    //                 if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
+    //                     // error_code__exit(MODULE_COMPILER_ERROR_CODE_UNIQUE_ERROR_CODE_VALUE_TOO_LONG);
+    //                 }
+    //                 buffer[read_bytes] = '\0';
+    //                 ASSERT(file__write(error_codes_file, buffer, read_bytes) == read_bytes);
+    //                 ASSERT(file__write(error_codes_file, "\"\r\n", 2) == 2);
+    //                 file_reader__read_while(&config_file_reader, NULL, 0, "\r\n");
+    //             } while (1);
+    //         } else if (libc__strcmp(buffer, KEY_MODULE_DEPENDENCIES) == 0) {
+    //             parsed_module_dependencies = true;
+    //             // note: read module dependencies
+    //             do {
+    //                 file_reader__read_while(&config_file_reader, buffer, ARRAY_SIZE(buffer), " ");
+    //                 read_bytes = file_reader__read_while_not(&config_file_reader, buffer, ARRAY_SIZE(buffer), " \r\n");
+    //                 if (read_bytes == 0) {
+    //                     // note: done reading module dependencies
+    //                     file_reader__read_while(&config_file_reader, NULL, 0, "\r\n");
+    //                     break ;
+    //                 }
+    //                 if (read_bytes + 1 >= ARRAY_SIZE(buffer)) {
+    //                     // error_code__exit(DEPENDENCY_MODULE_TOO_LONG);
+    //                 }
+    //                 buffer[read_bytes] = '\0';
+    //                 // note: add the dependency to the module
+    //                 struct module* found_module = module_compiler__find_module_by_name(buffer);
+    //                 if (found_module == NULL) {
+    //                     // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_MODULE_DEPENDENCY_NOT_FOUND);
+    //                 }
+    //                 module_compiler__add_dependency(self, found_module);
+    //             } while (1);
+    //         } else {
+    //             printf("[%s]\n", buffer);
+    //             // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_UNKNOWN);
+    //         }
+    //         parsed_everything = parsed_module_dependencies && parsed_unique_error_codes;
+    //     }
+    //     file__close(&config_file_platform_specific);
+    //     file_reader__destroy(&config_file_reader);
+    // } else {
+    //     ASSERT(file__open(&config_file_platform_specific, config_file_platform_specific_name, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+    //     for (u32 dep_index = 0; dep_index < ARRAY_SIZE(self->dependencies); ++dep_index) {
+    //         self->dependencies[dep_index] = NULL;
+    //     }
+    //     u32 bytes_to_write = libc__strlen(KEY_UNIQUE_ERROR_CODES);
+    //     ASSERT(file__write(&config_file_platform_specific, KEY_UNIQUE_ERROR_CODES, bytes_to_write) == bytes_to_write);
+    //     const char* empty_bracketed_list_msg = ": [\n]\n";
+    //     bytes_to_write = libc__strlen(empty_bracketed_list_msg);
+    //     ASSERT(file__write(&config_file_platform_specific, empty_bracketed_list_msg, bytes_to_write) == bytes_to_write);
+    //     bytes_to_write = libc__strlen(KEY_MODULE_DEPENDENCIES);
+    //     ASSERT(file__write(&config_file_platform_specific, KEY_MODULE_DEPENDENCIES, bytes_to_write) == bytes_to_write);
+    //     ASSERT(file__write(&config_file_platform_specific, ": \n", 3) == 3);
+    //     file__close(&config_file_platform_specific);
+    // }
+
     bytes_to_write = libc__snprintf(
         buffer,
         ARRAY_SIZE(buffer),
@@ -228,8 +392,8 @@ void module_compiler__parse_config_file(struct module* self, struct file* error_
     );
     ASSERT(file__write(&def_file, buffer, bytes_to_write) == bytes_to_write);
 
-    file__close(&def_file_template);
     file__close(&def_file);
+    // file__close(&def_file_platform_specific);
 }
 
 bool pr_dir_name(const char* path) {
@@ -282,7 +446,7 @@ void module_compiler__compile(void) {
 
     module_compiler__check_cyclic_dependency();
 
-    module_compiler__print_branch(parent_module);
+    // module_compiler__print_branch(parent_module);
 }
 
 void module_compiler__translate_error_code(u32 error_code, char* buffer, u32 buffer_size) {
@@ -317,7 +481,7 @@ void module_compiler__translate_error_code(u32 error_code, char* buffer, u32 buf
         }
         line_buffer[bytes_read] = '\0';
         u32 parsed_error_code;
-        if (libc__vsscanf(
+        if (libc__sscanf(
             line_buffer,
             format_string_buffer,
             &parsed_error_code,

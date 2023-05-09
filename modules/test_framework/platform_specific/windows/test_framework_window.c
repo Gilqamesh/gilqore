@@ -9,8 +9,6 @@
 #include "system/process/process.h"
 #include "tools/module_compiler/module_compiler.h"
 
-static struct test_framework_window g_test_framework;
-
 GIL_API int WinMain(
     HINSTANCE instance,
     HINSTANCE prev_instance,
@@ -23,22 +21,23 @@ GIL_API int WinMain(
     (void) show_cmd;
 
     // note: get command line arguments and convert them to ascii
+    s32 argc;
     LPWSTR* wargv = CommandLineToArgvW(
         GetCommandLineW(),
-        &g_test_framework.argc
+        &argc
     );
     if (wargv == NULL) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TO_ARGV_W_FAILED);
     }
-    s32 argv_size = g_test_framework.argc + 1;
-    g_test_framework.argv = (char **) libc__malloc(argv_size * sizeof(*g_test_framework.argv));
-    g_test_framework.argv[g_test_framework.argc] = NULL;
-    for (s32 arg_index = 0; arg_index < g_test_framework.argc; ++arg_index) {
+    s32 argv_size = argc + 1;
+    char** argv = (char **) libc__malloc(argv_size * sizeof(*argv));
+    argv[argc] = NULL;
+    for (s32 arg_index = 0; arg_index < argc; ++arg_index) {
         u64 arg_size = wcstombs(NULL, wargv[arg_index], 0);
-        g_test_framework.argv[arg_index] = (char *) libc__malloc((arg_size + 1) * sizeof(**g_test_framework.argv));
-        g_test_framework.argv[arg_index][arg_size] = '\0';
+        argv[arg_index] = (char *) libc__malloc((arg_size + 1) * sizeof(**argv));
+        argv[arg_index][arg_size] = '\0';
         u64 copied_arg_size = wcstombs(
-            g_test_framework.argv[arg_index],
+            argv[arg_index],
             wargv[arg_index],
             arg_size
         );
@@ -49,13 +48,13 @@ GIL_API int WinMain(
     struct process module_process;
     char command_line[512];
     u32 command_line_index = 0;
-    for (u32 cmd_index = 1; cmd_index < (u32) test_framework__argc(); ++cmd_index) {
-        char* cur_cmd = test_framework__argv()[cmd_index];
+    for (u32 cmd_index = 1; cmd_index < (u32) argc; ++cmd_index) {
+        char* cur_cmd = argv[cmd_index];
         while (*cur_cmd != '\0' && command_line_index + 1 < ARRAY_SIZE(command_line)) {
             command_line[command_line_index++] = *cur_cmd;
             ++cur_cmd;
         }
-        if (cmd_index + 1 < (u32) test_framework__argc()) {
+        if (cmd_index + 1 < (u32) argc) {
             command_line[command_line_index++] = ' ';
             if (command_line_index >= ARRAY_SIZE(command_line)) {
                 error_code__exit(TEST_FRAMEWORK_ERROR_CODE_COMMAND_LINE_TOO_LONG);
@@ -80,16 +79,33 @@ GIL_API int WinMain(
     }
 
     u32 after_test_allocated_memory_size = libc__unfreed_byte_count();
-    if (after_test_allocated_memory_size != before_test_allocated_memory_size) {
+    if (
+        after_test_allocated_memory_size != before_test_allocated_memory_size && 
+        module_process_exit_code == 0 // only then I care about unfreed memory
+    ) {
         printf("Before: %u\nAfter: %u\n", before_test_allocated_memory_size, after_test_allocated_memory_size);
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MEMORY_LEAK_IN_TESTED_MODULE);
     }
 
     // note: free resources
     for (s32 arg_index = 0; arg_index < argv_size; ++arg_index) {
-        libc__free(g_test_framework.argv[arg_index]);
+        libc__free(argv[arg_index]);
     }
-    libc__free(g_test_framework.argv);
+    libc__free(argv);
 
     return 0;
+}
+
+s32 test_framework__printf(const char* format, ...) {
+    s32      printed_bytes = 0;
+#if defined(TEST_FRAMEWORK_SHOULD_PRINT)
+    va_list  ap;
+
+    va_start(ap, format);
+    printed_bytes = libc__vprintf(format, ap);
+    va_end(ap);
+#else
+    (void) format;
+#endif
+    return printed_bytes;
 }

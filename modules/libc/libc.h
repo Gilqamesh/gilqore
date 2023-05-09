@@ -3,6 +3,8 @@
 
 # include "libc_defs.h"
 
+# include <stdarg.h>
+
 GIL_API void* libc__malloc(u32 size_bytes);
 GIL_API void  libc__free(void* data);
 # if defined(GIL_DEBUG)
@@ -22,13 +24,26 @@ GIL_API char* libc__strncpy(char* dest, const char* src, u64 size);
 GIL_API char* libc__strchr(const char* str, char c);
 GIL_API char* libc__strrchr(const char* str, char c);
 
-GIL_API s32 libc__snprintf(char *buffer, u64 size, const char* format, ...);
+GIL_API s32 libc__printf(const char* format, ...);
+GIL_API s32 libc__vprintf(const char* format, va_list ap);
+GIL_API s32 libc__snprintf(char* buffer, u64 size, const char* format, ...);
+GIL_API s32 libc__vsnprintf(char* buffer, u64 buffer_size, const char* format, va_list ap);
+// @note buffer overflow can occur
+GIL_API s32 libc__sscanf(const char* str, const char* format, ...);
+// @note buffer overflow can occur
+GIL_API s32 libc__vsscanf(const char* str, const char* format, va_list ap);
 
 GIL_API bool libc__isspace(char c);
+GIL_API bool libc__isdigit(char c);
 
 GIL_API char* libc__itoa(s64 n, char* buffer, u32 radix);
 GIL_API s64 libc__atoi(const char* str, u32 radix);
 
-GIL_API s32 libc__vsscanf(const char* str, const char* format, ...);
+GIL_API void libc__qsort(
+    void* base,
+    u32 n_of_items,
+    u32 size_of_item,
+    s32 (*compare_fn)(const void*, const void*)
+);
 
 #endif

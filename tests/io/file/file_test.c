@@ -1,5 +1,3 @@
-#include "test_framework/test_framework.h"
-
 #include "io/file/file.h"
 
 #include "libc/libc.h"
@@ -9,7 +7,22 @@
 
 #include <stdio.h>
 
-void test_module_main() {
+int main() {
+    struct file file;
+    const char* filename = "987fyasd";
+    ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE) == true);
+
+    const char* msg = "hey bro wadap";
+    u32 msg_len = libc__strlen(msg);
+    ASSERT(file__write(&file, msg, msg_len) == msg_len);
+
+    ASSERT(file__seek(&file, msg_len / 2) == msg_len / 2);
+    file__write(&file, "AAA", 3);
+
+    file__close(&file);
+}
+
+int main2() {
     struct file file;
     enum file_type file_type;
     struct time last_modified1;
@@ -128,4 +141,6 @@ void test_module_main() {
 
     ASSERT(file__delete(new_filename) == true);
     ASSERT(file__exists(new_filename) == false);
+
+    return 0;
 }

@@ -54,6 +54,7 @@ GIL_API bool file__stat(const char* path, enum file_type* file_type);
 GIL_API u32 file__read(struct file* self, void* out, u32 size);
 // @brief writes to the opened file, returns bytes written
 GIL_API u32 file__write(struct file* self, const void* in, u32 size);
+// @returns file pointer position
 GIL_API u32 file__seek(struct file* self, u32 offset);
 
 #endif

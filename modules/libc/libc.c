@@ -21,7 +21,7 @@ static struct debug_memory_entry memory_entries[4096];
 void* libc__malloc(u32 size_bytes) {
     void* result = malloc(size_bytes);
     if (result == NULL) {
-        // error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
+        error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
     }
 #if defined(GIL_DEBUG)
     u64 memory_hash = ((u64) result * 17) % ARRAY_SIZE(memory_entries);
@@ -139,22 +139,70 @@ char* libc__strrchr(const char* str, char c) {
     return (char*) last;
 }
 
+s32 libc__printf(const char* format, ...) {
+    va_list  ap;
+    s32      printed_bytes;
+
+    va_start(ap, format);
+    printed_bytes = libc__vprintf(format, ap);
+    va_end(ap);
+
+    return printed_bytes;
+}
+
+s32 libc__vprintf(const char* format, va_list ap) {
+    return vprintf(format, ap);
+}
+
 s32 libc__snprintf(char *buffer, u64 size, const char* format, ...) {
     va_list  ap;
     s32      written_bytes;
 
     va_start(ap, format);
-    written_bytes = vsnprintf(buffer, size, format, ap);
-    if (written_bytes < 0) {
-        // error_code__exit(LIBC_ERROR_CODE_VSNPRINTF);
-    }
+    written_bytes = libc__vsnprintf(buffer, size, format, ap);
     va_end(ap);
 
     return written_bytes;
 }
 
+s32 libc__vsnprintf(char* buffer, u64 buffer_size, const char* format, va_list ap) {
+    s32 written_bytes = vsnprintf(buffer, buffer_size, format, ap);
+
+    if (written_bytes < 0) {
+        error_code__exit(LIBC_ERROR_CODE_VSNPRINTF);
+    }
+
+    return written_bytes;
+}
+
+// @note buffer overflow can occur
+s32 libc__sscanf(const char* str, const char* format, ...) {
+    va_list  ap;
+    s32      parsed_fields;
+
+    va_start(ap, format);
+    parsed_fields = libc__vsscanf(str, format, ap);
+    va_end(ap);
+
+    return parsed_fields;
+}
+
+s32 libc__vsscanf(const char* str, const char* format, va_list ap) {
+    s32 parsed_fields = vsscanf(str, format, ap);
+
+    if (parsed_fields < 0) {
+        // error_code__exit(VSSCANF);
+    }
+
+    return parsed_fields;
+}
+
 bool libc__isspace(char c) {
     return isspace(c);
+}
+
+bool libc__isdigit(char c) {
+    return isdigit(c);
 }
 
 char* libc__itoa(s64 n, char* buffer, u32 radix) {
@@ -166,16 +214,12 @@ s64 libc__atoi(const char* str, u32 radix) {
     return atoi(str);
 }
 
-s32 libc__vsscanf(const char* str, const char* format, ...) {
-    va_list  ap;
-    s32      parsed_fields;
-
-    va_start(ap, format);
-    parsed_fields = vsscanf(str, format, ap);
-    if (parsed_fields < 0) {
-        // error_code__exit(VSSCANF);
-    }
-    va_end(ap);
-
-    return parsed_fields;
+void libc__qsort(
+    void* base,
+    u32 n_of_items,
+    u32 size_of_item,
+    s32 (*compare_fn)(const void*, const void*)
+) {
+    qsort(base, n_of_items, size_of_item, compare_fn);
 }
+
