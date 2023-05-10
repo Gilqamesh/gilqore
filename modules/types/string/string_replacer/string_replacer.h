@@ -17,22 +17,32 @@ struct string_replacer {
     u32          withs_size;                // the allocated (max) number for replacements
 
     u32          with_buffer_top;           // the current size of the with buffer
-    u32          with_buffer_size;          // size of the replacement_bufer
+    u32          with_buffer_size;          // the total size of the with buffer
 
     u32          original_str_len;          // the unmodified string's length
     u32          current_str_len;           // the resulting replaced string's length
 };
 
-GIL_API bool string_replacer__create(struct string_replacer* self, const char* original);
+GIL_API bool string_replacer__create(struct string_replacer* self, const char* original, u32 original_len);
 GIL_API void string_replacer__destroy(struct string_replacer* self);
 
 // @brief clears the replacements and replace the original string with a new one
-GIL_API void string_replacer__clear(struct string_replacer* self, const char* original);
+GIL_API void string_replacer__clear(struct string_replacer* self, const char* original, u32 original_len);
 
+// @brief replace part of the string with another by providing the position of the string to be replaced
 // @returns the string's length after the replacement
-GIL_API u32 string_replacer__replace(
+GIL_API u32 string_replacer__replace_at_position(
     struct string_replacer* self,
     u32 what_position,
+    u32 what_length,
+    const char* with,
+    u32 with_length
+);
+
+// @brief replace part of the string with another by providing the string to be replaced
+GIL_API u32 string_replacer__replace_word(
+    struct string_replacer* self,
+    const char* what,
     u32 what_length,
     const char* with,
     u32 with_length

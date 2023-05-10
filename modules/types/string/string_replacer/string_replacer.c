@@ -5,11 +5,11 @@
 #include "common/error_code.h"
 
 #define MAX_AMOUNT_OF_REPLACEMENTS  16
-#define AVERAGE_REPLACEMENT_SIZE   128
+#define AVERAGE_REPLACEMENT_SIZE    1024
 
-bool string_replacer__create(struct string_replacer* self, const char* original) {
+bool string_replacer__create(struct string_replacer* self, const char* original, u32 original_len) {
     self->original = original;
-    self->original_str_len = libc__strlen(original);
+    self->original_str_len = original_len;
     self->current_str_len = self->original_str_len;
 
     self->withs_top = 0;
@@ -35,10 +35,12 @@ void string_replacer__destroy(struct string_replacer* self) {
     libc__free(self->with_buffer);
 }
 
-void string_replacer__clear(struct string_replacer* self, const char* original) {
+void string_replacer__clear(struct string_replacer* self, const char* original, u32 original_len) {
     self->original = original;
-    self->original_str_len = libc__strlen(original);
+    self->original_str_len = original_len;
+    self->current_str_len = self->original_str_len;
     self->withs_top = 0;
+    self->with_buffer_top = 0;
 }
 
 void string_replacer_sort_indices(struct string_replacer* self) {
@@ -68,7 +70,7 @@ void string_replacer_sort_indices(struct string_replacer* self) {
     }
 }
 
-u32 string_replacer__replace(
+u32 string_replacer__replace_at_position(
     struct string_replacer* self,
     u32 what_position,
     u32 what_length,
@@ -76,6 +78,10 @@ u32 string_replacer__replace(
     u32 with_length
 ) {
     // SANITIZE CHECKING
+    if (what_length == 0) {
+        return self->current_str_len;
+    }
+
     if (self->withs_top == self->withs_size) {
         error_code__exit(STRING_REPLACER_ERROR_CODE_REACHED_MAXIMUM_AMOUNT_OF_REPLACEMENTS);
     }
@@ -132,6 +138,75 @@ u32 string_replacer__replace(
 
     // note: careful, these are unsigned
     self->current_str_len = self->current_str_len + with_length - what_length;
+    return self->current_str_len;
+}
+
+static u32 hash_word(const char* word, u32 word_len) {
+    u32 hash_result = 0;
+
+    for (u32 i = 0; i < word_len && word[i] != '\0'; ++i) {
+        hash_result += word[i];
+    }
+
+    return hash_result;
+}
+
+u32 string_replacer__replace_word(
+    struct string_replacer* self,
+    const char* what,
+    u32 what_length,
+    const char* with,
+    u32 with_length
+) {
+    // SANITIZE CHECKING
+    if (what_length == 0) {
+        return self->current_str_len;
+    }
+
+    // note: find the position of what in the original string
+    u32 hash_value = hash_word(what, what_length);
+    u32 rolling_hash_value = 0;
+    u32 with_index = 0;
+    u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
+    u32 lag_index = 0;
+    for (u32 i = 0; self->original[i] != '\0'; ++i) {
+        if (i == next_taken_what_index) {
+            i += self->what_sizes[with_index] - 1;
+            ++with_index;
+            next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
+            rolling_hash_value = 0;
+            lag_index = 0;
+            continue ;
+        }
+        rolling_hash_value += self->original[i];
+        if (lag_index + 1 >= what_length) {
+            if (lag_index >= what_length) {
+                rolling_hash_value -= self->original[i - what_length];
+            }
+            u32 what_position = i + 1 - what_length;
+            if (
+                rolling_hash_value == hash_value &&
+                libc__strncmp(
+                    self->original + what_position,
+                    what,
+                    what_length
+                ) == 0
+            ) {
+                return string_replacer__replace_at_position(
+                    self,
+                    what_position,
+                    what_length,
+                    with,
+                    with_length
+                );
+            }
+        }
+
+        ++lag_index;
+    }
+
+    // note: didn't found what
+
     return self->current_str_len;
 }
 
