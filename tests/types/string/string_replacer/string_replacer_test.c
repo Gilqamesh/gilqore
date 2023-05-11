@@ -5,6 +5,7 @@
 #include "libc/libc.h"
 #include "math/clamp/clamp.h"
 #include "types/vector_types/v2/v2u32.h"
+#include "io/file/file.h"
 
 #include <stdio.h>
 
@@ -39,11 +40,7 @@ static void test_replace_at_position(
     u32 with_len,
     const char* expected
 ) {
-    u32 expected_what_length = what_length;
-    if (what_position + expected_what_length > string_replacer->original_str_len) {
-        expected_what_length = string_replacer->original_str_len - what_position;
-    }
-    u32 expected_str_len = string_replacer->current_str_len + with_len - expected_what_length;
+    u32 expected_str_len = libc__strlen(expected);
     TEST_FRAMEWORK_ASSERT(string_replacer__replace_at_position(
         string_replacer,
         what_position,
@@ -54,6 +51,57 @@ static void test_replace_at_position(
     for (u32 offset = offset_interval.x; offset <= offset_interval.y; ++offset) {
         test_offset(string_replacer, buffer, buffer_size, expected, expected_str_len, offset);
     }
+}
+
+static void test_replace_at_position_vformatted(
+    struct string_replacer* string_replacer,
+    char* buffer,
+    u32 buffer_size,
+    struct v2u32 offset_interval,
+    u32 what_position,
+    u32 what_length,
+    const char* expected,
+    const char* with_format,
+    va_list ap
+) {
+    u32 expected_str_len = libc__strlen(expected);
+    TEST_FRAMEWORK_ASSERT(string_replacer__replace_at_position_vf(
+        string_replacer,
+        what_position,
+        what_length,
+        with_format,
+        ap
+    ) == expected_str_len);
+    for (u32 offset = offset_interval.x; offset <= offset_interval.y; ++offset) {
+        test_offset(string_replacer, buffer, buffer_size, expected, expected_str_len, offset);
+    }
+}
+
+static void test_replace_at_position_formatted(
+    struct string_replacer* string_replacer,
+    char* buffer,
+    u32 buffer_size,
+    struct v2u32 offset_interval,
+    u32 what_position,
+    u32 what_length,
+    const char* expected,
+    const char* with_format,
+    ...
+) {
+    va_list ap;
+    va_start(ap, with_format);
+    test_replace_at_position_vformatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        offset_interval,
+        what_position,
+        what_length,
+        expected,
+        with_format,
+        ap
+    );
+    va_end(ap);
 }
 
 static void test_replace_word(
@@ -67,7 +115,7 @@ static void test_replace_word(
     u32 with_len,
     const char* expected
 ) {
-    u32 expected_str_len = string_replacer->current_str_len + with_len - what_length;
+    u32 expected_str_len = libc__strlen(expected);
     TEST_FRAMEWORK_ASSERT(string_replacer__replace_word(
         string_replacer,
         what,
@@ -78,6 +126,57 @@ static void test_replace_word(
     for (u32 offset = offset_interval.x; offset <= offset_interval.y; ++offset) {
         test_offset(string_replacer, buffer, buffer_size, expected, expected_str_len, offset);
     }
+}
+
+static void test_replace_word_vformatted(
+    struct string_replacer* string_replacer,
+    char* buffer,
+    u32 buffer_size,
+    struct v2u32 offset_interval,
+    const char* what,
+    u32 what_length,
+    const char* expected,
+    const char* with_format,
+    va_list ap
+) {
+    u32 expected_str_len = libc__strlen(expected);
+    TEST_FRAMEWORK_ASSERT(string_replacer__replace_word_vf(
+        string_replacer,
+        what,
+        what_length,
+        with_format,
+        ap
+    ) == expected_str_len);
+    for (u32 offset = offset_interval.x; offset <= offset_interval.y; ++offset) {
+        test_offset(string_replacer, buffer, buffer_size, expected, expected_str_len, offset);
+    }
+}
+
+static void test_replace_word_formatted(
+    struct string_replacer* string_replacer,
+    char* buffer,
+    u32 buffer_size,
+    struct v2u32 offset_interval,
+    const char* what,
+    u32 what_length,
+    const char* expected,
+    const char* with_format,
+    ...
+) {
+    va_list ap;
+    va_start(ap, with_format);
+    test_replace_word_vformatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        offset_interval,
+        what,
+        what_length,
+        expected,
+        with_format,
+        ap
+    );
+    va_end(ap);
 }
 
 static void test_replaces_at_position(
@@ -154,6 +253,97 @@ static void test_replaces_at_position(
         with6, libc__strlen(with6),
         "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBBo[sdfh0a7sdf023uib4jhb dfs]"
     );
+
+    const char* with7 = "[inserted str]";
+    test_replace_at_position(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        6, 0,
+        with7, libc__strlen(with7),
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBB[inserted str]o[sdfh0a7sdf023uib4jhb dfs]"
+    );
+}
+
+static void test_replaces_at_position_formatted(
+    struct string_replacer* string_replacer,
+    const char* original,
+    u32 original_size,
+    char* buffer,
+    u32 buffer_size
+) {
+    string_replacer__clear(string_replacer, original, original_size);
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        0, 1,
+        "AAAey bro wadap",
+        "%s", "AAA"
+    );
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        3, 2,
+        "AAAeyBBBro wadap",
+        "%s", "BBB"
+    );
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        1, 1,
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll]yBBBro wadap",
+        "%s", "[some longass string lollllllllllllllllllllllllllllllllllllll]"
+    );
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        2, 1,
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBBro wadap",
+        "%s", "[trolololololol]"
+    );
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        7, 10,
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBBro[sdfh0a7sdf023uib4jhb dfs]",
+        "%s", "[sdfh0a7sdf023uib4jhb dfs]"
+    );
+
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        5, 1,
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBBo[sdfh0a7sdf023uib4jhb dfs]",
+        "%s", ""
+    );
+ 
+    test_replace_at_position_formatted(
+        string_replacer,
+        buffer,
+        buffer_size,
+        v2u32(0, 20),
+        6, 0,
+        "AAA[some longass string lollllllllllllllllllllllllllllllllllllll][trolololololol]BBB[formatted_sting]o[sdfh0a7sdf023uib4jhb dfs]",
+        "%s", "[formatted_sting]"
+    );
 }
 
 static void test_replaces_word(
@@ -211,6 +401,57 @@ static void test_replaces_word(
     );
 }
 
+static void test_replaces_word_formatted(
+    struct string_replacer* string_replacer,
+    const char* original,
+    u32 original_size,
+    char* buffer,
+    u32 buffer_size
+) {
+    string_replacer__clear(string_replacer, original, original_size);
+    const char* what = "bro";
+    test_replace_word_formatted(
+        string_replacer,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what, libc__strlen(what),
+        "hey breh wadap",
+        "%s", "breh"
+    );
+
+    string_replacer__clear(string_replacer, original, original_size);
+    const char* what2 = "hey bro wadap";
+    test_replace_word_formatted(
+        string_replacer,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what2, libc__strlen(what2),
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "%s", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    );
+
+    string_replacer__clear(string_replacer, original, original_size);
+    const char* what3 = " ";
+    test_replace_word_formatted(
+        string_replacer,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what3, libc__strlen(what3),
+        "hey-bro wadap",
+        "%s", "-"
+    );
+
+    const char* what4 = " ";
+    test_replace_word_formatted(
+        string_replacer,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what4, libc__strlen(what4),
+        "hey-bro-wadap",
+        "%s", "-"
+    );
+}
+
 int main() {
     struct string_replacer string_replacer;
 
@@ -221,10 +462,21 @@ int main() {
     printf("Original string: \"%s\"\n", original);
 #endif
 
-    TEST_FRAMEWORK_ASSERT(string_replacer__create(&string_replacer, original, original_size) == true);
-
     u32 buffer_size = 131072;
     char* buffer = libc__malloc(buffer_size);
+
+    u32 total_number_of_replacements = 16;
+    u32 average_replacement_size = 1024;
+    u32 total_size_of_replacements_in_bytes = total_number_of_replacements * average_replacement_size;
+    TEST_FRAMEWORK_ASSERT(
+        string_replacer__create(
+            &string_replacer,
+            original,
+            original_size,
+            total_number_of_replacements,
+            total_size_of_replacements_in_bytes
+        ) == true
+    );
 
 #if defined(SHOULD_PRINT)
     printf("Original with offset:\n");
@@ -237,10 +489,76 @@ int main() {
     test_replaces_at_position(&string_replacer, original, original_size, buffer, buffer_size);
     test_replaces_at_position(&string_replacer, original, original_size, buffer, buffer_size);
 
+    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+
     test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
     test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
     test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
 
+    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+
+    struct file file;
+    const char* filename = "asid8y0837y2h4rjsdf";
+    if (file__exists(filename) == true) {
+        TEST_FRAMEWORK_ASSERT(file__delete(filename) == true);
+    }
+    TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE) == true);
+
+    const char* filecontent =
+    "#ifndef FILE_H\n"
+    "# define FILE_H\n"
+    "\n"
+    "#include \"<something.h>\"\n"
+    "\n"
+    "enum file_error_code {\n"
+    "    FILE_ERROR_CODE_PATH_TOO_LONG = 2,\n"
+    "    FILE_ERROR_CODE_IDK_BREH = 3,\n"
+    "};\n"
+    "\n"
+    "struct file {\n"
+    "    HANDLE handle;\n"
+    "};\n"
+    "\n"
+    "GIL_API bool file__create(struct file* self);\n"
+    "GIL_API void file__destroy(struct file* self);\n"
+    "\n"
+    "#endif\n";
+    u32 filecontent_size = libc__strlen(filecontent);
+    TEST_FRAMEWORK_ASSERT(file__write(&file, filecontent, filecontent_size) == filecontent_size);
+
+    string_replacer__clear(&string_replacer, filecontent, filecontent_size);
+    const char* what =
+    "enum file_error_code {\n"
+    "    FILE_ERROR_CODE_PATH_TOO_LONG = 2,\n"
+    "    FILE_ERROR_CODE_IDK_BREH = 3,\n"
+    "};";
+    const char* with =
+    "enum file_error_code {\n"
+    "    FILE_ERROR_CODE_START\n"
+    "};";
+
+    string_replacer__replace_word(
+        &string_replacer,
+        what, libc__strlen(what),
+        with, libc__strlen(with)
+    );
+    u32 new_string_len = string_replacer__read(
+        &string_replacer,
+        buffer,
+        buffer_size,
+        0
+    );
+
+    file__close(&file);
+    TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE) == true);
+    TEST_FRAMEWORK_ASSERT(file__write(&file, buffer, new_string_len) == new_string_len);
+    file__close(&file);
+
+    TEST_FRAMEWORK_ASSERT(file__delete(filename) == true);
     libc__free(buffer);
 
     return 0;

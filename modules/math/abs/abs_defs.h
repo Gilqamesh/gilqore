@@ -5,6 +5,7 @@
 
 enum abs_error_code {
     ABS_ERROR_CODE_START,
+
 };
 
 #endif

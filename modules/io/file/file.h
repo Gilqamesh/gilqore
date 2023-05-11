@@ -34,7 +34,7 @@ enum file_type {
     FILE_TYPE_FILE      = 1 << 1
 };
 
-GIL_API bool file__open(
+GIL_API bool file__open( 
     struct file* self,
     const char* path,
     enum file_access_mode access_mode,
@@ -49,6 +49,8 @@ GIL_API bool file__move(const char* src_path, const char* dest_path);
 // @returns last time that the file was modified
 GIL_API bool file__last_modified(const char* path, struct time* last_modified);
 GIL_API bool file__stat(const char* path, enum file_type* file_type);
+// @returns whether the operations was successful or not as well as the file_size if it was
+GIL_API bool file__size(const char* path, u64* file_size);
 
 // @brief reads from opened file, returns bytes read
 GIL_API u32 file__read(struct file* self, void* out, u32 size);

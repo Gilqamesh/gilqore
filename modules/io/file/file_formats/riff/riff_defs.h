@@ -5,6 +5,7 @@
 
 enum riff_error_code {
     RIFF_ERROR_CODE_START,
+
 };
 
 #endif

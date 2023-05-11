@@ -5,6 +5,7 @@
 
 enum tools_error_code {
     TOOLS_ERROR_CODE_START,
+
 };
 
 #endif

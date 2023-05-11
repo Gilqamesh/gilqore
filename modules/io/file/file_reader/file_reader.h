@@ -34,7 +34,18 @@ GIL_API u32 file_reader__read_while_not(struct file_reader* self, void* out, u32
 // @param out optional, if not provided size is ignored as well
 // @returns amount of bytes read
 GIL_API u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const char* set);
-// @brief out is not optional and must be provided
+// @brief reads max size bytes to out while word hasn't been matched, so if word is matched, out will contain it at its end
+// @param out must be provided
+// @returns whether or not word has been read as well as the amount of bytes read
+GIL_API bool file_reader__read_while_not_word(
+    struct file_reader* self,
+    void* out,
+    u32 size,
+    const char* word,
+    u32 word_length,
+    u32* bytes_read
+);
+// @brief out must be provided
 // @returns amount of bytes_read
 GIL_API u32 file_reader__read_format(struct file_reader* self, void* out, u32 size, const char* format, ...);
 

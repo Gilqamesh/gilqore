@@ -5,6 +5,7 @@
 
 enum math_error_code {
     MATH_ERROR_CODE_START,
+
 };
 
 #endif

@@ -1,5 +1,9 @@
 unique_error_codes: [
     ACCESS_MODE_INVALID: enum file_access_mode provided is incorrect
     CREATION_MODE_INVALID: enum file_creation_mode provided is incorrect
+    WINDOWS_READ: ReadFile failed in file__read
+    WINDOWS_WRITE: WriteFile failed in file__write
+    WINDOWS_SEEK: SetFilePointer failed in file__seek
+    WINDOWS_CLOSE: CloseHandle failed in file__close
 ]
 module_dependencies: 

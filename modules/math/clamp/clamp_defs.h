@@ -5,6 +5,7 @@
 
 enum clamp_error_code {
     CLAMP_ERROR_CODE_START,
+
 };
 
 #endif

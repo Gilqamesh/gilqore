@@ -5,6 +5,7 @@
 
 enum lerp_error_code {
     LERP_ERROR_CODE_START,
+
 };
 
 #endif

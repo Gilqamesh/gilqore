@@ -24,9 +24,16 @@ GIL_API char* libc__strncpy(char* dest, const char* src, u64 size);
 GIL_API char* libc__strchr(const char* str, char c);
 GIL_API char* libc__strrchr(const char* str, char c);
 
+// @returns number of bytes written
 GIL_API s32 libc__printf(const char* format, ...);
+// @returns number of bytes written
 GIL_API s32 libc__vprintf(const char* format, va_list ap);
+// @brief writes format into the buffer and null-terminates it
+// @returns number of bytes that would have been written not counting the null-terminating character
 GIL_API s32 libc__snprintf(char* buffer, u64 size, const char* format, ...);
+// @brief writes format into the buffer and null-terminates it
+// @returns number of bytes that would have been written not counting the null-terminating character
+// @note if return equals to the buffer size, it means the format was truncated
 GIL_API s32 libc__vsnprintf(char* buffer, u64 buffer_size, const char* format, va_list ap);
 // @note buffer overflow can occur
 GIL_API s32 libc__sscanf(const char* str, const char* format, ...);

@@ -5,6 +5,7 @@
 
 enum mod_error_code {
     MOD_ERROR_CODE_START,
+
 };
 
 #endif

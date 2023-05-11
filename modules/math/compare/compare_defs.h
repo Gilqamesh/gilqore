@@ -5,6 +5,7 @@
 
 enum compare_error_code {
     COMPARE_ERROR_CODE_START,
+
 };
 
 #endif

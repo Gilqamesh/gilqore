@@ -1,13 +1,11 @@
 #ifndef ${module_defs_h}
 # define ${module_defs_h}
 
-# include ${parent_module_name_defs_h}
+# include ${parent_module_name_defs}
 
-enum ${module_error_code} {
-    ${ERROR_CODE_START},
-    ${ERROR_CODE_WINDOWS},
-    ${ERROR_CODE_LINUX},
-    ${ERROR_CODE_MAC}
+enum ${module_error_codes}_error_code {
+    ${module_error_code_start}_ERROR_CODE_START,
+${rest_of_the_error_codes}
 };
 
 #endif

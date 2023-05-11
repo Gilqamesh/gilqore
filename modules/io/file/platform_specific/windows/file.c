@@ -58,7 +58,7 @@ bool file__open(
 
 void file__close(struct file* self) {
     if (CloseHandle(self->handle) == FALSE) {
-        error_code__exit(FILE_ERROR_CODE_WINDOWS_CLOSEHANDLE);
+        error_code__exit(FILE_ERROR_CODE_WINDOWS_CLOSE);
     }
 }
 
@@ -90,7 +90,10 @@ bool file__last_modified(const char* path, struct time* last_modified) {
     if (file__open(&file, path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN) == false) {
         return false;
     }
-    if (GetFileTime(file.handle, NULL, NULL, &last_modified->val) == false) {
+
+    if (GetFileTime(file.handle, NULL, NULL, &last_modified->val) == FALSE) {
+        // todo: diagnostics, GetLastError()
+        file__close(&file);
         return false;
     }
 
@@ -106,6 +109,25 @@ bool file__stat(const char* path, enum file_type* file_type) {
     }
 
     *file_type = file_attributes & FILE_ATTRIBUTE_DIRECTORY ? FILE_TYPE_DIRECTORY : FILE_TYPE_FILE;
+
+    return true;
+}
+
+bool file__size(const char* path, u64* file_size) {
+    struct file file;
+    if (file__open(&file, path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN) == false) {
+        return false;
+    }
+
+    LARGE_INTEGER size;
+    if (GetFileSizeEx(file.handle, &size) == FALSE) {
+        // todo: diagnostics, GetLastError()
+        file__close(&file);
+        return false;
+    }
+    *file_size = size.QuadPart;
+
+    file__close(&file);
 
     return true;
 }

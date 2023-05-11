@@ -14,6 +14,7 @@
     } \
 }
 
+// todo: can't use this yet, because module_compiler is not ready
 GIL_API s32 test_framework__printf(const char* format, ...);
 
 #endif

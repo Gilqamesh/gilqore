@@ -5,6 +5,7 @@
 
 enum modules_error_code {
     MODULES_ERROR_CODE_START,
+
 };
 
 #endif

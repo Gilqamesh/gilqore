@@ -5,6 +5,7 @@
 
 enum io_error_code {
     IO_ERROR_CODE_START,
+
 };
 
 #endif

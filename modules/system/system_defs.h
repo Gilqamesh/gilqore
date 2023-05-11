@@ -5,6 +5,7 @@
 
 enum system_error_code {
     SYSTEM_ERROR_CODE_START,
+
 };
 
 #endif

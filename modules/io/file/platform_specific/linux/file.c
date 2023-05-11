@@ -110,6 +110,19 @@ bool file__stat(const char* path, enum file_type* file_type) {
     return true;
 }
 
+bool file__size(const char* path, u64* file_size) {
+    struct stat file_info;
+
+    if (stat(path, &file_info) == -1) {
+        // todo: diagnostics, check errno
+        return false;
+    }
+
+    *file_size = file_info.st_size;
+
+    return true;
+}
+
 u32 file__read(struct file* self, void* out, u32 size) {
     if (size == 0) {
         return 0;

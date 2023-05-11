@@ -5,6 +5,7 @@
 
 enum common_error_code {
     COMMON_ERROR_CODE_START,
+
 };
 
 #endif

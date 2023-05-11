@@ -5,6 +5,7 @@
 
 enum sqrt_error_code {
     SQRT_ERROR_CODE_START,
+
 };
 
 #endif

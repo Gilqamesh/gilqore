@@ -108,17 +108,24 @@ void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enu
 
 void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth) {
     struct directory dir;
-    char* buffer = libc__malloc(MAX_PATH);
-    char* buffer2 = libc__malloc(MAX_PATH);
+    u32 buffer_size = MAX_PATH;
+    u32 buffer2_size = MAX_PATH;
+    char* buffer = libc__malloc(buffer_size);
+    char* buffer2 = libc__malloc(buffer2_size);
     if (directory__open(&dir, path)) {
         u32 bytes_written;
-        while (directory__read(&dir, buffer, MAX_PATH, &bytes_written) == true) {
+        while (directory__read(&dir, buffer, buffer_size, &bytes_written) == true) {
             if ((bytes_written >= 1 && buffer[bytes_written - 1] == '.') ||
                 (bytes_written >= 2 && libc__strcmp(buffer + (bytes_written - 2), "..") == 0)
             ) {
                 continue ;
             }
-            libc__snprintf(buffer2, MAX_PATH, "%s/%s", path, buffer);
+            bytes_written = libc__snprintf(buffer2, buffer2_size, "%s/%s", path, buffer);
+            if (bytes_written >= buffer2_size) {
+                // error_code__exit(BUFFER_TOO_SMALL);
+                error_code__exit(990);
+            }
+
             enum file_type type;
             if (file__stat(buffer2, &type) == false) {
                 continue ;

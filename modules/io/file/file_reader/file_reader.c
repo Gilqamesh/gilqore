@@ -2,6 +2,7 @@
 
 #include "math/compare/compare.h"
 #include "libc/libc.h"
+#include "algorithms/hash/hash.h"
 
 #include <stdarg.h>
 
@@ -22,6 +23,7 @@ void file_reader__destroy(struct file_reader* self) {
 
 void file_reader__clear(struct file_reader* self) {
     circular_buffer__clear(self->circular_buffer);
+    file__seek(self->file, 0);
     self->eof_reached = false;
 }
 
@@ -163,6 +165,63 @@ u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const
 
     return total_bytes_read;
 }
+
+bool file_reader__read_while_not_word(
+    struct file_reader* self,
+    void* out,
+    u32 size,
+    const char* word,
+    u32 word_length,
+    u32* bytes_read
+) {
+    if (word_length == 0) {
+        return 0;
+    }
+
+    u32 total_bytes_read = 0;
+
+    u64 hash_value = hash__sum_n(word, word_length);
+    u64 rolling_hash_value = 0;
+    u32 circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+    while (
+        total_bytes_read < size &&
+        (self->eof_reached == false || circular_buffer_cur_size > 0)
+    ) {
+        if (circular_buffer_cur_size == 0) {
+            file_reader__ensure_fill(self);
+        }
+        circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+        if (circular_buffer_cur_size > 0) {
+            circular_buffer__pop(self->circular_buffer, (u8*) out + total_bytes_read);
+
+            rolling_hash_value += *((u8*) out + total_bytes_read);
+            if (total_bytes_read + 1 >= word_length) {
+                if (total_bytes_read >= word_length) {
+                    rolling_hash_value -= *((u8*) out + total_bytes_read - word_length);
+                }
+                u32 word_position = total_bytes_read + 1 - word_length;
+                if (
+                    rolling_hash_value == hash_value &&
+                    libc__strncmp(
+                        (const char*) out + word_position,
+                        word,
+                        word_length
+                    ) == 0
+                ) {
+                    *bytes_read = total_bytes_read + 1;
+                    return true;
+                }
+            }
+
+            ++total_bytes_read;
+            circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+        }
+    }
+
+    *bytes_read = total_bytes_read;
+    return false;
+}
+
 #if 0
 struct conversion_flags {
     bool  is_left_justified;  // '-'

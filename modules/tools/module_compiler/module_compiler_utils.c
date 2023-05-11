@@ -18,9 +18,9 @@ void module_compiler__clear_transient_flags(void) {
 struct module* module_compiler__add_child(struct module* self, const char* child_module_basename) {
     struct module* child = &g_modules[g_modules_size++];
     child->parent = self;
-    s32 written_bytes = libc__snprintf(child->dirprefix, ARRAY_SIZE(child->dirprefix), "%s/%s", self->dirprefix, child_module_basename);
-    if (written_bytes == ARRAY_SIZE(child->dirprefix)) {
+    if ((u32) libc__snprintf(child->dirprefix, ARRAY_SIZE(child->dirprefix), "%s/%s", self->dirprefix, child_module_basename) >= ARRAY_SIZE(child->dirprefix)) {
         // error_code__exit(CHILD_PREFIX_TOO_LONG);
+        error_code__exit(836);
     }
 
     u32 name_index = 0;

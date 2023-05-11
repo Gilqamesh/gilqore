@@ -5,6 +5,7 @@
 
 enum graphics_error_code {
     GRAPHICS_ERROR_CODE_START,
+
 };
 
 #endif

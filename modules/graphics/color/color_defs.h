@@ -5,6 +5,7 @@
 
 enum color_error_code {
     COLOR_ERROR_CODE_START,
+
 };
 
 #endif

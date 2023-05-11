@@ -5,6 +5,7 @@
 
 enum v4_error_code {
     V4_ERROR_CODE_START,
+
 };
 
 #endif

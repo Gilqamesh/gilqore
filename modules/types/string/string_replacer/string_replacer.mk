@@ -21,7 +21,7 @@ endif
 string_replacer_static_objects			:= $(patsubst %.c, %_static.o, $(string_replacer_sources))
 string_replacer_shared_objects			:= $(patsubst %.c, %_shared.o, $(string_replacer_sources))
 string_replacer_depends					:= $(patsubst %.c, %.d, $(string_replacer_sources))
-string_replacer_depends_modules			:=  libc compare common
+string_replacer_depends_modules			:=  libc compare common file hash
 string_replacer_depends_libs_shared		:= $(foreach module,$(string_replacer_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 string_replacer_depends_libs_targets		:= $(foreach module,$(string_replacer_depends_modules),$(module)_all)
 string_replacer_clean_files				:=
