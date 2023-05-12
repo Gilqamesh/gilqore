@@ -40,7 +40,7 @@ $(time_path_curdir)%_shared.o: $(time_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(time_install_path_shared): $(time_depends_libs_shared) $(time_static_objects) $(time_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(time_shared_lflags) $(time_shared_objects) $(time_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(time_shared_lflags) $(time_shared_objects) $(time_depends_libs_shared)
 
 .PHONY: time_all
 time_all: $(time_child_all_targets) ## build and install all time static and shared libraries

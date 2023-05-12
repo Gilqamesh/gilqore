@@ -3,3 +3,4 @@ unique_error_codes: [
     WRONG_FORMAT_SPECIFIER: bad format specifier in file_reader__read_format
 ]
 module_dependencies: hash libc compare circular_buffer file
+application_type: CONSOLE

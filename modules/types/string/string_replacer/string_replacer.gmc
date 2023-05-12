@@ -6,3 +6,4 @@ unique_error_codes: [
     WHAT_POSITION_OUTSIDE_OF_ORIGINAL: supplied what_position is outside of the bounds of the original string in string_replacer__replace
 ]
 module_dependencies: libc compare common file hash
+application_type: CONSOLE

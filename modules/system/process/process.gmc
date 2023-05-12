@@ -3,3 +3,4 @@ unique_error_codes: [
     WAIT_FOR_SINGLE_OBJECT_FAILED: WaitForSingleObject failed in process
 ]
 module_dependencies: 
+application_type: CONSOLE

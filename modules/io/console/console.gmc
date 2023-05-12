@@ -5,3 +5,4 @@ unique_error_codes: [
     WRITE_CONSOLE_A: WriteConsoleA has failed
 ]
 module_dependencies: 
+application_type: CONSOLE

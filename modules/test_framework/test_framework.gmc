@@ -7,3 +7,4 @@ unique_error_codes: [
     ASSERT: test_framework's assertion failed
 ]
 module_dependencies: 
+application_type: CONSOLE

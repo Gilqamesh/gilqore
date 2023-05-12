@@ -3,3 +3,4 @@ unique_error_codes: [
     VSNPRINTF: vsnprintf returned negative value
 ]
 module_dependencies: common
+application_type: CONSOLE

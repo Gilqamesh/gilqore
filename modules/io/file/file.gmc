@@ -7,3 +7,4 @@ unique_error_codes: [
     WINDOWS_CLOSE: CloseHandle failed in file__close
 ]
 module_dependencies: common time
+application_type: CONSOLE

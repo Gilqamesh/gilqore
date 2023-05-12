@@ -2,3 +2,4 @@ unique_error_codes: [
     BUFFER_TOO_SMALL: buffer is too small in directory__foreach
 ]
 module_dependencies: common libc compare file
+application_type: CONSOLE
