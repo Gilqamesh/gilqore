@@ -18,8 +18,14 @@
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 
+#define MAX_NUMBER_OF_KEYS 10
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
 #define KEY_MODULE_DEPENDENCIES "module_dependencies"
+#define KEY_APPLICATION_TYPE "application_type"
+
+#define VALUE_APPLICATION_TYPE_CONSOLE "CONSOLE"
+#define VALUE_APPLICATION_TYPE_WINDOWS "WINDOWS"
+#define VALUE_APPLICATION_TYPE_DEFAULT VALUE_APPLICATION_TYPE_CONSOLE
 
 static struct module* g_modules;
 static u32* g_modules_size_cur;
@@ -189,17 +195,19 @@ void module_compiler__parse_config_file_recursive(struct module* self) {
     libc__free(config_file_name_buffer);
 }
 
-void parse_config_file_directive(
-    struct file_reader* config_file_reader,
-    char* buffer,
-    u32 buffer_size
+static void parse_key_from_file(
+    struct file_reader* file_reader,
+    char* key_buffer,
+    u32 key_buffer_size
 ) {
-    u32 read_bytes = file_reader__read_while_not(config_file_reader, buffer, buffer_size, ":");
-    if (read_bytes == buffer_size) {
-        error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_TOO_LONG);
+    u32 read_bytes = file_reader__read_while_not(file_reader, key_buffer, key_buffer_size, ":");
+    if (read_bytes == key_buffer_size) {
+        // error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_TOO_LONG); // todo: remove from .gmc
+        // error_code__exit(KEY_BUFFER_TOO_SMALL);
+        error_code__exit(32487);
     }
-    buffer[read_bytes] = '\0';
-    TEST_FRAMEWORK_ASSERT(file_reader__read_one(config_file_reader, NULL, sizeof(char)) == 1);
+    key_buffer[read_bytes] = '\0';
+    file_reader__read_one(file_reader, NULL, 1);
 }
 
 void parse_config_file_unique_error_codes(
@@ -269,7 +277,7 @@ void parse_config_file_unique_error_codes(
     } while (1);
 }
 
-void parse_config_file_dependencies(
+static void parse_config_file_dependencies(
     struct module* self,
     struct file_reader* config_file_reader,
     char* buffer,
@@ -295,6 +303,51 @@ void parse_config_file_dependencies(
         }
         module_compiler__add_dependency(self, found_module);
     } while (1);
+}
+
+static const char* dispatch_by_application_type(const char* application_type) {
+    const char* result = NULL;
+
+    if (libc__strcmp(application_type, VALUE_APPLICATION_TYPE_CONSOLE) == 0) {
+        static const char* app_lflag_console = "-mconsole";
+        result = app_lflag_console;
+    } else if (libc__strcmp(application_type, VALUE_APPLICATION_TYPE_WINDOWS) == 0) {
+        static const char* app_lflag_windows = "-mwindows";
+        result = app_lflag_windows;
+    } else {
+        printf("unknown application type\n");
+        TEST_FRAMEWORK_ASSERT(false);
+    }
+
+    return result;
+}
+
+static void parse_config_file_application_type(
+    struct module* self,
+    struct file_reader* config_file_reader,
+    char* buffer,
+    u32 buffer_size
+) {
+    file_reader__read_while(config_file_reader, NULL, 0, " ");
+    u32 read_bytes = file_reader__read_while_not(config_file_reader, buffer, buffer_size, " \r\n");
+    if (read_bytes == buffer_size) {
+        // error_code__exit(BUFFER_SIZE_TOO_SMALL_PARSE_APPLICATION_TYPE);
+        error_code__exit(7632);
+    }
+    buffer[read_bytes] = '\0';
+    if (
+        libc__strcmp(buffer, VALUE_APPLICATION_TYPE_CONSOLE) == 0 ||
+        libc__strcmp(buffer, VALUE_APPLICATION_TYPE_WINDOWS) == 0
+    ) {
+        const char* application_type = dispatch_by_application_type(buffer);
+        libc__memcpy(self->application_type, application_type, libc__strlen(application_type));
+    } else {
+        printf("Application type parsed from module [%s] is not supported: %s\n", self->basename, buffer);
+        printf("Application types supported: %s, %s\n", VALUE_APPLICATION_TYPE_CONSOLE, VALUE_APPLICATION_TYPE_WINDOWS);
+        // error_code__exit(APPLICATION_TYPE_NOT_SUPPORTED);
+        error_code__exit(89935);
+    }
+    file_reader__read_while(config_file_reader, NULL, 0, "\r\n");
 }
 
 static void def_file_add_error_codes_place_holder__create(
@@ -388,7 +441,7 @@ static void def_file_add_error_codes_place_holder__update(
         error_code__exit(999);
     }
     string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
-    TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0) == 0);
+    TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
     file_reader__clear(file_reader, def_file);
     u32 what_position;
     char buffer[128];
@@ -437,7 +490,7 @@ static void def_file_add_error_codes_place_holder__update(
             // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
             error_code__exit(32476);
         }
-        TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0) == 0);
+        TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
         file_reader__clear(file_reader, def_file);
         TEST_FRAMEWORK_ASSERT(
             file_reader__read_while_not_word(
@@ -472,6 +525,7 @@ static void def_file_add_error_codes_place_holder__update(
     file__close(def_file);
 }
 
+// todo: make the algorithm error proof so that it doesn't mess with the existing def files until everything passes
 static void def_file_replace_error_codes_place_holder_and_append_error_codes_file(
     struct module* self,
     struct string_replacer* string_replacer,
@@ -492,6 +546,8 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
     u32 error_codes_buffer_size,
     u32 rest_of_the_error_codes_len
 ) {
+    static const char* config_file_template_path = "misc/gmc_file_template.txt";
+
     string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
     struct file config_file;
     u32 bytes_written = libc__snprintf(
@@ -509,9 +565,13 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
         file_reader__clear(file_reader, &config_file);
         bool parsed_unique_error_codes = false;
         bool parsed_module_dependencies = false;
-        bool parsed_everything = parsed_module_dependencies && parsed_unique_error_codes;
-        while (parsed_everything == false) {
-            parse_config_file_directive(file_reader, auxiliary_buffer, auxiliary_buffer_size);
+        bool parsed_application_type = false;
+        while (
+            parsed_module_dependencies == false ||
+            parsed_unique_error_codes == false ||
+            parsed_application_type == false
+        ) {
+            parse_key_from_file(file_reader, auxiliary_buffer, auxiliary_buffer_size);
 
             if (libc__strcmp(auxiliary_buffer, KEY_UNIQUE_ERROR_CODES) == 0) {
                 parse_config_file_unique_error_codes(
@@ -540,11 +600,46 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
                     auxiliary_buffer_size
                 );
                 parsed_module_dependencies = true;
+            } else if (libc__strcmp(auxiliary_buffer, KEY_APPLICATION_TYPE) == 0) {
+                parse_config_file_application_type(
+                    self,
+                    file_reader,
+                    auxiliary_buffer,
+                    auxiliary_buffer_size
+                );
+                parsed_application_type = true;
             } else {
-                printf("[%s]\n", auxiliary_buffer);
-                error_code__exit(MODULE_COMPILER_ERROR_CODE_CONFIG_KEY_UNKNOWN);
+                file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
+                if (parsed_module_dependencies == false) {
+                    file_writer__write_format(
+                        file_writer,
+                        &config_file,
+                        "%s: \n",
+                        KEY_MODULE_DEPENDENCIES
+                    );
+                    parsed_module_dependencies = true;
+                }
+                if (parsed_unique_error_codes == false) {
+                    file_writer__write_format(
+                        file_writer,
+                        &config_file,
+                        "%s: [\n"
+                        "]\n",
+                        KEY_UNIQUE_ERROR_CODES
+                    );
+                    parsed_unique_error_codes = true;
+                }
+                if (parsed_application_type == false) {
+                    file_writer__write_format(
+                        file_writer,
+                        &config_file,
+                        "%s: %s\n",
+                        KEY_APPLICATION_TYPE, VALUE_APPLICATION_TYPE_DEFAULT
+                    );
+                    parsed_application_type = true;
+                }
+                printf("Updated .gmc file for module %s\n", self->basename);
             }
-            parsed_everything = parsed_module_dependencies && parsed_unique_error_codes;
         }
         file__close(&config_file);
     } else {
@@ -556,7 +651,6 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
             ""
         );
 
-        static const char* config_file_template_path = "misc/gmc_file_template.txt";
         file__copy(config_file_name_buffer, config_file_template_path);
 
         for (u32 dep_index = 0; dep_index < ARRAY_SIZE(self->dependencies); ++dep_index) {
@@ -788,13 +882,6 @@ void module_compiler__embed_dependencies_into_makefile(
     }
     file__close(&modules_makefile_template_file);
 
-    /*
-    $(MODULE_NAME) <- replace with basename
-    $(LFLAGS_SPECIFIC) <- replace with:
-        console_application = '-mconsole' // for now, todo: add this to .gmc file as a config option
-        window_application = '-mwindows'
-    */
-
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
         struct module* cur_module = &modules[module_index];
 
@@ -805,12 +892,9 @@ void module_compiler__embed_dependencies_into_makefile(
         static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
         static const char module_name_replace_what[] = "$(MODULE_NAME)";
         static const char module_lflags_specific_replace_what[] = "$(LFLAGS_SPECIFIC)";
-        // todo: add type of application (console/windows) to .gmc file
-        static const char module_lflags_specific_replace_with[] = "-mconsole";
         static const u32 module_dependency_replace_what_len = ARRAY_SIZE(module_dependency_replace_what) - 1;
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
         static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
-        static const u32 module_lflags_specific_replace_with_len = ARRAY_SIZE(module_lflags_specific_replace_with) - 1;
 
         string_replacer__clear(string_replacer, file_buffer, modules_makefile_template_file_size);
         u32 number_of_what_replacements = 1;
@@ -839,8 +923,8 @@ void module_compiler__embed_dependencies_into_makefile(
             number_of_what_replacements,
             module_lflags_specific_replace_what,
             module_lflags_specific_replace_what_len,
-            module_lflags_specific_replace_with,
-            module_lflags_specific_replace_with_len
+            cur_module->application_type,
+            libc__strlen(cur_module->application_type)
         );
 
         libc__snprintf(

@@ -40,7 +40,7 @@ $(wav_path_curdir)%_shared.o: $(wav_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(wav_install_path_shared): $(wav_depends_libs_shared) $(wav_static_objects) $(wav_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(wav_shared_lflags) $(wav_shared_objects) $(wav_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(wav_shared_lflags) $(wav_shared_objects) $(wav_depends_libs_shared)
 
 .PHONY: wav_all
 wav_all: $(wav_child_all_targets) ## build and install all wav static and shared libraries

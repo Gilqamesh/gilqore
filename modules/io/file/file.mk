@@ -40,7 +40,7 @@ $(file_path_curdir)%_shared.o: $(file_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(file_install_path_shared): $(file_depends_libs_shared) $(file_static_objects) $(file_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_shared_lflags) $(file_shared_objects) $(file_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(file_shared_lflags) $(file_shared_objects) $(file_depends_libs_shared)
 
 .PHONY: file_all
 file_all: $(file_child_all_targets) ## build and install all file static and shared libraries

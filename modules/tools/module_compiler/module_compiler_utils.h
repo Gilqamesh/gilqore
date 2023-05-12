@@ -13,6 +13,7 @@ struct module {
     struct module* parent;
     char basename[64];
     char dirprefix[512];
+    char application_type[16]; // either "-mwindows" or "-mconsole"
     s32 number_of_submodules; // number of submodules this module has
     s32 transient_flag_for_processing;
 };

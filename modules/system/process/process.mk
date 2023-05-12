@@ -40,7 +40,7 @@ $(process_path_curdir)%_shared.o: $(process_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(process_install_path_shared): $(process_depends_libs_shared) $(process_static_objects) $(process_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(process_shared_lflags) $(process_shared_objects) $(process_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(process_shared_lflags) $(process_shared_objects) $(process_depends_libs_shared)
 
 .PHONY: process_all
 process_all: $(process_child_all_targets) ## build and install all process static and shared libraries

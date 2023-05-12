@@ -40,7 +40,7 @@ $(file_reader_path_curdir)%_shared.o: $(file_reader_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(file_reader_install_path_shared): $(file_reader_depends_libs_shared) $(file_reader_static_objects) $(file_reader_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_reader_shared_lflags) $(file_reader_shared_objects) $(file_reader_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(file_reader_shared_lflags) $(file_reader_shared_objects) $(file_reader_depends_libs_shared)
 
 .PHONY: file_reader_all
 file_reader_all: $(file_reader_child_all_targets) ## build and install all file_reader static and shared libraries

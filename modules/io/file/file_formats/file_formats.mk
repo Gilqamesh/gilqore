@@ -40,7 +40,7 @@ $(file_formats_path_curdir)%_shared.o: $(file_formats_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(file_formats_install_path_shared): $(file_formats_depends_libs_shared) $(file_formats_static_objects) $(file_formats_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_formats_shared_lflags) $(file_formats_shared_objects) $(file_formats_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(file_formats_shared_lflags) $(file_formats_shared_objects) $(file_formats_depends_libs_shared)
 
 .PHONY: file_formats_all
 file_formats_all: $(file_formats_child_all_targets) ## build and install all file_formats static and shared libraries

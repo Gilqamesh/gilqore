@@ -40,7 +40,7 @@ $(algorithms_path_curdir)%_shared.o: $(algorithms_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(algorithms_install_path_shared): $(algorithms_depends_libs_shared) $(algorithms_static_objects) $(algorithms_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(algorithms_shared_lflags) $(algorithms_shared_objects) $(algorithms_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(algorithms_shared_lflags) $(algorithms_shared_objects) $(algorithms_depends_libs_shared)
 
 .PHONY: algorithms_all
 algorithms_all: $(algorithms_child_all_targets) ## build and install all algorithms static and shared libraries

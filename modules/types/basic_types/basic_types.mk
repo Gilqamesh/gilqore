@@ -40,7 +40,7 @@ $(basic_types_path_curdir)%_shared.o: $(basic_types_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(basic_types_install_path_shared): $(basic_types_depends_libs_shared) $(basic_types_static_objects) $(basic_types_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(basic_types_shared_lflags) $(basic_types_shared_objects) $(basic_types_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(basic_types_shared_lflags) $(basic_types_shared_objects) $(basic_types_depends_libs_shared)
 
 .PHONY: basic_types_all
 basic_types_all: $(basic_types_child_all_targets) ## build and install all basic_types static and shared libraries

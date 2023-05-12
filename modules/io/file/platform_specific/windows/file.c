@@ -182,13 +182,30 @@ u32 file__write(struct file* self, const void* in, u32 size) {
     return bytes_written;
 }
 
-u32 file__seek(struct file* self, u32 offset) {
+static DWORD file_seek_type(enum file_seek_type type) {
+    DWORD result = 0;
+
+    if (type == FILE_SEEK_TYPE_BEGIN) {
+        result = FILE_BEGIN;
+    } else if (type == FILE_SEEK_TYPE_CUR) {
+        result = FILE_CURRENT;
+    } else if (type == FILE_SEEK_TYPE_END) {
+        result = FILE_END;
+    } else {
+        // error_code__exit(FILE_SEEK_TYPE_INVALID);
+        error_code__exit(32556);
+    }
+
+    return result;
+}
+
+u32 file__seek(struct file* self, u32 offset, enum file_seek_type type) {
     DWORD result;
     if ((result = SetFilePointer(
         self->handle,
         offset,
         NULL,
-        FILE_BEGIN
+        file_seek_type(type)
     )) == INVALID_SET_FILE_POINTER) {
         // todo: diagnostics, GetLastError()
         error_code__exit(FILE_ERROR_CODE_WINDOWS_SEEK);

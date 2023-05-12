@@ -98,13 +98,13 @@ int main() {
 
     for (u32 i = 0; i < 10000; ++i) {
         u32 seek_pos = random__u32_closed(&randomizer, 0, n_of_times_written_msg * msg_len - 1);
-        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos) == seek_pos);
+        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos, FILE_SEEK_TYPE_BEGIN) == seek_pos);
         char out_var;
         TEST_FRAMEWORK_ASSERT(file__read(&file, &out_var, sizeof(out_var)) == 1);
         TEST_FRAMEWORK_ASSERT(out_var == buffer[seek_pos]);
     }
 
-    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0) == 0);
+    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
     char* msg2 = "123456789nbcv/,mccnvmbnc/m,cvb/mnbcv";
     u32 msg2_len = libc__strlen(msg2);
     TEST_FRAMEWORK_ASSERT(file__write(&file, msg2, msg2_len) == msg2_len);
@@ -114,11 +114,17 @@ int main() {
     libc__memcpy(buffer, msg2, msg2_len);
     for (u32 i = 0; i < 10000; ++i) {
         u32 seek_pos = random__u32_closed(&randomizer, 0, n_of_times_written_msg * msg_len - 1);
-        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos) == seek_pos);
+        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos, FILE_SEEK_TYPE_BEGIN) == seek_pos);
         char out_var;
         TEST_FRAMEWORK_ASSERT(file__read(&file, &out_var, sizeof(out_var)) == 1);
         TEST_FRAMEWORK_ASSERT(out_var == buffer[seek_pos]);
     }
+    file__close(&file);
+
+    TEST_FRAMEWORK_ASSERT(file__size(filename, &file_size));
+    TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_OPEN));
+    // note: according to microsoft this is bad practice, use file__size instead
+    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_END) == file_size);
     file__close(&file);
 
     const char* copied_filename = "iafhdsiusdfha";
@@ -153,7 +159,7 @@ int main() {
     TEST_FRAMEWORK_ASSERT(file__open(&file, new_filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == true);
     for (u32 i = 0; i < 10000; ++i) {
         u32 seek_pos = random__u32_closed(&randomizer, 0, n_of_times_written_msg * msg_len - 1);
-        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos) == seek_pos);
+        TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos, FILE_SEEK_TYPE_BEGIN) == seek_pos);
         char out_var;
         TEST_FRAMEWORK_ASSERT(file__read(&file, &out_var, sizeof(out_var)) == 1);
         TEST_FRAMEWORK_ASSERT(out_var == buffer[seek_pos]);

@@ -1,3 +1,4 @@
 unique_error_codes: [
 ]
 module_dependencies:
+application_type: CONSOLE

@@ -55,11 +55,17 @@ GIL_API bool file__size(const char* path, u64* file_size);
 // @note if dest exists, its contents will be overwritten
 GIL_API void file__copy(const char* dest_path, const char* src_path);
 
+enum file_seek_type {
+    FILE_SEEK_TYPE_BEGIN,
+    FILE_SEEK_TYPE_CUR,
+    FILE_SEEK_TYPE_END
+};
+
 // @brief reads from opened file, returns bytes read
 GIL_API u32 file__read(struct file* self, void* out, u32 size);
 // @brief writes to the opened file, returns bytes written
 GIL_API u32 file__write(struct file* self, const void* in, u32 size);
 // @returns file pointer position
-GIL_API u32 file__seek(struct file* self, u32 offset);
+GIL_API u32 file__seek(struct file* self, u32 offset, enum file_seek_type type);
 
 #endif

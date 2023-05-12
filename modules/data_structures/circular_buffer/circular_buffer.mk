@@ -40,7 +40,7 @@ $(circular_buffer_path_curdir)%_shared.o: $(circular_buffer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(circular_buffer_install_path_shared): $(circular_buffer_depends_libs_shared) $(circular_buffer_static_objects) $(circular_buffer_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(circular_buffer_shared_lflags) $(circular_buffer_shared_objects) $(circular_buffer_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(circular_buffer_shared_lflags) $(circular_buffer_shared_objects) $(circular_buffer_depends_libs_shared)
 
 .PHONY: circular_buffer_all
 circular_buffer_all: $(circular_buffer_child_all_targets) ## build and install all circular_buffer static and shared libraries

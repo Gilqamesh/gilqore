@@ -40,7 +40,7 @@ $(vector_types_path_curdir)%_shared.o: $(vector_types_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(vector_types_install_path_shared): $(vector_types_depends_libs_shared) $(vector_types_static_objects) $(vector_types_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(vector_types_shared_lflags) $(vector_types_shared_objects) $(vector_types_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(vector_types_shared_lflags) $(vector_types_shared_objects) $(vector_types_depends_libs_shared)
 
 .PHONY: vector_types_all
 vector_types_all: $(vector_types_child_all_targets) ## build and install all vector_types static and shared libraries

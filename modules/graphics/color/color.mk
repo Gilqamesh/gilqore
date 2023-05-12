@@ -40,7 +40,7 @@ $(color_path_curdir)%_shared.o: $(color_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(color_install_path_shared): $(color_depends_libs_shared) $(color_static_objects) $(color_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(color_shared_lflags) $(color_shared_objects) $(color_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON)  $(color_shared_lflags) $(color_shared_objects) $(color_depends_libs_shared)
 
 .PHONY: color_all
 color_all: $(color_child_all_targets) ## build and install all color static and shared libraries

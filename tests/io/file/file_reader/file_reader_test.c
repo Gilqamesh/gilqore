@@ -20,7 +20,7 @@ int main() {
         buffer[i] = random__s32_closed(&randomizer, 'A', 'z');
     }
     TEST_FRAMEWORK_ASSERT(file__write(&file, buffer, buffer_size) == buffer_size);
-    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0) == 0);
+    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
 
     struct file_reader file_reader;
     TEST_FRAMEWORK_ASSERT(file_reader__create(&file_reader, &file) == true);
@@ -48,12 +48,12 @@ int main() {
     const char* expected_match = " yo whadaap";
     u32 word_to_match_len = libc__strlen(word_to_match);
     u32 expected_match_len = libc__strlen(expected_match);
-    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0) == 0);
+    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
     u32 bytes_read;
     TEST_FRAMEWORK_ASSERT(file_reader__read_while_not_word(&file_reader, buffer, buffer_size, word_to_match, word_to_match_len, &bytes_read) == true);
     TEST_FRAMEWORK_ASSERT(bytes_read == expected_match_len);
     TEST_FRAMEWORK_ASSERT(libc__strncmp(expected_match, buffer, expected_match_len) == 0);
-    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0) == 0);
+    TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
     file_reader__clear(&file_reader, &file);
     TEST_FRAMEWORK_ASSERT(file_reader__read_while(&file_reader, NULL, 0, " ") == 1);
     TEST_FRAMEWORK_ASSERT(file_reader__read_while(&file_reader, buffer, buffer_size, "wy ooo yy ww o") == 4);
