@@ -40,7 +40,7 @@ $(module_compiler_path_curdir)%_shared.o: $(module_compiler_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(module_compiler_install_path_shared): $(module_compiler_depends_libs_shared) $(module_compiler_static_objects) $(module_compiler_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(module_compiler_shared_lflags) $(module_compiler_shared_objects) $(module_compiler_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(module_compiler_shared_lflags) $(module_compiler_shared_objects) $(module_compiler_depends_libs_shared)
 
 .PHONY: module_compiler_all
 module_compiler_all: $(module_compiler_child_all_targets) ## build and install all module_compiler static and shared libraries

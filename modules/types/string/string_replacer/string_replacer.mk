@@ -40,7 +40,7 @@ $(string_replacer_path_curdir)%_shared.o: $(string_replacer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(string_replacer_install_path_shared): $(string_replacer_depends_libs_shared) $(string_replacer_static_objects) $(string_replacer_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(string_replacer_shared_lflags) $(string_replacer_shared_objects) $(string_replacer_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(string_replacer_shared_lflags) $(string_replacer_shared_objects) $(string_replacer_depends_libs_shared)
 
 .PHONY: string_replacer_all
 string_replacer_all: $(string_replacer_child_all_targets) ## build and install all string_replacer static and shared libraries

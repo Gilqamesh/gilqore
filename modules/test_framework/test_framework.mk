@@ -40,7 +40,7 @@ $(test_framework_path_curdir)%_shared.o: $(test_framework_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(test_framework_install_path_shared): $(test_framework_depends_libs_shared) $(test_framework_static_objects) $(test_framework_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(test_framework_shared_lflags) $(test_framework_shared_objects) $(test_framework_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(test_framework_shared_lflags) $(test_framework_shared_objects) $(test_framework_depends_libs_shared)
 
 .PHONY: test_framework_all
 test_framework_all: $(test_framework_child_all_targets) ## build and install all test_framework static and shared libraries

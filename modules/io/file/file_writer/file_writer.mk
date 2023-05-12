@@ -40,7 +40,7 @@ $(file_writer_path_curdir)%_shared.o: $(file_writer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(file_writer_install_path_shared): $(file_writer_depends_libs_shared) $(file_writer_static_objects) $(file_writer_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(file_writer_shared_lflags) $(file_writer_shared_objects) $(file_writer_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_writer_shared_lflags) $(file_writer_shared_objects) $(file_writer_depends_libs_shared)
 
 .PHONY: file_writer_all
 file_writer_all: $(file_writer_child_all_targets) ## build and install all file_writer static and shared libraries

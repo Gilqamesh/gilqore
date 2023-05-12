@@ -40,7 +40,7 @@ $(abs_path_curdir)%_shared.o: $(abs_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(abs_install_path_shared): $(abs_depends_libs_shared) $(abs_static_objects) $(abs_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(abs_shared_lflags) $(abs_shared_objects) $(abs_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(abs_shared_lflags) $(abs_shared_objects) $(abs_depends_libs_shared)
 
 .PHONY: abs_all
 abs_all: $(abs_child_all_targets) ## build and install all abs static and shared libraries

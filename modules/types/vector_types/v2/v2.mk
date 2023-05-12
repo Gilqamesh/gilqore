@@ -40,7 +40,7 @@ $(v2_path_curdir)%_shared.o: $(v2_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(v2_install_path_shared): $(v2_depends_libs_shared) $(v2_static_objects) $(v2_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(v2_shared_lflags) $(v2_shared_objects) $(v2_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(v2_shared_lflags) $(v2_shared_objects) $(v2_depends_libs_shared)
 
 .PHONY: v2_all
 v2_all: $(v2_child_all_targets) ## build and install all v2 static and shared libraries

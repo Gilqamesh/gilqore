@@ -157,7 +157,8 @@ int main() {
     TEST_FRAMEWORK_ASSERT(file_size == expected_file_size);
 
     TEST_FRAMEWORK_ASSERT(file__open(&file, new_filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == true);
-    for (u32 i = 0; i < 10000; ++i) {
+    u32 number_of_random_reads = 10000;
+    for (u32 read_counter = 0; read_counter < number_of_random_reads; ++read_counter) {
         u32 seek_pos = random__u32_closed(&randomizer, 0, n_of_times_written_msg * msg_len - 1);
         TEST_FRAMEWORK_ASSERT(file__seek(&file, seek_pos, FILE_SEEK_TYPE_BEGIN) == seek_pos);
         char out_var;

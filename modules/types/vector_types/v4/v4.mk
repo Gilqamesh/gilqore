@@ -40,7 +40,7 @@ $(v4_path_curdir)%_shared.o: $(v4_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(v4_install_path_shared): $(v4_depends_libs_shared) $(v4_static_objects) $(v4_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(v4_shared_lflags) $(v4_shared_objects) $(v4_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(v4_shared_lflags) $(v4_shared_objects) $(v4_depends_libs_shared)
 
 .PHONY: v4_all
 v4_all: $(v4_child_all_targets) ## build and install all v4 static and shared libraries

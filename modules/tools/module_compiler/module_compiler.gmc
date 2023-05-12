@@ -14,5 +14,5 @@ unique_error_codes: [
     DID_NOT_FIND_ERROR_CODE: the seeked error_code in module_compiler was not found from the error_codes file
     FORMAT_STRING_BUFFER_TOO_SMALL: format_string_buffer in module_compiler is too small
 ]
-module_dependencies: file libc file_reader file_writer string directory string_replacer
+module_dependencies: file libc file_reader file_writer string directory string_replacer time
 application_type: CONSOLE

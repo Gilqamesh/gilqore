@@ -1,5 +1,4 @@
 import os
-import sys
 
 platform_specific = 'platform_specific'
 target_directory = 'modules'
@@ -12,51 +11,7 @@ def traverse_directory(path):
             if os.path.basename(full_path) != platform_specific:
                 traverse_directory(full_path)
 
-def content_module_config(module_config_path):
-    CONSOLE_APP = 'CONSOLE_APP'
-    WINDOW_APP = 'WINDOW_APP'
-    console_application = '-mconsole'
-    window_application = '-mwindows'
-    if sys.argv[1] != 'WINDOWS':
-        console_application = ''
-        window_application = ''
-
-    config_content = ''
-    if not os.path.exists(module_config_path):
-        with open(module_config_path, 'w') as f:
-            # NOTE: assuming gcc compiler, by default console application
-            f.write(CONSOLE_APP)
-    else:
-        with open(module_config_path, 'r+') as f:
-            config_content = f.read()
-            # TODO: make more options to embed into the template and parse them from the file
-            if len(config_content) == 0:
-                f.write(CONSOLE_APP)
-                config_content = CONSOLE_APP
-            config_content = config_content.replace(CONSOLE_APP, console_application)
-            config_content = config_content.replace(WINDOW_APP, window_application)
-    
-    return config_content
-
-def content_makefile(module_name, config_content):
-    makefile_content = ''
-    with open('mk/module_template.txt', 'r') as f:
-        makefile_content = f.read()
-        makefile_content = makefile_content.replace('$(MODULE_NAME)', module_name)
-    makefile_content = makefile_content.replace('$(LFLAGS_SPECIFIC)', config_content)
-
-    return makefile_content
-
 def update_directory(directory_path):
-    module_name = os.path.basename(directory_path)
-    module_path_base_name = os.path.join(directory_path, module_name)
-    config_suffix = '.config'
-    module_config_path = module_path_base_name + config_suffix
-
-    config_content = ''
-
-    config_content += content_module_config(module_config_path)
-
     if directory_path != target_directory:
         # create cross-platform directories for the module
         platform_specific_dir = directory_path + '/' + platform_specific + '/'
@@ -81,12 +36,6 @@ def update_directory(directory_path):
             os.makedirs(platform_specific_mac_dir)
         if not os.path.exists(platform_specific_mac_dir + gitkeep):
             open(platform_specific_mac_dir + gitkeep, 'w')
-
-    makefile_content = content_makefile(module_name, config_content)
-
-    # write content to the module's makefile
-    with open(module_path_base_name + '.mk', 'w') as f:
-        f.write(makefile_content)
 
 if __name__ == '__main__':
     traverse_directory(target_directory)

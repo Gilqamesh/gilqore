@@ -40,7 +40,7 @@ $(sqrt_path_curdir)%_shared.o: $(sqrt_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(sqrt_install_path_shared): $(sqrt_depends_libs_shared) $(sqrt_static_objects) $(sqrt_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON)  $(sqrt_shared_lflags) $(sqrt_shared_objects) $(sqrt_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(sqrt_shared_lflags) $(sqrt_shared_objects) $(sqrt_depends_libs_shared)
 
 .PHONY: sqrt_all
 sqrt_all: $(sqrt_child_all_targets) ## build and install all sqrt static and shared libraries
