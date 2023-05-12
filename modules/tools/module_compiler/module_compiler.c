@@ -781,18 +781,70 @@ void module_compiler__embed_dependencies_into_makefile(
     u32 file_buffer_size,
     u32 dependencies_buffer_size
 ) {
-    // static const char modules_makefile_template_path[] = "misc/module_template.txt";
-    // u32 modules_makefile_template_path_size = ARRAY_SIZE(modules_makefile_template_path) - 1;
-    // struct file modules_makefile_template_file;
-    // TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, modules_makefile_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
-    // u32 bytes_read = file__read(&modules_makefile_template_file, file_buffer, file_buffer_size);
-    // if (bytes_read == file_buffer_size) {
-    //     // error_code__exit(FILE_BUFFER_TOO_SMALL);
-    //     error_code__exit(43825);
-    // }
+    static const char modules_makefile_template_path[] = "misc/module_template.txt";
+    struct file modules_makefile_template_file;
+    TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, modules_makefile_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    u32 modules_makefile_template_file_size = file__read(&modules_makefile_template_file, file_buffer, file_buffer_size);
+    if (modules_makefile_template_file_size == file_buffer_size) {
+        // error_code__exit(FILE_BUFFER_TOO_SMALL);
+        error_code__exit(43825);
+    }
+    file__close(&modules_makefile_template_file);
+
+    /*
+    $(MODULE_NAME) <- replace with basename
+    $(LFLAGS_SPECIFIC) <- replace with:
+        console_application = '-mconsole' // for now, todo: add this to .gmc file as a config option
+        window_application = '-mwindows'
+    */
 
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
         struct module* cur_module = &modules[module_index];
+
+        module_compiler__clear_transient_flags(g_modules, *g_modules_size_cur);
+        char* cur_dependency_buffer = dependencies_buffer;
+        u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, dependencies_buffer_size);
+
+        static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
+        static const char module_name_replace_what[] = "$(MODULE_NAME)";
+        static const char module_lflags_specific_replace_what[] = "$(LFLAGS_SPECIFIC)";
+        static const char module_lflags_specific_replace_with[] = "-mconsole";
+        static const u32 module_dependency_replace_what_len = ARRAY_SIZE(module_dependency_replace_what) - 1;
+        static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
+        static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
+        static const u32 module_lflags_specific_replace_with_len = ARRAY_SIZE(module_lflags_specific_replace_with) - 1;
+
+        string_replacer__clear(string_replacer, file_buffer, modules_makefile_template_file_size);
+        u32 number_of_what_replacements = 1;
+        string_replacer__replace_word(
+            string_replacer,
+            number_of_what_replacements,
+            module_dependency_replace_what,
+            module_dependency_replace_what_len,
+            dependencies_buffer,
+            dependencies_buffer_size - dependencies_buffer_size_left
+        );
+
+        number_of_what_replacements = (u32) -1;
+        string_replacer__replace_word(
+            string_replacer,
+            number_of_what_replacements,
+            module_name_replace_what,
+            module_name_replace_what_len,
+            cur_module->basename,
+            libc__strlen(cur_module->basename)
+        );
+
+        number_of_what_replacements = 1;
+        u32 new_makefile_size = string_replacer__replace_word(
+            string_replacer,
+            number_of_what_replacements,
+            module_lflags_specific_replace_what,
+            module_lflags_specific_replace_what_len,
+            module_lflags_specific_replace_with,
+            module_lflags_specific_replace_with_len
+        );
+
         libc__snprintf(
             file_path_buffer,
             file_path_buffer_size,
@@ -800,30 +852,6 @@ void module_compiler__embed_dependencies_into_makefile(
             cur_module->dirprefix, cur_module->basename
         );
         struct file makefile;
-        TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
-        u32 makefile_size = file__read(&makefile, file_buffer, file_buffer_size);
-        if (makefile_size == file_buffer_size) {
-            // error_code__exit(MAKEFILE_BUFFER_SIZE_TOO_SMALL);
-            error_code__exit(12434);
-        }
-
-        module_compiler__clear_transient_flags(g_modules, *g_modules_size_cur);
-        char* cur_dependency_buffer = dependencies_buffer;
-        u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, dependencies_buffer_size);
-
-        string_replacer__clear(string_replacer, file_buffer, makefile_size);
-        static const char module_dependency_replace_string[] = "$(MODULE_LIBDEP_MODULES)";
-        static const u32 module_dependency_replace_string_len = ARRAY_SIZE(module_dependency_replace_string) - 1;
-        u32 number_of_what_replacements = 1;
-        u32 new_makefile_size = string_replacer__replace_word(
-            string_replacer,
-            number_of_what_replacements,
-            module_dependency_replace_string,
-            module_dependency_replace_string_len,
-            dependencies_buffer,
-            dependencies_buffer_size - dependencies_buffer_size_left
-        );
-        file__close(&makefile);
         TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
         // replace  with dependency->basename in makefile
         TEST_FRAMEWORK_ASSERT(
