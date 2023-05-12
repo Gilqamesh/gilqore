@@ -21,9 +21,9 @@ endif
 module_compiler_static_objects			:= $(patsubst %.c, %_static.o, $(module_compiler_sources))
 module_compiler_shared_objects			:= $(patsubst %.c, %_shared.o, $(module_compiler_sources))
 module_compiler_depends					:= $(patsubst %.c, %.d, $(module_compiler_sources))
-module_compiler_depends_modules			:=  file system libc file_reader file_writer circular_buffer compare mod time string directory common string_replacer
+module_compiler_depends_modules			:= file common time libc file_reader hash compare circular_buffer mod file_writer string directory string_replacer 
 module_compiler_depends_libs_shared		:= $(foreach module,$(module_compiler_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-module_compiler_depends_libs_targets		:= $(foreach module,$(module_compiler_depends_modules),$(module)_all)
+# module_compiler_depends_libs_targets		:= $(foreach module,$(module_compiler_depends_modules),$(module)_all)
 module_compiler_clean_files				:=
 module_compiler_clean_files				+= $(module_compiler_install_path_implib)
 module_compiler_clean_files				+= $(module_compiler_install_path_shared)
@@ -39,9 +39,7 @@ $(module_compiler_path_curdir)%_static.o: $(module_compiler_path_curdir)%.c
 $(module_compiler_path_curdir)%_shared.o: $(module_compiler_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(module_compiler_install_path_shared): $(module_compiler_depends_libs_shared)
-$(module_compiler_install_path_shared): $(module_compiler_static_objects)
-$(module_compiler_install_path_shared): $(module_compiler_shared_objects)
+$(module_compiler_install_path_shared): $(module_compiler_depends_libs_shared) $(module_compiler_static_objects) $(module_compiler_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(module_compiler_shared_lflags) $(module_compiler_shared_objects) $(module_compiler_depends_libs_shared)
 
 .PHONY: module_compiler_all

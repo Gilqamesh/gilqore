@@ -21,9 +21,9 @@ endif
 io_static_objects			:= $(patsubst %.c, %_static.o, $(io_sources))
 io_shared_objects			:= $(patsubst %.c, %_shared.o, $(io_sources))
 io_depends					:= $(patsubst %.c, %.d, $(io_sources))
-io_depends_modules			:=  
+io_depends_modules			:= 
 io_depends_libs_shared		:= $(foreach module,$(io_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-io_depends_libs_targets		:= $(foreach module,$(io_depends_modules),$(module)_all)
+# io_depends_libs_targets		:= $(foreach module,$(io_depends_modules),$(module)_all)
 io_clean_files				:=
 io_clean_files				+= $(io_install_path_implib)
 io_clean_files				+= $(io_install_path_shared)
@@ -39,9 +39,7 @@ $(io_path_curdir)%_static.o: $(io_path_curdir)%.c
 $(io_path_curdir)%_shared.o: $(io_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(io_install_path_shared): $(io_depends_libs_shared)
-$(io_install_path_shared): $(io_static_objects)
-$(io_install_path_shared): $(io_shared_objects)
+$(io_install_path_shared): $(io_depends_libs_shared) $(io_static_objects) $(io_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(io_shared_lflags) $(io_shared_objects) $(io_depends_libs_shared)
 
 .PHONY: io_all

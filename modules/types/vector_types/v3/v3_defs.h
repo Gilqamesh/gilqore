@@ -5,7 +5,6 @@
 
 enum v3_error_code {
     V3_ERROR_CODE_START,
-
 };
 
 #endif

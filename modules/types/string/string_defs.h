@@ -5,7 +5,6 @@
 
 enum string_error_code {
     STRING_ERROR_CODE_START,
-
 };
 
 #endif

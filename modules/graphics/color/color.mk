@@ -21,9 +21,9 @@ endif
 color_static_objects			:= $(patsubst %.c, %_static.o, $(color_sources))
 color_shared_objects			:= $(patsubst %.c, %_shared.o, $(color_sources))
 color_depends					:= $(patsubst %.c, %.d, $(color_sources))
-color_depends_modules			:=  v4
+color_depends_modules			:= 
 color_depends_libs_shared		:= $(foreach module,$(color_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-color_depends_libs_targets		:= $(foreach module,$(color_depends_modules),$(module)_all)
+# color_depends_libs_targets		:= $(foreach module,$(color_depends_modules),$(module)_all)
 color_clean_files				:=
 color_clean_files				+= $(color_install_path_implib)
 color_clean_files				+= $(color_install_path_shared)
@@ -39,9 +39,7 @@ $(color_path_curdir)%_static.o: $(color_path_curdir)%.c
 $(color_path_curdir)%_shared.o: $(color_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(color_install_path_shared): $(color_depends_libs_shared)
-$(color_install_path_shared): $(color_static_objects)
-$(color_install_path_shared): $(color_shared_objects)
+$(color_install_path_shared): $(color_depends_libs_shared) $(color_static_objects) $(color_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(color_shared_lflags) $(color_shared_objects) $(color_depends_libs_shared)
 
 .PHONY: color_all

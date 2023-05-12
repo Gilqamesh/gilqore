@@ -21,9 +21,9 @@ void file_reader__destroy(struct file_reader* self) {
     circular_buffer__destroy(self->circular_buffer);
 }
 
-void file_reader__clear(struct file_reader* self) {
+void file_reader__clear(struct file_reader* self, struct file* file) {
     circular_buffer__clear(self->circular_buffer);
-    file__seek(self->file, 0);
+    self->file = file;
     self->eof_reached = false;
 }
 

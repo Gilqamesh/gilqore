@@ -21,9 +21,9 @@ endif
 compare_static_objects			:= $(patsubst %.c, %_static.o, $(compare_sources))
 compare_shared_objects			:= $(patsubst %.c, %_shared.o, $(compare_sources))
 compare_depends					:= $(patsubst %.c, %.d, $(compare_sources))
-compare_depends_modules			:=  
+compare_depends_modules			:= 
 compare_depends_libs_shared		:= $(foreach module,$(compare_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-compare_depends_libs_targets		:= $(foreach module,$(compare_depends_modules),$(module)_all)
+# compare_depends_libs_targets		:= $(foreach module,$(compare_depends_modules),$(module)_all)
 compare_clean_files				:=
 compare_clean_files				+= $(compare_install_path_implib)
 compare_clean_files				+= $(compare_install_path_shared)
@@ -39,9 +39,7 @@ $(compare_path_curdir)%_static.o: $(compare_path_curdir)%.c
 $(compare_path_curdir)%_shared.o: $(compare_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(compare_install_path_shared): $(compare_depends_libs_shared)
-$(compare_install_path_shared): $(compare_static_objects)
-$(compare_install_path_shared): $(compare_shared_objects)
+$(compare_install_path_shared): $(compare_depends_libs_shared) $(compare_static_objects) $(compare_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(compare_shared_lflags) $(compare_shared_objects) $(compare_depends_libs_shared)
 
 .PHONY: compare_all

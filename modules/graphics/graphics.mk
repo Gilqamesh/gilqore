@@ -21,9 +21,9 @@ endif
 graphics_static_objects			:= $(patsubst %.c, %_static.o, $(graphics_sources))
 graphics_shared_objects			:= $(patsubst %.c, %_shared.o, $(graphics_sources))
 graphics_depends					:= $(patsubst %.c, %.d, $(graphics_sources))
-graphics_depends_modules			:=  
+graphics_depends_modules			:= 
 graphics_depends_libs_shared		:= $(foreach module,$(graphics_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-graphics_depends_libs_targets		:= $(foreach module,$(graphics_depends_modules),$(module)_all)
+# graphics_depends_libs_targets		:= $(foreach module,$(graphics_depends_modules),$(module)_all)
 graphics_clean_files				:=
 graphics_clean_files				+= $(graphics_install_path_implib)
 graphics_clean_files				+= $(graphics_install_path_shared)
@@ -39,9 +39,7 @@ $(graphics_path_curdir)%_static.o: $(graphics_path_curdir)%.c
 $(graphics_path_curdir)%_shared.o: $(graphics_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(graphics_install_path_shared): $(graphics_depends_libs_shared)
-$(graphics_install_path_shared): $(graphics_static_objects)
-$(graphics_install_path_shared): $(graphics_shared_objects)
+$(graphics_install_path_shared): $(graphics_depends_libs_shared) $(graphics_static_objects) $(graphics_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(graphics_shared_lflags) $(graphics_shared_objects) $(graphics_depends_libs_shared)
 
 .PHONY: graphics_all

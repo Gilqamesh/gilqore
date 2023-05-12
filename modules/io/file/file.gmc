@@ -6,4 +6,4 @@ unique_error_codes: [
     WINDOWS_SEEK: SetFilePointer failed in file__seek
     WINDOWS_CLOSE: CloseHandle failed in file__close
 ]
-module_dependencies: 
+module_dependencies: common time

@@ -21,9 +21,9 @@ endif
 clamp_static_objects			:= $(patsubst %.c, %_static.o, $(clamp_sources))
 clamp_shared_objects			:= $(patsubst %.c, %_shared.o, $(clamp_sources))
 clamp_depends					:= $(patsubst %.c, %.d, $(clamp_sources))
-clamp_depends_modules			:=  v2 v3 v4 compare
+clamp_depends_modules			:= 
 clamp_depends_libs_shared		:= $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-clamp_depends_libs_targets		:= $(foreach module,$(clamp_depends_modules),$(module)_all)
+# clamp_depends_libs_targets		:= $(foreach module,$(clamp_depends_modules),$(module)_all)
 clamp_clean_files				:=
 clamp_clean_files				+= $(clamp_install_path_implib)
 clamp_clean_files				+= $(clamp_install_path_shared)
@@ -39,9 +39,7 @@ $(clamp_path_curdir)%_static.o: $(clamp_path_curdir)%.c
 $(clamp_path_curdir)%_shared.o: $(clamp_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(clamp_install_path_shared): $(clamp_depends_libs_shared)
-$(clamp_install_path_shared): $(clamp_static_objects)
-$(clamp_install_path_shared): $(clamp_shared_objects)
+$(clamp_install_path_shared): $(clamp_depends_libs_shared) $(clamp_static_objects) $(clamp_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(clamp_shared_lflags) $(clamp_shared_objects) $(clamp_depends_libs_shared)
 
 .PHONY: clamp_all

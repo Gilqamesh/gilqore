@@ -5,8 +5,7 @@
 
 enum types_error_code {
     TYPES_ERROR_CODE_START,
-    TYPES_ERROR_CODE_TYPE_IS_NOT_SUPPORTED = 1,
-
+    TYPES_ERROR_CODE_TYPE_IS_NOT_SUPPORTED = 0,
 };
 
 #endif

@@ -5,7 +5,6 @@
 
 enum algorithms_error_code {
     ALGORITHMS_ERROR_CODE_START,
-
 };
 
 #endif

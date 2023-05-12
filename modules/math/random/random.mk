@@ -21,9 +21,9 @@ endif
 random_static_objects			:= $(patsubst %.c, %_static.o, $(random_sources))
 random_shared_objects			:= $(patsubst %.c, %_shared.o, $(random_sources))
 random_depends					:= $(patsubst %.c, %.d, $(random_sources))
-random_depends_modules			:=  
+random_depends_modules			:= 
 random_depends_libs_shared		:= $(foreach module,$(random_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-random_depends_libs_targets		:= $(foreach module,$(random_depends_modules),$(module)_all)
+# random_depends_libs_targets		:= $(foreach module,$(random_depends_modules),$(module)_all)
 random_clean_files				:=
 random_clean_files				+= $(random_install_path_implib)
 random_clean_files				+= $(random_install_path_shared)
@@ -39,9 +39,7 @@ $(random_path_curdir)%_static.o: $(random_path_curdir)%.c
 $(random_path_curdir)%_shared.o: $(random_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(random_install_path_shared): $(random_depends_libs_shared)
-$(random_install_path_shared): $(random_static_objects)
-$(random_install_path_shared): $(random_shared_objects)
+$(random_install_path_shared): $(random_depends_libs_shared) $(random_static_objects) $(random_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(random_shared_lflags) $(random_shared_objects) $(random_depends_libs_shared)
 
 .PHONY: random_all

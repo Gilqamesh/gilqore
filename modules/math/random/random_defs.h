@@ -5,7 +5,6 @@
 
 enum random_error_code {
     RANDOM_ERROR_CODE_START,
-
 };
 
 #endif

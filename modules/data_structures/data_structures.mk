@@ -21,9 +21,9 @@ endif
 data_structures_static_objects			:= $(patsubst %.c, %_static.o, $(data_structures_sources))
 data_structures_shared_objects			:= $(patsubst %.c, %_shared.o, $(data_structures_sources))
 data_structures_depends					:= $(patsubst %.c, %.d, $(data_structures_sources))
-data_structures_depends_modules			:=  
+data_structures_depends_modules			:= 
 data_structures_depends_libs_shared		:= $(foreach module,$(data_structures_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-data_structures_depends_libs_targets		:= $(foreach module,$(data_structures_depends_modules),$(module)_all)
+# data_structures_depends_libs_targets		:= $(foreach module,$(data_structures_depends_modules),$(module)_all)
 data_structures_clean_files				:=
 data_structures_clean_files				+= $(data_structures_install_path_implib)
 data_structures_clean_files				+= $(data_structures_install_path_shared)
@@ -39,9 +39,7 @@ $(data_structures_path_curdir)%_static.o: $(data_structures_path_curdir)%.c
 $(data_structures_path_curdir)%_shared.o: $(data_structures_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(data_structures_install_path_shared): $(data_structures_depends_libs_shared)
-$(data_structures_install_path_shared): $(data_structures_static_objects)
-$(data_structures_install_path_shared): $(data_structures_shared_objects)
+$(data_structures_install_path_shared): $(data_structures_depends_libs_shared) $(data_structures_static_objects) $(data_structures_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(data_structures_shared_lflags) $(data_structures_shared_objects) $(data_structures_depends_libs_shared)
 
 .PHONY: data_structures_all

@@ -21,9 +21,9 @@ endif
 file_formats_static_objects			:= $(patsubst %.c, %_static.o, $(file_formats_sources))
 file_formats_shared_objects			:= $(patsubst %.c, %_shared.o, $(file_formats_sources))
 file_formats_depends					:= $(patsubst %.c, %.d, $(file_formats_sources))
-file_formats_depends_modules			:=  
+file_formats_depends_modules			:= 
 file_formats_depends_libs_shared		:= $(foreach module,$(file_formats_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-file_formats_depends_libs_targets		:= $(foreach module,$(file_formats_depends_modules),$(module)_all)
+# file_formats_depends_libs_targets		:= $(foreach module,$(file_formats_depends_modules),$(module)_all)
 file_formats_clean_files				:=
 file_formats_clean_files				+= $(file_formats_install_path_implib)
 file_formats_clean_files				+= $(file_formats_install_path_shared)
@@ -39,9 +39,7 @@ $(file_formats_path_curdir)%_static.o: $(file_formats_path_curdir)%.c
 $(file_formats_path_curdir)%_shared.o: $(file_formats_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(file_formats_install_path_shared): $(file_formats_depends_libs_shared)
-$(file_formats_install_path_shared): $(file_formats_static_objects)
-$(file_formats_install_path_shared): $(file_formats_shared_objects)
+$(file_formats_install_path_shared): $(file_formats_depends_libs_shared) $(file_formats_static_objects) $(file_formats_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_formats_shared_lflags) $(file_formats_shared_objects) $(file_formats_depends_libs_shared)
 
 .PHONY: file_formats_all

@@ -5,7 +5,6 @@
 
 enum hash_error_code {
     HASH_ERROR_CODE_START,
-
 };
 
 #endif

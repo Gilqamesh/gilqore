@@ -21,9 +21,9 @@ endif
 abs_static_objects			:= $(patsubst %.c, %_static.o, $(abs_sources))
 abs_shared_objects			:= $(patsubst %.c, %_shared.o, $(abs_sources))
 abs_depends					:= $(patsubst %.c, %.d, $(abs_sources))
-abs_depends_modules			:=  
+abs_depends_modules			:= 
 abs_depends_libs_shared		:= $(foreach module,$(abs_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-abs_depends_libs_targets		:= $(foreach module,$(abs_depends_modules),$(module)_all)
+# abs_depends_libs_targets		:= $(foreach module,$(abs_depends_modules),$(module)_all)
 abs_clean_files				:=
 abs_clean_files				+= $(abs_install_path_implib)
 abs_clean_files				+= $(abs_install_path_shared)
@@ -39,9 +39,7 @@ $(abs_path_curdir)%_static.o: $(abs_path_curdir)%.c
 $(abs_path_curdir)%_shared.o: $(abs_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(abs_install_path_shared): $(abs_depends_libs_shared)
-$(abs_install_path_shared): $(abs_static_objects)
-$(abs_install_path_shared): $(abs_shared_objects)
+$(abs_install_path_shared): $(abs_depends_libs_shared) $(abs_static_objects) $(abs_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(abs_shared_lflags) $(abs_shared_objects) $(abs_depends_libs_shared)
 
 .PHONY: abs_all

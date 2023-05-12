@@ -21,9 +21,9 @@ endif
 hash_static_objects			:= $(patsubst %.c, %_static.o, $(hash_sources))
 hash_shared_objects			:= $(patsubst %.c, %_shared.o, $(hash_sources))
 hash_depends					:= $(patsubst %.c, %.d, $(hash_sources))
-hash_depends_modules			:=  
+hash_depends_modules			:= 
 hash_depends_libs_shared		:= $(foreach module,$(hash_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-hash_depends_libs_targets		:= $(foreach module,$(hash_depends_modules),$(module)_all)
+# hash_depends_libs_targets		:= $(foreach module,$(hash_depends_modules),$(module)_all)
 hash_clean_files				:=
 hash_clean_files				+= $(hash_install_path_implib)
 hash_clean_files				+= $(hash_install_path_shared)
@@ -39,9 +39,7 @@ $(hash_path_curdir)%_static.o: $(hash_path_curdir)%.c
 $(hash_path_curdir)%_shared.o: $(hash_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(hash_install_path_shared): $(hash_depends_libs_shared)
-$(hash_install_path_shared): $(hash_static_objects)
-$(hash_install_path_shared): $(hash_shared_objects)
+$(hash_install_path_shared): $(hash_depends_libs_shared) $(hash_static_objects) $(hash_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(hash_shared_lflags) $(hash_shared_objects) $(hash_depends_libs_shared)
 
 .PHONY: hash_all

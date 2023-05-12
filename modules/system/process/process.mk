@@ -21,9 +21,9 @@ endif
 process_static_objects			:= $(patsubst %.c, %_static.o, $(process_sources))
 process_shared_objects			:= $(patsubst %.c, %_shared.o, $(process_sources))
 process_depends					:= $(patsubst %.c, %.d, $(process_sources))
-process_depends_modules			:= common libc 
+process_depends_modules			:= 
 process_depends_libs_shared		:= $(foreach module,$(process_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-process_depends_libs_targets		:= $(foreach module,$(process_depends_modules),$(module)_all)
+# process_depends_libs_targets		:= $(foreach module,$(process_depends_modules),$(module)_all)
 process_clean_files				:=
 process_clean_files				+= $(process_install_path_implib)
 process_clean_files				+= $(process_install_path_shared)
@@ -39,9 +39,7 @@ $(process_path_curdir)%_static.o: $(process_path_curdir)%.c
 $(process_path_curdir)%_shared.o: $(process_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(process_install_path_shared): $(process_depends_libs_shared)
-$(process_install_path_shared): $(process_static_objects)
-$(process_install_path_shared): $(process_shared_objects)
+$(process_install_path_shared): $(process_depends_libs_shared) $(process_static_objects) $(process_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(process_shared_lflags) $(process_shared_objects) $(process_depends_libs_shared)
 
 .PHONY: process_all

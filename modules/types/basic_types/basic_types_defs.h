@@ -5,7 +5,6 @@
 
 enum basic_types_error_code {
     BASIC_TYPES_ERROR_CODE_START,
-
 };
 
 #endif

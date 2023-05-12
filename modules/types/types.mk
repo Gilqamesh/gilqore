@@ -21,9 +21,9 @@ endif
 types_static_objects			:= $(patsubst %.c, %_static.o, $(types_sources))
 types_shared_objects			:= $(patsubst %.c, %_shared.o, $(types_sources))
 types_depends					:= $(patsubst %.c, %.d, $(types_sources))
-types_depends_modules			:=  
+types_depends_modules			:= 
 types_depends_libs_shared		:= $(foreach module,$(types_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-types_depends_libs_targets		:= $(foreach module,$(types_depends_modules),$(module)_all)
+# types_depends_libs_targets		:= $(foreach module,$(types_depends_modules),$(module)_all)
 types_clean_files				:=
 types_clean_files				+= $(types_install_path_implib)
 types_clean_files				+= $(types_install_path_shared)
@@ -39,9 +39,7 @@ $(types_path_curdir)%_static.o: $(types_path_curdir)%.c
 $(types_path_curdir)%_shared.o: $(types_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(types_install_path_shared): $(types_depends_libs_shared)
-$(types_install_path_shared): $(types_static_objects)
-$(types_install_path_shared): $(types_shared_objects)
+$(types_install_path_shared): $(types_depends_libs_shared) $(types_static_objects) $(types_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(types_shared_lflags) $(types_shared_objects) $(types_depends_libs_shared)
 
 .PHONY: types_all

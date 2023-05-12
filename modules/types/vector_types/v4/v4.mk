@@ -21,9 +21,9 @@ endif
 v4_static_objects			:= $(patsubst %.c, %_static.o, $(v4_sources))
 v4_shared_objects			:= $(patsubst %.c, %_shared.o, $(v4_sources))
 v4_depends					:= $(patsubst %.c, %.d, $(v4_sources))
-v4_depends_modules			:=  
+v4_depends_modules			:= 
 v4_depends_libs_shared		:= $(foreach module,$(v4_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-v4_depends_libs_targets		:= $(foreach module,$(v4_depends_modules),$(module)_all)
+# v4_depends_libs_targets		:= $(foreach module,$(v4_depends_modules),$(module)_all)
 v4_clean_files				:=
 v4_clean_files				+= $(v4_install_path_implib)
 v4_clean_files				+= $(v4_install_path_shared)
@@ -39,9 +39,7 @@ $(v4_path_curdir)%_static.o: $(v4_path_curdir)%.c
 $(v4_path_curdir)%_shared.o: $(v4_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(v4_install_path_shared): $(v4_depends_libs_shared)
-$(v4_install_path_shared): $(v4_static_objects)
-$(v4_install_path_shared): $(v4_shared_objects)
+$(v4_install_path_shared): $(v4_depends_libs_shared) $(v4_static_objects) $(v4_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(v4_shared_lflags) $(v4_shared_objects) $(v4_depends_libs_shared)
 
 .PHONY: v4_all

@@ -6,19 +6,17 @@
 # include "../file.h"
 # include "data_structures/circular_buffer/circular_buffer.h"
 
-struct file_reader { // note: the file's read pointer is not consistent with the amount of reads, so this api is only for reading the file once
-    struct file* file;
+struct file_reader {
     circular_buffer_t circular_buffer;
+    struct file* file;
     bool eof_reached;
 };
 
-// todo: conceptionally this is wrong as it assumes the file is readable
-// also the file pointer can be messed with etc.
 GIL_API bool file_reader__create(struct file_reader* self, struct file* file);
 GIL_API void file_reader__destroy(struct file_reader* self);
 
-// @brief sets file pointer to the beginning of the file
-GIL_API void file_reader__clear(struct file_reader* self);
+// @brief clear internal state and replace the file to read from
+GIL_API void file_reader__clear(struct file_reader* self, struct file* file);
 
 // @returns the top most byte without advancing the file stream
 GIL_API char file_reader__peek(struct file_reader* self);

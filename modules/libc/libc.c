@@ -14,63 +14,88 @@ struct debug_memory_entry {
     u32   size;
 };
 
+# define MAX_NUMBER_OF_MEMORY_ENTRIES 4096
 static s32 g_unfreed_memory_bytes_count;
-static struct debug_memory_entry memory_entries[4096];
+static struct debug_memory_entry memory_entries[MAX_NUMBER_OF_MEMORY_ENTRIES];
 #endif
 
-void* libc__malloc(u32 size_bytes) {
-    void* result = malloc(size_bytes);
-    if (result == NULL) {
-        error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
-    }
+static void debug__bookkeep_memory_add(void* addr, u32 size_bytes) {
 #if defined(GIL_DEBUG)
-    u64 memory_hash = ((u64) result * 17) % ARRAY_SIZE(memory_entries);
+    u64 memory_hash = ((u64) addr * 17) % ARRAY_SIZE(memory_entries);
     bool found = false;
     for (u64 i = memory_hash; i < ARRAY_SIZE(memory_entries) && found == false; ++i) {
         if (memory_entries[i].addr == NULL) {
-            memory_entries[i].addr = result;
+            memory_entries[i].addr = addr;
             memory_entries[i].size = size_bytes;
             found = true;
         }
     }
     for (u64 i = 0; i < memory_hash && found == false; ++i) {
         if (memory_entries[i].addr == NULL) {
-            memory_entries[i].addr = result;
+            memory_entries[i].addr = addr;
             memory_entries[i].size = size_bytes;
             found = true;
         }
     }
-    ASSERT(found == true);
+    ASSERT(found == true && "reached MAX_NUMBER_OF_MEMORY_ENTRIES in debug__bookkeep_memory_add");
     g_unfreed_memory_bytes_count += size_bytes;
+#else
+    (void) addr;
+    (void) size_bytes;
 #endif
+}
 
+static void debug__bookkeep_memory_remove(void* addr) {
+#if defined(GIL_DEBUG)
+    u64 memory_hash = ((u64) addr * 1773217) % ARRAY_SIZE(memory_entries);
+    bool found = false;
+    for (u64 i = memory_hash; i < ARRAY_SIZE(memory_entries) && found == false; ++i) {
+        if (memory_entries[i].addr == addr) {
+            memory_entries[i].addr = NULL;
+            g_unfreed_memory_bytes_count -= memory_entries[i].size;
+            memory_entries[i].size = 0;
+            found = true;
+        }
+    }
+    for (u64 i = 0; i < memory_hash && found == false; ++i) {
+        if (memory_entries[i].addr == addr) {
+            memory_entries[i].addr = NULL;
+            g_unfreed_memory_bytes_count -= memory_entries[i].size;
+            memory_entries[i].size = 0;
+            found = true;
+        }
+    }
+    ASSERT(found == true && "memory address is not found in debug__bookkeep_memory_remove");
+#else
+    (void) addr;
+#endif
+}
+
+void* libc__malloc(u32 size_bytes) {
+    void* result = malloc(size_bytes);
+    if (result == NULL) {
+        error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
+    }
+    debug__bookkeep_memory_add(result, size_bytes);
+
+    return result;
+}
+
+void* libc__calloc(u32 size_bytes) {
+    void* result = calloc(1, size_bytes);
+    if (result == NULL) {
+        // error_code__exit(LIBC_ERROR_CODE_CALLOC_FAILED);
+        error_code__exit(847);
+    }
+    debug__bookkeep_memory_add(result, size_bytes);
+    
     return result;
 }
 
 void libc__free(void* data) {
     if (data != NULL) {
-#if defined(GIL_DEBUG)
-        u64 memory_hash = ((u64) data * 1773217) % ARRAY_SIZE(memory_entries);
-        bool found = false;
-        for (u64 i = memory_hash; i < ARRAY_SIZE(memory_entries) && found == false; ++i) {
-            if (memory_entries[i].addr == data) {
-                memory_entries[i].addr = NULL;
-                g_unfreed_memory_bytes_count -= memory_entries[i].size;
-                memory_entries[i].size = 0;
-                found = true;
-            }
-        }
-        for (u64 i = 0; i < memory_hash && found == false; ++i) {
-            if (memory_entries[i].addr == data) {
-                memory_entries[i].addr = NULL;
-                g_unfreed_memory_bytes_count -= memory_entries[i].size;
-                memory_entries[i].size = 0;
-                found = true;
-            }
-        }
-        ASSERT(g_unfreed_memory_bytes_count >= 0);
-        ASSERT(found == true);
-#endif
+        debug__bookkeep_memory_remove(data);
+
         free(data);
     }
 }

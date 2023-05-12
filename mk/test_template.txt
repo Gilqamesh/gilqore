@@ -9,10 +9,8 @@ $(MODULE_NAME)_test_sources					        := $(wildcard $($(MODULE_NAME)_test_path
 $(MODULE_NAME)_test_objects					        := $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends					        := $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
-# $(MODULE_NAME)_test_depends_modules			        += test_framework
 $(MODULE_NAME)_test_depends_modules			        += $(MODULE_NAME)
 $(MODULE_NAME)_test_libdepend_static_objs	        := $(foreach dep_module,$($(MODULE_NAME)_depends_modules),$($(dep_module)_static_objects))
-$(MODULE_NAME)_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$($(MODULE_NAME)_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 $(MODULE_NAME)_test_libdepend_static_objs	        += $(foreach dep_module,$($(MODULE_NAME)_test_depends_modules),$($(dep_module)_static_objects))
 
 include $($(MODULE_NAME)_test_child_makefiles)
@@ -20,8 +18,7 @@ include $($(MODULE_NAME)_test_child_makefiles)
 $($(MODULE_NAME)_test_path_curdir)%.o: $($(MODULE_NAME)_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$($(MODULE_NAME)_test_install_path_static): $($(MODULE_NAME)_test_libdepend_static_objs)
-$($(MODULE_NAME)_test_install_path_static): $($(MODULE_NAME)_test_objects)
+$($(MODULE_NAME)_test_install_path_static): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_static_objs)
 	$(CC) -o $@ $($(MODULE_NAME)_test_objects) -Wl,--allow-multiple-definition $($(MODULE_NAME)_test_libdepend_static_objs) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
 
 .PHONY: $(MODULE_NAME)_test_all

@@ -50,10 +50,10 @@ void string_replacer__clear(struct string_replacer* self, const char* original, 
 
 void string_replacer_sort_indices(struct string_replacer* self) {
     // todo: better sorting algorithm
-    ASSERT(
-        self->withs_size < 20 &&
-        "too many replacements allowed, this shouldn't be a bottleneck so should implement a better sorting algorithm at this point, currently its O(n^2)"
-    );
+    // ASSERT(
+    //     self->withs_size < 20 &&
+    //     "too many replacements allowed, this shouldn't be a bottleneck so should implement a better sorting algorithm at this point, currently its O(n^2)"
+    // );
 
     // note: sort based on whats
     for (u32 outer_what_index = 0; outer_what_index < self->withs_top; ++outer_what_index) {
@@ -223,7 +223,7 @@ u32 string_replacer__replace_word(
         return self->current_str_len;
     }
 
-    u32 hash_value = hash__sum(what);
+    u32 hash_value = hash__sum_n(what, what_length);
     u32 rolling_hash_value = 0;
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
@@ -304,7 +304,7 @@ u32 string_replacer__replace_word_vf(
         return self->current_str_len;
     }
 
-    u32 hash_value = hash__sum(what);
+    u32 hash_value = hash__sum_n(what, what_length);
     u32 rolling_hash_value = 0;
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];

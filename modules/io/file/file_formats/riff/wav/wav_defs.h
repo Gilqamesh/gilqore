@@ -5,7 +5,6 @@
 
 enum wav_error_code {
     WAV_ERROR_CODE_START,
-
 };
 
 #endif

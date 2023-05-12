@@ -21,9 +21,9 @@ endif
 algorithms_static_objects			:= $(patsubst %.c, %_static.o, $(algorithms_sources))
 algorithms_shared_objects			:= $(patsubst %.c, %_shared.o, $(algorithms_sources))
 algorithms_depends					:= $(patsubst %.c, %.d, $(algorithms_sources))
-algorithms_depends_modules			:=  
+algorithms_depends_modules			:= 
 algorithms_depends_libs_shared		:= $(foreach module,$(algorithms_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-algorithms_depends_libs_targets		:= $(foreach module,$(algorithms_depends_modules),$(module)_all)
+# algorithms_depends_libs_targets		:= $(foreach module,$(algorithms_depends_modules),$(module)_all)
 algorithms_clean_files				:=
 algorithms_clean_files				+= $(algorithms_install_path_implib)
 algorithms_clean_files				+= $(algorithms_install_path_shared)
@@ -39,9 +39,7 @@ $(algorithms_path_curdir)%_static.o: $(algorithms_path_curdir)%.c
 $(algorithms_path_curdir)%_shared.o: $(algorithms_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(algorithms_install_path_shared): $(algorithms_depends_libs_shared)
-$(algorithms_install_path_shared): $(algorithms_static_objects)
-$(algorithms_install_path_shared): $(algorithms_shared_objects)
+$(algorithms_install_path_shared): $(algorithms_depends_libs_shared) $(algorithms_static_objects) $(algorithms_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(algorithms_shared_lflags) $(algorithms_shared_objects) $(algorithms_depends_libs_shared)
 
 .PHONY: algorithms_all

@@ -21,9 +21,9 @@ endif
 file_writer_static_objects			:= $(patsubst %.c, %_static.o, $(file_writer_sources))
 file_writer_shared_objects			:= $(patsubst %.c, %_shared.o, $(file_writer_sources))
 file_writer_depends					:= $(patsubst %.c, %.d, $(file_writer_sources))
-file_writer_depends_modules			:=  file libc common
+file_writer_depends_modules			:= libc common file time 
 file_writer_depends_libs_shared		:= $(foreach module,$(file_writer_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-file_writer_depends_libs_targets		:= $(foreach module,$(file_writer_depends_modules),$(module)_all)
+# file_writer_depends_libs_targets		:= $(foreach module,$(file_writer_depends_modules),$(module)_all)
 file_writer_clean_files				:=
 file_writer_clean_files				+= $(file_writer_install_path_implib)
 file_writer_clean_files				+= $(file_writer_install_path_shared)
@@ -39,9 +39,7 @@ $(file_writer_path_curdir)%_static.o: $(file_writer_path_curdir)%.c
 $(file_writer_path_curdir)%_shared.o: $(file_writer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(file_writer_install_path_shared): $(file_writer_depends_libs_shared)
-$(file_writer_install_path_shared): $(file_writer_static_objects)
-$(file_writer_install_path_shared): $(file_writer_shared_objects)
+$(file_writer_install_path_shared): $(file_writer_depends_libs_shared) $(file_writer_static_objects) $(file_writer_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_writer_shared_lflags) $(file_writer_shared_objects) $(file_writer_depends_libs_shared)
 
 .PHONY: file_writer_all

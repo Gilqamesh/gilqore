@@ -21,9 +21,9 @@ endif
 file_static_objects			:= $(patsubst %.c, %_static.o, $(file_sources))
 file_shared_objects			:= $(patsubst %.c, %_shared.o, $(file_sources))
 file_depends					:= $(patsubst %.c, %.d, $(file_sources))
-file_depends_modules			:= common time
+file_depends_modules			:= common time 
 file_depends_libs_shared		:= $(foreach module,$(file_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-file_depends_libs_targets		:= $(foreach module,$(file_depends_modules),$(module)_all)
+# file_depends_libs_targets		:= $(foreach module,$(file_depends_modules),$(module)_all)
 file_clean_files				:=
 file_clean_files				+= $(file_install_path_implib)
 file_clean_files				+= $(file_install_path_shared)
@@ -39,9 +39,7 @@ $(file_path_curdir)%_static.o: $(file_path_curdir)%.c
 $(file_path_curdir)%_shared.o: $(file_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(file_install_path_shared): $(file_depends_libs_shared)
-$(file_install_path_shared): $(file_static_objects)
-$(file_install_path_shared): $(file_shared_objects)
+$(file_install_path_shared): $(file_depends_libs_shared) $(file_static_objects) $(file_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(file_shared_lflags) $(file_shared_objects) $(file_depends_libs_shared)
 
 .PHONY: file_all

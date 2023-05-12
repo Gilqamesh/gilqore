@@ -21,9 +21,9 @@ endif
 thread_static_objects			:= $(patsubst %.c, %_static.o, $(thread_sources))
 thread_shared_objects			:= $(patsubst %.c, %_shared.o, $(thread_sources))
 thread_depends					:= $(patsubst %.c, %.d, $(thread_sources))
-thread_depends_modules			:=  
+thread_depends_modules			:= 
 thread_depends_libs_shared		:= $(foreach module,$(thread_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-thread_depends_libs_targets		:= $(foreach module,$(thread_depends_modules),$(module)_all)
+# thread_depends_libs_targets		:= $(foreach module,$(thread_depends_modules),$(module)_all)
 thread_clean_files				:=
 thread_clean_files				+= $(thread_install_path_implib)
 thread_clean_files				+= $(thread_install_path_shared)
@@ -39,9 +39,7 @@ $(thread_path_curdir)%_static.o: $(thread_path_curdir)%.c
 $(thread_path_curdir)%_shared.o: $(thread_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(thread_install_path_shared): $(thread_depends_libs_shared)
-$(thread_install_path_shared): $(thread_static_objects)
-$(thread_install_path_shared): $(thread_shared_objects)
+$(thread_install_path_shared): $(thread_depends_libs_shared) $(thread_static_objects) $(thread_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(thread_shared_lflags) $(thread_shared_objects) $(thread_depends_libs_shared)
 
 .PHONY: thread_all

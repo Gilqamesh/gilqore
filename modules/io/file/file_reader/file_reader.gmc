@@ -2,4 +2,4 @@ unique_error_codes: [
     NOTHING_TO_PEEK: file_reader__peek couldn't return anything, probably because eof has been reached or empty file
     WRONG_FORMAT_SPECIFIER: bad format specifier in file_reader__read_format
 ]
-module_dependencies: 
+module_dependencies: hash libc compare circular_buffer file

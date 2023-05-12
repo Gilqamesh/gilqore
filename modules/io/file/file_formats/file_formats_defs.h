@@ -5,7 +5,6 @@
 
 enum file_formats_error_code {
     FILE_FORMATS_ERROR_CODE_START,
-
 };
 
 #endif

@@ -23,7 +23,7 @@ $(MODULE_NAME)_shared_objects			:= $(patsubst %.c, %_shared.o, $($(MODULE_NAME)_
 $(MODULE_NAME)_depends					:= $(patsubst %.c, %.d, $($(MODULE_NAME)_sources))
 $(MODULE_NAME)_depends_modules			:= $(MODULE_LIBDEP_MODULES)
 $(MODULE_NAME)_depends_libs_shared		:= $(foreach module,$($(MODULE_NAME)_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-$(MODULE_NAME)_depends_libs_targets		:= $(foreach module,$($(MODULE_NAME)_depends_modules),$(module)_all)
+# $(MODULE_NAME)_depends_libs_targets		:= $(foreach module,$($(MODULE_NAME)_depends_modules),$(module)_all)
 $(MODULE_NAME)_clean_files				:=
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_install_path_implib)
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_install_path_shared)
@@ -39,9 +39,7 @@ $($(MODULE_NAME)_path_curdir)%_static.o: $($(MODULE_NAME)_path_curdir)%.c
 $($(MODULE_NAME)_path_curdir)%_shared.o: $($(MODULE_NAME)_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$($(MODULE_NAME)_install_path_shared): $($(MODULE_NAME)_depends_libs_shared)
-$($(MODULE_NAME)_install_path_shared): $($(MODULE_NAME)_static_objects)
-$($(MODULE_NAME)_install_path_shared): $($(MODULE_NAME)_shared_objects)
+$($(MODULE_NAME)_install_path_shared): $($(MODULE_NAME)_depends_libs_shared) $($(MODULE_NAME)_static_objects) $($(MODULE_NAME)_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC) $($(MODULE_NAME)_shared_lflags) $($(MODULE_NAME)_shared_objects) $($(MODULE_NAME)_depends_libs_shared)
 
 .PHONY: $(MODULE_NAME)_all

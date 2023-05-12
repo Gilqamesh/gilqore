@@ -5,7 +5,6 @@
 
 enum data_structures_error_code {
     DATA_STRUCTURES_ERROR_CODE_START,
-
 };
 
 #endif

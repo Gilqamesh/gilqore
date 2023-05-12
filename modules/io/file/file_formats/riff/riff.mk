@@ -21,9 +21,9 @@ endif
 riff_static_objects			:= $(patsubst %.c, %_static.o, $(riff_sources))
 riff_shared_objects			:= $(patsubst %.c, %_shared.o, $(riff_sources))
 riff_depends					:= $(patsubst %.c, %.d, $(riff_sources))
-riff_depends_modules			:=  
+riff_depends_modules			:= 
 riff_depends_libs_shared		:= $(foreach module,$(riff_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-riff_depends_libs_targets		:= $(foreach module,$(riff_depends_modules),$(module)_all)
+# riff_depends_libs_targets		:= $(foreach module,$(riff_depends_modules),$(module)_all)
 riff_clean_files				:=
 riff_clean_files				+= $(riff_install_path_implib)
 riff_clean_files				+= $(riff_install_path_shared)
@@ -39,9 +39,7 @@ $(riff_path_curdir)%_static.o: $(riff_path_curdir)%.c
 $(riff_path_curdir)%_shared.o: $(riff_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(riff_install_path_shared): $(riff_depends_libs_shared)
-$(riff_install_path_shared): $(riff_static_objects)
-$(riff_install_path_shared): $(riff_shared_objects)
+$(riff_install_path_shared): $(riff_depends_libs_shared) $(riff_static_objects) $(riff_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(riff_shared_lflags) $(riff_shared_objects) $(riff_depends_libs_shared)
 
 .PHONY: riff_all

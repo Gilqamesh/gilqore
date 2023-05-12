@@ -23,7 +23,7 @@ time_shared_objects			:= $(patsubst %.c, %_shared.o, $(time_sources))
 time_depends					:= $(patsubst %.c, %.d, $(time_sources))
 time_depends_modules			:= common 
 time_depends_libs_shared		:= $(foreach module,$(time_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-time_depends_libs_targets		:= $(foreach module,$(time_depends_modules),$(module)_all)
+# time_depends_libs_targets		:= $(foreach module,$(time_depends_modules),$(module)_all)
 time_clean_files				:=
 time_clean_files				+= $(time_install_path_implib)
 time_clean_files				+= $(time_install_path_shared)
@@ -39,9 +39,7 @@ $(time_path_curdir)%_static.o: $(time_path_curdir)%.c
 $(time_path_curdir)%_shared.o: $(time_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(time_install_path_shared): $(time_depends_libs_shared)
-$(time_install_path_shared): $(time_static_objects)
-$(time_install_path_shared): $(time_shared_objects)
+$(time_install_path_shared): $(time_depends_libs_shared) $(time_static_objects) $(time_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(time_shared_lflags) $(time_shared_objects) $(time_depends_libs_shared)
 
 .PHONY: time_all

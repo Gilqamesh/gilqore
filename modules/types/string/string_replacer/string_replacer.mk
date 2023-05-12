@@ -21,9 +21,9 @@ endif
 string_replacer_static_objects			:= $(patsubst %.c, %_static.o, $(string_replacer_sources))
 string_replacer_shared_objects			:= $(patsubst %.c, %_shared.o, $(string_replacer_sources))
 string_replacer_depends					:= $(patsubst %.c, %.d, $(string_replacer_sources))
-string_replacer_depends_modules			:=  libc compare common file hash
+string_replacer_depends_modules			:= libc common compare file time hash 
 string_replacer_depends_libs_shared		:= $(foreach module,$(string_replacer_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-string_replacer_depends_libs_targets		:= $(foreach module,$(string_replacer_depends_modules),$(module)_all)
+# string_replacer_depends_libs_targets		:= $(foreach module,$(string_replacer_depends_modules),$(module)_all)
 string_replacer_clean_files				:=
 string_replacer_clean_files				+= $(string_replacer_install_path_implib)
 string_replacer_clean_files				+= $(string_replacer_install_path_shared)
@@ -39,9 +39,7 @@ $(string_replacer_path_curdir)%_static.o: $(string_replacer_path_curdir)%.c
 $(string_replacer_path_curdir)%_shared.o: $(string_replacer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(string_replacer_install_path_shared): $(string_replacer_depends_libs_shared)
-$(string_replacer_install_path_shared): $(string_replacer_static_objects)
-$(string_replacer_install_path_shared): $(string_replacer_shared_objects)
+$(string_replacer_install_path_shared): $(string_replacer_depends_libs_shared) $(string_replacer_static_objects) $(string_replacer_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(string_replacer_shared_lflags) $(string_replacer_shared_objects) $(string_replacer_depends_libs_shared)
 
 .PHONY: string_replacer_all

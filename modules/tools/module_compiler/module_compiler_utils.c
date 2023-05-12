@@ -1,24 +1,39 @@
 #include "module_compiler_utils.h"
 #include <stdio.h>
 
-#include "system/process/process.h"
-#include "io/file/file.h"
 #include "libc/libc.h"
 
-struct module g_modules[1024];
-u32 g_modules_size;
-u32 g_error_code = 1;
-
-void module_compiler__clear_transient_flags(void) {
-    for (u32 i = 0; i < g_modules_size; ++i) {
-        g_modules[i].transient_flag_for_processing = 0;
+void module_compiler__clear_transient_flags(
+    struct module* modules,
+    u32 modules_size
+) {
+    for (u32 module_index = 0; module_index < modules_size; ++module_index) {
+        modules[module_index].transient_flag_for_processing = 0;
     }
 }
 
-struct module* module_compiler__add_child(struct module* self, const char* child_module_basename) {
-    struct module* child = &g_modules[g_modules_size++];
+struct module* module_compiler__add_child(
+    struct module* modules,
+    struct module* self,
+    const char* child_module_basename,
+    u32* modules_size_cur,
+    u32 modules_size_max
+) {
+    if (*modules_size_cur == modules_size_max) {
+        // error_code__exit(REACHED_MAX_MODULES_SIZE);
+        error_code__exit(214);
+    }
+    struct module* child = &modules[(*modules_size_cur)++];
     child->parent = self;
-    if ((u32) libc__snprintf(child->dirprefix, ARRAY_SIZE(child->dirprefix), "%s/%s", self->dirprefix, child_module_basename) >= ARRAY_SIZE(child->dirprefix)) {
+    if (
+        (u32) libc__snprintf(
+            child->dirprefix,
+            ARRAY_SIZE(child->dirprefix),
+            "%s/%s",
+            self->dirprefix,
+            child_module_basename
+        ) >= ARRAY_SIZE(child->dirprefix)
+    ) {
         // error_code__exit(CHILD_PREFIX_TOO_LONG);
         error_code__exit(836);
     }
@@ -58,35 +73,41 @@ void module_compiler__add_dependency(struct module* self, struct module* depende
             return ;
         }
     }
-    printf("hard limit (%lld) on the number of dependencies reached for module: %s\n",
-    ARRAY_SIZE(self->dependencies), self->basename);
-    exit(1);
+    // error_code__exit(MAX_AMOUNT_OF_DEPENDENCIES_REACHED_FOR_MODULE);
+    error_code__exit(43556);
 }
 
-static void module_compiler__check_cyclic_dependency_helper(struct module* self) {
-    if (self->transient_flag_for_processing > 0) {
+static void module_compiler__check_cyclic_dependency_helper(
+    struct module* from,
+    struct module* modules,
+    u32 modules_size
+) {
+    if (from->transient_flag_for_processing > 0) {
         printf("\ncyclic dependency detected between these modules: ");
-        for (u32 i = 0; i < g_modules_size; ++i) {
-            if (g_modules[i].transient_flag_for_processing > 0) {
-                printf("%s ", g_modules[i].basename);
+        for (u32 module_index = 0; module_index < modules_size; ++module_index) {
+            if (modules[module_index].transient_flag_for_processing > 0) {
+                printf("%s ", modules[module_index].basename);
             }
         }
-        printf("\n");
-        exit(1);
-        return ;
+        // error_code__exit(CYCLIC_DEPENDENCY_BETWEEN_MODULES);
+        error_code__exit(8342);
     }
-    self->transient_flag_for_processing = 1;
-    for (u32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
-        if (self->dependencies[i] != NULL) {
-            module_compiler__check_cyclic_dependency_helper(self->dependencies[i]);
+    from->transient_flag_for_processing = 1;
+    for (u32 i = 0; i < ARRAY_SIZE(from->dependencies); ++i) {
+        if (from->dependencies[i] != NULL) {
+            module_compiler__check_cyclic_dependency_helper(from->dependencies[i], modules, modules_size);
         }
     }
-    self->transient_flag_for_processing = 0;
+    from->transient_flag_for_processing = 0;
 }
 
-void module_compiler__check_cyclic_dependency(void) {
-    module_compiler__clear_transient_flags();
-    module_compiler__check_cyclic_dependency_helper(&g_modules[0]);
+void module_compiler__check_cyclic_dependency(
+    struct module* from,
+    struct module* modules,
+    u32 modules_size
+) {
+    module_compiler__clear_transient_flags(modules, modules_size);
+    module_compiler__check_cyclic_dependency_helper(from, modules, modules_size);
 }
 
 void module_compiler__print_dependencies(struct module* self) {
@@ -99,26 +120,42 @@ void module_compiler__print_dependencies(struct module* self) {
     }
 }
 
-static void module_compiler__print_branch_helper(struct module* self, s32 depth) {
+static void module_compiler__print_branch_helper(
+    struct module* modules,
+    struct module* from,
+    u32 modules_size,
+    s32 cur_depth
+) {
     printf("%*s --== %s ==-- \n %*snumber of submodules: %d\n %*sdependencies: ",
-    depth, "", self->basename,
-    depth, "", self->number_of_submodules,
-    depth, "");
+    cur_depth << 2, "", from->basename,
+    cur_depth << 2, "", from->number_of_submodules,
+    cur_depth << 2, "");
 
-    module_compiler__clear_transient_flags();
-    module_compiler__print_dependencies(self);
+    module_compiler__clear_transient_flags(modules, modules_size);
+    module_compiler__print_dependencies(from);
     printf("\n\n");
-    struct module* child = self->first_child;
+    struct module* child = from->first_child;
     while (child) {
-        module_compiler__print_branch_helper(child, depth + 4);
+        module_compiler__print_branch_helper(modules, child, modules_size, cur_depth + 1);
         child = child->next_sibling;
     }
 }
 
-void module_compiler__print_branch(struct module* self) {
-    module_compiler__print_branch_helper(self, 0);
+void module_compiler__print_branch(
+    struct module* from,
+    struct module* modules,
+    u32 modules_size
+) {
+    module_compiler__print_branch_helper(
+        modules,
+        from,
+        modules_size,
+        0
+    );
 }
 
 u32 module_compiler__get_error_code(void) {
-    return g_error_code++;
+    static u32 error_code;
+
+    return error_code++;
 }

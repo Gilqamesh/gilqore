@@ -6,6 +6,7 @@
 # include <stdarg.h>
 
 GIL_API void* libc__malloc(u32 size_bytes);
+GIL_API void* libc__calloc(u32 size_bytes);
 GIL_API void  libc__free(void* data);
 # if defined(GIL_DEBUG)
 GIL_API u32   libc__unfreed_byte_count(void);

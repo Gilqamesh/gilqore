@@ -29,23 +29,11 @@ def content_module_config(module_config_path):
     
     return config_content
 
-def content_module_libdeps(module_libdeps_path):
-    libdeps_content = ''
-    if not os.path.exists(module_libdeps_path):
-        with open(module_libdeps_path, 'w') as f:
-            f.write(libdeps_content)
-    else:
-        with open(module_libdeps_path, 'r') as f:
-            libdeps_content = f.read()
-
-    return libdeps_content
-
-def content_makefile(module_name, config_content, libdeps_content):
+def content_makefile(module_name, config_content):
     makefile_content = ''
     with open('mk/test_template.txt', 'r') as f:
         makefile_content = f.read()
         makefile_content = makefile_content.replace('$(MODULE_NAME)', module_name)
-        makefile_content = makefile_content.replace('$(MODULE_LIBDEP_MODULES)', libdeps_content)
     makefile_content = makefile_content.replace('$(LFLAGS_SPECIFIC)', config_content)
 
     return makefile_content
@@ -56,8 +44,7 @@ def update_directory(directory_path):
     test_module_path_base_name = module_path_base_name + '_test'
 
     config_content = content_module_config(module_path_base_name + '.config')
-    libdeps_content = content_module_libdeps(module_path_base_name + '.libdeps')
-    makefile_content = content_makefile(module_name, config_content, libdeps_content)
+    makefile_content = content_makefile(module_name, config_content)
 
     # write content to the test module's makefile
     with open(test_module_path_base_name + '.mk', 'w') as f:

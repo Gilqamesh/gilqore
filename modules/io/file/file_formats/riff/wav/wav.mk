@@ -21,9 +21,9 @@ endif
 wav_static_objects			:= $(patsubst %.c, %_static.o, $(wav_sources))
 wav_shared_objects			:= $(patsubst %.c, %_shared.o, $(wav_sources))
 wav_depends					:= $(patsubst %.c, %.d, $(wav_sources))
-wav_depends_modules			:=  
+wav_depends_modules			:= 
 wav_depends_libs_shared		:= $(foreach module,$(wav_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-wav_depends_libs_targets		:= $(foreach module,$(wav_depends_modules),$(module)_all)
+# wav_depends_libs_targets		:= $(foreach module,$(wav_depends_modules),$(module)_all)
 wav_clean_files				:=
 wav_clean_files				+= $(wav_install_path_implib)
 wav_clean_files				+= $(wav_install_path_shared)
@@ -39,9 +39,7 @@ $(wav_path_curdir)%_static.o: $(wav_path_curdir)%.c
 $(wav_path_curdir)%_shared.o: $(wav_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(wav_install_path_shared): $(wav_depends_libs_shared)
-$(wav_install_path_shared): $(wav_static_objects)
-$(wav_install_path_shared): $(wav_shared_objects)
+$(wav_install_path_shared): $(wav_depends_libs_shared) $(wav_static_objects) $(wav_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(wav_shared_lflags) $(wav_shared_objects) $(wav_depends_libs_shared)
 
 .PHONY: wav_all

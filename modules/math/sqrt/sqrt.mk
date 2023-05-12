@@ -21,9 +21,9 @@ endif
 sqrt_static_objects			:= $(patsubst %.c, %_static.o, $(sqrt_sources))
 sqrt_shared_objects			:= $(patsubst %.c, %_shared.o, $(sqrt_sources))
 sqrt_depends					:= $(patsubst %.c, %.d, $(sqrt_sources))
-sqrt_depends_modules			:=  
+sqrt_depends_modules			:= 
 sqrt_depends_libs_shared		:= $(foreach module,$(sqrt_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-sqrt_depends_libs_targets		:= $(foreach module,$(sqrt_depends_modules),$(module)_all)
+# sqrt_depends_libs_targets		:= $(foreach module,$(sqrt_depends_modules),$(module)_all)
 sqrt_clean_files				:=
 sqrt_clean_files				+= $(sqrt_install_path_implib)
 sqrt_clean_files				+= $(sqrt_install_path_shared)
@@ -39,9 +39,7 @@ $(sqrt_path_curdir)%_static.o: $(sqrt_path_curdir)%.c
 $(sqrt_path_curdir)%_shared.o: $(sqrt_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
-$(sqrt_install_path_shared): $(sqrt_depends_libs_shared)
-$(sqrt_install_path_shared): $(sqrt_static_objects)
-$(sqrt_install_path_shared): $(sqrt_shared_objects)
+$(sqrt_install_path_shared): $(sqrt_depends_libs_shared) $(sqrt_static_objects) $(sqrt_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(sqrt_shared_lflags) $(sqrt_shared_objects) $(sqrt_depends_libs_shared)
 
 .PHONY: sqrt_all

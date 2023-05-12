@@ -40,7 +40,7 @@ int main() {
     TEST_FRAMEWORK_ASSERT(file__delete(filename) == true);
 
     TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE) == true);
-    file_reader__clear(&file_reader);
+    file_reader__clear(&file_reader, &file);
     const char* msg = " yo whadaap   \t hello";
     u32 msg_len = libc__strlen(msg);
     TEST_FRAMEWORK_ASSERT(file__write(&file, msg, msg_len) == msg_len);
@@ -54,7 +54,7 @@ int main() {
     TEST_FRAMEWORK_ASSERT(bytes_read == expected_match_len);
     TEST_FRAMEWORK_ASSERT(libc__strncmp(expected_match, buffer, expected_match_len) == 0);
     TEST_FRAMEWORK_ASSERT(file__seek(&file, 0) == 0);
-    file_reader__clear(&file_reader);
+    file_reader__clear(&file_reader, &file);
     TEST_FRAMEWORK_ASSERT(file_reader__read_while(&file_reader, NULL, 0, " ") == 1);
     TEST_FRAMEWORK_ASSERT(file_reader__read_while(&file_reader, buffer, buffer_size, "wy ooo yy ww o") == 4);
     buffer[4] = '\0';
