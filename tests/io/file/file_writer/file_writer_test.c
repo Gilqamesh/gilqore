@@ -1,5 +1,7 @@
 #include "io/file/file_writer/file_writer.h"
 
+#include "io/file/file.h"
+
 int main() {
     struct file_writer writer;
     struct file file;

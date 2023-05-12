@@ -15,7 +15,10 @@ int main() {
     enum file_type file_type;
     struct time last_modified1;
     struct time last_modified2;
-    char buffer[4096];
+    u32 buffer_size = 4096;
+    u32 buffer2_size = 4096;
+    char* buffer = libc__malloc(buffer_size);
+    char* buffer2 = libc__malloc(buffer2_size);
     u64 file_size;
 
     char* filename = "asd";
@@ -75,7 +78,7 @@ int main() {
     TEST_FRAMEWORK_ASSERT(file_size == n_of_times_written_msg * msg_len);
 
     TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == true);
-    u32 bytes_read = file__read(&file, buffer, ARRAY_SIZE(buffer));
+    u32 bytes_read = file__read(&file, buffer, buffer_size);
     TEST_FRAMEWORK_ASSERT(bytes_read == n_of_times_written_msg * msg_len);
     for (u32 i = 0; i < n_of_times_written_msg; ++i) {
         TEST_FRAMEWORK_ASSERT(libc__memcmp(buffer + i * msg_len, msg, msg_len) == 0);
@@ -84,7 +87,7 @@ int main() {
     file__close(&file);
 
     TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN) == true);
-    bytes_read = file__read(&file, buffer, ARRAY_SIZE(buffer));
+    bytes_read = file__read(&file, buffer, buffer_size);
     TEST_FRAMEWORK_ASSERT(bytes_read == n_of_times_written_msg * msg_len);
     for (u32 i = 0; i < n_of_times_written_msg; ++i) {
         TEST_FRAMEWORK_ASSERT(libc__memcmp(buffer + i * msg_len, msg, msg_len) == 0);
@@ -118,6 +121,24 @@ int main() {
     }
     file__close(&file);
 
+    const char* copied_filename = "iafhdsiusdfha";
+    file__copy(copied_filename, filename);
+    TEST_FRAMEWORK_ASSERT(file__exists(copied_filename));
+    u64 file_size2;
+    TEST_FRAMEWORK_ASSERT(file__size(filename, &file_size));
+    TEST_FRAMEWORK_ASSERT(file__size(copied_filename, &file_size2));
+    TEST_FRAMEWORK_ASSERT(file_size2 == file_size);
+    struct file copied_file;
+    TEST_FRAMEWORK_ASSERT(file__open(&copied_file, copied_filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    TEST_FRAMEWORK_ASSERT(file_size2 < buffer2_size);
+    TEST_FRAMEWORK_ASSERT(file__read(&copied_file, buffer2, buffer2_size) == file_size2);
+    file__close(&copied_file);
+    TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    TEST_FRAMEWORK_ASSERT(file_size < buffer_size);
+    TEST_FRAMEWORK_ASSERT(file__read(&file, buffer, buffer_size) == file_size);
+    file__close(&file);
+    TEST_FRAMEWORK_ASSERT(libc__memcmp(buffer, buffer2, file_size) == 0);
+
     const char* new_filename = "asd2";
     if (file__exists(new_filename)) {
         file__delete(new_filename);
@@ -145,6 +166,9 @@ int main() {
 
     TEST_FRAMEWORK_ASSERT(file__delete(new_filename) == true);
     TEST_FRAMEWORK_ASSERT(file__exists(new_filename) == false);
+
+    libc__free(buffer);
+    libc__free(buffer2);
 
     return 0;
 }

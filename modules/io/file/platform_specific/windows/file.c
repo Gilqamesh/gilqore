@@ -132,6 +132,18 @@ bool file__size(const char* path, u64* file_size) {
     return true;
 }
 
+void file__copy(const char* dest_path, const char* src_path) {
+    if (CopyFile(
+        src_path,
+        dest_path,
+        FALSE
+    ) == FALSE) {
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(FILE_COPY_FAILED);
+        error_code__exit(349028);
+    }
+}
+
 u32 file__read(struct file* self, void* out, u32 size) {
     if (size == 0) {
         return 0;

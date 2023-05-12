@@ -1,6 +1,0 @@
-// necessary configuration file for the module, run module_update tool to parse this file automatically and update the module for its corresponding directory
-unique_error_codes: [ // unique in the sense that its related only to this module or all of its children modules
-    EXPANDED_ENUM_VALUE_IN_HEADER_1: "descriptive text message that the error receiver gets",
-    EXPANDED_ENUM_VALUE_IN_HEADER_2: "..."
-]
-module_dependencies: world renderer // modules that this modules directly depends on, these will be recursively parsed to link against all dependencies

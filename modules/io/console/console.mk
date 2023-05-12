@@ -40,7 +40,7 @@ $(console_path_curdir)%_shared.o: $(console_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
 
 $(console_install_path_shared): $(console_depends_libs_shared) $(console_static_objects) $(console_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mwindows $(console_shared_lflags) $(console_shared_objects) $(console_depends_libs_shared)
+	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(console_shared_lflags) $(console_shared_objects) $(console_depends_libs_shared)
 
 .PHONY: console_all
 console_all: $(console_child_all_targets) ## build and install all console static and shared libraries

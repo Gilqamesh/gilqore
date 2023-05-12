@@ -494,7 +494,12 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
 ) {
     string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
     struct file config_file;
-    u32 bytes_written = libc__snprintf(config_file_name_buffer, config_file_name_buffer_size, "%s/%s.%s", self->dirprefix, self->basename, CONFIG_EXTENSION);
+    u32 bytes_written = libc__snprintf(
+        config_file_name_buffer,
+        config_file_name_buffer_size,
+        "%s/%s.%s",
+        self->dirprefix, self->basename, CONFIG_EXTENSION
+    );
     if (bytes_written >= config_file_name_buffer_size) {
         // error_code__exit(CONFIG_FILE_NAME_BUFFER_TOO_SMALL);
         error_code__exit(867);
@@ -551,20 +556,12 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
             ""
         );
 
-        TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+        static const char* config_file_template_path = "misc/gmc_file_template.txt";
+        file__copy(config_file_name_buffer, config_file_template_path);
+
         for (u32 dep_index = 0; dep_index < ARRAY_SIZE(self->dependencies); ++dep_index) {
             self->dependencies[dep_index] = NULL;
         }
-        file_writer__write_format(
-            file_writer,
-            &config_file,
-            "%s: [\n"
-            "]\n"
-            "%s: \n",
-            KEY_UNIQUE_ERROR_CODES,
-            KEY_MODULE_DEPENDENCIES
-        );
-        file__close(&config_file);
     }
     TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
     string_replacer__read_into_file(
@@ -808,6 +805,7 @@ void module_compiler__embed_dependencies_into_makefile(
         static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
         static const char module_name_replace_what[] = "$(MODULE_NAME)";
         static const char module_lflags_specific_replace_what[] = "$(LFLAGS_SPECIFIC)";
+        // todo: add type of application (console/windows) to .gmc file
         static const char module_lflags_specific_replace_with[] = "-mconsole";
         static const u32 module_dependency_replace_what_len = ARRAY_SIZE(module_dependency_replace_what) - 1;
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;

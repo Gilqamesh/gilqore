@@ -21,7 +21,7 @@ endif
 time_static_objects			:= $(patsubst %.c, %_static.o, $(time_sources))
 time_shared_objects			:= $(patsubst %.c, %_shared.o, $(time_sources))
 time_depends					:= $(patsubst %.c, %.d, $(time_sources))
-time_depends_modules			:= common 
+time_depends_modules			:= 
 time_depends_libs_shared		:= $(foreach module,$(time_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 # time_depends_libs_targets		:= $(foreach module,$(time_depends_modules),$(module)_all)
 time_clean_files				:=
