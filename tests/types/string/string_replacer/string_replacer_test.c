@@ -106,6 +106,7 @@ static void test_replace_at_position_formatted(
 
 static void test_replace_word(
     struct string_replacer* string_replacer,
+    u32 number_of_what_occurances,
     char* buffer,
     u32 buffer_size,
     struct v2u32 offset_interval,
@@ -118,6 +119,7 @@ static void test_replace_word(
     u32 expected_str_len = libc__strlen(expected);
     TEST_FRAMEWORK_ASSERT(string_replacer__replace_word(
         string_replacer,
+        number_of_what_occurances,
         what,
         what_length,
         with,
@@ -130,6 +132,7 @@ static void test_replace_word(
 
 static void test_replace_word_vformatted(
     struct string_replacer* string_replacer,
+    u32 max_number_of_what_occurances,
     char* buffer,
     u32 buffer_size,
     struct v2u32 offset_interval,
@@ -142,6 +145,7 @@ static void test_replace_word_vformatted(
     u32 expected_str_len = libc__strlen(expected);
     TEST_FRAMEWORK_ASSERT(string_replacer__replace_word_vf(
         string_replacer,
+        max_number_of_what_occurances,
         what,
         what_length,
         with_format,
@@ -154,6 +158,7 @@ static void test_replace_word_vformatted(
 
 static void test_replace_word_formatted(
     struct string_replacer* string_replacer,
+    u32 max_number_of_what_occurances,
     char* buffer,
     u32 buffer_size,
     struct v2u32 offset_interval,
@@ -167,6 +172,7 @@ static void test_replace_word_formatted(
     va_start(ap, with_format);
     test_replace_word_vformatted(
         string_replacer,
+        max_number_of_what_occurances,
         buffer,
         buffer_size,
         offset_interval,
@@ -356,8 +362,10 @@ static void test_replaces_word(
     string_replacer__clear(string_replacer, original, original_size);
     const char* what = "bro";
     const char* with = "breh";
+    u32 number_of_what_occurances = 1;
     test_replace_word(
         string_replacer,
+        number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what, libc__strlen(what),
@@ -368,8 +376,10 @@ static void test_replaces_word(
     string_replacer__clear(string_replacer, original, original_size);
     const char* what2 = "hey bro wadap";
     const char* with2 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    number_of_what_occurances = 1;
     test_replace_word(
         string_replacer,
+        number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what2, libc__strlen(what2),
@@ -380,8 +390,10 @@ static void test_replaces_word(
     string_replacer__clear(string_replacer, original, original_size);
     const char* what3 = " ";
     const char* with3 = "-";
+    number_of_what_occurances = 1;
     test_replace_word(
         string_replacer,
+        number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what3, libc__strlen(what3),
@@ -389,14 +401,27 @@ static void test_replaces_word(
         "hey-bro wadap"
     );
 
-    const char* what4 = " ";
-    const char* with4 = "-";
+    string_replacer__clear(string_replacer, original, original_size);
+    number_of_what_occurances = 2;
     test_replace_word(
         string_replacer,
+        number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
-        what4, libc__strlen(what4),
-        with4, libc__strlen(with4),
+        what3, libc__strlen(what3),
+        with3, libc__strlen(with3),
+        "hey-bro-wadap"
+    );
+
+    string_replacer__clear(string_replacer, original, original_size);
+    number_of_what_occurances = 3;
+    test_replace_word(
+        string_replacer,
+        number_of_what_occurances,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what3, libc__strlen(what3),
+        with3, libc__strlen(with3),
         "hey-bro-wadap"
     );
 }
@@ -410,8 +435,10 @@ static void test_replaces_word_formatted(
 ) {
     string_replacer__clear(string_replacer, original, original_size);
     const char* what = "bro";
+    u32 max_number_of_what_occurances = 1;
     test_replace_word_formatted(
         string_replacer,
+        max_number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what, libc__strlen(what),
@@ -421,8 +448,10 @@ static void test_replaces_word_formatted(
 
     string_replacer__clear(string_replacer, original, original_size);
     const char* what2 = "hey bro wadap";
+    max_number_of_what_occurances = 1;
     test_replace_word_formatted(
         string_replacer,
+        max_number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what2, libc__strlen(what2),
@@ -432,8 +461,10 @@ static void test_replaces_word_formatted(
 
     string_replacer__clear(string_replacer, original, original_size);
     const char* what3 = " ";
+    max_number_of_what_occurances = 1;
     test_replace_word_formatted(
         string_replacer,
+        max_number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
         what3, libc__strlen(what3),
@@ -441,12 +472,26 @@ static void test_replaces_word_formatted(
         "%s", "-"
     );
 
-    const char* what4 = " ";
+    string_replacer__clear(string_replacer, original, original_size);
+    max_number_of_what_occurances = 2;
     test_replace_word_formatted(
         string_replacer,
+        max_number_of_what_occurances,
         buffer, buffer_size,
         v2u32(0, 20),
-        what4, libc__strlen(what4),
+        what3, libc__strlen(what3),
+        "hey-bro-wadap",
+        "%s", "-"
+    );
+
+    string_replacer__clear(string_replacer, original, original_size);
+    max_number_of_what_occurances = 3;
+    test_replace_word_formatted(
+        string_replacer,
+        max_number_of_what_occurances,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what3, libc__strlen(what3),
         "hey-bro-wadap",
         "%s", "-"
     );
@@ -541,8 +586,10 @@ int main() {
     "    FILE_ERROR_CODE_START\n"
     "};";
 
+    u32 max_number_of_what_occurances = 1;
     string_replacer__replace_word(
         &string_replacer,
+        max_number_of_what_occurances,
         what, libc__strlen(what),
         with, libc__strlen(with)
     );

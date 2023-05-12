@@ -76,6 +76,7 @@ GIL_API u32 string_replacer__replace_at_position_vf(
 // @param what_length cannot be 0
 GIL_API u32 string_replacer__replace_word(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with,
@@ -86,6 +87,7 @@ GIL_API u32 string_replacer__replace_word(
 // @param what_length cannot be 0
 GIL_API u32 string_replacer__replace_word_f(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with_format,
@@ -96,6 +98,7 @@ GIL_API u32 string_replacer__replace_word_f(
 // @param what_length cannot be 0
 GIL_API u32 string_replacer__replace_word_vf(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with_format,

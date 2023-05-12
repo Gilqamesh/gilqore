@@ -21,7 +21,7 @@ endif
 clamp_static_objects			:= $(patsubst %.c, %_static.o, $(clamp_sources))
 clamp_shared_objects			:= $(patsubst %.c, %_shared.o, $(clamp_sources))
 clamp_depends					:= $(patsubst %.c, %.d, $(clamp_sources))
-clamp_depends_modules			:= 
+clamp_depends_modules			:= v2 v3 v4 
 clamp_depends_libs_shared		:= $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 # clamp_depends_libs_targets		:= $(foreach module,$(clamp_depends_modules),$(module)_all)
 clamp_clean_files				:=

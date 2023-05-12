@@ -327,33 +327,39 @@ static void def_file_add_error_codes_place_holder__create(
         error_code__exit(999);
     }
     string_replacer__clear(string_replacer, def_file_buffer, def_file_template_size);
-    // note: do this two times, because the string_replacer only replaces the first occurance of the word and not all occurances
+    u32 number_of_what_replacements = 2;
     string_replacer__replace_word_f(
         string_replacer,
+        number_of_what_replacements,
         module_defs_h, module_defs_h_len,
         "%s_DEFS_H", module_name_capitalized
     );
+
+    number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         string_replacer,
-        module_defs_h, module_defs_h_len,
-        "%s_DEFS_H", module_name_capitalized
-    );
-    string_replacer__replace_word_f(
-        string_replacer,
+        number_of_what_replacements,
         parent_module_name_defs, parent_module_name_defs_len,
         self->parent == NULL ? "\"%s\"" : "\"../%s_defs.h\"",
         self->parent == NULL ? "defs.h" : self->parent->basename
     );
+
+    number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         string_replacer,
+        number_of_what_replacements,
         module_error_codes_enum, module_error_codes_enum_len,
         "%s", self->basename
     );
+
+    number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         string_replacer,
+        number_of_what_replacements,
         module_error_code_enum_start, module_error_code_enum_start_len,
         "%s", module_name_capitalized
     );
+
     string_replacer__read_into_file(
         string_replacer,
         def_file,
@@ -514,8 +520,10 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
                     error_codes_buffer_size
                 );
                 parsed_unique_error_codes = true;
+                u32 number_of_what_replacements = 1;
                 string_replacer__replace_word_f(
                     string_replacer,
+                    number_of_what_replacements,
                     rest_of_the_error_codes, rest_of_the_error_codes_len,
                     "%s", error_codes_buffer
                 );
@@ -535,8 +543,10 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
         }
         file__close(&config_file);
     } else {
+        u32 number_of_what_replacements = 1;
         string_replacer__replace_word_f(
             string_replacer,
+            number_of_what_replacements,
             rest_of_the_error_codes, rest_of_the_error_codes_len,
             ""
         );
@@ -771,8 +781,16 @@ void module_compiler__embed_dependencies_into_makefile(
     u32 file_buffer_size,
     u32 dependencies_buffer_size
 ) {
-    // static const char modules_makefile_template_path[] = "";
-    // u32 modules_makefile_template_path_size;
+    // static const char modules_makefile_template_path[] = "misc/module_template.txt";
+    // u32 modules_makefile_template_path_size = ARRAY_SIZE(modules_makefile_template_path) - 1;
+    // struct file modules_makefile_template_file;
+    // TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, modules_makefile_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    // u32 bytes_read = file__read(&modules_makefile_template_file, file_buffer, file_buffer_size);
+    // if (bytes_read == file_buffer_size) {
+    //     // error_code__exit(FILE_BUFFER_TOO_SMALL);
+    //     error_code__exit(43825);
+    // }
+
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
         struct module* cur_module = &modules[module_index];
         libc__snprintf(
@@ -796,8 +814,10 @@ void module_compiler__embed_dependencies_into_makefile(
         string_replacer__clear(string_replacer, file_buffer, makefile_size);
         static const char module_dependency_replace_string[] = "$(MODULE_LIBDEP_MODULES)";
         static const u32 module_dependency_replace_string_len = ARRAY_SIZE(module_dependency_replace_string) - 1;
+        u32 number_of_what_replacements = 1;
         u32 new_makefile_size = string_replacer__replace_word(
             string_replacer,
+            number_of_what_replacements,
             module_dependency_replace_string,
             module_dependency_replace_string_len,
             dependencies_buffer,
@@ -843,8 +863,10 @@ void module_compiler__create_test_directories(
         static const u32 modules_directory_name_size = ARRAY_SIZE(modules_directory_name) - 1;
         static const u32 tests_directory_name_size = ARRAY_SIZE(tests_directory_name) - 1;
         string_replacer__clear(string_replacer, file_buffer, written_bytes + 1);
+        u32 number_of_what_replacements = 1;
         u32 bytes_to_write = string_replacer__replace_word(
             string_replacer,
+            number_of_what_replacements,
             modules_directory_name,
             modules_directory_name_size,
             tests_directory_name,

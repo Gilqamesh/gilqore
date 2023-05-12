@@ -214,12 +214,13 @@ u32 string_replacer__replace_at_position_vf(
 
 u32 string_replacer__replace_word(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with,
     u32 with_length
 ) {
-    if (what_length == 0) {
+    if (what_length == 0 || max_number_of_what_occurances == 0) {
         return self->current_str_len;
     }
 
@@ -228,7 +229,7 @@ u32 string_replacer__replace_word(
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
     u32 lag_index = 0;
-    for (u32 i = 0; self->original[i] != '\0'; ++i) {
+    for (u32 i = 0; max_number_of_what_occurances > 0 && self->original[i] != '\0'; ++i) {
         if (i == next_taken_what_index) {
             i += self->what_sizes[with_index] - 1;
             ++with_index;
@@ -251,26 +252,29 @@ u32 string_replacer__replace_word(
                     what_length
                 ) == 0
             ) {
-                return string_replacer__replace_at_position(
+                string_replacer__replace_at_position(
                     self,
                     what_position,
                     what_length,
                     with,
                     with_length
                 );
+                --max_number_of_what_occurances;
+                rolling_hash_value = 0;
+                lag_index = 0;
+                continue ;
             }
         }
 
         ++lag_index;
     }
 
-    // note: didn't found what
-
     return self->current_str_len;
 }
 
 u32 string_replacer__replace_word_f(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with_format,
@@ -282,6 +286,7 @@ u32 string_replacer__replace_word_f(
 
     u32 result = string_replacer__replace_word_vf(
         self,
+        max_number_of_what_occurances,
         what,
         what_length,
         with_format,
@@ -295,12 +300,13 @@ u32 string_replacer__replace_word_f(
 
 u32 string_replacer__replace_word_vf(
     struct string_replacer* self,
+    u32 max_number_of_what_occurances,
     const char* what,
     u32 what_length,
     const char* with_format,
     va_list ap
 ) {
-    if (what_length == 0) {
+    if (what_length == 0 || max_number_of_what_occurances == 0) {
         return self->current_str_len;
     }
 
@@ -309,7 +315,7 @@ u32 string_replacer__replace_word_vf(
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
     u32 lag_index = 0;
-    for (u32 i = 0; self->original[i] != '\0'; ++i) {
+    for (u32 i = 0; max_number_of_what_occurances > 0 && self->original[i] != '\0'; ++i) {
         if (i == next_taken_what_index) {
             i += self->what_sizes[with_index] - 1;
             ++with_index;
@@ -332,20 +338,22 @@ u32 string_replacer__replace_word_vf(
                     what_length
                 ) == 0
             ) {
-                return string_replacer__replace_at_position_vf(
+                string_replacer__replace_at_position_vf(
                     self,
                     what_position,
                     what_length,
                     with_format,
                     ap
                 );
+                --max_number_of_what_occurances;
+                rolling_hash_value = 0;
+                lag_index = 0;
+                continue ;
             }
         }
 
         ++lag_index;
     }
-
-    // note: didn't found what
 
     return self->current_str_len;
 }
