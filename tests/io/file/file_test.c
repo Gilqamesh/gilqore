@@ -128,7 +128,7 @@ int main() {
     file__close(&file);
 
     const char* copied_filename = "iafhdsiusdfha";
-    file__copy(copied_filename, filename);
+    TEST_FRAMEWORK_ASSERT(file__copy(copied_filename, filename));
     TEST_FRAMEWORK_ASSERT(file__exists(copied_filename));
     u64 file_size2;
     TEST_FRAMEWORK_ASSERT(file__size(filename, &file_size));

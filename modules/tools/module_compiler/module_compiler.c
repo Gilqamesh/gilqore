@@ -18,6 +18,7 @@
 #define CONFIG_EXTENSION "gmc"
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
+#define GITKEEP_PATH "modules/tools/module_compiler/platform_specific/windows/.gitkeep"
 
 #define MAX_NUMBER_OF_KEYS 10
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
@@ -547,113 +548,95 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
     u32 rest_of_the_error_codes_len,
     bool should_update_def_file
 ) {
-    static const char* config_file_template_path = "misc/gmc_file_template.txt";
     if (should_update_def_file) {
         string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
     }
 
     struct file config_file;
-    if (file__exists(config_file_name)) {
-        TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-        file_reader__clear(file_reader, &config_file);
-        bool parsed_unique_error_codes = false;
-        bool parsed_module_dependencies = false;
-        bool parsed_application_type = false;
-        while (
-            parsed_module_dependencies == false ||
-            parsed_unique_error_codes == false ||
-            parsed_application_type == false
-        ) {
-            parse_key_from_file(file_reader, auxiliary_buffer, auxiliary_buffer_size);
+    TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    file_reader__clear(file_reader, &config_file);
+    bool parsed_unique_error_codes = false;
+    bool parsed_module_dependencies = false;
+    bool parsed_application_type = false;
+    while (
+        parsed_module_dependencies == false ||
+        parsed_unique_error_codes == false ||
+        parsed_application_type == false
+    ) {
+        parse_key_from_file(file_reader, auxiliary_buffer, auxiliary_buffer_size);
 
-            if (libc__strcmp(auxiliary_buffer, KEY_UNIQUE_ERROR_CODES) == 0) {
-                parse_config_file_unique_error_codes(
-                    file_reader,
-                    file_writer,
-                    error_codes_file,
-                    module_name_capitalized,
-                    auxiliary_buffer,
-                    auxiliary_buffer_size,
-                    error_codes_buffer,
-                    error_codes_buffer_size
+        if (libc__strcmp(auxiliary_buffer, KEY_UNIQUE_ERROR_CODES) == 0) {
+            parse_config_file_unique_error_codes(
+                file_reader,
+                file_writer,
+                error_codes_file,
+                module_name_capitalized,
+                auxiliary_buffer,
+                auxiliary_buffer_size,
+                error_codes_buffer,
+                error_codes_buffer_size
+            );
+            parsed_unique_error_codes = true;
+            if (should_update_def_file) {
+                u32 number_of_what_replacements = 1;
+                string_replacer__replace_word_f(
+                    string_replacer,
+                    number_of_what_replacements,
+                    rest_of_the_error_codes, rest_of_the_error_codes_len,
+                    "%s", error_codes_buffer
                 );
-                parsed_unique_error_codes = true;
-                if (should_update_def_file) {
-                    u32 number_of_what_replacements = 1;
-                    string_replacer__replace_word_f(
-                        string_replacer,
-                        number_of_what_replacements,
-                        rest_of_the_error_codes, rest_of_the_error_codes_len,
-                        "%s", error_codes_buffer
-                    );
-                }
-            } else if (libc__strcmp(auxiliary_buffer, KEY_MODULE_DEPENDENCIES) == 0) {
-                parse_config_file_dependencies(
-                    self,
-                    file_reader,
-                    auxiliary_buffer,
-                    auxiliary_buffer_size
+            }
+        } else if (libc__strcmp(auxiliary_buffer, KEY_MODULE_DEPENDENCIES) == 0) {
+            parse_config_file_dependencies(
+                self,
+                file_reader,
+                auxiliary_buffer,
+                auxiliary_buffer_size
+            );
+            parsed_module_dependencies = true;
+        } else if (libc__strcmp(auxiliary_buffer, KEY_APPLICATION_TYPE) == 0) {
+            parse_config_file_application_type(
+                self,
+                file_reader,
+                auxiliary_buffer,
+                auxiliary_buffer_size
+            );
+            parsed_application_type = true;
+        } else {
+            file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
+            if (parsed_module_dependencies == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: \n",
+                    KEY_MODULE_DEPENDENCIES
                 );
                 parsed_module_dependencies = true;
-            } else if (libc__strcmp(auxiliary_buffer, KEY_APPLICATION_TYPE) == 0) {
-                parse_config_file_application_type(
-                    self,
-                    file_reader,
-                    auxiliary_buffer,
-                    auxiliary_buffer_size
+            }
+            if (parsed_unique_error_codes == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: [\n"
+                    "]\n",
+                    KEY_UNIQUE_ERROR_CODES
+                );
+                parsed_unique_error_codes = true;
+            }
+            if (parsed_application_type == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: %s\n",
+                    KEY_APPLICATION_TYPE, VALUE_APPLICATION_TYPE_DEFAULT
                 );
                 parsed_application_type = true;
-            } else {
-                file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
-                if (parsed_module_dependencies == false) {
-                    file_writer__write_format(
-                        file_writer,
-                        &config_file,
-                        "%s: \n",
-                        KEY_MODULE_DEPENDENCIES
-                    );
-                    parsed_module_dependencies = true;
-                }
-                if (parsed_unique_error_codes == false) {
-                    file_writer__write_format(
-                        file_writer,
-                        &config_file,
-                        "%s: [\n"
-                        "]\n",
-                        KEY_UNIQUE_ERROR_CODES
-                    );
-                    parsed_unique_error_codes = true;
-                }
-                if (parsed_application_type == false) {
-                    file_writer__write_format(
-                        file_writer,
-                        &config_file,
-                        "%s: %s\n",
-                        KEY_APPLICATION_TYPE, VALUE_APPLICATION_TYPE_DEFAULT
-                    );
-                    parsed_application_type = true;
-                }
-                printf("Updated .gmc file for module %s\n", self->basename);
             }
-        }
-        file__close(&config_file);
-    } else {
-        if (should_update_def_file) {
-            u32 number_of_what_replacements = 1;
-            string_replacer__replace_word_f(
-                string_replacer,
-                number_of_what_replacements,
-                rest_of_the_error_codes, rest_of_the_error_codes_len,
-                ""
-            );
-        }
-
-        file__copy(config_file_name, config_file_template_path);
-
-        for (u32 dep_index = 0; dep_index < ARRAY_SIZE(self->dependencies); ++dep_index) {
-            self->dependencies[dep_index] = NULL;
+            printf("Updated .gmc file for module %s\n", self->basename);
         }
     }
+    file__close(&config_file);
+
     if (should_update_def_file) {
         TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
         string_replacer__read_into_file(
@@ -715,6 +698,13 @@ void module_compiler__parse_config_file(
         // error_code__exit(CONFIG_FILE_NAME_BUFFER_TOO_SMALL);
         error_code__exit(867);
     }
+
+    static const char* config_file_template_path = "misc/gmc_file_template.txt";
+    if (file__exists(config_file_name_buffer) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, config_file_template_path));
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
+    // todo: parse out .gmc key/values    
 
     // note: string_replacer doesn't support replacing replacements, so I do this in two write steps if the def_file doesn't exist
     // first, I replace the template, then write it out to the def file
@@ -814,34 +804,136 @@ void module_compiler__parse_config_file(
 //     string__to_upper(module_name_capitalized);
 }
 
+static void assert_create_dir(
+    char* buffer,
+    u32 buffer_size,
+    const char* format,
+    ...
+) {
+    va_list ap;
+    
+    va_start(ap, format);
+    u32 bytes_written = libc__vsnprintf(buffer, buffer_size, format, ap);
+    va_end(ap);
+
+    if (bytes_written == buffer_size) {
+        // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
+        error_code__exit(354553);
+    };
+    if (file__exists(buffer) == false) {
+        TEST_FRAMEWORK_ASSERT(directory__create(buffer));
+        printf("Directory created: %s\n", buffer);
+    }
+}
+
+static void assert_create_gitkeep(
+    char* buffer,
+    u32 buffer_size,
+    const char* format,
+    ...
+) {
+    va_list ap;
+
+    va_start(ap, format);
+    u32 bytes_written = libc__vsnprintf(buffer, buffer_size, format, ap);
+    va_end(ap);
+
+    if (bytes_written == buffer_size) {
+        // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
+        error_code__exit(354553);
+    };
+    if (file__exists(buffer) == false) {
+        TEST_FRAMEWORK_ASSERT(
+            file__copy(
+                buffer,
+                GITKEEP_PATH
+            )
+        );
+        printf("File created: %s\n", buffer);
+    }
+}
+
+static void update_platform_specific_directories(
+    const char* path,
+    char* buffer,
+    u32 buffer_size
+) {
+    assert_create_dir(
+        buffer,
+        buffer_size,
+        "%s/%s",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_dir(
+        buffer,
+        buffer_size,
+        "%s/%s/windows",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_gitkeep(
+        buffer,
+        buffer_size,
+        "%s/%s/windows/.gitkeep",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_dir(
+        buffer,
+        buffer_size,
+        "%s/%s/linux",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_gitkeep(
+        buffer,
+        buffer_size,
+        "%s/%s/linux/.gitkeep",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_dir(
+        buffer,
+        buffer_size,
+        "%s/%s/mac",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+    assert_create_gitkeep(
+        buffer,
+        buffer_size,
+        "%s/%s/mac/.gitkeep",
+        path, PLATFORM_SPECIFIC_FOLDER_NAME
+    );
+}
+
 // @returns true if path is a module
 // @note as a side effect, also adds the module to its parent
 bool is_module_path(const char* path) {
+    static char auxiliary_buffer[512];
+
     char* last_backslash = libc__strrchr(path, '/');
     if (last_backslash == NULL) {
         return false;
     }
-
     char* basename = last_backslash + 1;
     if (libc__strcmp(PLATFORM_SPECIFIC_FOLDER_NAME, basename) == 0) {
         return false;
     }
+
+    update_platform_specific_directories(path, auxiliary_buffer, ARRAY_SIZE(auxiliary_buffer));
+
     char* second_last_backslash = string__strrchr_n(path, '/', 2);
     if (second_last_backslash == NULL) {
         second_last_backslash = (char*) path;
     } else {
         ++second_last_backslash;
     }
-    static char parent_basename[512];
     u32 bytes_to_write = last_backslash - second_last_backslash + 1;
-    TEST_FRAMEWORK_ASSERT(bytes_to_write < ARRAY_SIZE(parent_basename));
+    TEST_FRAMEWORK_ASSERT(bytes_to_write < ARRAY_SIZE(auxiliary_buffer));
+    // note: parent's basename, so for module "file" its parent's basename would be "io"
     libc__snprintf(
-        parent_basename,
+        auxiliary_buffer,
         bytes_to_write,
         "%s",
         second_last_backslash
     );
-    struct module* parent = module_compiler__find_module_by_name(g_modules, parent_basename, *g_modules_size_cur);
+    struct module* parent = module_compiler__find_module_by_name(g_modules, auxiliary_buffer, *g_modules_size_cur);
     TEST_FRAMEWORK_ASSERT(parent != NULL);
     module_compiler__add_child(g_modules, parent, basename, g_modules_size_cur, g_modules_size_max);
 

@@ -53,7 +53,7 @@ GIL_API bool file__stat(const char* path, enum file_type* file_type);
 GIL_API bool file__size(const char* path, u64* file_size);
 // @brief copies the source file to the destination path
 // @note if dest exists, its contents will be overwritten
-GIL_API void file__copy(const char* dest_path, const char* src_path);
+GIL_API bool file__copy(const char* dest_path, const char* src_path);
 
 enum file_seek_type {
     FILE_SEEK_TYPE_BEGIN,

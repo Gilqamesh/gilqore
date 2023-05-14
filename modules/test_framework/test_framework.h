@@ -7,7 +7,7 @@
 
 # include <stdio.h>
 
-# define TEST_FRAMEWORK_ASSERT(condition) {\
+# define TEST_FRAMEWORK_ASSERT(condition) { \
     if((condition) == false) { \
         printf("Assertion failed: %s, file %s, line %d\n", #condition, __FILE__, __LINE__); \
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_ASSERT); \
