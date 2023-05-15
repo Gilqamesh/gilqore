@@ -8,11 +8,9 @@ console_test_install_path_static		        := $(console_test_path_curdir)console_
 console_test_sources					        := $(wildcard $(console_test_path_curdir)*.c)
 console_test_objects					        := $(patsubst %.c, %.o, $(console_test_sources))
 console_test_depends					        := $(patsubst %.c, %.d, $(console_test_sources))
-console_test_depends_modules			        := libc
-# console_test_depends_modules			        += test_framework
+console_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 console_test_depends_modules			        += console
 console_test_libdepend_static_objs	        := $(foreach dep_module,$(console_depends_modules),$($(dep_module)_static_objects))
-console_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(console_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 console_test_libdepend_static_objs	        += $(foreach dep_module,$(console_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(console_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(console_test_child_makefiles)
 $(console_test_path_curdir)%.o: $(console_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(console_test_install_path_static): $(console_test_libdepend_static_objs)
-$(console_test_install_path_static): $(console_test_objects)
+$(console_test_install_path_static): $(console_test_objects) $(console_test_libdepend_static_objs)
 	$(CC) -o $@ $(console_test_objects) -Wl,--allow-multiple-definition $(console_test_libdepend_static_objs) $(LFLAGS_COMMON) -mwindows
 
 .PHONY: console_test_all

@@ -8,11 +8,9 @@ circular_buffer_test_install_path_static		        := $(circular_buffer_test_path
 circular_buffer_test_sources					        := $(wildcard $(circular_buffer_test_path_curdir)*.c)
 circular_buffer_test_objects					        := $(patsubst %.c, %.o, $(circular_buffer_test_sources))
 circular_buffer_test_depends					        := $(patsubst %.c, %.d, $(circular_buffer_test_sources))
-circular_buffer_test_depends_modules			        := libc random mod
-# circular_buffer_test_depends_modules			        += test_framework
+circular_buffer_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 circular_buffer_test_depends_modules			        += circular_buffer
 circular_buffer_test_libdepend_static_objs	        := $(foreach dep_module,$(circular_buffer_depends_modules),$($(dep_module)_static_objects))
-circular_buffer_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(circular_buffer_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 circular_buffer_test_libdepend_static_objs	        += $(foreach dep_module,$(circular_buffer_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(circular_buffer_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(circular_buffer_test_child_makefiles)
 $(circular_buffer_test_path_curdir)%.o: $(circular_buffer_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(circular_buffer_test_install_path_static): $(circular_buffer_test_libdepend_static_objs)
-$(circular_buffer_test_install_path_static): $(circular_buffer_test_objects)
+$(circular_buffer_test_install_path_static): $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_static_objs)
 	$(CC) -o $@ $(circular_buffer_test_objects) -Wl,--allow-multiple-definition $(circular_buffer_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: circular_buffer_test_all

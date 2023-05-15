@@ -8,11 +8,9 @@ sqrt_test_install_path_static		        := $(sqrt_test_path_curdir)sqrt_static$(E
 sqrt_test_sources					        := $(wildcard $(sqrt_test_path_curdir)*.c)
 sqrt_test_objects					        := $(patsubst %.c, %.o, $(sqrt_test_sources))
 sqrt_test_depends					        := $(patsubst %.c, %.d, $(sqrt_test_sources))
-sqrt_test_depends_modules			        := 
-# sqrt_test_depends_modules			        += test_framework
+sqrt_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 sqrt_test_depends_modules			        += sqrt
 sqrt_test_libdepend_static_objs	        := $(foreach dep_module,$(sqrt_depends_modules),$($(dep_module)_static_objects))
-sqrt_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(sqrt_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 sqrt_test_libdepend_static_objs	        += $(foreach dep_module,$(sqrt_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(sqrt_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(sqrt_test_child_makefiles)
 $(sqrt_test_path_curdir)%.o: $(sqrt_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(sqrt_test_install_path_static): $(sqrt_test_libdepend_static_objs)
-$(sqrt_test_install_path_static): $(sqrt_test_objects)
+$(sqrt_test_install_path_static): $(sqrt_test_objects) $(sqrt_test_libdepend_static_objs)
 	$(CC) -o $@ $(sqrt_test_objects) -Wl,--allow-multiple-definition $(sqrt_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: sqrt_test_all

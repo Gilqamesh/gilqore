@@ -1,0 +1,5 @@
+unique_error_codes: [
+    BUFFER_TOO_SMALL: Buffer is too small or file is too long in file_path__create
+]
+module_dependencies: libc
+application_type: CONSOLE

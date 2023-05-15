@@ -8,11 +8,9 @@ time_test_install_path_static		        := $(time_test_path_curdir)time_static$(E
 time_test_sources					        := $(wildcard $(time_test_path_curdir)*.c)
 time_test_objects					        := $(patsubst %.c, %.o, $(time_test_sources))
 time_test_depends					        := $(patsubst %.c, %.d, $(time_test_sources))
-time_test_depends_modules			        := system
-# time_test_depends_modules			        += test_framework
+time_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 time_test_depends_modules			        += time
 time_test_libdepend_static_objs	        := $(foreach dep_module,$(time_depends_modules),$($(dep_module)_static_objects))
-time_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(time_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 time_test_libdepend_static_objs	        += $(foreach dep_module,$(time_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(time_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(time_test_child_makefiles)
 $(time_test_path_curdir)%.o: $(time_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(time_test_install_path_static): $(time_test_libdepend_static_objs)
-$(time_test_install_path_static): $(time_test_objects)
+$(time_test_install_path_static): $(time_test_objects) $(time_test_libdepend_static_objs)
 	$(CC) -o $@ $(time_test_objects) -Wl,--allow-multiple-definition $(time_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: time_test_all

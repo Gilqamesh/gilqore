@@ -8,11 +8,9 @@ thread_test_install_path_static		        := $(thread_test_path_curdir)thread_sta
 thread_test_sources					        := $(wildcard $(thread_test_path_curdir)*.c)
 thread_test_objects					        := $(patsubst %.c, %.o, $(thread_test_sources))
 thread_test_depends					        := $(patsubst %.c, %.d, $(thread_test_sources))
-thread_test_depends_modules			        := 
-# thread_test_depends_modules			        += test_framework
+thread_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 thread_test_depends_modules			        += thread
 thread_test_libdepend_static_objs	        := $(foreach dep_module,$(thread_depends_modules),$($(dep_module)_static_objects))
-thread_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(thread_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 thread_test_libdepend_static_objs	        += $(foreach dep_module,$(thread_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(thread_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(thread_test_child_makefiles)
 $(thread_test_path_curdir)%.o: $(thread_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(thread_test_install_path_static): $(thread_test_libdepend_static_objs)
-$(thread_test_install_path_static): $(thread_test_objects)
+$(thread_test_install_path_static): $(thread_test_objects) $(thread_test_libdepend_static_objs)
 	$(CC) -o $@ $(thread_test_objects) -Wl,--allow-multiple-definition $(thread_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: thread_test_all

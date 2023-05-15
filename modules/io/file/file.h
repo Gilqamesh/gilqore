@@ -5,8 +5,6 @@
 
 # include "file_defs.h"
 
-struct file;
-
 struct time;
 
 # if defined(WINDOWS)

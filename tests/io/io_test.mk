@@ -8,11 +8,9 @@ io_test_install_path_static		        := $(io_test_path_curdir)io_static$(EXT_EXE
 io_test_sources					        := $(wildcard $(io_test_path_curdir)*.c)
 io_test_objects					        := $(patsubst %.c, %.o, $(io_test_sources))
 io_test_depends					        := $(patsubst %.c, %.d, $(io_test_sources))
-io_test_depends_modules			        := 
-# io_test_depends_modules			        += test_framework
+io_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 io_test_depends_modules			        += io
 io_test_libdepend_static_objs	        := $(foreach dep_module,$(io_depends_modules),$($(dep_module)_static_objects))
-io_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(io_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 io_test_libdepend_static_objs	        += $(foreach dep_module,$(io_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(io_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(io_test_child_makefiles)
 $(io_test_path_curdir)%.o: $(io_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(io_test_install_path_static): $(io_test_libdepend_static_objs)
-$(io_test_install_path_static): $(io_test_objects)
+$(io_test_install_path_static): $(io_test_objects) $(io_test_libdepend_static_objs)
 	$(CC) -o $@ $(io_test_objects) -Wl,--allow-multiple-definition $(io_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: io_test_all

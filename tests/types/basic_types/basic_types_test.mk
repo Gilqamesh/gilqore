@@ -8,11 +8,9 @@ basic_types_test_install_path_static		        := $(basic_types_test_path_curdir)
 basic_types_test_sources					        := $(wildcard $(basic_types_test_path_curdir)*.c)
 basic_types_test_objects					        := $(patsubst %.c, %.o, $(basic_types_test_sources))
 basic_types_test_depends					        := $(patsubst %.c, %.d, $(basic_types_test_sources))
-basic_types_test_depends_modules			        := math
-# basic_types_test_depends_modules			        += test_framework
+basic_types_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 basic_types_test_depends_modules			        += basic_types
 basic_types_test_libdepend_static_objs	        := $(foreach dep_module,$(basic_types_depends_modules),$($(dep_module)_static_objects))
-basic_types_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(basic_types_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 basic_types_test_libdepend_static_objs	        += $(foreach dep_module,$(basic_types_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(basic_types_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(basic_types_test_child_makefiles)
 $(basic_types_test_path_curdir)%.o: $(basic_types_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(basic_types_test_install_path_static): $(basic_types_test_libdepend_static_objs)
-$(basic_types_test_install_path_static): $(basic_types_test_objects)
+$(basic_types_test_install_path_static): $(basic_types_test_objects) $(basic_types_test_libdepend_static_objs)
 	$(CC) -o $@ $(basic_types_test_objects) -Wl,--allow-multiple-definition $(basic_types_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: basic_types_test_all

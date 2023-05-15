@@ -8,11 +8,9 @@ file_test_install_path_static		        := $(file_test_path_curdir)file_static$(E
 file_test_sources					        := $(wildcard $(file_test_path_curdir)*.c)
 file_test_objects					        := $(patsubst %.c, %.o, $(file_test_sources))
 file_test_depends					        := $(patsubst %.c, %.d, $(file_test_sources))
-file_test_depends_modules			        := libc random time compare
-# file_test_depends_modules			        += test_framework
+file_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 file_test_depends_modules			        += file
 file_test_libdepend_static_objs	        := $(foreach dep_module,$(file_depends_modules),$($(dep_module)_static_objects))
-file_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(file_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 file_test_libdepend_static_objs	        += $(foreach dep_module,$(file_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(file_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(file_test_child_makefiles)
 $(file_test_path_curdir)%.o: $(file_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(file_test_install_path_static): $(file_test_libdepend_static_objs)
-$(file_test_install_path_static): $(file_test_objects)
+$(file_test_install_path_static): $(file_test_objects) $(file_test_libdepend_static_objs)
 	$(CC) -o $@ $(file_test_objects) -Wl,--allow-multiple-definition $(file_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: file_test_all

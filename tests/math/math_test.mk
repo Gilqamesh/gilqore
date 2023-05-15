@@ -8,11 +8,9 @@ math_test_install_path_static		        := $(math_test_path_curdir)math_static$(E
 math_test_sources					        := $(wildcard $(math_test_path_curdir)*.c)
 math_test_objects					        := $(patsubst %.c, %.o, $(math_test_sources))
 math_test_depends					        := $(patsubst %.c, %.d, $(math_test_sources))
-math_test_depends_modules			        := 
-# math_test_depends_modules			        += test_framework
+math_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 math_test_depends_modules			        += math
 math_test_libdepend_static_objs	        := $(foreach dep_module,$(math_depends_modules),$($(dep_module)_static_objects))
-math_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(math_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 math_test_libdepend_static_objs	        += $(foreach dep_module,$(math_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(math_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(math_test_child_makefiles)
 $(math_test_path_curdir)%.o: $(math_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(math_test_install_path_static): $(math_test_libdepend_static_objs)
-$(math_test_install_path_static): $(math_test_objects)
+$(math_test_install_path_static): $(math_test_objects) $(math_test_libdepend_static_objs)
 	$(CC) -o $@ $(math_test_objects) -Wl,--allow-multiple-definition $(math_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: math_test_all

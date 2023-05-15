@@ -8,11 +8,9 @@ vector_types_test_install_path_static		        := $(vector_types_test_path_curdi
 vector_types_test_sources					        := $(wildcard $(vector_types_test_path_curdir)*.c)
 vector_types_test_objects					        := $(patsubst %.c, %.o, $(vector_types_test_sources))
 vector_types_test_depends					        := $(patsubst %.c, %.d, $(vector_types_test_sources))
-vector_types_test_depends_modules			        := 
-# vector_types_test_depends_modules			        += test_framework
+vector_types_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 vector_types_test_depends_modules			        += vector_types
 vector_types_test_libdepend_static_objs	        := $(foreach dep_module,$(vector_types_depends_modules),$($(dep_module)_static_objects))
-vector_types_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(vector_types_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 vector_types_test_libdepend_static_objs	        += $(foreach dep_module,$(vector_types_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(vector_types_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(vector_types_test_child_makefiles)
 $(vector_types_test_path_curdir)%.o: $(vector_types_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(vector_types_test_install_path_static): $(vector_types_test_libdepend_static_objs)
-$(vector_types_test_install_path_static): $(vector_types_test_objects)
+$(vector_types_test_install_path_static): $(vector_types_test_objects) $(vector_types_test_libdepend_static_objs)
 	$(CC) -o $@ $(vector_types_test_objects) -Wl,--allow-multiple-definition $(vector_types_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: vector_types_test_all

@@ -8,11 +8,9 @@ v2_test_install_path_static		        := $(v2_test_path_curdir)v2_static$(EXT_EXE
 v2_test_sources					        := $(wildcard $(v2_test_path_curdir)*.c)
 v2_test_objects					        := $(patsubst %.c, %.o, $(v2_test_sources))
 v2_test_depends					        := $(patsubst %.c, %.d, $(v2_test_sources))
-v2_test_depends_modules			        := 
-# v2_test_depends_modules			        += test_framework
+v2_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 v2_test_depends_modules			        += v2
 v2_test_libdepend_static_objs	        := $(foreach dep_module,$(v2_depends_modules),$($(dep_module)_static_objects))
-v2_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(v2_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 v2_test_libdepend_static_objs	        += $(foreach dep_module,$(v2_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(v2_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(v2_test_child_makefiles)
 $(v2_test_path_curdir)%.o: $(v2_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(v2_test_install_path_static): $(v2_test_libdepend_static_objs)
-$(v2_test_install_path_static): $(v2_test_objects)
+$(v2_test_install_path_static): $(v2_test_objects) $(v2_test_libdepend_static_objs)
 	$(CC) -o $@ $(v2_test_objects) -Wl,--allow-multiple-definition $(v2_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: v2_test_all

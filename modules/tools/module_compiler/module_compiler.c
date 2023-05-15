@@ -19,6 +19,7 @@
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 #define GITKEEP_PATH "modules/tools/module_compiler/platform_specific/windows/.gitkeep"
+#define CONFIG_FILE_TEMPLATE_PATH "misc/gmc_file_template.txt"
 
 #define MAX_NUMBER_OF_KEYS 10
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
@@ -699,9 +700,8 @@ void module_compiler__parse_config_file(
         error_code__exit(867);
     }
 
-    static const char* config_file_template_path = "misc/gmc_file_template.txt";
     if (file__exists(config_file_name_buffer) == false) {
-        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, config_file_template_path));
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, CONFIG_FILE_TEMPLATE_PATH));
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
     // todo: parse out .gmc key/values    
@@ -1046,12 +1046,13 @@ void module_compiler__embed_dependencies_into_makefile(
             libc__strlen(cur_module->application_type)
         );
 
-        libc__snprintf(
+        u32 written_bytes = libc__snprintf(
             file_path_buffer,
             file_path_buffer_size,
             "%s/%s.mk",
             cur_module->dirprefix, cur_module->basename
         );
+        TEST_FRAMEWORK_ASSERT(written_bytes < file_path_buffer_size);
         struct file makefile;
         TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
         // replace  with dependency->basename in makefile
@@ -1069,11 +1070,13 @@ void module_compiler__embed_dependencies_into_makefile(
 void module_compiler__create_test_directories(
     char* file_path_buffer,
     char* file_buffer,
+    char* auxiliary_buffer,
     struct string_replacer* string_replacer,
     struct module* modules,
     u32 modules_size,
     u32 file_path_buffer_size,
-    u32 file_buffer_size
+    u32 file_buffer_size,
+    u32 auxiliary_buffer_size
 ) {
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
         struct module* cur_module = &modules[module_index];
@@ -1114,7 +1117,26 @@ void module_compiler__create_test_directories(
 
         if (directory__create(file_path_buffer) == true) {
             printf("Test directory created: %s\n", file_path_buffer);
+            assert_create_gitkeep(
+                auxiliary_buffer,
+                auxiliary_buffer_size,
+                "%s/.gitkeep",
+                file_path_buffer
+            );
         }
+        TEST_FRAMEWORK_ASSERT(
+            (u32) libc__snprintf(
+                auxiliary_buffer,
+                auxiliary_buffer_size,
+                "%s/%s.gmc",
+                file_path_buffer, cur_module->basename
+            ) < auxiliary_buffer_size
+        );
+        if (file__exists(auxiliary_buffer) == false) {
+            TEST_FRAMEWORK_ASSERT(file__copy(auxiliary_buffer, CONFIG_FILE_TEMPLATE_PATH));
+            printf("Config file created: %s\n", auxiliary_buffer);
+        }
+        // struct file config_file;
     }
 }
 
@@ -1141,6 +1163,8 @@ void module_compiler__compile(void) {
     char* file_buffer = libc__malloc(file_buffer_size);
     u32 dependencies_buffer_size = ARRAY_SIZE_MEMBER(struct module, basename) * g_modules_size_max / 2;
     char* dependencies_buffer = libc__malloc(dependencies_buffer_size);
+    u32 auxiliary_buffer_size = 1024;
+    char* auxiliary_buffer = libc__malloc(auxiliary_buffer_size);
 
     struct module* parent_module = &modules[cur_number_of_modules++];
     libc__strncpy(parent_module->dirprefix, "modules", ARRAY_SIZE(parent_module->basename));
@@ -1151,17 +1175,19 @@ void module_compiler__compile(void) {
 
     module_compiler__parse_config_file_recursive(parent_module);
 
+    module_compiler__check_cyclic_dependency(parent_module, modules, cur_number_of_modules);
+
     module_compiler__create_test_directories(
         file_path_buffer,
         file_buffer,
+        auxiliary_buffer,
         &string_replacer,
         modules,
         cur_number_of_modules,
         file_path_buffer_size,
-        file_buffer_size
+        file_buffer_size,
+        auxiliary_buffer_size
     );
-
-    module_compiler__check_cyclic_dependency(parent_module, modules, cur_number_of_modules);
 
     module_compiler__embed_dependencies_into_makefile(
         modules,

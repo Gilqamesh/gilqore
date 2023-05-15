@@ -8,11 +8,9 @@ riff_test_install_path_static		        := $(riff_test_path_curdir)riff_static$(E
 riff_test_sources					        := $(wildcard $(riff_test_path_curdir)*.c)
 riff_test_objects					        := $(patsubst %.c, %.o, $(riff_test_sources))
 riff_test_depends					        := $(patsubst %.c, %.d, $(riff_test_sources))
-riff_test_depends_modules			        := 
-# riff_test_depends_modules			        += test_framework
+riff_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 riff_test_depends_modules			        += riff
 riff_test_libdepend_static_objs	        := $(foreach dep_module,$(riff_depends_modules),$($(dep_module)_static_objects))
-riff_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(riff_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 riff_test_libdepend_static_objs	        += $(foreach dep_module,$(riff_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(riff_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(riff_test_child_makefiles)
 $(riff_test_path_curdir)%.o: $(riff_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(riff_test_install_path_static): $(riff_test_libdepend_static_objs)
-$(riff_test_install_path_static): $(riff_test_objects)
+$(riff_test_install_path_static): $(riff_test_objects) $(riff_test_libdepend_static_objs)
 	$(CC) -o $@ $(riff_test_objects) -Wl,--allow-multiple-definition $(riff_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: riff_test_all

@@ -8,11 +8,9 @@ graphics_test_install_path_static		        := $(graphics_test_path_curdir)graphi
 graphics_test_sources					        := $(wildcard $(graphics_test_path_curdir)*.c)
 graphics_test_objects					        := $(patsubst %.c, %.o, $(graphics_test_sources))
 graphics_test_depends					        := $(patsubst %.c, %.d, $(graphics_test_sources))
-graphics_test_depends_modules			        := 
-# graphics_test_depends_modules			        += test_framework
+graphics_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 graphics_test_depends_modules			        += graphics
 graphics_test_libdepend_static_objs	        := $(foreach dep_module,$(graphics_depends_modules),$($(dep_module)_static_objects))
-graphics_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(graphics_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 graphics_test_libdepend_static_objs	        += $(foreach dep_module,$(graphics_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(graphics_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(graphics_test_child_makefiles)
 $(graphics_test_path_curdir)%.o: $(graphics_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(graphics_test_install_path_static): $(graphics_test_libdepend_static_objs)
-$(graphics_test_install_path_static): $(graphics_test_objects)
+$(graphics_test_install_path_static): $(graphics_test_objects) $(graphics_test_libdepend_static_objs)
 	$(CC) -o $@ $(graphics_test_objects) -Wl,--allow-multiple-definition $(graphics_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: graphics_test_all

@@ -8,11 +8,9 @@ abs_test_install_path_static		        := $(abs_test_path_curdir)abs_static$(EXT_
 abs_test_sources					        := $(wildcard $(abs_test_path_curdir)*.c)
 abs_test_objects					        := $(patsubst %.c, %.o, $(abs_test_sources))
 abs_test_depends					        := $(patsubst %.c, %.d, $(abs_test_sources))
-abs_test_depends_modules			        := 
-# abs_test_depends_modules			        += test_framework
+abs_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 abs_test_depends_modules			        += abs
 abs_test_libdepend_static_objs	        := $(foreach dep_module,$(abs_depends_modules),$($(dep_module)_static_objects))
-abs_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(abs_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 abs_test_libdepend_static_objs	        += $(foreach dep_module,$(abs_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(abs_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(abs_test_child_makefiles)
 $(abs_test_path_curdir)%.o: $(abs_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(abs_test_install_path_static): $(abs_test_libdepend_static_objs)
-$(abs_test_install_path_static): $(abs_test_objects)
+$(abs_test_install_path_static): $(abs_test_objects) $(abs_test_libdepend_static_objs)
 	$(CC) -o $@ $(abs_test_objects) -Wl,--allow-multiple-definition $(abs_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: abs_test_all

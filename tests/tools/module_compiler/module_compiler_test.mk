@@ -8,11 +8,9 @@ module_compiler_test_install_path_static		        := $(module_compiler_test_path
 module_compiler_test_sources					        := $(wildcard $(module_compiler_test_path_curdir)*.c)
 module_compiler_test_objects					        := $(patsubst %.c, %.o, $(module_compiler_test_sources))
 module_compiler_test_depends					        := $(patsubst %.c, %.d, $(module_compiler_test_sources))
-module_compiler_test_depends_modules			        := file_reader string_replacer hash common mod
-# module_compiler_test_depends_modules			        += test_framework
+module_compiler_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 module_compiler_test_depends_modules			        += module_compiler
 module_compiler_test_libdepend_static_objs	        := $(foreach dep_module,$(module_compiler_depends_modules),$($(dep_module)_static_objects))
-module_compiler_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(module_compiler_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 module_compiler_test_libdepend_static_objs	        += $(foreach dep_module,$(module_compiler_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(module_compiler_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(module_compiler_test_child_makefiles)
 $(module_compiler_test_path_curdir)%.o: $(module_compiler_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(module_compiler_test_install_path_static): $(module_compiler_test_libdepend_static_objs)
-$(module_compiler_test_install_path_static): $(module_compiler_test_objects)
+$(module_compiler_test_install_path_static): $(module_compiler_test_objects) $(module_compiler_test_libdepend_static_objs)
 	$(CC) -o $@ $(module_compiler_test_objects) -Wl,--allow-multiple-definition $(module_compiler_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: module_compiler_test_all

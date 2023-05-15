@@ -8,11 +8,9 @@ file_writer_test_install_path_static		        := $(file_writer_test_path_curdir)
 file_writer_test_sources					        := $(wildcard $(file_writer_test_path_curdir)*.c)
 file_writer_test_objects					        := $(patsubst %.c, %.o, $(file_writer_test_sources))
 file_writer_test_depends					        := $(patsubst %.c, %.d, $(file_writer_test_sources))
-file_writer_test_depends_modules			        := file_writer file libc common
-# file_writer_test_depends_modules			        += test_framework
+file_writer_test_depends_modules			        := $(MODULE_LIBDEP_MODULES)
 file_writer_test_depends_modules			        += file_writer
 file_writer_test_libdepend_static_objs	        := $(foreach dep_module,$(file_writer_depends_modules),$($(dep_module)_static_objects))
-file_writer_test_libdepend_static_objs	        += $(foreach dep_module,$(foreach m,$(file_writer_test_depends_modules),$($(m)_depends_modules)),$($(dep_module)_static_objects))
 file_writer_test_libdepend_static_objs	        += $(foreach dep_module,$(file_writer_test_depends_modules),$($(dep_module)_static_objects))
 
 include $(file_writer_test_child_makefiles)
@@ -20,8 +18,7 @@ include $(file_writer_test_child_makefiles)
 $(file_writer_test_path_curdir)%.o: $(file_writer_test_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(file_writer_test_install_path_static): $(file_writer_test_libdepend_static_objs)
-$(file_writer_test_install_path_static): $(file_writer_test_objects)
+$(file_writer_test_install_path_static): $(file_writer_test_objects) $(file_writer_test_libdepend_static_objs)
 	$(CC) -o $@ $(file_writer_test_objects) -Wl,--allow-multiple-definition $(file_writer_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: file_writer_test_all
