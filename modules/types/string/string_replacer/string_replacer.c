@@ -229,21 +229,26 @@ u32 string_replacer__replace_word(
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
     u32 lag_index = 0;
-    for (u32 i = 0; max_number_of_what_occurances > 0 && self->original[i] != '\0'; ++i) {
-        if (i == next_taken_what_index) {
-            i += self->what_sizes[with_index] - 1;
+    u32 original_index = 0;
+    while (
+        max_number_of_what_occurances > 0 &&
+        original_index < self->original_str_len
+    ) {
+        if (original_index == next_taken_what_index) {
+            original_index += self->what_sizes[with_index] - 1;
             ++with_index;
             next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
             rolling_hash_value = 0;
             lag_index = 0;
+            ++original_index;
             continue ;
         }
-        rolling_hash_value += self->original[i];
+        rolling_hash_value += self->original[original_index];
         if (lag_index + 1 >= what_length) {
             if (lag_index >= what_length) {
-                rolling_hash_value -= self->original[i - what_length];
+                rolling_hash_value -= self->original[original_index - what_length];
             }
-            u32 what_position = i + 1 - what_length;
+            u32 what_position = original_index + 1 - what_length;
             if (
                 rolling_hash_value == hash_value &&
                 libc__strncmp(
@@ -262,11 +267,13 @@ u32 string_replacer__replace_word(
                 --max_number_of_what_occurances;
                 rolling_hash_value = 0;
                 lag_index = 0;
+                ++original_index;
                 continue ;
             }
         }
 
         ++lag_index;
+        ++original_index;
     }
 
     return self->current_str_len;
@@ -315,21 +322,26 @@ u32 string_replacer__replace_word_vf(
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
     u32 lag_index = 0;
-    for (u32 i = 0; max_number_of_what_occurances > 0 && self->original[i] != '\0'; ++i) {
-        if (i == next_taken_what_index) {
-            i += self->what_sizes[with_index] - 1;
+    u32 original_index = 0;
+    while (
+        max_number_of_what_occurances > 0 &&
+        original_index < self->original_str_len
+    ) {
+        if (original_index == next_taken_what_index) {
+            original_index += self->what_sizes[with_index] - 1;
             ++with_index;
             next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
             rolling_hash_value = 0;
             lag_index = 0;
+            ++original_index;
             continue ;
         }
-        rolling_hash_value += self->original[i];
+        rolling_hash_value += self->original[original_index];
         if (lag_index + 1 >= what_length) {
             if (lag_index >= what_length) {
-                rolling_hash_value -= self->original[i - what_length];
+                rolling_hash_value -= self->original[original_index - what_length];
             }
-            u32 what_position = i + 1 - what_length;
+            u32 what_position = original_index + 1 - what_length;
             if (
                 rolling_hash_value == hash_value &&
                 libc__strncmp(
@@ -348,11 +360,13 @@ u32 string_replacer__replace_word_vf(
                 --max_number_of_what_occurances;
                 rolling_hash_value = 0;
                 lag_index = 0;
+                ++original_index;
                 continue ;
             }
         }
 
         ++lag_index;
+        ++original_index;
     }
 
     return self->current_str_len;

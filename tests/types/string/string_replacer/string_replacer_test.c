@@ -370,11 +370,11 @@ static void test_replaces_word(
         v2u32(0, 20),
         what, libc__strlen(what),
         with, libc__strlen(with),
-        "hey breh wadap"
+        "hey breh "
     );
 
     string_replacer__clear(string_replacer, original, original_size);
-    const char* what2 = "hey bro wadap";
+    const char* what2 = "hey bro ";
     const char* with2 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     number_of_what_occurances = 1;
     test_replace_word(
@@ -398,7 +398,7 @@ static void test_replaces_word(
         v2u32(0, 20),
         what3, libc__strlen(what3),
         with3, libc__strlen(with3),
-        "hey-bro wadap"
+        "hey-bro "
     );
 
     string_replacer__clear(string_replacer, original, original_size);
@@ -410,7 +410,7 @@ static void test_replaces_word(
         v2u32(0, 20),
         what3, libc__strlen(what3),
         with3, libc__strlen(with3),
-        "hey-bro-wadap"
+        "hey-bro-"
     );
 
     string_replacer__clear(string_replacer, original, original_size);
@@ -422,7 +422,21 @@ static void test_replaces_word(
         v2u32(0, 20),
         what3, libc__strlen(what3),
         with3, libc__strlen(with3),
-        "hey-bro-wadap"
+        "hey-bro-"
+    );
+
+    string_replacer__clear(string_replacer, original, original_size);
+    const char* what4 = "wada";
+    const char* with4 = " ";
+    number_of_what_occurances = 1;
+    test_replace_word(
+        string_replacer,
+        number_of_what_occurances,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what4, libc__strlen(what4),
+        with4, libc__strlen(with4),
+        "hey bro "
     );
 }
 
@@ -442,12 +456,12 @@ static void test_replaces_word_formatted(
         buffer, buffer_size,
         v2u32(0, 20),
         what, libc__strlen(what),
-        "hey breh wadap",
+        "hey breh ",
         "%s", "breh"
     );
 
     string_replacer__clear(string_replacer, original, original_size);
-    const char* what2 = "hey bro wadap";
+    const char* what2 = "hey bro ";
     max_number_of_what_occurances = 1;
     test_replace_word_formatted(
         string_replacer,
@@ -468,7 +482,7 @@ static void test_replaces_word_formatted(
         buffer, buffer_size,
         v2u32(0, 20),
         what3, libc__strlen(what3),
-        "hey-bro wadap",
+        "hey-bro ",
         "%s", "-"
     );
 
@@ -480,7 +494,7 @@ static void test_replaces_word_formatted(
         buffer, buffer_size,
         v2u32(0, 20),
         what3, libc__strlen(what3),
-        "hey-bro-wadap",
+        "hey-bro-",
         "%s", "-"
     );
 
@@ -492,7 +506,20 @@ static void test_replaces_word_formatted(
         buffer, buffer_size,
         v2u32(0, 20),
         what3, libc__strlen(what3),
-        "hey-bro-wadap",
+        "hey-bro-",
+        "%s", "-"
+    );
+
+    const char* what4 = "wada";
+    string_replacer__clear(string_replacer, original, original_size);
+    max_number_of_what_occurances = 1;
+    test_replace_word_formatted(
+        string_replacer,
+        max_number_of_what_occurances,
+        buffer, buffer_size,
+        v2u32(0, 20),
+        what4, libc__strlen(what4),
+        "hey bro ",
         "%s", "-"
     );
 }
@@ -501,7 +528,11 @@ int main() {
     struct string_replacer string_replacer;
 
     const char* original = "hey bro wadap";
-    u32 original_size = libc__strlen(original);
+    char original_buffer[256];
+    u32 original_len = libc__strlen(original);
+    TEST_FRAMEWORK_ASSERT(original_len < ARRAY_SIZE(original_buffer));
+    libc__memcpy(original_buffer, original, original_len);
+    original_buffer[original_len] = '\0';
 
 #if defined(SHOULD_PRINT)
     printf("Original string: \"%s\"\n", original);
@@ -517,7 +548,7 @@ int main() {
         string_replacer__create(
             &string_replacer,
             original,
-            original_size,
+            original_len,
             total_number_of_replacements,
             total_size_of_replacements_in_bytes
         ) == true
@@ -527,24 +558,30 @@ int main() {
     printf("Original with offset:\n");
 #endif
     for (u32 offset = 0; offset < 20; ++offset) {
-        test_offset(&string_replacer, buffer, buffer_size, original, original_size, offset);
+        test_offset(&string_replacer, buffer, buffer_size, original_buffer, original_len, offset);
     }
 
-    test_replaces_at_position(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_at_position(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_at_position(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_at_position(&string_replacer, original_buffer, original_len, buffer, buffer_size);
+    test_replaces_at_position(&string_replacer, original_buffer, original_len, buffer, buffer_size);
+    test_replaces_at_position(&string_replacer, original_buffer, original_len, buffer, buffer_size);
 
-    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_at_position_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_at_position_formatted(&string_replacer, original_buffer, original_len, buffer, buffer_size);
+    test_replaces_at_position_formatted(&string_replacer, original_buffer, original_len, buffer, buffer_size);
+    test_replaces_at_position_formatted(&string_replacer, original_buffer, original_len, buffer, buffer_size);
 
-    test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_word(&string_replacer, original, original_size, buffer, buffer_size);
+    const char* original2 = "hey bro ";
+    u32 original2_len = libc__strlen(original2);
+    TEST_FRAMEWORK_ASSERT(original2_len < ARRAY_SIZE(original_buffer));
+    libc__memcpy(original_buffer, original2, original2_len);
+    // note: not null-terminating on purpose, the string replacer should only check up to original2_len anyway
+    // original_buffer[original2_len] = '\0';
+    test_replaces_word(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
+    test_replaces_word(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
+    test_replaces_word(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
 
-    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
-    test_replaces_word_formatted(&string_replacer, original, original_size, buffer, buffer_size);
+    test_replaces_word_formatted(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
+    test_replaces_word_formatted(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
+    test_replaces_word_formatted(&string_replacer, original_buffer, original2_len, buffer, buffer_size);
 
     struct file file;
     const char* filename = "asid8y0837y2h4rjsdf";

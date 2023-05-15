@@ -23,7 +23,7 @@ struct module* module_compiler__add_child(
         // error_code__exit(REACHED_MAX_MODULES_SIZE);
         error_code__exit(214);
     }
-    struct module* child = &modules[(*modules_size_cur)++];
+    struct module* child = modules + (*modules_size_cur)++;
     child->parent = self;
     if (
         (u32) libc__snprintf(

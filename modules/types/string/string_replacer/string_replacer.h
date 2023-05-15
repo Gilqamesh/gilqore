@@ -1,6 +1,8 @@
 #ifndef STRING_REPLACER_H
 # define STRING_REPLACER_H
 
+// user story: want to replace in-place in a buffer
+
 # include "string_replacer_defs.h"
 
 # include <stdarg.h>

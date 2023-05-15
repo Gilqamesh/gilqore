@@ -20,8 +20,9 @@
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 #define GITKEEP_PATH "modules/tools/module_compiler/platform_specific/windows/.gitkeep"
 #define CONFIG_FILE_TEMPLATE_PATH "misc/gmc_file_template.txt"
+#define MODULES_TEMPLATE_PATH "misc/module_template.txt"
+#define TESTS_TEMPLATE_PATH "misc/tests_template.txt"
 
-#define MAX_NUMBER_OF_KEYS 10
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
 #define KEY_MODULE_DEPENDENCIES "module_dependencies"
 #define KEY_APPLICATION_TYPE "application_type"
@@ -56,7 +57,7 @@ void module_compiler__parse_config_file(
 struct module* module_compiler__find_module_by_name(struct module* modules, const char* basename, u32 modules_size) {
     // todo: store modules in a hashmap by their base names
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
-        struct module* cur_module = &modules[module_index];
+        struct module* cur_module = modules + module_index;
         if (libc__strcmp(cur_module->basename, basename) == 0) {
             return cur_module;
         }
@@ -64,64 +65,10 @@ struct module* module_compiler__find_module_by_name(struct module* modules, cons
     return NULL;
 }
 
-void module_compiler__parse_config_file_recursive_helper(
-    struct module* self,
-    struct file_writer* file_writer,
-    struct file_reader* file_reader,
-    struct file* error_codes_file,
-    struct string_replacer* string_replacer,
-    char* def_file_buffer,
-    char* error_codes_buffer,
-    char* auxiliary_buffer,
-    char* def_file_name_buffer,
-    char* config_file_name_buffer,
-    u32 def_file_buffer_size,
-    u32 error_codes_buffer_size,
-    u32 auxiliary_buffer_size,
-    u32 def_file_name_buffer_size,
-    u32 config_file_name_buffer_size
+void module_compiler__parse_config_files(
+    struct module* modules,
+    u32 modules_size
 ) {
-    struct module* cur_child = self->first_child;
-    while (cur_child) {
-        module_compiler__parse_config_file(
-            cur_child,
-            file_writer,
-            file_reader,
-            error_codes_file,
-            string_replacer,
-            def_file_buffer,
-            error_codes_buffer,
-            auxiliary_buffer,
-            def_file_name_buffer,
-            config_file_name_buffer,
-            def_file_buffer_size,
-            error_codes_buffer_size,
-            auxiliary_buffer_size,
-            def_file_name_buffer_size,
-            config_file_name_buffer_size
-        );
-        module_compiler__parse_config_file_recursive_helper(
-            cur_child,
-            file_writer,
-            file_reader,
-            error_codes_file,
-            string_replacer,
-            def_file_buffer,
-            error_codes_buffer,
-            auxiliary_buffer,
-            def_file_name_buffer,
-            config_file_name_buffer,
-            def_file_buffer_size,
-            error_codes_buffer_size,
-            auxiliary_buffer_size,
-            def_file_name_buffer_size,
-            config_file_name_buffer_size
-        );
-        cur_child = cur_child->next_sibling;
-    }
-}
-
-void module_compiler__parse_config_file_recursive(struct module* self) {
     struct file error_codes_file;
     struct file_writer file_writer;
     struct file_reader file_reader;
@@ -152,40 +99,26 @@ void module_compiler__parse_config_file_recursive(struct module* self) {
     char* auxiliary_buffer = libc__malloc(auxiliary_buffer_size);
     char* def_file_name_buffer = libc__malloc(def_file_name_buffer_size);
     char* config_file_name_buffer = libc__malloc(config_file_name_buffer_size);
-    module_compiler__parse_config_file(
-        self,
-        &file_writer,
-        &file_reader,
-        &error_codes_file,
-        &string_replacer,
-        def_file_buffer,
-        error_codes_buffer,
-        auxiliary_buffer,
-        def_file_name_buffer,
-        config_file_name_buffer,
-        def_file_buffer_size,
-        error_codes_buffer_size,
-        auxiliary_buffer_size,
-        def_file_name_buffer_size,
-        config_file_name_buffer_size
-    );
-    module_compiler__parse_config_file_recursive_helper(
-        self,
-        &file_writer,
-        &file_reader,
-        &error_codes_file,
-        &string_replacer,
-        def_file_buffer,
-        error_codes_buffer,
-        auxiliary_buffer,
-        def_file_name_buffer,
-        config_file_name_buffer,
-        def_file_buffer_size,
-        error_codes_buffer_size,
-        auxiliary_buffer_size,
-        def_file_name_buffer_size,
-        config_file_name_buffer_size
-    );
+
+    for (u32 module_index = 0; module_index < modules_size; ++module_index) {
+        module_compiler__parse_config_file(
+            modules + module_index,
+            &file_writer,
+            &file_reader,
+            &error_codes_file,
+            &string_replacer,
+            def_file_buffer,
+            error_codes_buffer,
+            auxiliary_buffer,
+            def_file_name_buffer,
+            config_file_name_buffer,
+            def_file_buffer_size,
+            error_codes_buffer_size,
+            auxiliary_buffer_size,
+            def_file_name_buffer_size,
+            config_file_name_buffer_size
+        );
+    }
 
     string_replacer__destroy(&string_replacer);
     file_writer__destroy(&file_writer);
@@ -704,7 +637,7 @@ void module_compiler__parse_config_file(
         TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, CONFIG_FILE_TEMPLATE_PATH));
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
-    // todo: parse out .gmc key/values    
+    // todo: parse out .gmc key/values
 
     // note: string_replacer doesn't support replacing replacements, so I do this in two write steps if the def_file doesn't exist
     // first, I replace the template, then write it out to the def file
@@ -781,27 +714,6 @@ void module_compiler__parse_config_file(
         rest_of_the_error_codes_len,
         should_update_def_file
     );
-
-    // todo: implement
-//     // platform-specific part
-// #if defined(WINDOWS)
-//     static const char* platform = "windows";
-// #elif defined(LINUX)
-//     static const char* platform = "linux";
-// #elif defined(MAC)
-//     static const char* platform = "mac";
-// #endif
-//     if (
-//         (u32) libc__snprintf(
-//             module_name_capitalized,
-//             ARRAY_SIZE(module_name_capitalized),
-//             "%s",
-//             self->basename
-//         ) >= ARRAY_SIZE(module_name_capitalized)
-//     ) {
-//         error_code__exit(990);
-//     }
-//     string__to_upper(module_name_capitalized);
 }
 
 static void assert_create_dir(
@@ -982,18 +894,22 @@ static u32 module_compiler__get_dependencies(
 
 void module_compiler__embed_dependencies_into_makefile(
     struct module* modules,
+    char* makefile_template_path,
+    const char* file_path_prefix,
     char* file_path_buffer,
     char* file_buffer,
     char* dependencies_buffer,
+    char* auxiliary_buffer,
     struct string_replacer* string_replacer,
+    struct string_replacer* string_replacer_aux,
     u32 modules_size,
     u32 file_path_buffer_size,
     u32 file_buffer_size,
-    u32 dependencies_buffer_size
+    u32 dependencies_buffer_size,
+    u32 auxiliary_buffer_size
 ) {
-    static const char modules_makefile_template_path[] = "misc/module_template.txt";
     struct file modules_makefile_template_file;
-    TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, modules_makefile_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, makefile_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
     u32 modules_makefile_template_file_size = file__read(&modules_makefile_template_file, file_buffer, file_buffer_size);
     if (modules_makefile_template_file_size == file_buffer_size) {
         // error_code__exit(FILE_BUFFER_TOO_SMALL);
@@ -1002,7 +918,7 @@ void module_compiler__embed_dependencies_into_makefile(
     file__close(&modules_makefile_template_file);
 
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
-        struct module* cur_module = &modules[module_index];
+        struct module* cur_module = modules + module_index;
 
         module_compiler__clear_transient_flags(g_modules, *g_modules_size_cur);
         char* cur_dependency_buffer = dependencies_buffer;
@@ -1047,12 +963,29 @@ void module_compiler__embed_dependencies_into_makefile(
         );
 
         u32 written_bytes = libc__snprintf(
-            file_path_buffer,
-            file_path_buffer_size,
+            auxiliary_buffer,
+            auxiliary_buffer_size,
             "%s/%s.mk",
             cur_module->dirprefix, cur_module->basename
         );
-        TEST_FRAMEWORK_ASSERT(written_bytes < file_path_buffer_size);
+        TEST_FRAMEWORK_ASSERT(written_bytes < auxiliary_buffer_size);
+        static const char modules_dir_path[] = "modules";
+        const u32 modules_dir_path_size = ARRAY_SIZE(modules_dir_path) - 1;
+        string_replacer__clear(string_replacer_aux, auxiliary_buffer, written_bytes);
+        string_replacer__replace_word(
+            string_replacer_aux,
+            1,
+            modules_dir_path, modules_dir_path_size,
+            file_path_prefix, libc__strlen(file_path_prefix)
+        );
+        TEST_FRAMEWORK_ASSERT(
+            string_replacer__read(
+                string_replacer_aux,
+                file_path_buffer,
+                file_path_buffer_size,
+                0
+            ) < file_path_buffer_size
+        );
         struct file makefile;
         TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
         // replace  with dependency->basename in makefile
@@ -1079,7 +1012,7 @@ void module_compiler__create_test_directories(
     u32 auxiliary_buffer_size
 ) {
     for (u32 module_index = 0; module_index < modules_size; ++module_index) {
-        struct module* cur_module = &modules[module_index];
+        struct module* cur_module = modules + module_index;
         u32 written_bytes = libc__snprintf(
             file_buffer,
             file_buffer_size,
@@ -1159,6 +1092,17 @@ void module_compiler__compile(void) {
         total_number_of_replacements,
         average_replacement_size * total_number_of_replacements
     );
+    u32 total_number_of_replacements_aux = 16;
+    u32 average_replacement_size_aux = 64;
+    // note: need this because can't replace inplace of a buffer
+    struct string_replacer string_replacer_aux;
+    string_replacer__create(
+        &string_replacer_aux,
+        NULL,
+        0,
+        total_number_of_replacements_aux,
+        average_replacement_size_aux * total_number_of_replacements_aux
+    );
     u32 file_buffer_size = 32768;
     char* file_buffer = libc__malloc(file_buffer_size);
     u32 dependencies_buffer_size = ARRAY_SIZE_MEMBER(struct module, basename) * g_modules_size_max / 2;
@@ -1166,14 +1110,14 @@ void module_compiler__compile(void) {
     u32 auxiliary_buffer_size = 1024;
     char* auxiliary_buffer = libc__malloc(auxiliary_buffer_size);
 
-    struct module* parent_module = &modules[cur_number_of_modules++];
+    struct module* parent_module = modules + cur_number_of_modules++;
     libc__strncpy(parent_module->dirprefix, "modules", ARRAY_SIZE(parent_module->basename));
     libc__strncpy(parent_module->basename, "modules", ARRAY_SIZE(parent_module->basename));
 
-
     module_compiler__explore_children(parent_module);
 
-    module_compiler__parse_config_file_recursive(parent_module);
+    // rename to something like update def files, and do the config file parsing prior to this
+    module_compiler__parse_config_files(modules, cur_number_of_modules);
 
     module_compiler__check_cyclic_dependency(parent_module, modules, cur_number_of_modules);
 
@@ -1191,20 +1135,42 @@ void module_compiler__compile(void) {
 
     module_compiler__embed_dependencies_into_makefile(
         modules,
+        MODULES_TEMPLATE_PATH,
+        "modules",
         file_path_buffer,
         file_buffer,
         dependencies_buffer,
+        auxiliary_buffer,
         &string_replacer,
+        &string_replacer_aux,
         cur_number_of_modules,
         file_path_buffer_size,
         file_buffer_size,
-        dependencies_buffer_size
+        dependencies_buffer_size,
+        auxiliary_buffer_size
+    );
+    module_compiler__embed_dependencies_into_makefile(
+        modules,
+        TESTS_TEMPLATE_PATH,
+        "tests",
+        file_path_buffer,
+        file_buffer,
+        dependencies_buffer,
+        auxiliary_buffer,
+        &string_replacer,
+        &string_replacer_aux,
+        cur_number_of_modules,
+        file_path_buffer_size,
+        file_buffer_size,
+        dependencies_buffer_size,
+        auxiliary_buffer_size
     );
 
     // module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
 
 
     string_replacer__destroy(&string_replacer);
+    string_replacer__destroy(&string_replacer_aux);
     libc__free(modules);
     libc__free(file_buffer);
 }

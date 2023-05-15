@@ -10,10 +10,12 @@ struct module {
     struct module* first_child; // first child module
     struct module* next_sibling; // next sibling
     struct module* dependencies[16]; // hard limit (must be pow of 2) on the number of dependencies
+    struct module* test_dependencies[16];
     struct module* parent;
     char basename[64];
     char dirprefix[512];
     char application_type[16]; // either "-mwindows" or "-mconsole"
+    char test_application_type[16]; // either "-mwindows" or "-mconsole"
     s32 number_of_submodules; // number of submodules this module has
     s32 transient_flag_for_processing;
 };
