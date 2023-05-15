@@ -5,18 +5,20 @@
 
 GIL_API void string__to_upper(char* str);
 
-// @returns the 'n'th occurance in 'str' of the char 'c', or NULL
-GIL_API char* string__strchr_n(const char* str, char c, u32 n);
-// @returns the first occurance in 'str' any characters matched from 'set', or NULL
-GIL_API char* string__strchr_set(const char* str, const char* set);
+// @param return_last_occurance false for strictly at 'n'th occurance, otherwise returns the last matched occurance
 // @returns the 'n'th occurance in 'str' any characters matched from 'set', or NULL
-GIL_API char* string__strchr_set_n(const char* str, const char* set, u32 n);
+GIL_API char* string__search_n         (const char* str, u32 str_len, const char* set, u32 n, bool return_last_occurance);
+// @brief increments 'str' 'max' amount while it matches either characters from 'set'
+GIL_API char* string__search_while     (const char* str, u32 str_len, const char* set, u32 max);
+// @brief increments 'str' 'max' amount while it does not match either characters from 'set'
+GIL_API char* string__search_while_not (const char* str, u32 str_len, const char* set, u32 max);
 
-// @returns the 'n'th occurance from the back in 'str' of the char 'c', or NULL
-GIL_API char* string__strrchr_n(const char* str, char c, u32 n);
+// @param return_last_occurance false for strictly at 'n'th occurance, otherwise returns the last matched occurance
 // @returns the 'n'th occurance from the back in 'str' any characters matched from 'set', or NULL
-GIL_API char* string__strrchr_set(const char* str, const char* set);
-// @returns the 'n'th occurance from the back in 'str' any characters matched from 'set', or NULL
-GIL_API char* string__strrchr_set_n(const char* str, const char* set, u32 n);
+GIL_API char* string__rsearch_n        (const char* str, u32 str_len, const char* set, u32 n, bool return_last_occurance);
+// @brief decrements 'str' 'max' amount from the back while it matches either characters from 'set'
+GIL_API char* string__rsearch_while    (const char* str, u32 str_len, const char* set, u32 max);
+// @brief decrements 'str' 'max' amount from the back while it does not match either characters from 'set'
+GIL_API char* string__rsearch_while_not(const char* str, u32 str_len, const char* set, u32 max);
 
 #endif

@@ -1,5 +1,6 @@
 unique_error_codes: [
-    BUFFER_TOO_SMALL: Buffer is too small or file is too long in file_path__create
+    BASENAME_BUFFER_TOO_SMALL: Basename buffer is too small in file_path__decompose
+    DIRECTORY_BUFFER_TOO_SMALL: Directory buffer is too small in file_path__decompose
 ]
-module_dependencies: libc
+module_dependencies: libc string
 application_type: CONSOLE

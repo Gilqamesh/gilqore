@@ -830,7 +830,8 @@ bool is_module_path(const char* path) {
 
     update_platform_specific_directories(path, auxiliary_buffer, ARRAY_SIZE(auxiliary_buffer));
 
-    char* second_last_backslash = string__strrchr_n(path, '/', 2);
+    u32 path_len = libc__strlen(path);
+    char* second_last_backslash = string__rsearch_n(path, path_len, "/", 2, false);
     if (second_last_backslash == NULL) {
         second_last_backslash = (char*) path;
     } else {
