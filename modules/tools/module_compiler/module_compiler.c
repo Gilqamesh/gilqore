@@ -6,6 +6,7 @@
 #include "io/file/file.h"
 #include "io/file/file_reader/file_reader.h"
 #include "io/file/file_writer/file_writer.h"
+#include "io/file/file_path/file_path.h"
 #include "libc/libc.h"
 #include "types/string/string.h"
 #include "io/directory/directory.h"
@@ -765,50 +766,47 @@ static void assert_create_gitkeep(
     }
 }
 
-static void update_platform_specific_directories(
-    const char* path,
-    char* buffer,
-    u32 buffer_size
-) {
+static void update_platform_specific_directories(const char* path) {
+    static char auxiliary_buffer[256];
     assert_create_dir(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_dir(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/windows",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_gitkeep(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/windows/.gitkeep",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_dir(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/linux",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_gitkeep(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/linux/.gitkeep",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_dir(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/mac",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
     assert_create_gitkeep(
-        buffer,
-        buffer_size,
+        auxiliary_buffer,
+        ARRAY_SIZE(auxiliary_buffer),
         "%s/%s/mac/.gitkeep",
         path, PLATFORM_SPECIFIC_FOLDER_NAME
     );
@@ -817,38 +815,42 @@ static void update_platform_specific_directories(
 // @returns true if path is a module
 // @note as a side effect, also adds the module to its parent
 bool is_module_path(const char* path) {
-    static char auxiliary_buffer[512];
-
-    char* last_backslash = libc__strrchr(path, '/');
-    if (last_backslash == NULL) {
-        return false;
-    }
-    char* basename = last_backslash + 1;
-    if (libc__strcmp(PLATFORM_SPECIFIC_FOLDER_NAME, basename) == 0) {
-        return false;
-    }
-
-    update_platform_specific_directories(path, auxiliary_buffer, ARRAY_SIZE(auxiliary_buffer));
+    static char parent_path_buffer[512];
+    static char child_basename_buffer[128];
+    static char parent_basename_buffer[128];
 
     u32 path_len = libc__strlen(path);
-    char* second_last_backslash = string__rsearch_n(path, path_len, "/", 2, false);
-    if (second_last_backslash == NULL) {
-        second_last_backslash = (char*) path;
-    } else {
-        ++second_last_backslash;
-    }
-    u32 bytes_to_write = last_backslash - second_last_backslash + 1;
-    TEST_FRAMEWORK_ASSERT(bytes_to_write < ARRAY_SIZE(auxiliary_buffer));
-    // note: parent's basename, so for module "file" its parent's basename would be "io"
-    libc__snprintf(
-        auxiliary_buffer,
-        bytes_to_write,
-        "%s",
-        second_last_backslash
+    u32 basename_len;
+    u32 directory_len;
+    TEST_FRAMEWORK_ASSERT(
+        file_path__decompose(
+            path, path_len,
+            child_basename_buffer, ARRAY_SIZE(child_basename_buffer), &basename_len,
+            parent_path_buffer, ARRAY_SIZE(parent_path_buffer), &directory_len
+        )
     );
-    struct module* parent = module_compiler__find_module_by_name(g_modules, auxiliary_buffer, *g_modules_size_cur);
+    if (
+        directory_len == 0 ||
+        libc__strcmp(PLATFORM_SPECIFIC_FOLDER_NAME, child_basename_buffer) == 0
+    ) {
+        // note: root module or we are in a platform specific folder
+        return false;
+    }
+
+    update_platform_specific_directories(path);
+
+    u32 parent_basename_len;
+    TEST_FRAMEWORK_ASSERT(
+        file_path__decompose(
+            parent_path_buffer, directory_len,
+            parent_basename_buffer, ARRAY_SIZE(parent_basename_buffer), &parent_basename_len,
+            NULL, 0, NULL
+        )
+    );
+
+    struct module* parent = module_compiler__find_module_by_name(g_modules, parent_basename_buffer, *g_modules_size_cur);
     TEST_FRAMEWORK_ASSERT(parent != NULL);
-    module_compiler__add_child(g_modules, parent, basename, g_modules_size_cur, g_modules_size_max);
+    module_compiler__add_child(g_modules, parent, child_basename_buffer, g_modules_size_cur, g_modules_size_max);
 
     return true;
 }

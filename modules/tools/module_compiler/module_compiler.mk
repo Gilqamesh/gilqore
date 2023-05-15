@@ -21,7 +21,7 @@ endif
 module_compiler_static_objects			:= $(patsubst %.c, %_static.o, $(module_compiler_sources))
 module_compiler_shared_objects			:= $(patsubst %.c, %_shared.o, $(module_compiler_sources))
 module_compiler_depends					:= $(patsubst %.c, %.d, $(module_compiler_sources))
-module_compiler_depends_modules			:= file common time libc file_reader hash compare circular_buffer mod file_writer string directory string_replacer 
+module_compiler_depends_modules			:= file common time libc file_reader hash compare circular_buffer mod file_writer string directory string_replacer file_path 
 module_compiler_depends_libs_shared		:= $(foreach module,$(module_compiler_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 # module_compiler_depends_libs_targets		:= $(foreach module,$(module_compiler_depends_modules),$(module)_all)
 module_compiler_clean_files				:=
