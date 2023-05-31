@@ -35,6 +35,7 @@ void module_compiler__clear_transient_flags(
 // @brief print all dependencies of the module
 void module_compiler__print_dependencies(struct module* self);
 void module_compiler__add_dependency(struct module* self, struct module* dependency);
+void module_compiler__add_test_dependency(struct module* self, struct module* dependency);
 void module_compiler__print_branch(
     struct module* from,
     struct module* modules,

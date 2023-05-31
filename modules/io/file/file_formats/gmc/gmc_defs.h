@@ -5,7 +5,6 @@
 
 enum gmc_error_code {
     GMC_ERROR_CODE_START,
-
-};
+${rest_of_the_error_codes}};
 
 #endif

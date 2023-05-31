@@ -77,6 +77,32 @@ void module_compiler__add_dependency(struct module* self, struct module* depende
     error_code__exit(43556);
 }
 
+void module_compiler__add_test_dependency(struct module* self, struct module* dependency) {
+    u32 hash_value = (dependency->basename[0] * 56237) & ARRAY_SIZE(self->test_dependencies);
+    for (u32 i = hash_value; i < ARRAY_SIZE(self->test_dependencies); ++i) {
+        if (self->test_dependencies[i] == dependency) {
+            // no need to add the dependency again
+            return ;
+        }
+        if (self->test_dependencies[i] == NULL) {
+            self->test_dependencies[i] = dependency;
+            return ;
+        }
+    }
+    for (u32 i = 0; i < hash_value; ++i) {
+        if (self->test_dependencies[i] == dependency) {
+            // no need to add the dependency again
+            return ;
+        }
+        if (self->test_dependencies[i] == NULL) {
+            self->test_dependencies[i] = dependency;
+            return ;
+        }
+    }
+    // error_code__exit(MAX_AMOUNT_OF_DEPENDENCIES_REACHED_FOR_MODULE);
+    error_code__exit(43556);
+}
+
 static void module_compiler__check_cyclic_dependency_helper(
     struct module* from,
     struct module* modules,
@@ -113,9 +139,21 @@ void module_compiler__check_cyclic_dependency(
 void module_compiler__print_dependencies(struct module* self) {
     self->transient_flag_for_processing = 1;
     for (u32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
-        if (self->dependencies[i] != NULL && self->dependencies[i]->transient_flag_for_processing == 0) {
-            printf("%s ", self->dependencies[i]->basename);
-            module_compiler__print_dependencies(self->dependencies[i]);
+        struct module* dependency = self->dependencies[i];
+        if (dependency != NULL && dependency->transient_flag_for_processing == 0) {
+            printf("%s ", dependency->basename);
+            module_compiler__print_dependencies(dependency);
+        }
+    }
+}
+
+void module_compiler__print_test_dependencies(struct module* self) {
+    self->transient_flag_for_processing = 1;
+    for (u32 i = 0; i < ARRAY_SIZE(self->test_dependencies); ++i) {
+        struct module* test_dependency = self->test_dependencies[i];
+        if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
+            printf("%s ", test_dependency->basename);
+            module_compiler__print_dependencies(test_dependency);
         }
     }
 }
@@ -133,6 +171,9 @@ static void module_compiler__print_branch_helper(
 
     module_compiler__clear_transient_flags(modules, modules_size);
     module_compiler__print_dependencies(from);
+    printf("\n %*stest dependencies: ", cur_depth << 2, "");
+    module_compiler__clear_transient_flags(modules, modules_size);
+    module_compiler__print_test_dependencies(from);
     printf("\n\n");
     struct module* child = from->first_child;
     while (child) {

@@ -3,11 +3,11 @@
 
 # include "file_path_defs.h"
 
-// @note does not accept "." or ".." as path
+// @param path cannot be "." or ".."
 // @param basename_buffer optional
 // @param basename_len optional
 // @param directory_buffer optional
-// @paramn directory_len optional
+// @param directory_len optional
 // @returns basename + directory part, directory part is empty if there wasn't a separator in 'path'
 GIL_API bool file_path__decompose(
     const char* path, u32 path_len,

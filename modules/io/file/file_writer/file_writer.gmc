@@ -3,3 +3,4 @@ unique_error_codes: [
 ]
 module_dependencies: libc common file
 application_type: CONSOLE
+test_dependencies: 

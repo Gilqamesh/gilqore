@@ -26,11 +26,15 @@
 
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
 #define KEY_MODULE_DEPENDENCIES "module_dependencies"
+#define KEY_TEST_DEPENDENCIES "test_dependencies"
 #define KEY_APPLICATION_TYPE "application_type"
 
 #define VALUE_APPLICATION_TYPE_CONSOLE "CONSOLE"
 #define VALUE_APPLICATION_TYPE_WINDOWS "WINDOWS"
 #define VALUE_APPLICATION_TYPE_DEFAULT VALUE_APPLICATION_TYPE_CONSOLE
+
+#define MODULES_PATH "modules"
+#define TESTS_PATH "tests"
 
 static struct module* g_modules;
 static u32* g_modules_size_cur;
@@ -287,6 +291,33 @@ static void parse_config_file_application_type(
     file_reader__read_while(config_file_reader, NULL, 0, "\r\n");
 }
 
+static void parse_config_file_test_dependencies(
+    struct module* self,
+    struct file_reader* config_file_reader,
+    char* buffer,
+    u32 buffer_size
+) {
+    do {
+        file_reader__read_while(config_file_reader, NULL, 0, " ");
+        u32 read_bytes = file_reader__read_while_not(config_file_reader, buffer, buffer_size, " \r\n");
+        if (read_bytes == 0) {
+            // note: done reading test dependencies
+            file_reader__read_while(config_file_reader, NULL, 0, "\r\n");
+            break ;
+        }
+        if (read_bytes == buffer_size) {
+            error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_MODULE_TOO_LONG);
+        }
+        buffer[read_bytes] = '\0';
+        // note: add the dependency to the module
+        struct module* found_module = module_compiler__find_module_by_name(g_modules, buffer, *g_modules_size_cur);
+        if (found_module == NULL) {
+            error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
+        }
+        module_compiler__add_test_dependency(self, found_module);
+    } while (1);
+}
+
 static void def_file_add_error_codes_place_holder__create(
     struct module* self,
     struct file* def_file,
@@ -493,8 +524,10 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
     bool parsed_unique_error_codes = false;
     bool parsed_module_dependencies = false;
     bool parsed_application_type = false;
+    bool parsed_test_dependencies = false;
     while (
         parsed_module_dependencies == false ||
+        parsed_test_dependencies == false ||
         parsed_unique_error_codes == false ||
         parsed_application_type == false
     ) {
@@ -537,6 +570,14 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
                 auxiliary_buffer_size
             );
             parsed_application_type = true;
+        } else if (libc__strcmp(auxiliary_buffer, KEY_TEST_DEPENDENCIES) == 0) {
+            parse_config_file_test_dependencies(
+                self,
+                file_reader,
+                auxiliary_buffer,
+                auxiliary_buffer_size
+            );
+            parsed_test_dependencies = true;
         } else {
             file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
             if (parsed_module_dependencies == false) {
@@ -547,6 +588,15 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
                     KEY_MODULE_DEPENDENCIES
                 );
                 parsed_module_dependencies = true;
+            }
+            if (parsed_test_dependencies == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: \n",
+                    KEY_TEST_DEPENDENCIES
+                );
+                parsed_test_dependencies = true;
             }
             if (parsed_unique_error_codes == false) {
                 file_writer__write_format(
@@ -581,6 +631,148 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
         );
         file__close(def_file);
     }
+}
+
+// static void parse_gmc_file(
+//     const char* gmc_file_path,
+//     struct file* error_files
+// ) {
+// }
+
+static void update_gmc_files(
+    struct module* self,
+    char* config_file_name_buffer,
+    char* config_file_name_buffer_2,
+    struct string_replacer* string_replacer, 
+    u32 config_file_name_buffer_size,
+    u32 config_file_name_buffer_2_size
+) {
+    // MODULE CONFIG FILE
+    u32 config_file_name_len;
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer, config_file_name_buffer_size,
+            "%s/%s.%s", self->dirprefix, self->basename, CONFIG_EXTENSION
+        )) < config_file_name_buffer_size
+    );
+    if (file__exists(config_file_name_buffer) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, CONFIG_FILE_TEMPLATE_PATH));
+        printf("File created: %s\n", config_file_name_buffer);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
+    // todo: parse out .gmc key/values
+
+    // PLATFORM SPECIFIC CONFIG FILES
+    //  PLATFORM SPECIFIC FOLDER
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
+        printf("Directory created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+
+    //  WINDOWS
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/windows",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
+        printf("Directory created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/windows/%s_windows.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        printf("File created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    // todo: parse out .gmc key/values
+
+    //  LINUX
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/linux",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
+        printf("Directory created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/linux/%s_linux.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        printf("File created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    // todo: parse out .gmc key/values
+
+    //  MAC
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/mac",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
+        printf("Directory created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    TEST_FRAMEWORK_ASSERT(
+        (config_file_name_len = libc__snprintf(
+            config_file_name_buffer_2, config_file_name_buffer_2_size,
+            "%s/%s/mac/%s_mac.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+        )) < config_file_name_buffer_2_size
+    );
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        printf("File created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    // todo: parse out .gmc key/values
+
+    // TEST CONFIG FILE
+    string_replacer__clear(string_replacer, config_file_name_buffer, config_file_name_len);
+    string_replacer__replace_word(
+        string_replacer,
+        1,
+        MODULES_PATH, libc__strlen(MODULES_PATH),
+        TESTS_PATH, libc__strlen(TESTS_PATH)
+    );
+    string_replacer__read(string_replacer, config_file_name_buffer_2, config_file_name_buffer_2_size, 0);
+    if (file__exists(config_file_name_buffer_2) == false) {
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        printf("File created: %s\n", config_file_name_buffer_2);
+    }
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
+    // todo: parse out .gmc key/values
 }
 
 void module_compiler__parse_config_file(
@@ -623,22 +815,23 @@ void module_compiler__parse_config_file(
         error_code__exit(867);
     }
 
-    bytes_written = libc__snprintf(
+    update_gmc_files(
+        self,
         config_file_name_buffer,
+        auxiliary_buffer,
+        string_replacer,
         config_file_name_buffer_size,
-        "%s/%s.%s",
-        self->dirprefix, self->basename, CONFIG_EXTENSION
+        auxiliary_buffer_size
     );
-    if (bytes_written >= config_file_name_buffer_size) {
-        // error_code__exit(CONFIG_FILE_NAME_BUFFER_TOO_SMALL);
-        error_code__exit(867);
-    }
-
-    if (file__exists(config_file_name_buffer) == false) {
-        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, CONFIG_FILE_TEMPLATE_PATH));
-    }
+    TEST_FRAMEWORK_ASSERT(
+        (u32) libc__snprintf(
+            config_file_name_buffer,
+            config_file_name_buffer_size,
+            "%s/%s.%s",
+            self->dirprefix, self->basename, CONFIG_EXTENSION
+        ) < config_file_name_buffer_size
+    );
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
-    // todo: parse out .gmc key/values
 
     // note: string_replacer doesn't support replacing replacements, so I do this in two write steps if the def_file doesn't exist
     // first, I replace the template, then write it out to the def file
@@ -991,7 +1184,6 @@ void module_compiler__embed_dependencies_into_makefile(
         );
         struct file makefile;
         TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-        // replace  with dependency->basename in makefile
         TEST_FRAMEWORK_ASSERT(
             string_replacer__read_into_file(
                 string_replacer,
@@ -1119,7 +1311,13 @@ void module_compiler__compile(void) {
 
     module_compiler__explore_children(parent_module);
 
-    // rename to something like update def files, and do the config file parsing prior to this
+    // todo:
+    // - create/parse .gmc files from both modules and tests
+    //      also update error codes file while parsing, as well as embed into def files
+    // - update makefiles for modules and tests
+    // - update def files for modules
+
+    // todo: rename to something like update def files, and do the config file parsing prior to this
     module_compiler__parse_config_files(modules, cur_number_of_modules);
 
     module_compiler__check_cyclic_dependency(parent_module, modules, cur_number_of_modules);
@@ -1169,7 +1367,7 @@ void module_compiler__compile(void) {
         auxiliary_buffer_size
     );
 
-    // module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
+    module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
 
 
     string_replacer__destroy(&string_replacer);

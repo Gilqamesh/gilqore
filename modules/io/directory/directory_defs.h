@@ -5,7 +5,7 @@
 
 enum directory_error_code {
     DIRECTORY_ERROR_CODE_START,
-    DIRECTORY_ERROR_CODE_BUFFER_TOO_SMALL = 39,
+    DIRECTORY_ERROR_CODE_BUFFER_TOO_SMALL = 5,
 };
 
 #endif

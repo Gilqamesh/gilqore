@@ -1,4 +1,5 @@
 unique_error_codes: [
 ]
 module_dependencies: common
+test_dependencies:
 application_type: CONSOLE

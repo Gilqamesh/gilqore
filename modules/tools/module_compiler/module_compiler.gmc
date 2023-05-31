@@ -16,3 +16,4 @@ unique_error_codes: [
 ]
 module_dependencies: file libc file_reader file_writer string directory string_replacer time file_path
 application_type: CONSOLE
+test_dependencies: 
