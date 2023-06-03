@@ -1,15 +1,21 @@
 $(MODULE_NAME)_path_curdir				:= $(dir $(lastword $(MAKEFILE_LIST)))
+$(MODULE_NAME)_path_curtestdir			:= $($(MODULE_NAME)_path_curdir)test/
 $(MODULE_NAME)_child_makefiles			:= $(wildcard $($(MODULE_NAME)_path_curdir)*/*mk)
 $(MODULE_NAME)_child_module_names		:= $(basename $(notdir $($(MODULE_NAME)_child_makefiles)))
 $(MODULE_NAME)_child_all_targets		:= $(foreach child_module,$($(MODULE_NAME)_child_module_names),$(child_module)_all)
 $(MODULE_NAME)_child_strip_targets		:= $(foreach child_module,$($(MODULE_NAME)_child_module_names),$(child_module)_strip)
 $(MODULE_NAME)_child_clean_targets		:= $(foreach child_module,$($(MODULE_NAME)_child_module_names),$(child_module)_clean)
+$(MODULE_NAME)_test_child_all_targets	:= $(foreach test_module,$($(MODULE_NAME)_child_module_names),$(test_module)_test_all)
+$(MODULE_NAME)_test_child_clean_targets	:= $(foreach test_module,$($(MODULE_NAME)_child_module_names),$(test_module)_test_clean)
+$(MODULE_NAME)_test_child_run_targets	:= $(foreach test_module,$($(MODULE_NAME)_child_module_names),$(test_module)_test_run)
 $(MODULE_NAME)_install_path_shared		:= $(PATH_INSTALL)/$(MODULE_NAME)$(EXT_LIB_SHARED)
 $(MODULE_NAME)_shared_lflags			:= -shared
 ifeq ($(PLATFORM), WINDOWS)
+$(MODULE_NAME)_test_install_path_static := $($(MODULE_NAME)_path_curdir)$(MODULE_NAME)_static$(EXT_EXE)
 $(MODULE_NAME)_install_path_implib		:= $(PATH_INSTALL)/lib$(MODULE_NAME)dll.a
 $(MODULE_NAME)_shared_lflags			+= -Wl,--out-implib=$($(MODULE_NAME)_install_path_implib)
 endif
+$(MODULE_NAME)_test_sources             := $(wildcard $($(MODULE_NAME)_path_curtestdir)*.c)
 $(MODULE_NAME)_sources					:= $(wildcard $($(MODULE_NAME)_path_curdir)*.c)
 ifeq ($(PLATFORM), WINDOWS)
 $(MODULE_NAME)_sources					+= $(wildcard $($(MODULE_NAME)_path_curdir)platform_specific/windows/*.c)
@@ -19,9 +25,14 @@ else ifeq ($(PLATFORM), MAC)
 $(MODULE_NAME)_sources					+= $(wildcard $($(MODULE_NAME)_path_curdir)platform_specific/mac/*.c)
 endif
 $(MODULE_NAME)_static_objects			:= $(patsubst %.c, %_static.o, $($(MODULE_NAME)_sources))
+$(MODULE_NAME)_test_objects				:= $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
+$(MODULE_NAME)_test_depends				:= $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_shared_objects			:= $(patsubst %.c, %_shared.o, $($(MODULE_NAME)_sources))
 $(MODULE_NAME)_depends					:= $(patsubst %.c, %.d, $($(MODULE_NAME)_sources))
 $(MODULE_NAME)_depends_modules			:= $(MODULE_LIBDEP_MODULES)
+$(MODULE_NAME)_test_depends_modules     += $(MODULE_NAME)
+$(MODULE_NAME)_test_libdepend_static_objs   = $(foreach dep_module,$($(MODULE_NAME)_depends_modules),$($(dep_module)_static_objects))
+$(MODULE_NAME)_test_libdepend_static_objs   += $($(MODULE_NAME)_static_objects)
 $(MODULE_NAME)_depends_libs_shared		:= $(foreach module,$($(MODULE_NAME)_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
 # $(MODULE_NAME)_depends_libs_targets		:= $(foreach module,$($(MODULE_NAME)_depends_modules),$(module)_all)
 $(MODULE_NAME)_clean_files				:=
@@ -30,8 +41,11 @@ $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_install_path_shared)
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_static_objects)
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_shared_objects) 
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_depends)
-
+ 
 include $($(MODULE_NAME)_child_makefiles)
+
+$($(MODULE_NAME)_path_curtestdir)%.o: $($(MODULE_NAME)_path_curtestdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $($(MODULE_NAME)_path_curdir)%_static.o: $($(MODULE_NAME)_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -42,10 +56,19 @@ $($(MODULE_NAME)_path_curdir)%_shared.o: $($(MODULE_NAME)_path_curdir)%.c
 $($(MODULE_NAME)_install_path_shared): $($(MODULE_NAME)_depends_libs_shared) $($(MODULE_NAME)_static_objects) $($(MODULE_NAME)_shared_objects)
 	$(CC) -o $@ $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC) $($(MODULE_NAME)_shared_lflags) $($(MODULE_NAME)_shared_objects) $($(MODULE_NAME)_depends_libs_shared)
 
+$($(MODULE_NAME)_test_install_path_static): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_static_objs)
+	$(CC) -o $@ $($(MODULE_NAME)_test_objects) -Wl,--allow-multiple-definition $($(MODULE_NAME)_test_libdepend_static_objs) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
+
 .PHONY: $(MODULE_NAME)_all
 $(MODULE_NAME)_all: $($(MODULE_NAME)_child_all_targets) ## build and install all $(MODULE_NAME) static and shared libraries
 ifneq ($($(MODULE_NAME)_shared_objects),)
 $(MODULE_NAME)_all: $($(MODULE_NAME)_install_path_shared)
+endif
+
+.PHONY: $(MODULE_NAME)_test_all
+$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_child_all_targets) ## build all $(MODULE_NAME)_test tests
+ifneq ($($(MODULE_NAME)_test_objects),)
+$(MODULE_NAME)_test_all: $($(MODULE_NAME)_test_install_path_static)
 endif
 
 .PHONY: $(MODULE_NAME)_clean
@@ -53,9 +76,33 @@ $(MODULE_NAME)_clean: $($(MODULE_NAME)_child_clean_targets) ## remove and deinst
 $(MODULE_NAME)_clean:
 	- $(RM) $($(MODULE_NAME)_clean_files)
 
+.PHONY: $(MODULE_NAME)_test_clean
+$(MODULE_NAME)_test_clean: $($(MODULE_NAME)_test_child_clean_targets) ## remove all $(MODULE_NAME)_test tests
+$(MODULE_NAME)_test_clean:
+	- $(RM) $($(MODULE_NAME)_test_install_path_static) $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_depends)
+
 .PHONY: $(MODULE_NAME)_re
 $(MODULE_NAME)_re: $(MODULE_NAME)_clean
 $(MODULE_NAME)_re: $(MODULE_NAME)_all
+
+.PHONY: $(MODULE_NAME)_test_re
+$(MODULE_NAME)_test_re: $(MODULE_NAME)_test_clean
+$(MODULE_NAME)_test_re: $(MODULE_NAME)_test_all
+
+.PHONY: $(MODULE_NAME)_test_run_all
+$(MODULE_NAME)_test_run_all: $(MODULE_NAME)_test_all ## build and run static $(MODULE_NAME)_test
+$(MODULE_NAME)_test_run_all: $($(MODULE_NAME)_test_child_run_targets)
+ifneq ($($(MODULE_NAME)_test_objects),)
+$(MODULE_NAME)_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path_static)
+endif
+
+.PHONY: $(MODULE_NAME)_test_run
+$(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all
+ifneq ($($(MODULE_NAME)_test_objects),)
+$(MODULE_NAME)_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path_static)
+endif
 
 .PHONY: $(MODULE_NAME)_strip
 $(MODULE_NAME)_strip: $($(MODULE_NAME)_child_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
@@ -63,3 +110,4 @@ $(MODULE_NAME)_strip:
 	- strip --strip-all $($(MODULE_NAME)_install_path_shared)
 
 -include $($(MODULE_NAME)_depends)
+-include $($(MODULE_NAME)_test_depends)
