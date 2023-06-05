@@ -6,6 +6,6 @@ unique_error_codes: [
     COMMAND_LINE_TOO_LONG: command line is too long in test_framework
     ASSERT: test_framework's assertion failed
 ]
-module_dependencies: 
+module_dependencies: libc common process modules
 application_type: CONSOLE
 test_dependencies: 

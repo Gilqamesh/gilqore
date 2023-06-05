@@ -10,5 +10,5 @@ include $(wildcard mk/*.mk)
 # modules makefiles
 include $(wildcard $(PATH_MODULES)/*.mk)
 
-# tests makefiles
-include $(wildcard $(PATH_TESTS)/*.mk)
+# # tests makefiles
+# include $(wildcard $(PATH_TESTS)/*.mk)

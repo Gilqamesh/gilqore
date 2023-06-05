@@ -7,7 +7,7 @@
 #include "common/error_code.h"
 #include "libc/libc.h"
 #include "system/process/process.h"
-#include "tools/module_compiler/module_compiler.h"
+#include "module_compiler.h"
 
 GIL_API int WinMain(
     HINSTANCE instance,

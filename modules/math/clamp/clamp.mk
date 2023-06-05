@@ -1,15 +1,16 @@
 clamp_path_curdir				:= $(dir $(lastword $(MAKEFILE_LIST)))
+clamp_path_curtestdir			:= $(clamp_path_curdir)test/
 clamp_child_makefiles			:= $(wildcard $(clamp_path_curdir)*/*mk)
 clamp_child_module_names		:= $(basename $(notdir $(clamp_child_makefiles)))
 clamp_child_all_targets		:= $(foreach child_module,$(clamp_child_module_names),$(child_module)_all)
-clamp_child_strip_targets		:= $(foreach child_module,$(clamp_child_module_names),$(child_module)_strip)
 clamp_child_clean_targets		:= $(foreach child_module,$(clamp_child_module_names),$(child_module)_clean)
-clamp_install_path_shared		:= $(PATH_INSTALL)/clamp$(EXT_LIB_SHARED)
-clamp_shared_lflags			:= -shared
+clamp_test_child_all_targets	:= $(foreach test_module,$(clamp_child_module_names),$(test_module)_test_all)
+clamp_test_child_clean_targets	:= $(foreach test_module,$(clamp_child_module_names),$(test_module)_test_clean)
+clamp_test_child_run_targets	:= $(foreach test_module,$(clamp_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-clamp_install_path_implib		:= $(PATH_INSTALL)/libclampdll.a
-clamp_shared_lflags			+= -Wl,--out-implib=$(clamp_install_path_implib)
+clamp_test_install_path_static := $(clamp_path_curtestdir)clamp_static$(EXT_EXE)
 endif
+clamp_test_sources             := $(wildcard $(clamp_path_curtestdir)*.c)
 clamp_sources					:= $(wildcard $(clamp_path_curdir)*.c)
 ifeq ($(PLATFORM), WINDOWS)
 clamp_sources					+= $(wildcard $(clamp_path_curdir)platform_specific/windows/*.c)
@@ -19,47 +20,73 @@ else ifeq ($(PLATFORM), MAC)
 clamp_sources					+= $(wildcard $(clamp_path_curdir)platform_specific/mac/*.c)
 endif
 clamp_static_objects			:= $(patsubst %.c, %_static.o, $(clamp_sources))
-clamp_shared_objects			:= $(patsubst %.c, %_shared.o, $(clamp_sources))
+clamp_test_objects				:= $(patsubst %.c, %.o, $(clamp_test_sources))
+clamp_test_depends				:= $(patsubst %.c, %.d, $(clamp_test_sources))
 clamp_depends					:= $(patsubst %.c, %.d, $(clamp_sources))
 clamp_depends_modules			:= v2 v3 v4 
-clamp_depends_libs_shared		:= $(foreach module,$(clamp_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-# clamp_depends_libs_targets		:= $(foreach module,$(clamp_depends_modules),$(module)_all)
+clamp_test_depends_modules     = $(clamp_depends_modules)
+clamp_test_depends_modules     += clamp
+clamp_test_libdepend_static_objs   = $(foreach dep_module,$(clamp_depends_modules),$($(dep_module)_static_objects))
+clamp_test_libdepend_static_objs   += $(clamp_static_objects)
 clamp_clean_files				:=
 clamp_clean_files				+= $(clamp_install_path_implib)
-clamp_clean_files				+= $(clamp_install_path_shared)
 clamp_clean_files				+= $(clamp_static_objects)
-clamp_clean_files				+= $(clamp_shared_objects) 
 clamp_clean_files				+= $(clamp_depends)
 
 include $(clamp_child_makefiles)
 
+$(clamp_path_curtestdir)%.o: $(clamp_path_curtestdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+
 $(clamp_path_curdir)%_static.o: $(clamp_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
-$(clamp_path_curdir)%_shared.o: $(clamp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
-
-$(clamp_install_path_shared): $(clamp_depends_libs_shared) $(clamp_static_objects) $(clamp_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(clamp_shared_lflags) $(clamp_shared_objects) $(clamp_depends_libs_shared)
+$(clamp_test_install_path_static): $(clamp_test_objects) $(clamp_test_libdepend_static_objs)
+	$(CC) -o $@ $(clamp_test_objects) -Wl,--allow-multiple-definition $(clamp_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: clamp_all
-clamp_all: $(clamp_child_all_targets) ## build and install all clamp static and shared libraries
-ifneq ($(clamp_shared_objects),)
-clamp_all: $(clamp_install_path_shared)
+clamp_all: $(clamp_child_all_targets) ## build all clamp object files
+clamp_all: $(clamp_static_objects)
+
+.PHONY: clamp_test_all
+clamp_test_all: $(clamp_test_child_all_targets) ## build all clamp_test tests
+ifneq ($(clamp_test_objects),)
+clamp_test_all: $(clamp_test_install_path_static)
 endif
 
 .PHONY: clamp_clean
-clamp_clean: $(clamp_child_clean_targets) ## remove and deinstall all clamp static and shared libraries
+clamp_clean: $(clamp_child_clean_targets) ## remove all clamp object files
 clamp_clean:
 	- $(RM) $(clamp_clean_files)
+
+.PHONY: clamp_test_clean
+clamp_test_clean: $(clamp_test_child_clean_targets) ## remove all clamp_test tests
+clamp_test_clean:
+	- $(RM) $(clamp_test_install_path_static) $(clamp_test_objects) $(clamp_test_depends)
 
 .PHONY: clamp_re
 clamp_re: clamp_clean
 clamp_re: clamp_all
 
-.PHONY: clamp_strip
-clamp_strip: $(clamp_child_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
-clamp_strip:
-	- strip --strip-all $(clamp_install_path_shared)
+.PHONY: clamp_test_re
+clamp_test_re: clamp_test_clean
+clamp_test_re: clamp_test_all
+
+.PHONY: clamp_test_run_all
+clamp_test_run_all: clamp_test_all ## build and run clamp_test
+clamp_test_run_all: $(clamp_test_child_run_targets)
+ifneq ($(clamp_test_objects),)
+clamp_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(clamp_test_install_path_static)
+endif
+
+.PHONY: clamp_test_run
+clamp_test_run: clamp_test_all
+ifneq ($(clamp_test_objects),)
+clamp_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(clamp_test_install_path_static)
+endif
 
 -include $(clamp_depends)
+-include $(clamp_test_depends)

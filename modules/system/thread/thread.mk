@@ -1,15 +1,16 @@
 thread_path_curdir				:= $(dir $(lastword $(MAKEFILE_LIST)))
+thread_path_curtestdir			:= $(thread_path_curdir)test/
 thread_child_makefiles			:= $(wildcard $(thread_path_curdir)*/*mk)
 thread_child_module_names		:= $(basename $(notdir $(thread_child_makefiles)))
 thread_child_all_targets		:= $(foreach child_module,$(thread_child_module_names),$(child_module)_all)
-thread_child_strip_targets		:= $(foreach child_module,$(thread_child_module_names),$(child_module)_strip)
 thread_child_clean_targets		:= $(foreach child_module,$(thread_child_module_names),$(child_module)_clean)
-thread_install_path_shared		:= $(PATH_INSTALL)/thread$(EXT_LIB_SHARED)
-thread_shared_lflags			:= -shared
+thread_test_child_all_targets	:= $(foreach test_module,$(thread_child_module_names),$(test_module)_test_all)
+thread_test_child_clean_targets	:= $(foreach test_module,$(thread_child_module_names),$(test_module)_test_clean)
+thread_test_child_run_targets	:= $(foreach test_module,$(thread_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-thread_install_path_implib		:= $(PATH_INSTALL)/libthreaddll.a
-thread_shared_lflags			+= -Wl,--out-implib=$(thread_install_path_implib)
+thread_test_install_path_static := $(thread_path_curtestdir)thread_static$(EXT_EXE)
 endif
+thread_test_sources             := $(wildcard $(thread_path_curtestdir)*.c)
 thread_sources					:= $(wildcard $(thread_path_curdir)*.c)
 ifeq ($(PLATFORM), WINDOWS)
 thread_sources					+= $(wildcard $(thread_path_curdir)platform_specific/windows/*.c)
@@ -19,47 +20,73 @@ else ifeq ($(PLATFORM), MAC)
 thread_sources					+= $(wildcard $(thread_path_curdir)platform_specific/mac/*.c)
 endif
 thread_static_objects			:= $(patsubst %.c, %_static.o, $(thread_sources))
-thread_shared_objects			:= $(patsubst %.c, %_shared.o, $(thread_sources))
+thread_test_objects				:= $(patsubst %.c, %.o, $(thread_test_sources))
+thread_test_depends				:= $(patsubst %.c, %.d, $(thread_test_sources))
 thread_depends					:= $(patsubst %.c, %.d, $(thread_sources))
 thread_depends_modules			:= 
-thread_depends_libs_shared		:= $(foreach module,$(thread_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-# thread_depends_libs_targets		:= $(foreach module,$(thread_depends_modules),$(module)_all)
+thread_test_depends_modules     = $(thread_depends_modules)
+thread_test_depends_modules     += thread
+thread_test_libdepend_static_objs   = $(foreach dep_module,$(thread_depends_modules),$($(dep_module)_static_objects))
+thread_test_libdepend_static_objs   += $(thread_static_objects)
 thread_clean_files				:=
 thread_clean_files				+= $(thread_install_path_implib)
-thread_clean_files				+= $(thread_install_path_shared)
 thread_clean_files				+= $(thread_static_objects)
-thread_clean_files				+= $(thread_shared_objects) 
 thread_clean_files				+= $(thread_depends)
 
 include $(thread_child_makefiles)
 
+$(thread_path_curtestdir)%.o: $(thread_path_curtestdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+
 $(thread_path_curdir)%_static.o: $(thread_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
-$(thread_path_curdir)%_shared.o: $(thread_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
-
-$(thread_install_path_shared): $(thread_depends_libs_shared) $(thread_static_objects) $(thread_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(thread_shared_lflags) $(thread_shared_objects) $(thread_depends_libs_shared)
+$(thread_test_install_path_static): $(thread_test_objects) $(thread_test_libdepend_static_objs)
+	$(CC) -o $@ $(thread_test_objects) -Wl,--allow-multiple-definition $(thread_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: thread_all
-thread_all: $(thread_child_all_targets) ## build and install all thread static and shared libraries
-ifneq ($(thread_shared_objects),)
-thread_all: $(thread_install_path_shared)
+thread_all: $(thread_child_all_targets) ## build all thread object files
+thread_all: $(thread_static_objects)
+
+.PHONY: thread_test_all
+thread_test_all: $(thread_test_child_all_targets) ## build all thread_test tests
+ifneq ($(thread_test_objects),)
+thread_test_all: $(thread_test_install_path_static)
 endif
 
 .PHONY: thread_clean
-thread_clean: $(thread_child_clean_targets) ## remove and deinstall all thread static and shared libraries
+thread_clean: $(thread_child_clean_targets) ## remove all thread object files
 thread_clean:
 	- $(RM) $(thread_clean_files)
+
+.PHONY: thread_test_clean
+thread_test_clean: $(thread_test_child_clean_targets) ## remove all thread_test tests
+thread_test_clean:
+	- $(RM) $(thread_test_install_path_static) $(thread_test_objects) $(thread_test_depends)
 
 .PHONY: thread_re
 thread_re: thread_clean
 thread_re: thread_all
 
-.PHONY: thread_strip
-thread_strip: $(thread_child_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
-thread_strip:
-	- strip --strip-all $(thread_install_path_shared)
+.PHONY: thread_test_re
+thread_test_re: thread_test_clean
+thread_test_re: thread_test_all
+
+.PHONY: thread_test_run_all
+thread_test_run_all: thread_test_all ## build and run thread_test
+thread_test_run_all: $(thread_test_child_run_targets)
+ifneq ($(thread_test_objects),)
+thread_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path_static)
+endif
+
+.PHONY: thread_test_run
+thread_test_run: thread_test_all
+ifneq ($(thread_test_objects),)
+thread_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path_static)
+endif
 
 -include $(thread_depends)
+-include $(thread_test_depends)

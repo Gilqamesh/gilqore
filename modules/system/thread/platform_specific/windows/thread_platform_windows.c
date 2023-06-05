@@ -1,3 +1,0 @@
-bool thread__create()
-{
-}

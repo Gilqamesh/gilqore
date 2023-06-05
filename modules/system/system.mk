@@ -1,15 +1,16 @@
 system_path_curdir				:= $(dir $(lastword $(MAKEFILE_LIST)))
+system_path_curtestdir			:= $(system_path_curdir)test/
 system_child_makefiles			:= $(wildcard $(system_path_curdir)*/*mk)
 system_child_module_names		:= $(basename $(notdir $(system_child_makefiles)))
 system_child_all_targets		:= $(foreach child_module,$(system_child_module_names),$(child_module)_all)
-system_child_strip_targets		:= $(foreach child_module,$(system_child_module_names),$(child_module)_strip)
 system_child_clean_targets		:= $(foreach child_module,$(system_child_module_names),$(child_module)_clean)
-system_install_path_shared		:= $(PATH_INSTALL)/system$(EXT_LIB_SHARED)
-system_shared_lflags			:= -shared
+system_test_child_all_targets	:= $(foreach test_module,$(system_child_module_names),$(test_module)_test_all)
+system_test_child_clean_targets	:= $(foreach test_module,$(system_child_module_names),$(test_module)_test_clean)
+system_test_child_run_targets	:= $(foreach test_module,$(system_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-system_install_path_implib		:= $(PATH_INSTALL)/libsystemdll.a
-system_shared_lflags			+= -Wl,--out-implib=$(system_install_path_implib)
+system_test_install_path_static := $(system_path_curtestdir)system_static$(EXT_EXE)
 endif
+system_test_sources             := $(wildcard $(system_path_curtestdir)*.c)
 system_sources					:= $(wildcard $(system_path_curdir)*.c)
 ifeq ($(PLATFORM), WINDOWS)
 system_sources					+= $(wildcard $(system_path_curdir)platform_specific/windows/*.c)
@@ -19,47 +20,73 @@ else ifeq ($(PLATFORM), MAC)
 system_sources					+= $(wildcard $(system_path_curdir)platform_specific/mac/*.c)
 endif
 system_static_objects			:= $(patsubst %.c, %_static.o, $(system_sources))
-system_shared_objects			:= $(patsubst %.c, %_shared.o, $(system_sources))
+system_test_objects				:= $(patsubst %.c, %.o, $(system_test_sources))
+system_test_depends				:= $(patsubst %.c, %.d, $(system_test_sources))
 system_depends					:= $(patsubst %.c, %.d, $(system_sources))
 system_depends_modules			:= 
-system_depends_libs_shared		:= $(foreach module,$(system_depends_modules),$(PATH_INSTALL)/$(module)$(EXT_LIB_SHARED))
-# system_depends_libs_targets		:= $(foreach module,$(system_depends_modules),$(module)_all)
+system_test_depends_modules     = $(system_depends_modules)
+system_test_depends_modules     += system
+system_test_libdepend_static_objs   = $(foreach dep_module,$(system_depends_modules),$($(dep_module)_static_objects))
+system_test_libdepend_static_objs   += $(system_static_objects)
 system_clean_files				:=
 system_clean_files				+= $(system_install_path_implib)
-system_clean_files				+= $(system_install_path_shared)
 system_clean_files				+= $(system_static_objects)
-system_clean_files				+= $(system_shared_objects) 
 system_clean_files				+= $(system_depends)
 
 include $(system_child_makefiles)
 
+$(system_path_curtestdir)%.o: $(system_path_curtestdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+
 $(system_path_curdir)%_static.o: $(system_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
 
-$(system_path_curdir)%_shared.o: $(system_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -fPIC -DGIL_LIB_SHARED_EXPORT
-
-$(system_install_path_shared): $(system_depends_libs_shared) $(system_static_objects) $(system_shared_objects)
-	$(CC) -o $@ $(LFLAGS_COMMON) -mconsole $(system_shared_lflags) $(system_shared_objects) $(system_depends_libs_shared)
+$(system_test_install_path_static): $(system_test_objects) $(system_test_libdepend_static_objs)
+	$(CC) -o $@ $(system_test_objects) -Wl,--allow-multiple-definition $(system_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: system_all
-system_all: $(system_child_all_targets) ## build and install all system static and shared libraries
-ifneq ($(system_shared_objects),)
-system_all: $(system_install_path_shared)
+system_all: $(system_child_all_targets) ## build all system object files
+system_all: $(system_static_objects)
+
+.PHONY: system_test_all
+system_test_all: $(system_test_child_all_targets) ## build all system_test tests
+ifneq ($(system_test_objects),)
+system_test_all: $(system_test_install_path_static)
 endif
 
 .PHONY: system_clean
-system_clean: $(system_child_clean_targets) ## remove and deinstall all system static and shared libraries
+system_clean: $(system_child_clean_targets) ## remove all system object files
 system_clean:
 	- $(RM) $(system_clean_files)
+
+.PHONY: system_test_clean
+system_test_clean: $(system_test_child_clean_targets) ## remove all system_test tests
+system_test_clean:
+	- $(RM) $(system_test_install_path_static) $(system_test_objects) $(system_test_depends)
 
 .PHONY: system_re
 system_re: system_clean
 system_re: system_all
 
-.PHONY: system_strip
-system_strip: $(system_child_strip_targets) ## removes all symbols that are not needed from all the $(MODULES_NAME) shared libraries for relocation processing
-system_strip:
-	- strip --strip-all $(system_install_path_shared)
+.PHONY: system_test_re
+system_test_re: system_test_clean
+system_test_re: system_test_all
+
+.PHONY: system_test_run_all
+system_test_run_all: system_test_all ## build and run system_test
+system_test_run_all: $(system_test_child_run_targets)
+ifneq ($(system_test_objects),)
+system_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(system_test_install_path_static)
+endif
+
+.PHONY: system_test_run
+system_test_run: system_test_all
+ifneq ($(system_test_objects),)
+system_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(system_test_install_path_static)
+endif
 
 -include $(system_depends)
+-include $(system_test_depends)
