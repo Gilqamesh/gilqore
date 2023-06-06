@@ -1,1 +1,3 @@
 unity build
+seperate test framework from module compiler by it parsing error codes file itself
+create cmd line utility for module compiler for building process as well and get rid of makefiles altogether

@@ -5,6 +5,6 @@ unique_error_codes: [
     WHAT_STRADDLES_ANOTHER_WHAT: supplied what_position + what_length straddles over a previously replaced what in string_replacer__replace
     WHAT_POSITION_OUTSIDE_OF_ORIGINAL: supplied what_position is outside of the bounds of the original string in string_replacer__replace
 ]
-module_dependencies: libc compare common file hash
+module_dependencies: libc compare common file hash v2 clamp math abs sqrt
 application_type: CONSOLE
 test_dependencies: 

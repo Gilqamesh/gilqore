@@ -1021,11 +1021,6 @@ bool is_module_path(const char* path) {
         return false;
     }
 
-    if (libc__strcmp(child_basename_buffer, "time") == 0) {
-        int dbg = 0;
-        ++dbg;
-    }
-
     update_platform_specific_directories(path);
     // create test folder
     assert_create_dir(
@@ -1246,12 +1241,6 @@ void module_compiler__compile(void) {
     libc__strncpy(parent_module->basename, "modules", ARRAY_SIZE(parent_module->basename));
 
     module_compiler__explore_children(parent_module);
-
-    // todo:
-    // - create/parse .gmc files from both modules and tests
-    //      also update error codes file while parsing, as well as embed into def files
-    // - update makefiles for modules and tests
-    // - update def files for modules
 
     // todo: rename to something like update def files, and do the config file parsing prior to this
     module_compiler__parse_config_files(modules, cur_number_of_modules);

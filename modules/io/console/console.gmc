@@ -4,6 +4,6 @@ unique_error_codes: [
     VSNPRINTF: vsnprintf returned negative value
     WRITE_CONSOLE_A: WriteConsoleA has failed
 ]
-module_dependencies: 
+module_dependencies: libc
 application_type: CONSOLE
-test_dependencies: 
+test_dependencies: libc

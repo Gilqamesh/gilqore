@@ -6,6 +6,6 @@ unique_error_codes: [
     WINDOWS_SEEK: SetFilePointer failed in file__seek
     WINDOWS_CLOSE: CloseHandle failed in file__close
 ]
-module_dependencies: common time
+module_dependencies: common time libc random compare
 application_type: CONSOLE
 test_dependencies: 

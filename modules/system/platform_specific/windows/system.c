@@ -33,7 +33,7 @@ void system__usleep(u32 useconds) {
     LARGE_INTEGER start_performance_count;
     // note: assume it works to avoid branching
     QueryPerformanceCounter(&start_performance_count);
-    u32 milliseconds = useconds / 100000;
+    u32 milliseconds = useconds / 1000;
     if (milliseconds > SLEEP_MS_GRANULARITY) {
         Sleep(milliseconds - SLEEP_MS_GRANULARITY);
     }

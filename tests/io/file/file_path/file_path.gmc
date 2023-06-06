@@ -1,4 +1,0 @@
-unique_error_codes: [
-]
-module_dependencies: libc string
-application_type: CONSOLE
