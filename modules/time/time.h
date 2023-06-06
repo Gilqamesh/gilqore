@@ -13,6 +13,7 @@ struct time;
 #  include "platform_specific/mac/time_platform_specific_defs.h"
 # endif
 
+// @returns current time with a granularity of at least 1s
 GIL_API struct time time__get(void);
 
 // @returns <0, 0 or >0 if t1 is found, respectively, to be less than, equal to or be greater than t2

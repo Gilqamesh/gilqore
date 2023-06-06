@@ -496,31 +496,18 @@ static void def_file_add_error_codes_place_holder__update(
     file__close(def_file);
 }
 
-// todo: make the algorithm error proof so that it doesn't mess with the existing def files until everything passes
-static void def_file_replace_error_codes_place_holder_and_append_error_codes_file(
+static void parse_and_handle_config_file(
     struct module* self,
-    struct string_replacer* string_replacer,
     struct file_reader* file_reader,
     struct file_writer* file_writer,
     struct file* error_codes_file,
-    struct file* def_file,
-    char* def_file_buffer,
-    char* def_file_name_buffer,
     char* config_file_name,
     char* auxiliary_buffer,
     char* error_codes_buffer,
     char* module_name_capitalized,
-    const char* rest_of_the_error_codes,
-    u32 def_file_size,
     u32 auxiliary_buffer_size,
-    u32 error_codes_buffer_size,
-    u32 rest_of_the_error_codes_len,
-    bool should_update_def_file
+    u32 error_codes_buffer_size
 ) {
-    if (should_update_def_file) {
-        string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
-    }
-
     struct file config_file;
     TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
     file_reader__clear(file_reader, &config_file);
@@ -548,15 +535,6 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
                 error_codes_buffer_size
             );
             parsed_unique_error_codes = true;
-            if (should_update_def_file) {
-                u32 number_of_what_replacements = 1;
-                string_replacer__replace_word_f(
-                    string_replacer,
-                    number_of_what_replacements,
-                    rest_of_the_error_codes, rest_of_the_error_codes_len,
-                    "%s", error_codes_buffer
-                );
-            }
         } else if (libc__strcmp(auxiliary_buffer, KEY_MODULE_DEPENDENCIES) == 0) {
             parse_config_file_dependencies(
                 self,
@@ -624,16 +602,6 @@ static void def_file_replace_error_codes_place_holder_and_append_error_codes_fil
         }
     }
     file__close(&config_file);
-
-    if (should_update_def_file) {
-        TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-        string_replacer__read_into_file(
-            string_replacer,
-            def_file,
-            0
-        );
-        file__close(def_file);
-    }
 }
 
 // static void parse_gmc_file(
@@ -878,28 +846,38 @@ void module_compiler__parse_config_file(
             // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
             error_code__exit(999);
         }
+        string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
     }
 
-    def_file_replace_error_codes_place_holder_and_append_error_codes_file(
+    parse_and_handle_config_file(
         self,
-        string_replacer,
         file_reader,
         file_writer,
         error_codes_file,
-        &def_file,
-        def_file_buffer,
-        def_file_name_buffer,
         config_file_name_buffer,
         auxiliary_buffer,
         error_codes_buffer,
         module_name_capitalized,
-        rest_of_the_error_codes,
-        def_file_size,
         auxiliary_buffer_size,
-        error_codes_buffer_size,
-        rest_of_the_error_codes_len,
-        should_update_def_file
+        error_codes_buffer_size
     );
+
+    if (should_update_def_file) {
+        u32 number_of_what_replacements = 1;
+        string_replacer__replace_word_f(
+            string_replacer,
+            number_of_what_replacements,
+            rest_of_the_error_codes, rest_of_the_error_codes_len,
+            "%s", error_codes_buffer
+        );
+        TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+        string_replacer__read_into_file(
+            string_replacer,
+            &def_file,
+            0
+        );
+        file__close(&def_file);
+    }
 }
 
 static void assert_create_dir(
@@ -1061,7 +1039,7 @@ void module_compiler__explore_children(struct module* self) {
     directory__foreach_deep(self->dirprefix, &is_module_path, FILE_TYPE_DIRECTORY);
 }
 
-static void module_compiler__get_dependency_add_dependency(
+static void module_compiler__write_dependency_into_buffer_and_increment(
     struct module* self,
     char** dependency_buffer,
     u32 *dependency_buffer_size
@@ -1091,7 +1069,7 @@ static u32 module_compiler__get_dependencies(
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, dependencies); ++dependency_index) {
         struct module* dependency = self->dependencies[dependency_index];
         if (dependency != NULL && dependency->transient_flag_for_processing == 0) {
-            module_compiler__get_dependency_add_dependency(dependency, dependency_buffer, &dependency_buffer_size);
+            module_compiler__write_dependency_into_buffer_and_increment(dependency, dependency_buffer, &dependency_buffer_size);
             dependency_buffer_size = module_compiler__get_dependencies(
                 dependency,
                 dependency_buffer,
@@ -1108,21 +1086,24 @@ static u32 module_compiler__get_test_dependencies(
     char** dependency_buffer,
     u32 dependency_buffer_size
 ) {
-    module_compiler__get_dependency_add_dependency(self, dependency_buffer, &dependency_buffer_size);
+    module_compiler__write_dependency_into_buffer_and_increment(self, dependency_buffer, &dependency_buffer_size);
     self->transient_flag_for_processing = 1;
 
     struct module* common_test_dependency = module_compiler__find_module_by_name(g_modules, COMMON_TEST_DEPENDENCY_MODULE, *g_modules_size_cur);
     if (common_test_dependency == NULL) {
         error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
     }
-    module_compiler__get_dependency_add_dependency(common_test_dependency, dependency_buffer, &dependency_buffer_size);
+    module_compiler__write_dependency_into_buffer_and_increment(common_test_dependency, dependency_buffer, &dependency_buffer_size);
     common_test_dependency->transient_flag_for_processing = 1;
     dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
+
+    dependency_buffer_size = module_compiler__get_dependencies(self, dependency_buffer, dependency_buffer_size);
+
 
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
         struct module* test_dependency = self->test_dependencies[dependency_index];
         if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
-            module_compiler__get_dependency_add_dependency(test_dependency, dependency_buffer, &dependency_buffer_size);
+            module_compiler__write_dependency_into_buffer_and_increment(test_dependency, dependency_buffer, &dependency_buffer_size);
             dependency_buffer_size = module_compiler__get_dependencies(
                 test_dependency,
                 dependency_buffer,
