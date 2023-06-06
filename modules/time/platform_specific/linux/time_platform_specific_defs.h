@@ -3,10 +3,6 @@
 
 # include "../../time_defs.h"
 
-enum TIME_ERROR_CODE_LINUX {
-    TIME_ERROR_CODE_LINUX_TIME = TIME_ERROR_CODE_LINUX
-};
-
 # include <time.h>
 
 struct time {

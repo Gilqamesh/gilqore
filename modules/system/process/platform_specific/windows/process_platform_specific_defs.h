@@ -3,6 +3,11 @@
 
 # include "../../process_defs.h"
 
+enum process_windows_error_code {
+    WINDOWS_PROCESS_ERROR_CODE_START,
+};
+
+
 enum PROCESS_ERROR_CODE_WINDOWS {
     PROCESS_ERROR_CODE_WINDOWS_CLOSE_HANDLE,
     PROCESS_ERROR_CODE_WINDOWS_GET_EXIT_CODE_PROCESS,

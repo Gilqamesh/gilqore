@@ -8,7 +8,8 @@ struct time time__get(void) {
 
     if ((result.val = time(NULL)) == (time_t) -1) {
         // todo: diagnostics, errno
-        error_code__exit(TIME_ERROR_CODE_LINUX_TIME);
+        // error_code__exit(TIME_ERROR_CODE_LINUX_TIME);
+        error_code__exit(1243);
     }
 
     return result;

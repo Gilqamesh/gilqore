@@ -10,7 +10,7 @@ struct time time__get(void) {
     GetSystemTime(&system_time);
     if (SystemTimeToFileTime(&system_time, &result.val) == FALSE) {
         // todo: diagnostics, GetLastError()
-        error_code__exit(TIME_ERROR_CODE_WINDOWS_SYSTEM_TIME_TO_FILE_TIME);
+        error_code__exit(TIME_ERROR_CODE_SYSTEM_TIME_TO_FILE_TIME);
     }
 
     return result;

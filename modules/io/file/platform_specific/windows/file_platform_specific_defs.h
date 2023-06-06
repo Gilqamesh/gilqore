@@ -3,8 +3,12 @@
 
 # include "../../file_defs.h"
 
-enum FILE_ERROR_CODE_WINDOWS {
-    FILE_ERROR_CODE_WINDOWS_START = 999
+enum file_windows_error_code {
+    WINDOWS_FILE_ERROR_CODE_START,
+    FILE_ERROR_CODE_WINDOWS_READ = 22,
+    FILE_ERROR_CODE_WINDOWS_WRITE = 23,
+    FILE_ERROR_CODE_WINDOWS_SEEK = 24,
+    FILE_ERROR_CODE_WINDOWS_CLOSE = 25,
 };
 
 #include <Windows.h>

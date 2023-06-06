@@ -26,7 +26,7 @@
 #define PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH "misc/platform_specific_gmc_file_template.txt"
 #define MODULES_TEMPLATE_PATH "misc/module_template.txt"
 #define TESTS_TEMPLATE_PATH "misc/tests_template.txt"
-#define DEF_FILE_TEMPLATE_PATH "misc/tests_template.txt"
+#define DEF_FILE_TEMPLATE_PATH "misc/def_file_template.h"
 
 #define PLATFORM_SPECIFIC_WINDOWS "windows"
 #define PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS "WINDOWS"
@@ -445,7 +445,7 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         string_replacer,
         number_of_what_replacements,
         parent_module_name_defs, parent_module_name_defs_len,
-        "\"../../%s\"", self->basename
+        "\"../../%s_defs.h\"", self->basename
     );
 
     number_of_what_replacements = 1;
@@ -640,7 +640,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
         bytes_written = libc__snprintf(
             buffer,
             ARRAY_SIZE(buffer),
-            "\"../../%s\"", self->basename
+            "\"../../%s_defs.h\"", self->basename
         );
         if (bytes_written >= ARRAY_SIZE(buffer)) {
             // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
@@ -852,7 +852,7 @@ static void parse_and_handle_platform_specific_config_file(
                 );
                 parsed_platform_specific_dependencies = true;
             }
-            libc__pintf("Updated .gmc file for module %s\n", self->basename);
+            libc__printf("Updated .gmc file for module %s\n", self->basename);
         }
     }
     file__close(&config_file);
@@ -1140,6 +1140,10 @@ void module_compiler__parse_config_file(
             0
         );
         file__close(&def_file);
+    }
+
+    if (self->parent == NULL) {
+        return ;
     }
 
     /*
@@ -1692,7 +1696,7 @@ void module_compiler__compile(void) {
         auxiliary_buffer_size
     );
 
-    module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
+    // module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
 
     string_replacer__destroy(&string_replacer);
     string_replacer__destroy(&string_replacer_aux);

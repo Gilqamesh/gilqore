@@ -1,4 +1,7 @@
 unique_error_codes: [
+    WINDOWS_READ: ReadFile failed in file__read
+    WINDOWS_WRITE: WriteFile failed in file__write
+    WINDOWS_SEEK: SetFilePointer failed in file__seek
+    WINDOWS_CLOSE: CloseHandle failed in file__close
 ]
 module_dependencies:
-application_type: CONSOLE

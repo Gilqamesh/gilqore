@@ -1,4 +1,5 @@
 unique_error_codes: [
+    SYSTEM_TIME_TO_FILE_TIME: SystemTimeToFileTime failed in time__get
 ]
 module_dependencies:
 application_type: CONSOLE

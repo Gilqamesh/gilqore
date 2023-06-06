@@ -12,7 +12,7 @@ static LARGE_INTEGER g_performance_frequency;
 void system__init_module(void) {
     if (QueryPerformanceFrequency(&g_performance_frequency) == FALSE) {
         // todo: diagnostics, GetLastError()
-        error_code__exit(SYSTEM_WINDOWS_ERROR_CODE_QUERY_PERFORMANCE_FREQUENCY);
+        error_code__exit(SYSTEM_ERROR_CODE_SYSTEM_WINDOWS_ERROR_CODE_QUERY_PERFORMANCE_FREQUENCY);
     }
 }
 

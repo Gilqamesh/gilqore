@@ -1,4 +1,4 @@
 unique_error_codes: [
+    SYSTEM_WINDOWS_ERROR_CODE_QUERY_PERFORMANCE_FREQUENCY: QueryPerformanceFrequency failed, whaaaat!?
 ]
 module_dependencies:
-application_type: CONSOLE

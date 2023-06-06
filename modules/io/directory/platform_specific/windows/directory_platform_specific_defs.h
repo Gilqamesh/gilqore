@@ -3,6 +3,11 @@
 
 # include "../../directory_defs.h"
 
+enum directory_windows_error_code {
+    WINDOWS_DIRECTORY_ERROR_CODE_START,
+};
+
+
 enum DIRECTORY_ERROR_CODE_WINDOWS {
     DIRECTORY_ERROR_CODE_WINDOWS_FINDCLOSE,
     DIRECTORY_ERROR_CODE_WINDOWS_PATH_TRUNCATED,

@@ -3,8 +3,9 @@
 
 # include "../../time_defs.h"
 
-enum TIME_ERROR_CODE_WINDOWS {
-    TIME_ERROR_CODE_WINDOWS_SYSTEM_TIME_TO_FILE_TIME
+enum time_windows_error_code {
+    WINDOWS_TIME_ERROR_CODE_START,
+    TIME_ERROR_CODE_SYSTEM_TIME_TO_FILE_TIME = 41,
 };
 
 # include <Windows.h>
