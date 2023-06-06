@@ -23,11 +23,21 @@
 // todo(david) remove and make file__create to just create a file "without opening it"
 #define GITKEEP_PATH "misc/.gitkeep"
 #define CONFIG_FILE_TEMPLATE_PATH "misc/gmc_file_template.txt"
+#define PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH "misc/platform_specific_gmc_file_template.txt"
 #define MODULES_TEMPLATE_PATH "misc/module_template.txt"
 #define TESTS_TEMPLATE_PATH "misc/tests_template.txt"
+#define DEF_FILE_TEMPLATE_PATH "misc/tests_template.txt"
+
+#define PLATFORM_SPECIFIC_WINDOWS "windows"
+#define PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS "WINDOWS"
+#define PLATFORM_SPECIFIC_LINUX "linux"
+#define PLATFORM_SPECIFIC_CAPITALIZED_LINUX "LINUX"
+#define PLATFORM_SPECIFIC_MAC "mac"
+#define PLATFORM_SPECIFIC_CAPITALIZED_MAC "MAC"
 
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
 #define KEY_MODULE_DEPENDENCIES "module_dependencies"
+#define KEY_PLATFORM_SPECIFIC_MODULE_DEPENDENCIES "platform_specific_module_dependencies"
 #define KEY_TEST_DEPENDENCIES "test_dependencies"
 #define KEY_APPLICATION_TYPE "application_type"
 
@@ -343,8 +353,7 @@ static void def_file_add_error_codes_place_holder__create(
     TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
     // todo: start filling in from the template
     struct file def_file_template;
-    static const char* def_file_template_path = "misc/def_file_template.h";
-    TEST_FRAMEWORK_ASSERT(file__open(&def_file_template, def_file_template_path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    TEST_FRAMEWORK_ASSERT(file__open(&def_file_template, DEF_FILE_TEMPLATE_PATH, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
     u32 def_file_template_size = file__read(&def_file_template, def_file_buffer, def_file_buffer_size);
     if (def_file_template_size == def_file_buffer_size) {
         // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
@@ -382,6 +391,77 @@ static void def_file_add_error_codes_place_holder__create(
         number_of_what_replacements,
         module_error_code_enum_start, module_error_code_enum_start_len,
         "%s", module_name_capitalized
+    );
+
+    string_replacer__read_into_file(
+        string_replacer,
+        def_file,
+        0
+    );
+    file__close(def_file);
+}
+
+static void def_file_add_error_codes_place_holder__create_platform_specific(
+    struct module* self,
+    struct file* def_file,
+    struct string_replacer* string_replacer,
+    char* def_file_name_buffer,
+    char* def_file_buffer,
+    char* module_name_capitalized,
+    const char* platform_specific,
+    const char* platform_specific_capitalized,
+    u32 def_file_buffer_size
+) {
+    // todo: optimally, I'd like to parse these out from def_file_template_h
+    static const char module_error_codes_enum[] = "${module_error_codes}";
+    static const char module_error_code_enum_start[] = "${module_error_code_start}";
+    static const char module_defs_h[] = "${module_defs_h}";
+    static const char parent_module_name_defs[] = "${parent_module_name_defs}";
+    static const u32 module_error_codes_enum_len = ARRAY_SIZE(module_error_codes_enum) - 1;
+    static const u32 module_error_code_enum_start_len = ARRAY_SIZE(module_error_code_enum_start) - 1;
+    static const u32 module_defs_h_len = ARRAY_SIZE(module_defs_h) - 1;
+    static const u32 parent_module_name_defs_len = ARRAY_SIZE(parent_module_name_defs) - 1;
+
+    TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
+    // todo: start filling in from the template
+    struct file def_file_template;
+    TEST_FRAMEWORK_ASSERT(file__open(&def_file_template, DEF_FILE_TEMPLATE_PATH, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    u32 def_file_template_size = file__read(&def_file_template, def_file_buffer, def_file_buffer_size);
+    if (def_file_template_size == def_file_buffer_size) {
+        // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
+        error_code__exit(999);
+    }
+    string_replacer__clear(string_replacer, def_file_buffer, def_file_template_size);
+    u32 number_of_what_replacements = 2;
+    string_replacer__replace_word_f(
+        string_replacer,
+        number_of_what_replacements,
+        module_defs_h, module_defs_h_len,
+        "%s_%s_DEFS_H", module_name_capitalized, platform_specific_capitalized
+    );
+
+    number_of_what_replacements = 1;
+    string_replacer__replace_word_f(
+        string_replacer,
+        number_of_what_replacements,
+        parent_module_name_defs, parent_module_name_defs_len,
+        "\"../../%s\"", self->basename
+    );
+
+    number_of_what_replacements = 1;
+    string_replacer__replace_word_f(
+        string_replacer,
+        number_of_what_replacements,
+        module_error_codes_enum, module_error_codes_enum_len,
+        "%s_%s", self->basename, platform_specific
+    );
+
+    number_of_what_replacements = 1;
+    string_replacer__replace_word_f(
+        string_replacer,
+        number_of_what_replacements,
+        module_error_code_enum_start, module_error_code_enum_start_len,
+        "%s_%s", platform_specific_capitalized, module_name_capitalized
     );
 
     string_replacer__read_into_file(
@@ -483,6 +563,111 @@ static void def_file_add_error_codes_place_holder__update(
             "};\n",
             self->basename,
             module_name_capitalized,
+            rest_of_the_error_codes
+        );
+    }
+    file__close(def_file);
+    TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+    string_replacer__read_into_file(
+        string_replacer,
+        def_file,
+        0
+    );
+    file__close(def_file);
+}
+
+static void def_file_add_error_codes_place_holder__update_platform_specific(
+    struct module* self,
+    struct file* def_file,
+    struct file_reader* file_reader,
+    struct string_replacer* string_replacer,
+    char* def_file_name_buffer,
+    char* auxiliary_buffer,
+    char* def_file_buffer,
+    char* module_name_capitalized,
+    const char* rest_of_the_error_codes,
+    const char* platform_specific,
+    const char* platform_specific_capitalized,
+    u32 auxiliary_buffer_size,
+    u32 def_file_buffer_size
+) {
+    TEST_FRAMEWORK_ASSERT(file__open(def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    u32 def_file_size = file__read(def_file, def_file_buffer, def_file_buffer_size);
+    if (def_file_size == def_file_buffer_size) {
+        // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
+        error_code__exit(999);
+    }
+    string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
+    TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
+    file_reader__clear(file_reader, def_file);
+    u32 what_position;
+    char buffer[128];
+    u32 bytes_written = libc__snprintf(
+        buffer,
+        ARRAY_SIZE(buffer),
+        "enum %s_%s_error_code {",
+        platform_specific, self->basename
+    );
+    if (bytes_written >= ARRAY_SIZE(buffer)) {
+        // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
+        error_code__exit(32476);
+    }
+    bool does_enum_error_codes_exit = file_reader__read_while_not_word(
+        file_reader,
+        auxiliary_buffer,
+        auxiliary_buffer_size,
+        buffer,
+        bytes_written,
+        &what_position
+    );
+    if (what_position >= auxiliary_buffer_size) {
+        // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
+        error_code__exit(32476);
+    }
+    if (does_enum_error_codes_exit) {
+        u32 what_size = file_reader__read_while_not(file_reader, NULL, 0, "}");
+        string_replacer__replace_at_position_f(
+            string_replacer,
+            what_position,
+            what_size,
+            "\n"
+            "    %s_%s_ERROR_CODE_START,\n"
+            "%s",
+            platform_specific_capitalized, module_name_capitalized,
+            rest_of_the_error_codes
+        );
+    } else {
+        bytes_written = libc__snprintf(
+            buffer,
+            ARRAY_SIZE(buffer),
+            "\"../../%s\"", self->basename
+        );
+        if (bytes_written >= ARRAY_SIZE(buffer)) {
+            // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
+            error_code__exit(32476);
+        }
+        TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
+        file_reader__clear(file_reader, def_file);
+        TEST_FRAMEWORK_ASSERT(
+            file_reader__read_while_not_word(
+                file_reader,
+                auxiliary_buffer,
+                auxiliary_buffer_size,
+                buffer,
+                bytes_written,
+                &what_position
+            ) == true
+        );
+        string_replacer__replace_at_position_f(
+            string_replacer,
+            what_position,
+            0,
+            "\n\nenum %s_%s_error_code {\n"
+            "    %s_%s_ERROR_CODE_START,\n"
+            "%s"
+            "};\n",
+            self->basename, platform_specific,
+            platform_specific_capitalized, module_name_capitalized,
             rest_of_the_error_codes
         );
     }
@@ -598,7 +783,76 @@ static void parse_and_handle_config_file(
                 );
                 parsed_application_type = true;
             }
-            printf("Updated .gmc file for module %s\n", self->basename);
+            libc__printf("Updated .gmc file for module %s\n", self->basename);
+        }
+    }
+    file__close(&config_file);
+}
+
+static void parse_and_handle_platform_specific_config_file(
+    struct module* self,
+    struct file_reader* file_reader,
+    struct file_writer* file_writer,
+    struct file* error_codes_file,
+    char* config_file_name,
+    char* auxiliary_buffer,
+    char* error_codes_buffer,
+    char* module_name_capitalized,
+    u32 auxiliary_buffer_size,
+    u32 error_codes_buffer_size
+) {
+    struct file config_file;
+    TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    file_reader__clear(file_reader, &config_file);
+    bool parsed_unique_error_codes = false;
+    bool parsed_platform_specific_dependencies = false;
+    while (
+        parsed_unique_error_codes == false
+    ) {
+        parse_key_from_file(file_reader, auxiliary_buffer, auxiliary_buffer_size);
+
+        if (libc__strcmp(auxiliary_buffer, KEY_UNIQUE_ERROR_CODES) == 0) {
+            parse_config_file_unique_error_codes(
+                file_reader,
+                file_writer,
+                error_codes_file,
+                module_name_capitalized,
+                auxiliary_buffer,
+                auxiliary_buffer_size,
+                error_codes_buffer,
+                error_codes_buffer_size
+            );
+            parsed_unique_error_codes = true;
+        } else if (libc__strcmp(auxiliary_buffer, KEY_PLATFORM_SPECIFIC_MODULE_DEPENDENCIES) == 0) {
+            parse_config_file_dependencies(
+                self,
+                file_reader,
+                auxiliary_buffer,
+                auxiliary_buffer_size
+            );
+            parsed_platform_specific_dependencies = true;
+        } else {
+            file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
+            if (parsed_unique_error_codes == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: [\n"
+                    "]\n",
+                    KEY_UNIQUE_ERROR_CODES
+                );
+                parsed_unique_error_codes = true;
+            }
+            if (parsed_platform_specific_dependencies == false) {
+                file_writer__write_format(
+                    file_writer,
+                    &config_file,
+                    "%s: \n",
+                    KEY_PLATFORM_SPECIFIC_MODULE_DEPENDENCIES
+                );
+                parsed_platform_specific_dependencies = true;
+            }
+            libc__pintf("Updated .gmc file for module %s\n", self->basename);
         }
     }
     file__close(&config_file);
@@ -657,8 +911,8 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/windows",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+            "%s/%s/%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_WINDOWS
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
@@ -669,12 +923,13 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/windows/%s_windows.%s",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+            "%s/%s/%s/%s_%s.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_WINDOWS,
+            self->basename, PLATFORM_SPECIFIC_WINDOWS, CONFIG_EXTENSION
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
-        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
         printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
@@ -684,8 +939,8 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/linux",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+            "%s/%s/%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_LINUX
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
@@ -696,12 +951,13 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/linux/%s_linux.%s",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+            "%s/%s/%s/%s_%s.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_LINUX,
+            self->basename, PLATFORM_SPECIFIC_LINUX, CONFIG_EXTENSION
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
-        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
         printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
@@ -711,8 +967,8 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/mac",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
+            "%s/%s/%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_MAC
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
@@ -723,12 +979,13 @@ static void update_gmc_files(
     TEST_FRAMEWORK_ASSERT(
         (config_file_name_len = libc__snprintf(
             config_file_name_buffer_2, config_file_name_buffer_2_size,
-            "%s/%s/mac/%s_mac.%s",
-            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, self->basename, CONFIG_EXTENSION
+            "%s/%s/%s/%s_%s.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_MAC,
+            self->basename, PLATFORM_SPECIFIC_MAC, CONFIG_EXTENSION
         )) < config_file_name_buffer_2_size
     );
     if (file__exists(config_file_name_buffer_2) == false) {
-        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, CONFIG_FILE_TEMPLATE_PATH));
+        TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
         printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
@@ -752,6 +1009,15 @@ void module_compiler__parse_config_file(
     u32 def_file_name_buffer_size,
     u32 config_file_name_buffer_size
 ) {
+    update_gmc_files(
+        self,
+        config_file_name_buffer,
+        auxiliary_buffer,
+        string_replacer,
+        config_file_name_buffer_size,
+        auxiliary_buffer_size
+    );
+
     // todo: parse these out from def_file_template_h
     static const char rest_of_the_error_codes[] = "${rest_of_the_error_codes}";
     static const u32 rest_of_the_error_codes_len = ARRAY_SIZE(rest_of_the_error_codes) - 1;
@@ -769,20 +1035,12 @@ void module_compiler__parse_config_file(
     }
     string__to_upper(module_name_capitalized);
 
-    u32 bytes_written = libc__snprintf(def_file_name_buffer, def_file_name_buffer_size, "%s/%s_defs.h", self->dirprefix, self->basename);
-    if (bytes_written >= def_file_name_buffer_size) {
-        // error_code__exit(DEF_FILE_NAME_BUFFER_SIZE_TOO_SMALL);
-        error_code__exit(867);
-    }
-
-    update_gmc_files(
-        self,
-        config_file_name_buffer,
-        auxiliary_buffer,
-        string_replacer,
-        config_file_name_buffer_size,
-        auxiliary_buffer_size
-    );
+    /*
+        ----== NON-PLATFORM SPECIFIC ==----
+            1 def file update
+            2 config file parsing
+            3 adding dependencies
+    */
     TEST_FRAMEWORK_ASSERT(
         (u32) libc__snprintf(
             config_file_name_buffer,
@@ -792,6 +1050,12 @@ void module_compiler__parse_config_file(
         ) < config_file_name_buffer_size
     );
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
+
+    u32 bytes_written = libc__snprintf(def_file_name_buffer, def_file_name_buffer_size, "%s/%s_defs.h", self->dirprefix, self->basename);
+    if (bytes_written >= def_file_name_buffer_size) {
+        // error_code__exit(DEF_FILE_NAME_BUFFER_SIZE_TOO_SMALL);
+        error_code__exit(867);
+    }
 
     // note: string_replacer doesn't support replacing replacements, so I do this in two write steps if the def_file doesn't exist
     // first, I replace the template, then write it out to the def file
@@ -836,7 +1100,6 @@ void module_compiler__parse_config_file(
         }
     }
 
-    // todo: it does not make sense to pass this if def file should not be updated
     u32 def_file_size = 0;
     if (should_update_def_file) {
         TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
@@ -850,6 +1113,133 @@ void module_compiler__parse_config_file(
     }
 
     parse_and_handle_config_file(
+        self,
+        file_reader,
+        file_writer,
+        error_codes_file,
+        config_file_name_buffer,
+        auxiliary_buffer,
+        error_codes_buffer,
+        module_name_capitalized,
+        auxiliary_buffer_size,
+        error_codes_buffer_size
+    );
+
+    if (should_update_def_file) {
+        u32 number_of_what_replacements = 1;
+        string_replacer__replace_word_f(
+            string_replacer,
+            number_of_what_replacements,
+            rest_of_the_error_codes, rest_of_the_error_codes_len,
+            "%s", error_codes_buffer
+        );
+        TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+        string_replacer__read_into_file(
+            string_replacer,
+            &def_file,
+            0
+        );
+        file__close(&def_file);
+    }
+
+    /*
+        ----== PLATFORM SPECIFIC ==----
+            1 def file update
+            2 config file parsing
+            3 adding dependencies
+    */
+
+    const char* platform_specific = PLATFORM_SPECIFIC_WINDOWS;
+    const char* platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS;
+#if defined(WINDOWS)
+        platform_specific = PLATFORM_SPECIFIC_WINDOWS;
+        platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS;
+#elif defined(LINUX)
+        platform_specific = PLATFORM_SPECIFIC_LINUX;
+        platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_LINUX;
+#elif defined(MAC)
+        platform_specific = PLATFORM_SPECIFIC_MAC;
+        platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_MAC;
+#endif
+
+    TEST_FRAMEWORK_ASSERT(
+        (u32) libc__snprintf(
+            config_file_name_buffer,
+            config_file_name_buffer_size,
+            "%s/%s/%s/%s_%s.%s",
+            self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, platform_specific,
+            self->basename, platform_specific, CONFIG_EXTENSION
+        ) < config_file_name_buffer_size
+    );
+    TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
+
+    bytes_written = libc__snprintf(
+        def_file_name_buffer,
+        def_file_name_buffer_size,
+        "%s/%s/%s/%s_platform_specific_defs.h",
+        self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, platform_specific, self->basename
+    );
+    if (bytes_written >= def_file_name_buffer_size) {
+        // error_code__exit(DEF_FILE_NAME_BUFFER_SIZE_TOO_SMALL);
+        error_code__exit(867);
+    }
+
+    should_update_def_file = true;
+    if (file__exists(def_file_name_buffer) == false) {
+        def_file_add_error_codes_place_holder__create_platform_specific(
+            self,
+            &def_file,
+            string_replacer,
+            def_file_name_buffer,
+            def_file_buffer,
+            module_name_capitalized,
+            platform_specific,
+            platform_specific_capitalized,
+            def_file_buffer_size
+        );
+    } else {
+        if (file__exists(config_file_name_buffer)) {
+            struct time config_file_last_modified;
+            struct time def_file_last_modified;
+            TEST_FRAMEWORK_ASSERT(file__last_modified(config_file_name_buffer, &config_file_last_modified));
+            TEST_FRAMEWORK_ASSERT(file__last_modified(def_file_name_buffer, &def_file_last_modified));
+            // note: only update def file if .gmc file is newer
+            if (time__cmp(def_file_last_modified, config_file_last_modified) >= 0) {
+                should_update_def_file = false;
+            }
+        }
+        if (should_update_def_file) {
+            def_file_add_error_codes_place_holder__update_platform_specific(
+                self,
+                &def_file,
+                file_reader,
+                string_replacer,
+                def_file_name_buffer,
+                auxiliary_buffer,
+                def_file_buffer,
+                module_name_capitalized,
+                rest_of_the_error_codes,
+                platform_specific,
+                platform_specific_capitalized,
+                auxiliary_buffer_size,
+                def_file_buffer_size
+            );
+        }
+    }
+
+    def_file_size = 0;
+    if (should_update_def_file) {
+        TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+        def_file_size = file__read(&def_file, def_file_buffer, def_file_buffer_size);
+        file__close(&def_file);
+        if (def_file_size == def_file_buffer_size) {
+            // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
+            error_code__exit(999);
+        }
+        string_replacer__clear(string_replacer, def_file_buffer, def_file_size);
+    }
+
+    parse_and_handle_platform_specific_config_file(
         self,
         file_reader,
         file_writer,
