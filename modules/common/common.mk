@@ -24,20 +24,19 @@ common_test_objects				:= $(patsubst %.c, %.o, $(common_test_sources))
 common_test_depends				:= $(patsubst %.c, %.d, $(common_test_sources))
 common_depends					:= $(patsubst %.c, %.d, $(common_sources))
 common_depends_modules			:= 
-common_test_depends_modules     = $(common_depends_modules)
+common_test_depends_modules     := common test_framework libc process file time system random compare file_reader hash circular_buffer mod 
 common_test_depends_modules     += common
-common_test_libdepend_static_objs   = $(foreach dep_module,$(common_depends_modules),$($(dep_module)_static_objects))
-common_test_libdepend_static_objs   += $(common_static_objects)
+common_test_libdepend_static_objs   = $(foreach dep_module,$(common_test_depends_modules),$($(dep_module)_static_objects))
 common_clean_files				:=
 common_clean_files				+= $(common_install_path_implib)
 common_clean_files				+= $(common_static_objects)
+common_clean_files				+= $(common_test_objects)
 common_clean_files				+= $(common_depends)
 
 include $(common_child_makefiles)
 
 $(common_path_curtestdir)%.o: $(common_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(common_path_curdir)%_static.o: $(common_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(common_test_install_path_static): $(common_test_objects) $(common_test_libdepe
 	$(CC) -o $@ $(common_test_objects) -Wl,--allow-multiple-definition $(common_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: common_all
-common_all: $(common_child_all_targets) ## build all common object files
-common_all: $(common_static_objects)
+common_all: $(common_static_objects) ## build all common object files
 
 .PHONY: common_test_all
-common_test_all: $(common_test_child_all_targets) ## build all common_test tests
-ifneq ($(common_test_objects),)
-common_test_all: $(common_test_install_path_static)
-endif
+common_test_all: $(common_test_install_path_static) ## build common_test test
 
 .PHONY: common_clean
 common_clean: $(common_child_clean_targets) ## remove all common object files
@@ -74,7 +69,7 @@ common_test_re: common_test_clean
 common_test_re: common_test_all
 
 .PHONY: common_test_run_all
-common_test_run_all: common_test_all ## build and run common_test
+common_test_run_all: $(common_test_child_all_targets) ## build and run common_test
 common_test_run_all: $(common_test_child_run_targets)
 ifneq ($(common_test_objects),)
 common_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

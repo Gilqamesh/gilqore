@@ -24,20 +24,19 @@ file_test_objects				:= $(patsubst %.c, %.o, $(file_test_sources))
 file_test_depends				:= $(patsubst %.c, %.d, $(file_test_sources))
 file_depends					:= $(patsubst %.c, %.d, $(file_sources))
 file_depends_modules			:= common time system libc random compare 
-file_test_depends_modules     = $(file_depends_modules)
+file_test_depends_modules     := file test_framework libc common process file_reader hash compare circular_buffer mod random 
 file_test_depends_modules     += file
-file_test_libdepend_static_objs   = $(foreach dep_module,$(file_depends_modules),$($(dep_module)_static_objects))
-file_test_libdepend_static_objs   += $(file_static_objects)
+file_test_libdepend_static_objs   = $(foreach dep_module,$(file_test_depends_modules),$($(dep_module)_static_objects))
 file_clean_files				:=
 file_clean_files				+= $(file_install_path_implib)
 file_clean_files				+= $(file_static_objects)
+file_clean_files				+= $(file_test_objects)
 file_clean_files				+= $(file_depends)
 
 include $(file_child_makefiles)
 
 $(file_path_curtestdir)%.o: $(file_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(file_path_curdir)%_static.o: $(file_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(file_test_install_path_static): $(file_test_objects) $(file_test_libdepend_sta
 	$(CC) -o $@ $(file_test_objects) -Wl,--allow-multiple-definition $(file_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: file_all
-file_all: $(file_child_all_targets) ## build all file object files
-file_all: $(file_static_objects)
+file_all: $(file_static_objects) ## build all file object files
 
 .PHONY: file_test_all
-file_test_all: $(file_test_child_all_targets) ## build all file_test tests
-ifneq ($(file_test_objects),)
-file_test_all: $(file_test_install_path_static)
-endif
+file_test_all: $(file_test_install_path_static) ## build file_test test
 
 .PHONY: file_clean
 file_clean: $(file_child_clean_targets) ## remove all file object files
@@ -74,7 +69,7 @@ file_test_re: file_test_clean
 file_test_re: file_test_all
 
 .PHONY: file_test_run_all
-file_test_run_all: file_test_all ## build and run file_test
+file_test_run_all: $(file_test_child_all_targets) ## build and run file_test
 file_test_run_all: $(file_test_child_run_targets)
 ifneq ($(file_test_objects),)
 file_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

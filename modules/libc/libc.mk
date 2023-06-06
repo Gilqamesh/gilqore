@@ -24,20 +24,19 @@ libc_test_objects				:= $(patsubst %.c, %.o, $(libc_test_sources))
 libc_test_depends				:= $(patsubst %.c, %.d, $(libc_test_sources))
 libc_depends					:= $(patsubst %.c, %.d, $(libc_sources))
 libc_depends_modules			:= common 
-libc_test_depends_modules     = $(libc_depends_modules)
+libc_test_depends_modules     := libc test_framework common process file time system random compare file_reader hash circular_buffer mod 
 libc_test_depends_modules     += libc
-libc_test_libdepend_static_objs   = $(foreach dep_module,$(libc_depends_modules),$($(dep_module)_static_objects))
-libc_test_libdepend_static_objs   += $(libc_static_objects)
+libc_test_libdepend_static_objs   = $(foreach dep_module,$(libc_test_depends_modules),$($(dep_module)_static_objects))
 libc_clean_files				:=
 libc_clean_files				+= $(libc_install_path_implib)
 libc_clean_files				+= $(libc_static_objects)
+libc_clean_files				+= $(libc_test_objects)
 libc_clean_files				+= $(libc_depends)
 
 include $(libc_child_makefiles)
 
 $(libc_path_curtestdir)%.o: $(libc_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(libc_path_curdir)%_static.o: $(libc_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(libc_test_install_path_static): $(libc_test_objects) $(libc_test_libdepend_sta
 	$(CC) -o $@ $(libc_test_objects) -Wl,--allow-multiple-definition $(libc_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: libc_all
-libc_all: $(libc_child_all_targets) ## build all libc object files
-libc_all: $(libc_static_objects)
+libc_all: $(libc_static_objects) ## build all libc object files
 
 .PHONY: libc_test_all
-libc_test_all: $(libc_test_child_all_targets) ## build all libc_test tests
-ifneq ($(libc_test_objects),)
-libc_test_all: $(libc_test_install_path_static)
-endif
+libc_test_all: $(libc_test_install_path_static) ## build libc_test test
 
 .PHONY: libc_clean
 libc_clean: $(libc_child_clean_targets) ## remove all libc object files
@@ -74,7 +69,7 @@ libc_test_re: libc_test_clean
 libc_test_re: libc_test_all
 
 .PHONY: libc_test_run_all
-libc_test_run_all: libc_test_all ## build and run libc_test
+libc_test_run_all: $(libc_test_child_all_targets) ## build and run libc_test
 libc_test_run_all: $(libc_test_child_run_targets)
 ifneq ($(libc_test_objects),)
 libc_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

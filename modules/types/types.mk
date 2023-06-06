@@ -24,20 +24,19 @@ types_test_objects				:= $(patsubst %.c, %.o, $(types_test_sources))
 types_test_depends				:= $(patsubst %.c, %.d, $(types_test_sources))
 types_depends					:= $(patsubst %.c, %.d, $(types_sources))
 types_depends_modules			:= 
-types_test_depends_modules     = $(types_depends_modules)
+types_test_depends_modules     := types test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 types_test_depends_modules     += types
-types_test_libdepend_static_objs   = $(foreach dep_module,$(types_depends_modules),$($(dep_module)_static_objects))
-types_test_libdepend_static_objs   += $(types_static_objects)
+types_test_libdepend_static_objs   = $(foreach dep_module,$(types_test_depends_modules),$($(dep_module)_static_objects))
 types_clean_files				:=
 types_clean_files				+= $(types_install_path_implib)
 types_clean_files				+= $(types_static_objects)
+types_clean_files				+= $(types_test_objects)
 types_clean_files				+= $(types_depends)
 
 include $(types_child_makefiles)
 
 $(types_path_curtestdir)%.o: $(types_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(types_path_curdir)%_static.o: $(types_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(types_test_install_path_static): $(types_test_objects) $(types_test_libdepend_
 	$(CC) -o $@ $(types_test_objects) -Wl,--allow-multiple-definition $(types_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: types_all
-types_all: $(types_child_all_targets) ## build all types object files
-types_all: $(types_static_objects)
+types_all: $(types_static_objects) ## build all types object files
 
 .PHONY: types_test_all
-types_test_all: $(types_test_child_all_targets) ## build all types_test tests
-ifneq ($(types_test_objects),)
-types_test_all: $(types_test_install_path_static)
-endif
+types_test_all: $(types_test_install_path_static) ## build types_test test
 
 .PHONY: types_clean
 types_clean: $(types_child_clean_targets) ## remove all types object files
@@ -74,7 +69,7 @@ types_test_re: types_test_clean
 types_test_re: types_test_all
 
 .PHONY: types_test_run_all
-types_test_run_all: types_test_all ## build and run types_test
+types_test_run_all: $(types_test_child_all_targets) ## build and run types_test
 types_test_run_all: $(types_test_child_run_targets)
 ifneq ($(types_test_objects),)
 types_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

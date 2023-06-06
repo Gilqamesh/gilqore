@@ -24,20 +24,19 @@ io_test_objects				:= $(patsubst %.c, %.o, $(io_test_sources))
 io_test_depends				:= $(patsubst %.c, %.d, $(io_test_sources))
 io_depends					:= $(patsubst %.c, %.d, $(io_sources))
 io_depends_modules			:= 
-io_test_depends_modules     = $(io_depends_modules)
+io_test_depends_modules     := io test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 io_test_depends_modules     += io
-io_test_libdepend_static_objs   = $(foreach dep_module,$(io_depends_modules),$($(dep_module)_static_objects))
-io_test_libdepend_static_objs   += $(io_static_objects)
+io_test_libdepend_static_objs   = $(foreach dep_module,$(io_test_depends_modules),$($(dep_module)_static_objects))
 io_clean_files				:=
 io_clean_files				+= $(io_install_path_implib)
 io_clean_files				+= $(io_static_objects)
+io_clean_files				+= $(io_test_objects)
 io_clean_files				+= $(io_depends)
 
 include $(io_child_makefiles)
 
 $(io_path_curtestdir)%.o: $(io_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(io_path_curdir)%_static.o: $(io_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(io_test_install_path_static): $(io_test_objects) $(io_test_libdepend_static_ob
 	$(CC) -o $@ $(io_test_objects) -Wl,--allow-multiple-definition $(io_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: io_all
-io_all: $(io_child_all_targets) ## build all io object files
-io_all: $(io_static_objects)
+io_all: $(io_static_objects) ## build all io object files
 
 .PHONY: io_test_all
-io_test_all: $(io_test_child_all_targets) ## build all io_test tests
-ifneq ($(io_test_objects),)
-io_test_all: $(io_test_install_path_static)
-endif
+io_test_all: $(io_test_install_path_static) ## build io_test test
 
 .PHONY: io_clean
 io_clean: $(io_child_clean_targets) ## remove all io object files
@@ -74,7 +69,7 @@ io_test_re: io_test_clean
 io_test_re: io_test_all
 
 .PHONY: io_test_run_all
-io_test_run_all: io_test_all ## build and run io_test
+io_test_run_all: $(io_test_child_all_targets) ## build and run io_test
 io_test_run_all: $(io_test_child_run_targets)
 ifneq ($(io_test_objects),)
 io_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -24,20 +24,19 @@ compare_test_objects				:= $(patsubst %.c, %.o, $(compare_test_sources))
 compare_test_depends				:= $(patsubst %.c, %.d, $(compare_test_sources))
 compare_depends					:= $(patsubst %.c, %.d, $(compare_sources))
 compare_depends_modules			:= 
-compare_test_depends_modules     = $(compare_depends_modules)
+compare_test_depends_modules     := compare test_framework libc common process file time system random file_reader hash circular_buffer mod 
 compare_test_depends_modules     += compare
-compare_test_libdepend_static_objs   = $(foreach dep_module,$(compare_depends_modules),$($(dep_module)_static_objects))
-compare_test_libdepend_static_objs   += $(compare_static_objects)
+compare_test_libdepend_static_objs   = $(foreach dep_module,$(compare_test_depends_modules),$($(dep_module)_static_objects))
 compare_clean_files				:=
 compare_clean_files				+= $(compare_install_path_implib)
 compare_clean_files				+= $(compare_static_objects)
+compare_clean_files				+= $(compare_test_objects)
 compare_clean_files				+= $(compare_depends)
 
 include $(compare_child_makefiles)
 
 $(compare_path_curtestdir)%.o: $(compare_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(compare_path_curdir)%_static.o: $(compare_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(compare_test_install_path_static): $(compare_test_objects) $(compare_test_libd
 	$(CC) -o $@ $(compare_test_objects) -Wl,--allow-multiple-definition $(compare_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: compare_all
-compare_all: $(compare_child_all_targets) ## build all compare object files
-compare_all: $(compare_static_objects)
+compare_all: $(compare_static_objects) ## build all compare object files
 
 .PHONY: compare_test_all
-compare_test_all: $(compare_test_child_all_targets) ## build all compare_test tests
-ifneq ($(compare_test_objects),)
-compare_test_all: $(compare_test_install_path_static)
-endif
+compare_test_all: $(compare_test_install_path_static) ## build compare_test test
 
 .PHONY: compare_clean
 compare_clean: $(compare_child_clean_targets) ## remove all compare object files
@@ -74,7 +69,7 @@ compare_test_re: compare_test_clean
 compare_test_re: compare_test_all
 
 .PHONY: compare_test_run_all
-compare_test_run_all: compare_test_all ## build and run compare_test
+compare_test_run_all: $(compare_test_child_all_targets) ## build and run compare_test
 compare_test_run_all: $(compare_test_child_run_targets)
 ifneq ($(compare_test_objects),)
 compare_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

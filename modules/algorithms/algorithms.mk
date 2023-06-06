@@ -24,20 +24,19 @@ algorithms_test_objects				:= $(patsubst %.c, %.o, $(algorithms_test_sources))
 algorithms_test_depends				:= $(patsubst %.c, %.d, $(algorithms_test_sources))
 algorithms_depends					:= $(patsubst %.c, %.d, $(algorithms_sources))
 algorithms_depends_modules			:= 
-algorithms_test_depends_modules     = $(algorithms_depends_modules)
+algorithms_test_depends_modules     := algorithms test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 algorithms_test_depends_modules     += algorithms
-algorithms_test_libdepend_static_objs   = $(foreach dep_module,$(algorithms_depends_modules),$($(dep_module)_static_objects))
-algorithms_test_libdepend_static_objs   += $(algorithms_static_objects)
+algorithms_test_libdepend_static_objs   = $(foreach dep_module,$(algorithms_test_depends_modules),$($(dep_module)_static_objects))
 algorithms_clean_files				:=
 algorithms_clean_files				+= $(algorithms_install_path_implib)
 algorithms_clean_files				+= $(algorithms_static_objects)
+algorithms_clean_files				+= $(algorithms_test_objects)
 algorithms_clean_files				+= $(algorithms_depends)
 
 include $(algorithms_child_makefiles)
 
 $(algorithms_path_curtestdir)%.o: $(algorithms_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(algorithms_path_curdir)%_static.o: $(algorithms_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(algorithms_test_install_path_static): $(algorithms_test_objects) $(algorithms_
 	$(CC) -o $@ $(algorithms_test_objects) -Wl,--allow-multiple-definition $(algorithms_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: algorithms_all
-algorithms_all: $(algorithms_child_all_targets) ## build all algorithms object files
-algorithms_all: $(algorithms_static_objects)
+algorithms_all: $(algorithms_static_objects) ## build all algorithms object files
 
 .PHONY: algorithms_test_all
-algorithms_test_all: $(algorithms_test_child_all_targets) ## build all algorithms_test tests
-ifneq ($(algorithms_test_objects),)
-algorithms_test_all: $(algorithms_test_install_path_static)
-endif
+algorithms_test_all: $(algorithms_test_install_path_static) ## build algorithms_test test
 
 .PHONY: algorithms_clean
 algorithms_clean: $(algorithms_child_clean_targets) ## remove all algorithms object files
@@ -74,7 +69,7 @@ algorithms_test_re: algorithms_test_clean
 algorithms_test_re: algorithms_test_all
 
 .PHONY: algorithms_test_run_all
-algorithms_test_run_all: algorithms_test_all ## build and run algorithms_test
+algorithms_test_run_all: $(algorithms_test_child_all_targets) ## build and run algorithms_test
 algorithms_test_run_all: $(algorithms_test_child_run_targets)
 ifneq ($(algorithms_test_objects),)
 algorithms_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

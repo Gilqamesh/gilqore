@@ -24,20 +24,19 @@ file_formats_test_objects				:= $(patsubst %.c, %.o, $(file_formats_test_sources
 file_formats_test_depends				:= $(patsubst %.c, %.d, $(file_formats_test_sources))
 file_formats_depends					:= $(patsubst %.c, %.d, $(file_formats_sources))
 file_formats_depends_modules			:= 
-file_formats_test_depends_modules     = $(file_formats_depends_modules)
+file_formats_test_depends_modules     := file_formats test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 file_formats_test_depends_modules     += file_formats
-file_formats_test_libdepend_static_objs   = $(foreach dep_module,$(file_formats_depends_modules),$($(dep_module)_static_objects))
-file_formats_test_libdepend_static_objs   += $(file_formats_static_objects)
+file_formats_test_libdepend_static_objs   = $(foreach dep_module,$(file_formats_test_depends_modules),$($(dep_module)_static_objects))
 file_formats_clean_files				:=
 file_formats_clean_files				+= $(file_formats_install_path_implib)
 file_formats_clean_files				+= $(file_formats_static_objects)
+file_formats_clean_files				+= $(file_formats_test_objects)
 file_formats_clean_files				+= $(file_formats_depends)
 
 include $(file_formats_child_makefiles)
 
 $(file_formats_path_curtestdir)%.o: $(file_formats_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(file_formats_path_curdir)%_static.o: $(file_formats_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(file_formats_test_install_path_static): $(file_formats_test_objects) $(file_fo
 	$(CC) -o $@ $(file_formats_test_objects) -Wl,--allow-multiple-definition $(file_formats_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: file_formats_all
-file_formats_all: $(file_formats_child_all_targets) ## build all file_formats object files
-file_formats_all: $(file_formats_static_objects)
+file_formats_all: $(file_formats_static_objects) ## build all file_formats object files
 
 .PHONY: file_formats_test_all
-file_formats_test_all: $(file_formats_test_child_all_targets) ## build all file_formats_test tests
-ifneq ($(file_formats_test_objects),)
-file_formats_test_all: $(file_formats_test_install_path_static)
-endif
+file_formats_test_all: $(file_formats_test_install_path_static) ## build file_formats_test test
 
 .PHONY: file_formats_clean
 file_formats_clean: $(file_formats_child_clean_targets) ## remove all file_formats object files
@@ -74,7 +69,7 @@ file_formats_test_re: file_formats_test_clean
 file_formats_test_re: file_formats_test_all
 
 .PHONY: file_formats_test_run_all
-file_formats_test_run_all: file_formats_test_all ## build and run file_formats_test
+file_formats_test_run_all: $(file_formats_test_child_all_targets) ## build and run file_formats_test
 file_formats_test_run_all: $(file_formats_test_child_run_targets)
 ifneq ($(file_formats_test_objects),)
 file_formats_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

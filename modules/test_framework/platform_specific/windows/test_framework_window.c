@@ -2,12 +2,9 @@
 
 #include <Windows.h>
 
-#include <stdio.h>
-
 #include "common/error_code.h"
 #include "libc/libc.h"
 #include "system/process/process.h"
-#include "module_compiler.h"
 
 GIL_API int WinMain(
     HINSTANCE instance,
@@ -62,7 +59,7 @@ GIL_API int WinMain(
         }
     }
     command_line[command_line_index] = '\0';
-    printf("%s:\n", command_line);
+    libc__printf("%s:\n", command_line);
     // note: run the main function of the tester module
     u32 before_test_allocated_memory_size = libc__unfreed_byte_count();
     if (process__create(&module_process, command_line) == false) {
@@ -72,10 +69,10 @@ GIL_API int WinMain(
     u32 module_process_exit_code = process__destroy(&module_process);
     char error_code_msg[512];
     if (module_process_exit_code > 0) {
-        module_compiler__translate_error_code(module_process_exit_code, error_code_msg, ARRAY_SIZE(error_code_msg));
-        printf("Error code: %u\nReason: %s\n", module_process_exit_code, error_code_msg);
+        test_framework__translate_error_code(module_process_exit_code, error_code_msg, ARRAY_SIZE(error_code_msg));
+        libc__printf("Error code: %u\nReason: %s\n", module_process_exit_code, error_code_msg);
     } else {
-        printf("Success\n");
+        libc__printf("Success\n");
     }
 
     u32 after_test_allocated_memory_size = libc__unfreed_byte_count();
@@ -83,7 +80,7 @@ GIL_API int WinMain(
         after_test_allocated_memory_size != before_test_allocated_memory_size && 
         module_process_exit_code == 0 // only then I care about unfreed memory
     ) {
-        printf("Before: %u\nAfter: %u\n", before_test_allocated_memory_size, after_test_allocated_memory_size);
+        libc__printf("Before: %u\nAfter: %u\n", before_test_allocated_memory_size, after_test_allocated_memory_size);
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_MEMORY_LEAK_IN_TESTED_MODULE);
     }
 

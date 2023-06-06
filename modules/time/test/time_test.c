@@ -3,8 +3,6 @@
 #include "time/time.h"
 #include "system/system.h"
 
-#include <stdio.h>
-
 void time_interval_test(u32 interval_useconds) {
     struct time time_prev = time__get();
 

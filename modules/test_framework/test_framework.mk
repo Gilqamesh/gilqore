@@ -23,21 +23,20 @@ test_framework_static_objects			:= $(patsubst %.c, %_static.o, $(test_framework_
 test_framework_test_objects				:= $(patsubst %.c, %.o, $(test_framework_test_sources))
 test_framework_test_depends				:= $(patsubst %.c, %.d, $(test_framework_test_sources))
 test_framework_depends					:= $(patsubst %.c, %.d, $(test_framework_sources))
-test_framework_depends_modules			:= libc common process file time system random compare modules file_reader hash circular_buffer mod file_writer string directory string_replacer v2 clamp v3 v4 math abs sqrt file_path 
-test_framework_test_depends_modules     = $(test_framework_depends_modules)
+test_framework_depends_modules			:= libc common process file time system random compare file_reader hash circular_buffer mod 
+test_framework_test_depends_modules     := test_framework test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 test_framework_test_depends_modules     += test_framework
-test_framework_test_libdepend_static_objs   = $(foreach dep_module,$(test_framework_depends_modules),$($(dep_module)_static_objects))
-test_framework_test_libdepend_static_objs   += $(test_framework_static_objects)
+test_framework_test_libdepend_static_objs   = $(foreach dep_module,$(test_framework_test_depends_modules),$($(dep_module)_static_objects))
 test_framework_clean_files				:=
 test_framework_clean_files				+= $(test_framework_install_path_implib)
 test_framework_clean_files				+= $(test_framework_static_objects)
+test_framework_clean_files				+= $(test_framework_test_objects)
 test_framework_clean_files				+= $(test_framework_depends)
 
 include $(test_framework_child_makefiles)
 
 $(test_framework_path_curtestdir)%.o: $(test_framework_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(test_framework_path_curdir)%_static.o: $(test_framework_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(test_framework_test_install_path_static): $(test_framework_test_objects) $(tes
 	$(CC) -o $@ $(test_framework_test_objects) -Wl,--allow-multiple-definition $(test_framework_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: test_framework_all
-test_framework_all: $(test_framework_child_all_targets) ## build all test_framework object files
-test_framework_all: $(test_framework_static_objects)
+test_framework_all: $(test_framework_static_objects) ## build all test_framework object files
 
 .PHONY: test_framework_test_all
-test_framework_test_all: $(test_framework_test_child_all_targets) ## build all test_framework_test tests
-ifneq ($(test_framework_test_objects),)
-test_framework_test_all: $(test_framework_test_install_path_static)
-endif
+test_framework_test_all: $(test_framework_test_install_path_static) ## build test_framework_test test
 
 .PHONY: test_framework_clean
 test_framework_clean: $(test_framework_child_clean_targets) ## remove all test_framework object files
@@ -74,7 +69,7 @@ test_framework_test_re: test_framework_test_clean
 test_framework_test_re: test_framework_test_all
 
 .PHONY: test_framework_test_run_all
-test_framework_test_run_all: test_framework_test_all ## build and run test_framework_test
+test_framework_test_run_all: $(test_framework_test_child_all_targets) ## build and run test_framework_test
 test_framework_test_run_all: $(test_framework_test_child_run_targets)
 ifneq ($(test_framework_test_objects),)
 test_framework_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

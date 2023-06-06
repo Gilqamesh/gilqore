@@ -24,20 +24,19 @@ v4_test_objects				:= $(patsubst %.c, %.o, $(v4_test_sources))
 v4_test_depends				:= $(patsubst %.c, %.d, $(v4_test_sources))
 v4_depends					:= $(patsubst %.c, %.d, $(v4_sources))
 v4_depends_modules			:= 
-v4_test_depends_modules     = $(v4_depends_modules)
+v4_test_depends_modules     := v4 test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 v4_test_depends_modules     += v4
-v4_test_libdepend_static_objs   = $(foreach dep_module,$(v4_depends_modules),$($(dep_module)_static_objects))
-v4_test_libdepend_static_objs   += $(v4_static_objects)
+v4_test_libdepend_static_objs   = $(foreach dep_module,$(v4_test_depends_modules),$($(dep_module)_static_objects))
 v4_clean_files				:=
 v4_clean_files				+= $(v4_install_path_implib)
 v4_clean_files				+= $(v4_static_objects)
+v4_clean_files				+= $(v4_test_objects)
 v4_clean_files				+= $(v4_depends)
 
 include $(v4_child_makefiles)
 
 $(v4_path_curtestdir)%.o: $(v4_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(v4_path_curdir)%_static.o: $(v4_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(v4_test_install_path_static): $(v4_test_objects) $(v4_test_libdepend_static_ob
 	$(CC) -o $@ $(v4_test_objects) -Wl,--allow-multiple-definition $(v4_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: v4_all
-v4_all: $(v4_child_all_targets) ## build all v4 object files
-v4_all: $(v4_static_objects)
+v4_all: $(v4_static_objects) ## build all v4 object files
 
 .PHONY: v4_test_all
-v4_test_all: $(v4_test_child_all_targets) ## build all v4_test tests
-ifneq ($(v4_test_objects),)
-v4_test_all: $(v4_test_install_path_static)
-endif
+v4_test_all: $(v4_test_install_path_static) ## build v4_test test
 
 .PHONY: v4_clean
 v4_clean: $(v4_child_clean_targets) ## remove all v4 object files
@@ -74,7 +69,7 @@ v4_test_re: v4_test_clean
 v4_test_re: v4_test_all
 
 .PHONY: v4_test_run_all
-v4_test_run_all: v4_test_all ## build and run v4_test
+v4_test_run_all: $(v4_test_child_all_targets) ## build and run v4_test
 v4_test_run_all: $(v4_test_child_run_targets)
 ifneq ($(v4_test_objects),)
 v4_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -24,20 +24,19 @@ math_test_objects				:= $(patsubst %.c, %.o, $(math_test_sources))
 math_test_depends				:= $(patsubst %.c, %.d, $(math_test_sources))
 math_depends					:= $(patsubst %.c, %.d, $(math_sources))
 math_depends_modules			:= 
-math_test_depends_modules     = $(math_depends_modules)
+math_test_depends_modules     := math test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 math_test_depends_modules     += math
-math_test_libdepend_static_objs   = $(foreach dep_module,$(math_depends_modules),$($(dep_module)_static_objects))
-math_test_libdepend_static_objs   += $(math_static_objects)
+math_test_libdepend_static_objs   = $(foreach dep_module,$(math_test_depends_modules),$($(dep_module)_static_objects))
 math_clean_files				:=
 math_clean_files				+= $(math_install_path_implib)
 math_clean_files				+= $(math_static_objects)
+math_clean_files				+= $(math_test_objects)
 math_clean_files				+= $(math_depends)
 
 include $(math_child_makefiles)
 
 $(math_path_curtestdir)%.o: $(math_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(math_path_curdir)%_static.o: $(math_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(math_test_install_path_static): $(math_test_objects) $(math_test_libdepend_sta
 	$(CC) -o $@ $(math_test_objects) -Wl,--allow-multiple-definition $(math_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: math_all
-math_all: $(math_child_all_targets) ## build all math object files
-math_all: $(math_static_objects)
+math_all: $(math_static_objects) ## build all math object files
 
 .PHONY: math_test_all
-math_test_all: $(math_test_child_all_targets) ## build all math_test tests
-ifneq ($(math_test_objects),)
-math_test_all: $(math_test_install_path_static)
-endif
+math_test_all: $(math_test_install_path_static) ## build math_test test
 
 .PHONY: math_clean
 math_clean: $(math_child_clean_targets) ## remove all math object files
@@ -74,7 +69,7 @@ math_test_re: math_test_clean
 math_test_re: math_test_all
 
 .PHONY: math_test_run_all
-math_test_run_all: math_test_all ## build and run math_test
+math_test_run_all: $(math_test_child_all_targets) ## build and run math_test
 math_test_run_all: $(math_test_child_run_targets)
 ifneq ($(math_test_objects),)
 math_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

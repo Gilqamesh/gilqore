@@ -24,20 +24,19 @@ modules_test_objects				:= $(patsubst %.c, %.o, $(modules_test_sources))
 modules_test_depends				:= $(patsubst %.c, %.d, $(modules_test_sources))
 modules_depends					:= $(patsubst %.c, %.d, $(modules_sources))
 modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 clamp v3 v4 math abs sqrt file_path 
-modules_test_depends_modules     = $(modules_depends_modules)
+modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 modules_test_depends_modules     += modules
-modules_test_libdepend_static_objs   = $(foreach dep_module,$(modules_depends_modules),$($(dep_module)_static_objects))
-modules_test_libdepend_static_objs   += $(modules_static_objects)
+modules_test_libdepend_static_objs   = $(foreach dep_module,$(modules_test_depends_modules),$($(dep_module)_static_objects))
 modules_clean_files				:=
 modules_clean_files				+= $(modules_install_path_implib)
 modules_clean_files				+= $(modules_static_objects)
+modules_clean_files				+= $(modules_test_objects)
 modules_clean_files				+= $(modules_depends)
 
 include $(modules_child_makefiles)
 
 $(modules_path_curtestdir)%.o: $(modules_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(modules_path_curdir)%_static.o: $(modules_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(modules_test_install_path_static): $(modules_test_objects) $(modules_test_libd
 	$(CC) -o $@ $(modules_test_objects) -Wl,--allow-multiple-definition $(modules_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: modules_all
-modules_all: $(modules_child_all_targets) ## build all modules object files
-modules_all: $(modules_static_objects)
+modules_all: $(modules_static_objects) ## build all modules object files
 
 .PHONY: modules_test_all
-modules_test_all: $(modules_test_child_all_targets) ## build all modules_test tests
-ifneq ($(modules_test_objects),)
-modules_test_all: $(modules_test_install_path_static)
-endif
+modules_test_all: $(modules_test_install_path_static) ## build modules_test test
 
 .PHONY: modules_clean
 modules_clean: $(modules_child_clean_targets) ## remove all modules object files
@@ -74,7 +69,7 @@ modules_test_re: modules_test_clean
 modules_test_re: modules_test_all
 
 .PHONY: modules_test_run_all
-modules_test_run_all: modules_test_all ## build and run modules_test
+modules_test_run_all: $(modules_test_child_all_targets) ## build and run modules_test
 modules_test_run_all: $(modules_test_child_run_targets)
 ifneq ($(modules_test_objects),)
 modules_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

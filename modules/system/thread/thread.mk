@@ -24,20 +24,19 @@ thread_test_objects				:= $(patsubst %.c, %.o, $(thread_test_sources))
 thread_test_depends				:= $(patsubst %.c, %.d, $(thread_test_sources))
 thread_depends					:= $(patsubst %.c, %.d, $(thread_sources))
 thread_depends_modules			:= 
-thread_test_depends_modules     = $(thread_depends_modules)
+thread_test_depends_modules     := thread test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 thread_test_depends_modules     += thread
-thread_test_libdepend_static_objs   = $(foreach dep_module,$(thread_depends_modules),$($(dep_module)_static_objects))
-thread_test_libdepend_static_objs   += $(thread_static_objects)
+thread_test_libdepend_static_objs   = $(foreach dep_module,$(thread_test_depends_modules),$($(dep_module)_static_objects))
 thread_clean_files				:=
 thread_clean_files				+= $(thread_install_path_implib)
 thread_clean_files				+= $(thread_static_objects)
+thread_clean_files				+= $(thread_test_objects)
 thread_clean_files				+= $(thread_depends)
 
 include $(thread_child_makefiles)
 
 $(thread_path_curtestdir)%.o: $(thread_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(thread_path_curdir)%_static.o: $(thread_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(thread_test_install_path_static): $(thread_test_objects) $(thread_test_libdepe
 	$(CC) -o $@ $(thread_test_objects) -Wl,--allow-multiple-definition $(thread_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: thread_all
-thread_all: $(thread_child_all_targets) ## build all thread object files
-thread_all: $(thread_static_objects)
+thread_all: $(thread_static_objects) ## build all thread object files
 
 .PHONY: thread_test_all
-thread_test_all: $(thread_test_child_all_targets) ## build all thread_test tests
-ifneq ($(thread_test_objects),)
-thread_test_all: $(thread_test_install_path_static)
-endif
+thread_test_all: $(thread_test_install_path_static) ## build thread_test test
 
 .PHONY: thread_clean
 thread_clean: $(thread_child_clean_targets) ## remove all thread object files
@@ -74,7 +69,7 @@ thread_test_re: thread_test_clean
 thread_test_re: thread_test_all
 
 .PHONY: thread_test_run_all
-thread_test_run_all: thread_test_all ## build and run thread_test
+thread_test_run_all: $(thread_test_child_all_targets) ## build and run thread_test
 thread_test_run_all: $(thread_test_child_run_targets)
 ifneq ($(thread_test_objects),)
 thread_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

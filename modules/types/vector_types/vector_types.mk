@@ -24,20 +24,19 @@ vector_types_test_objects				:= $(patsubst %.c, %.o, $(vector_types_test_sources
 vector_types_test_depends				:= $(patsubst %.c, %.d, $(vector_types_test_sources))
 vector_types_depends					:= $(patsubst %.c, %.d, $(vector_types_sources))
 vector_types_depends_modules			:= 
-vector_types_test_depends_modules     = $(vector_types_depends_modules)
+vector_types_test_depends_modules     := vector_types test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 vector_types_test_depends_modules     += vector_types
-vector_types_test_libdepend_static_objs   = $(foreach dep_module,$(vector_types_depends_modules),$($(dep_module)_static_objects))
-vector_types_test_libdepend_static_objs   += $(vector_types_static_objects)
+vector_types_test_libdepend_static_objs   = $(foreach dep_module,$(vector_types_test_depends_modules),$($(dep_module)_static_objects))
 vector_types_clean_files				:=
 vector_types_clean_files				+= $(vector_types_install_path_implib)
 vector_types_clean_files				+= $(vector_types_static_objects)
+vector_types_clean_files				+= $(vector_types_test_objects)
 vector_types_clean_files				+= $(vector_types_depends)
 
 include $(vector_types_child_makefiles)
 
 $(vector_types_path_curtestdir)%.o: $(vector_types_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(vector_types_path_curdir)%_static.o: $(vector_types_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(vector_types_test_install_path_static): $(vector_types_test_objects) $(vector_
 	$(CC) -o $@ $(vector_types_test_objects) -Wl,--allow-multiple-definition $(vector_types_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: vector_types_all
-vector_types_all: $(vector_types_child_all_targets) ## build all vector_types object files
-vector_types_all: $(vector_types_static_objects)
+vector_types_all: $(vector_types_static_objects) ## build all vector_types object files
 
 .PHONY: vector_types_test_all
-vector_types_test_all: $(vector_types_test_child_all_targets) ## build all vector_types_test tests
-ifneq ($(vector_types_test_objects),)
-vector_types_test_all: $(vector_types_test_install_path_static)
-endif
+vector_types_test_all: $(vector_types_test_install_path_static) ## build vector_types_test test
 
 .PHONY: vector_types_clean
 vector_types_clean: $(vector_types_child_clean_targets) ## remove all vector_types object files
@@ -74,7 +69,7 @@ vector_types_test_re: vector_types_test_clean
 vector_types_test_re: vector_types_test_all
 
 .PHONY: vector_types_test_run_all
-vector_types_test_run_all: vector_types_test_all ## build and run vector_types_test
+vector_types_test_run_all: $(vector_types_test_child_all_targets) ## build and run vector_types_test
 vector_types_test_run_all: $(vector_types_test_child_run_targets)
 ifneq ($(vector_types_test_objects),)
 vector_types_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

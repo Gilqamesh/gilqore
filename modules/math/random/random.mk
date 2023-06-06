@@ -24,20 +24,19 @@ random_test_objects				:= $(patsubst %.c, %.o, $(random_test_sources))
 random_test_depends				:= $(patsubst %.c, %.d, $(random_test_sources))
 random_depends					:= $(patsubst %.c, %.d, $(random_sources))
 random_depends_modules			:= 
-random_test_depends_modules     = $(random_depends_modules)
+random_test_depends_modules     := random test_framework libc common process file time system compare file_reader hash circular_buffer mod 
 random_test_depends_modules     += random
-random_test_libdepend_static_objs   = $(foreach dep_module,$(random_depends_modules),$($(dep_module)_static_objects))
-random_test_libdepend_static_objs   += $(random_static_objects)
+random_test_libdepend_static_objs   = $(foreach dep_module,$(random_test_depends_modules),$($(dep_module)_static_objects))
 random_clean_files				:=
 random_clean_files				+= $(random_install_path_implib)
 random_clean_files				+= $(random_static_objects)
+random_clean_files				+= $(random_test_objects)
 random_clean_files				+= $(random_depends)
 
 include $(random_child_makefiles)
 
 $(random_path_curtestdir)%.o: $(random_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(random_path_curdir)%_static.o: $(random_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(random_test_install_path_static): $(random_test_objects) $(random_test_libdepe
 	$(CC) -o $@ $(random_test_objects) -Wl,--allow-multiple-definition $(random_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: random_all
-random_all: $(random_child_all_targets) ## build all random object files
-random_all: $(random_static_objects)
+random_all: $(random_static_objects) ## build all random object files
 
 .PHONY: random_test_all
-random_test_all: $(random_test_child_all_targets) ## build all random_test tests
-ifneq ($(random_test_objects),)
-random_test_all: $(random_test_install_path_static)
-endif
+random_test_all: $(random_test_install_path_static) ## build random_test test
 
 .PHONY: random_clean
 random_clean: $(random_child_clean_targets) ## remove all random object files
@@ -74,7 +69,7 @@ random_test_re: random_test_clean
 random_test_re: random_test_all
 
 .PHONY: random_test_run_all
-random_test_run_all: random_test_all ## build and run random_test
+random_test_run_all: $(random_test_child_all_targets) ## build and run random_test
 random_test_run_all: $(random_test_child_run_targets)
 ifneq ($(random_test_objects),)
 random_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

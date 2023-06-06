@@ -24,20 +24,19 @@ wav_test_objects				:= $(patsubst %.c, %.o, $(wav_test_sources))
 wav_test_depends				:= $(patsubst %.c, %.d, $(wav_test_sources))
 wav_depends					:= $(patsubst %.c, %.d, $(wav_sources))
 wav_depends_modules			:= 
-wav_test_depends_modules     = $(wav_depends_modules)
+wav_test_depends_modules     := wav test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 wav_test_depends_modules     += wav
-wav_test_libdepend_static_objs   = $(foreach dep_module,$(wav_depends_modules),$($(dep_module)_static_objects))
-wav_test_libdepend_static_objs   += $(wav_static_objects)
+wav_test_libdepend_static_objs   = $(foreach dep_module,$(wav_test_depends_modules),$($(dep_module)_static_objects))
 wav_clean_files				:=
 wav_clean_files				+= $(wav_install_path_implib)
 wav_clean_files				+= $(wav_static_objects)
+wav_clean_files				+= $(wav_test_objects)
 wav_clean_files				+= $(wav_depends)
 
 include $(wav_child_makefiles)
 
 $(wav_path_curtestdir)%.o: $(wav_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(wav_path_curdir)%_static.o: $(wav_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(wav_test_install_path_static): $(wav_test_objects) $(wav_test_libdepend_static
 	$(CC) -o $@ $(wav_test_objects) -Wl,--allow-multiple-definition $(wav_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: wav_all
-wav_all: $(wav_child_all_targets) ## build all wav object files
-wav_all: $(wav_static_objects)
+wav_all: $(wav_static_objects) ## build all wav object files
 
 .PHONY: wav_test_all
-wav_test_all: $(wav_test_child_all_targets) ## build all wav_test tests
-ifneq ($(wav_test_objects),)
-wav_test_all: $(wav_test_install_path_static)
-endif
+wav_test_all: $(wav_test_install_path_static) ## build wav_test test
 
 .PHONY: wav_clean
 wav_clean: $(wav_child_clean_targets) ## remove all wav object files
@@ -74,7 +69,7 @@ wav_test_re: wav_test_clean
 wav_test_re: wav_test_all
 
 .PHONY: wav_test_run_all
-wav_test_run_all: wav_test_all ## build and run wav_test
+wav_test_run_all: $(wav_test_child_all_targets) ## build and run wav_test
 wav_test_run_all: $(wav_test_child_run_targets)
 ifneq ($(wav_test_objects),)
 wav_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

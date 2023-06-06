@@ -24,20 +24,19 @@ file_writer_test_objects				:= $(patsubst %.c, %.o, $(file_writer_test_sources))
 file_writer_test_depends				:= $(patsubst %.c, %.d, $(file_writer_test_sources))
 file_writer_depends					:= $(patsubst %.c, %.d, $(file_writer_sources))
 file_writer_depends_modules			:= libc common file time system random compare 
-file_writer_test_depends_modules     = $(file_writer_depends_modules)
+file_writer_test_depends_modules     := file_writer test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 file_writer_test_depends_modules     += file_writer
-file_writer_test_libdepend_static_objs   = $(foreach dep_module,$(file_writer_depends_modules),$($(dep_module)_static_objects))
-file_writer_test_libdepend_static_objs   += $(file_writer_static_objects)
+file_writer_test_libdepend_static_objs   = $(foreach dep_module,$(file_writer_test_depends_modules),$($(dep_module)_static_objects))
 file_writer_clean_files				:=
 file_writer_clean_files				+= $(file_writer_install_path_implib)
 file_writer_clean_files				+= $(file_writer_static_objects)
+file_writer_clean_files				+= $(file_writer_test_objects)
 file_writer_clean_files				+= $(file_writer_depends)
 
 include $(file_writer_child_makefiles)
 
 $(file_writer_path_curtestdir)%.o: $(file_writer_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(file_writer_path_curdir)%_static.o: $(file_writer_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(file_writer_test_install_path_static): $(file_writer_test_objects) $(file_writ
 	$(CC) -o $@ $(file_writer_test_objects) -Wl,--allow-multiple-definition $(file_writer_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: file_writer_all
-file_writer_all: $(file_writer_child_all_targets) ## build all file_writer object files
-file_writer_all: $(file_writer_static_objects)
+file_writer_all: $(file_writer_static_objects) ## build all file_writer object files
 
 .PHONY: file_writer_test_all
-file_writer_test_all: $(file_writer_test_child_all_targets) ## build all file_writer_test tests
-ifneq ($(file_writer_test_objects),)
-file_writer_test_all: $(file_writer_test_install_path_static)
-endif
+file_writer_test_all: $(file_writer_test_install_path_static) ## build file_writer_test test
 
 .PHONY: file_writer_clean
 file_writer_clean: $(file_writer_child_clean_targets) ## remove all file_writer object files
@@ -74,7 +69,7 @@ file_writer_test_re: file_writer_test_clean
 file_writer_test_re: file_writer_test_all
 
 .PHONY: file_writer_test_run_all
-file_writer_test_run_all: file_writer_test_all ## build and run file_writer_test
+file_writer_test_run_all: $(file_writer_test_child_all_targets) ## build and run file_writer_test
 file_writer_test_run_all: $(file_writer_test_child_run_targets)
 ifneq ($(file_writer_test_objects),)
 file_writer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

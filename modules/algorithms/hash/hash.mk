@@ -24,20 +24,19 @@ hash_test_objects				:= $(patsubst %.c, %.o, $(hash_test_sources))
 hash_test_depends				:= $(patsubst %.c, %.d, $(hash_test_sources))
 hash_depends					:= $(patsubst %.c, %.d, $(hash_sources))
 hash_depends_modules			:= 
-hash_test_depends_modules     = $(hash_depends_modules)
+hash_test_depends_modules     := hash test_framework libc common process file time system random compare file_reader circular_buffer mod 
 hash_test_depends_modules     += hash
-hash_test_libdepend_static_objs   = $(foreach dep_module,$(hash_depends_modules),$($(dep_module)_static_objects))
-hash_test_libdepend_static_objs   += $(hash_static_objects)
+hash_test_libdepend_static_objs   = $(foreach dep_module,$(hash_test_depends_modules),$($(dep_module)_static_objects))
 hash_clean_files				:=
 hash_clean_files				+= $(hash_install_path_implib)
 hash_clean_files				+= $(hash_static_objects)
+hash_clean_files				+= $(hash_test_objects)
 hash_clean_files				+= $(hash_depends)
 
 include $(hash_child_makefiles)
 
 $(hash_path_curtestdir)%.o: $(hash_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(hash_path_curdir)%_static.o: $(hash_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(hash_test_install_path_static): $(hash_test_objects) $(hash_test_libdepend_sta
 	$(CC) -o $@ $(hash_test_objects) -Wl,--allow-multiple-definition $(hash_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: hash_all
-hash_all: $(hash_child_all_targets) ## build all hash object files
-hash_all: $(hash_static_objects)
+hash_all: $(hash_static_objects) ## build all hash object files
 
 .PHONY: hash_test_all
-hash_test_all: $(hash_test_child_all_targets) ## build all hash_test tests
-ifneq ($(hash_test_objects),)
-hash_test_all: $(hash_test_install_path_static)
-endif
+hash_test_all: $(hash_test_install_path_static) ## build hash_test test
 
 .PHONY: hash_clean
 hash_clean: $(hash_child_clean_targets) ## remove all hash object files
@@ -74,7 +69,7 @@ hash_test_re: hash_test_clean
 hash_test_re: hash_test_all
 
 .PHONY: hash_test_run_all
-hash_test_run_all: hash_test_all ## build and run hash_test
+hash_test_run_all: $(hash_test_child_all_targets) ## build and run hash_test
 hash_test_run_all: $(hash_test_child_run_targets)
 ifneq ($(hash_test_objects),)
 hash_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

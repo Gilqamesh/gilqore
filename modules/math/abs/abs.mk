@@ -24,20 +24,19 @@ abs_test_objects				:= $(patsubst %.c, %.o, $(abs_test_sources))
 abs_test_depends				:= $(patsubst %.c, %.d, $(abs_test_sources))
 abs_depends					:= $(patsubst %.c, %.d, $(abs_sources))
 abs_depends_modules			:= 
-abs_test_depends_modules     = $(abs_depends_modules)
+abs_test_depends_modules     := abs test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 abs_test_depends_modules     += abs
-abs_test_libdepend_static_objs   = $(foreach dep_module,$(abs_depends_modules),$($(dep_module)_static_objects))
-abs_test_libdepend_static_objs   += $(abs_static_objects)
+abs_test_libdepend_static_objs   = $(foreach dep_module,$(abs_test_depends_modules),$($(dep_module)_static_objects))
 abs_clean_files				:=
 abs_clean_files				+= $(abs_install_path_implib)
 abs_clean_files				+= $(abs_static_objects)
+abs_clean_files				+= $(abs_test_objects)
 abs_clean_files				+= $(abs_depends)
 
 include $(abs_child_makefiles)
 
 $(abs_path_curtestdir)%.o: $(abs_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
-#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
 $(abs_path_curdir)%_static.o: $(abs_path_curdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
@@ -46,14 +45,10 @@ $(abs_test_install_path_static): $(abs_test_objects) $(abs_test_libdepend_static
 	$(CC) -o $@ $(abs_test_objects) -Wl,--allow-multiple-definition $(abs_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: abs_all
-abs_all: $(abs_child_all_targets) ## build all abs object files
-abs_all: $(abs_static_objects)
+abs_all: $(abs_static_objects) ## build all abs object files
 
 .PHONY: abs_test_all
-abs_test_all: $(abs_test_child_all_targets) ## build all abs_test tests
-ifneq ($(abs_test_objects),)
-abs_test_all: $(abs_test_install_path_static)
-endif
+abs_test_all: $(abs_test_install_path_static) ## build abs_test test
 
 .PHONY: abs_clean
 abs_clean: $(abs_child_clean_targets) ## remove all abs object files
@@ -74,7 +69,7 @@ abs_test_re: abs_test_clean
 abs_test_re: abs_test_all
 
 .PHONY: abs_test_run_all
-abs_test_run_all: abs_test_all ## build and run abs_test
+abs_test_run_all: $(abs_test_child_all_targets) ## build and run abs_test
 abs_test_run_all: $(abs_test_child_run_targets)
 ifneq ($(abs_test_objects),)
 abs_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)

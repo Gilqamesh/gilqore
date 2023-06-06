@@ -37,6 +37,8 @@
 
 #define MODULES_PATH "modules"
 
+#define COMMON_TEST_DEPENDENCY_MODULE "test_framework"
+
 static struct module* g_modules;
 static u32* g_modules_size_cur;
 static u32 g_modules_size_max;
@@ -1059,6 +1061,27 @@ void module_compiler__explore_children(struct module* self) {
     directory__foreach_deep(self->dirprefix, &is_module_path, FILE_TYPE_DIRECTORY);
 }
 
+static void module_compiler__get_dependency_add_dependency(
+    struct module* self,
+    char** dependency_buffer,
+    u32 *dependency_buffer_size
+) {
+    u32 bytes_written = libc__snprintf(
+        *dependency_buffer,
+        *dependency_buffer_size,
+        "%s ",
+        self->basename
+    );
+
+    if (bytes_written >= *dependency_buffer_size) {
+        // error_code__exit(DEPENDENCIES_BUFFER_TOO_SMALL)
+        error_code__exit(2714);
+    }
+
+    *dependency_buffer += bytes_written;
+    *dependency_buffer_size -= bytes_written;
+}
+
 static u32 module_compiler__get_dependencies(
     struct module* self,
     char** dependency_buffer,
@@ -1066,23 +1089,42 @@ static u32 module_compiler__get_dependencies(
 ) {
     self->transient_flag_for_processing = 1;
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, dependencies); ++dependency_index) {
-        if (self->dependencies[dependency_index] != NULL && self->dependencies[dependency_index]->transient_flag_for_processing == 0) {
-            u32 bytes_written = libc__snprintf(
-                *dependency_buffer,
-                dependency_buffer_size,
-                "%s ",
-                self->dependencies[dependency_index]->basename
-            );
-
-            if (bytes_written >= dependency_buffer_size) {
-                // error_code__exit(DEPENDENCIES_BUFFER_TOO_SMALL)
-                error_code__exit(2714);
-            }
-
-            *dependency_buffer += bytes_written;
-            dependency_buffer_size -= bytes_written;
+        struct module* dependency = self->dependencies[dependency_index];
+        if (dependency != NULL && dependency->transient_flag_for_processing == 0) {
+            module_compiler__get_dependency_add_dependency(dependency, dependency_buffer, &dependency_buffer_size);
             dependency_buffer_size = module_compiler__get_dependencies(
-                self->dependencies[dependency_index],
+                dependency,
+                dependency_buffer,
+                dependency_buffer_size
+            );
+        }
+    }
+
+    return dependency_buffer_size;
+}
+
+static u32 module_compiler__get_test_dependencies(
+    struct module* self,
+    char** dependency_buffer,
+    u32 dependency_buffer_size
+) {
+    module_compiler__get_dependency_add_dependency(self, dependency_buffer, &dependency_buffer_size);
+    self->transient_flag_for_processing = 1;
+
+    struct module* common_test_dependency = module_compiler__find_module_by_name(g_modules, COMMON_TEST_DEPENDENCY_MODULE, *g_modules_size_cur);
+    if (common_test_dependency == NULL) {
+        error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
+    }
+    module_compiler__get_dependency_add_dependency(common_test_dependency, dependency_buffer, &dependency_buffer_size);
+    common_test_dependency->transient_flag_for_processing = 1;
+    dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
+
+    for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
+        struct module* test_dependency = self->test_dependencies[dependency_index];
+        if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
+            module_compiler__get_dependency_add_dependency(test_dependency, dependency_buffer, &dependency_buffer_size);
+            dependency_buffer_size = module_compiler__get_dependencies(
+                test_dependency,
                 dependency_buffer,
                 dependency_buffer_size
             );
@@ -1125,9 +1167,11 @@ void module_compiler__embed_dependencies_into_makefile(
         u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, dependencies_buffer_size);
 
         static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
+        static const char module_test_dependency_replace_what[] = "$(MODULE_TEST_DEPENDS)";
         static const char module_name_replace_what[] = "$(MODULE_NAME)";
         static const char module_lflags_specific_replace_what[] = "$(LFLAGS_SPECIFIC)";
         static const u32 module_dependency_replace_what_len = ARRAY_SIZE(module_dependency_replace_what) - 1;
+        static const u32 module_test_dependency_replace_what_len = ARRAY_SIZE(module_test_dependency_replace_what) - 1;
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
         static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
 
@@ -1138,6 +1182,19 @@ void module_compiler__embed_dependencies_into_makefile(
             number_of_what_replacements,
             module_dependency_replace_what,
             module_dependency_replace_what_len,
+            dependencies_buffer,
+            dependencies_buffer_size - dependencies_buffer_size_left
+        );
+
+        module_compiler__clear_transient_flags(g_modules, *g_modules_size_cur);
+        cur_dependency_buffer = dependencies_buffer;
+        dependencies_buffer_size_left = module_compiler__get_test_dependencies(cur_module, &cur_dependency_buffer, dependencies_buffer_size);
+        number_of_what_replacements = (u32) 1;
+        string_replacer__replace_word(
+            string_replacer,
+            number_of_what_replacements,
+            module_test_dependency_replace_what,
+            module_test_dependency_replace_what_len,
             dependencies_buffer,
             dependencies_buffer_size - dependencies_buffer_size_left
         );
@@ -1264,66 +1321,10 @@ void module_compiler__compile(void) {
         auxiliary_buffer_size
     );
 
-    // module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
+    module_compiler__print_branch(parent_module, modules, cur_number_of_modules);
 
     string_replacer__destroy(&string_replacer);
     string_replacer__destroy(&string_replacer_aux);
     libc__free(modules);
     libc__free(file_buffer);
-}
-
-void module_compiler__translate_error_code(u32 error_code, char* buffer, u32 buffer_size) {
-    char line_buffer[512];
-    char enum_buffer[512];
-    char message_buffer[512];
-    char format_string_buffer[128];
-    if ((u32) libc__snprintf(
-        format_string_buffer,
-        ARRAY_SIZE(format_string_buffer),
-        "%%u %%%ds \"%%%d[^\"]\"",
-        ARRAY_SIZE(enum_buffer) - 1,
-        ARRAY_SIZE(message_buffer) - 1
-    ) >= ARRAY_SIZE(format_string_buffer)) {
-        error_code__exit(MODULE_COMPILER_ERROR_CODE_FORMAT_STRING_BUFFER_TOO_SMALL);
-    }
-
-    struct file error_codes_file;
-    if (file__open(&error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == false) {
-        error_code__exit(MODULE_COMPILER_ERROR_CODE_ERROR_CODES_FILE_OPEN_FAIL);
-    }
-    struct file_reader reader;
-    file_reader__create(&reader, &error_codes_file);
-    u32 bytes_read;
-    do {
-        bytes_read = file_reader__read_while_not(&reader, line_buffer, ARRAY_SIZE(line_buffer), "\r\n");
-        if (bytes_read == 0) {
-            error_code__exit(MODULE_COMPILER_ERROR_CODE_UNEXPECTED_EOF_REACHED_ERROR_CODES);
-        }
-        if (bytes_read == ARRAY_SIZE(line_buffer)) {
-            error_code__exit(MODULE_COMPILER_ERROR_CODE_LINE_BUFFER_SIZE_TOO_SMALL_ERROR_CODES);
-        }
-        line_buffer[bytes_read] = '\0';
-        u32 parsed_error_code;
-        if (libc__sscanf(
-            line_buffer,
-            format_string_buffer,
-            &parsed_error_code,
-            enum_buffer,
-            message_buffer
-        ) != 3) {
-            error_code__exit(MODULE_COMPILER_ERROR_CODE_VSSCANF_FAILED_TO_PARSE_LINE_ERROR_CODES);
-        }
-        if (parsed_error_code == error_code) {  
-            if (libc__snprintf(buffer, buffer_size, "%s", message_buffer) >= (s32) buffer_size) {
-                error_code__exit(MODULE_COMPILER_ERROR_CODE_BUFFER_SIZE_TOO_SMALL_ERROR_CODES);
-            }
-            return ;
-        }
-        file_reader__read_while(&reader, NULL, 0, "\r\n");
-    } while (bytes_read > 0);
-
-    file_reader__destroy(&reader);
-    file__close(&error_codes_file);
-
-    error_code__exit(MODULE_COMPILER_ERROR_CODE_DID_NOT_FIND_ERROR_CODE);
 }
