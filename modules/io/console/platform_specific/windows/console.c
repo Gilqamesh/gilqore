@@ -61,7 +61,7 @@ u32 console__log(console_t self, const char* msg, ...) {
             // todo(david): diagnostic, truncated msg
         }
 
-        if (WriteConsoleA(self->out_handle, self->buffer, strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == 0) {
+        if (WriteConsoleA(self->out_handle, self->buffer, (DWORD)strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == 0) {
             // error_code__exit(WRITE_CONSOLE_A);
             // TODO(david): diagnostic, GetLastError()
         }

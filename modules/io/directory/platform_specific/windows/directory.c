@@ -62,7 +62,7 @@ bool directory__read(struct directory* self, char* buffer, u32 buffer_size, u32*
     );
     buffer[bytes_to_write] = '\0';
     if (bytes_written != NULL) {
-        *bytes_written = bytes_to_write;
+        *bytes_written = (u32)bytes_to_write;
     }
 
     if (FindNextFileA(

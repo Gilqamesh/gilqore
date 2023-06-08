@@ -3,6 +3,10 @@
 
 # include "string_defs.h"
 
+# if defined(__cplusplus)
+extern "C" {
+# endif
+
 GIL_API void string__to_upper(char* str);
 
 // @param return_last_occurance false for strictly at 'n'th occurance, otherwise returns the last matched occurance
@@ -21,4 +25,8 @@ GIL_API char* string__rsearch_while    (const char* str, u32 str_len, const char
 // @brief decrements 'str' 'max' amount from the back while it does not match either characters from 'set'
 GIL_API char* string__rsearch_while_not(const char* str, u32 str_len, const char* set, u32 max);
 
-#endif
+# if defined(__cplusplus)
+}
+# endif
+
+#endif // STRING_H

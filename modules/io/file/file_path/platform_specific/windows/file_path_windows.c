@@ -37,7 +37,8 @@ bool file_path__decompose(
         }
     } else {
         if (directory_buffer != NULL) {
-            u32 bytes_to_write = basename - path;
+            ASSERT(basename > path);
+            u32 bytes_to_write = (u32)(basename - path);
             if (directory_buffer_size < bytes_to_write) {
                 error_code__exit(FILE_PATH_ERROR_CODE_DIRECTORY_BUFFER_TOO_SMALL);
             }
@@ -49,7 +50,8 @@ bool file_path__decompose(
         }
         if (basename_buffer != NULL) {
             ++basename;
-            u32 bytes_to_write = path + path_len - basename;
+            ASSERT(path + path_len > basename);
+            u32 bytes_to_write = (u32)((path + path_len) - basename);
             if (basename_buffer_size <= bytes_to_write) {
                 error_code__exit(FILE_PATH_ERROR_CODE_BASENAME_BUFFER_TOO_SMALL);
             }

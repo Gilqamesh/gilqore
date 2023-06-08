@@ -62,7 +62,7 @@ static void test_v(
         test_params.n = n;
         test_params.set = set;
         test_params.return_last_occurance = return_last_occurance;
-        printf("%s\n", expected);
+        libc_printf("%s\n", expected);
         test_fn(
             expected,
             fn_to_apply_on_str_buffer,

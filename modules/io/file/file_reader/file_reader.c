@@ -34,7 +34,7 @@ static void file_reader__ensure_fill(struct file_reader* self) {
     ) {
         void* head = circular_buffer__head(self->circular_buffer);
         void* end  = circular_buffer__end(self->circular_buffer);
-        u32 till_buffer_end = (u8*) end - (u8*) head;
+        u32 till_buffer_end = (u32)((u8*) end - (u8*) head);
         u32 bytes_to_read = min__u32(FILE_READER_CIRCULAR_BUFFER_SIZE, till_buffer_end);
         u32 bytes_read = file__read(self->file, head, bytes_to_read);
         circular_buffer__advance_head(self->circular_buffer, bytes_read);

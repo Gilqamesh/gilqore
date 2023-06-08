@@ -24,7 +24,7 @@ bool process__create(struct process* self, const char* path) {
         0,
         NULL,
         NULL,
-        &startup_info,
+        (LPSTARTUPINFOA)&startup_info,
         &self->process_info
     ) == FALSE) {
         // todo: diagnostics, GetLastError()
