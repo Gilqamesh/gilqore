@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Gilqore">
+      <UniqueIdentifier>{18e12cc3-c997-42d8-91fe-8b947dc6b1c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\algorithms">
+      <UniqueIdentifier>{08639c97-fc8a-4001-9d01-6224f8e731dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\common">
+      <UniqueIdentifier>{a28daa5e-1536-4d61-b21d-3234758adc93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\data_structures">
+      <UniqueIdentifier>{a8924975-f554-49bc-aaeb-27e49fea3626}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types">
+      <UniqueIdentifier>{5abcd77d-aeac-4676-bf84-c6f0de141922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string">
+      <UniqueIdentifier>{d22eaf35-425b-4d39-b933-c6900722efc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer">
+      <UniqueIdentifier>{d25436d6-1642-49c2-a48c-388225a227f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer\platform_specific">
+      <UniqueIdentifier>{7f1e7590-ca60-4cb6-b2bf-d815281f1fc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer\platform_specific\windows">
+      <UniqueIdentifier>{26e5fde1-de1a-468f-9e7f-a308b41b51cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc">
+      <UniqueIdentifier>{f9a1a264-934d-4cb6-a2db-e974db1fc9c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc\platform_specific">
+      <UniqueIdentifier>{47233188-326c-4e51-a82e-a1f1156a656e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc\platform_specific\windows">
+      <UniqueIdentifier>{a53c7af2-7a74-4b1b-8163-5c3d82bd5423}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io">
+      <UniqueIdentifier>{4f8ebf11-5f21-454f-851b-7eb69740d741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file">
+      <UniqueIdentifier>{879eca2c-aab5-4407-85f8-dd61a2a1f060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file\platform_specific">
+      <UniqueIdentifier>{5a9dd647-1585-49af-bdb2-c41681da7f1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file\platform_specific\windows">
+      <UniqueIdentifier>{2e429724-816c-4d30-8e96-0430b4bb0680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\algorithms\hash">
+      <UniqueIdentifier>{03cb99f0-fca1-4828-a42d-b4a4780d3566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math">
+      <UniqueIdentifier>{58102138-0371-4978-9294-faa43b2e3f81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\compare">
+      <UniqueIdentifier>{718d3cb0-92d7-48df-8e89-7d311ac0f7c2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\modules\defs.h">
+      <Filter>Gilqore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\modules_defs.h">
+      <Filter>Gilqore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string.h">
+      <Filter>Gilqore\types\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_defs.h">
+      <Filter>Gilqore\types\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer.h">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer_defs.h">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\platform_specific\windows\string_replacer_platform_specific_defs.h">
+      <Filter>Gilqore\types\string\string_replacer\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\libc.h">
+      <Filter>Gilqore\libc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\libc_defs.h">
+      <Filter>Gilqore\libc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.h">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific_defs.h">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\common_defs.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\compile_defs.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\data_types.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\error_code.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\helper_macros.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\io_defs.h">
+      <Filter>Gilqore\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\file.h">
+      <Filter>Gilqore\io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\file_defs.h">
+      <Filter>Gilqore\io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific_defs.h">
+      <Filter>Gilqore\io\file\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\algorithms_defs.h">
+      <Filter>Gilqore\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\hash\hash.h">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\hash\hash_defs.h">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\math_defs.h">
+      <Filter>Gilqore\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\math.h">
+      <Filter>Gilqore\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\compare\compare.h">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\compare\compare_defs.h">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\modules\types\string\string.c">
+      <Filter>Gilqore\types\string</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\string\string_replacer\string_replacer.c">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\libc\libc.c">
+      <Filter>Gilqore\libc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.c">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\common\error_code.c">
+      <Filter>Gilqore\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific.c.c">
+      <Filter>Gilqore\io\file\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\algorithms\hash\hash.c">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\compare\compare.c">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1638,8 +1638,8 @@ void module_compiler__compile(void) {
     g_modules_size_cur = &cur_number_of_modules;
     struct module* modules = libc__calloc(max_number_of_modules * sizeof(*modules));
     g_modules = modules;
-    static const u32 file_path_buffer_size = ARRAY_SIZE_MEMBER(struct module, basename) + ARRAY_SIZE_MEMBER(struct module, dirprefix);
-    char file_path_buffer[file_path_buffer_size];
+    const u32 file_path_buffer_size = ARRAY_SIZE_MEMBER(struct module, basename) + ARRAY_SIZE_MEMBER(struct module, dirprefix);
+    char* file_path_buffer = libc__malloc(file_path_buffer_size);
     u32 total_number_of_replacements = 256;
     u32 average_replacement_size = 64;
     struct string_replacer string_replacer;
@@ -1702,4 +1702,5 @@ void module_compiler__compile(void) {
     string_replacer__destroy(&string_replacer_aux);
     libc__free(modules);
     libc__free(file_buffer);
+    libc__free(file_path_buffer);
 }

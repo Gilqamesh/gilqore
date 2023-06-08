@@ -19,6 +19,10 @@
 #  endif
 # endif
 
+# if defined(_MSC_VER)
+#  define COMPILER_MSVC
+# endif
+
 # if !defined(GIL_API)
 #  define GIL_API
 # endif

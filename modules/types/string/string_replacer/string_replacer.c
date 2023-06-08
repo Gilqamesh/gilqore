@@ -224,7 +224,7 @@ u32 string_replacer__replace_word(
         return self->current_str_len;
     }
 
-    u32 hash_value = hash__sum_n(what, what_length);
+    u64 hash_value = hash__sum_n(what, what_length);
     u32 rolling_hash_value = 0;
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];
@@ -317,7 +317,7 @@ u32 string_replacer__replace_word_vf(
         return self->current_str_len;
     }
 
-    u32 hash_value = hash__sum_n(what, what_length);
+    u64 hash_value = hash__sum_n(what, what_length);
     u32 rolling_hash_value = 0;
     u32 with_index = 0;
     u32 next_taken_what_index = with_index == self->withs_top ? (u32) -1 : self->whats[with_index];

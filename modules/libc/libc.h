@@ -3,6 +3,14 @@
 
 # include "libc_defs.h"
 
+# if defined(WINDOWS)
+#  include "platform_specific/windows/libc_platform_specific.h"
+# elif defined(LINUX)
+#  include "platform_specific/linux/libc_platform_specific.h"
+# elif defined(MAC)
+#  include "platform_specific/mac/libc_platform_specific.h"
+# endif
+
 # include <stdarg.h>
 
 GIL_API void* libc__malloc(u32 size_bytes);
@@ -44,7 +52,6 @@ GIL_API s32 libc__vsscanf(const char* str, const char* format, va_list ap);
 GIL_API bool libc__isspace(char c);
 GIL_API bool libc__isdigit(char c);
 
-GIL_API char* libc__itoa(s64 n, char* buffer, u32 radix);
 GIL_API s64 libc__atoi(const char* str, u32 radix);
 
 GIL_API void libc__qsort(

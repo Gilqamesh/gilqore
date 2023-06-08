@@ -230,10 +230,6 @@ bool libc__isdigit(char c) {
     return isdigit(c);
 }
 
-char* libc__itoa(s64 n, char* buffer, u32 radix) {
-    return itoa(n, buffer, radix);
-}
-
 s64 libc__atoi(const char* str, u32 radix) {
     (void) radix;
     return atoi(str);
