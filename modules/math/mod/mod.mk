@@ -8,7 +8,7 @@ mod_test_child_all_targets	:= $(foreach test_module,$(mod_child_module_names),$(
 mod_test_child_clean_targets	:= $(foreach test_module,$(mod_child_module_names),$(test_module)_test_clean)
 mod_test_child_run_targets	:= $(foreach test_module,$(mod_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-mod_test_install_path_static := $(mod_path_curtestdir)mod_static$(EXT_EXE)
+mod_test_install_path        := $(mod_path_curtestdir)mod$(EXT_EXE)
 endif
 mod_test_sources             := $(wildcard $(mod_path_curtestdir)*.c)
 mod_sources					:= $(wildcard $(mod_path_curdir)*.c)
@@ -19,17 +19,17 @@ mod_sources					+= $(wildcard $(mod_path_curdir)platform_specific/linux/*.c)
 else ifeq ($(PLATFORM), MAC)
 mod_sources					+= $(wildcard $(mod_path_curdir)platform_specific/mac/*.c)
 endif
-mod_static_objects			:= $(patsubst %.c, %_static.o, $(mod_sources))
+mod_objects                  := $(patsubst %.c, %.o, $(mod_sources))
 mod_test_objects				:= $(patsubst %.c, %.o, $(mod_test_sources))
 mod_test_depends				:= $(patsubst %.c, %.d, $(mod_test_sources))
 mod_depends					:= $(patsubst %.c, %.d, $(mod_sources))
 mod_depends_modules			:= 
 mod_test_depends_modules     := mod test_framework libc common process file time system random compare file_reader hash circular_buffer 
 mod_test_depends_modules     += mod
-mod_test_libdepend_static_objs   = $(foreach dep_module,$(mod_test_depends_modules),$($(dep_module)_static_objects))
+mod_test_libdepend_objs      = $(foreach dep_module,$(mod_test_depends_modules),$($(dep_module)_objects))
 mod_clean_files				:=
 mod_clean_files				+= $(mod_install_path_implib)
-mod_clean_files				+= $(mod_static_objects)
+mod_clean_files				+= $(mod_objects)
 mod_clean_files				+= $(mod_test_objects)
 mod_clean_files				+= $(mod_depends)
 
@@ -38,17 +38,17 @@ include $(mod_child_makefiles)
 $(mod_path_curtestdir)%.o: $(mod_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(mod_path_curdir)%_static.o: $(mod_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(mod_path_curdir)%.o: $(mod_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(mod_test_install_path_static): $(mod_test_objects) $(mod_test_libdepend_static_objs)
-	$(CC) -o $@ $(mod_test_objects) -Wl,--allow-multiple-definition $(mod_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(mod_test_install_path): $(mod_test_objects) $(mod_test_libdepend_objs)
+	$(CC) -o $@ $(mod_test_objects) -Wl,--allow-multiple-definition $(mod_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: mod_all
-mod_all: $(mod_static_objects) ## build all mod object files
+mod_all: $(mod_objects) ## build all mod object files
 
 .PHONY: mod_test_all
-mod_test_all: $(mod_test_install_path_static) ## build mod_test test
+mod_test_all: $(mod_test_install_path) ## build mod_test test
 
 .PHONY: mod_clean
 mod_clean: $(mod_child_clean_targets) ## remove all mod object files
@@ -58,7 +58,7 @@ mod_clean:
 .PHONY: mod_test_clean
 mod_test_clean: $(mod_test_child_clean_targets) ## remove all mod_test tests
 mod_test_clean:
-	- $(RM) $(mod_test_install_path_static) $(mod_test_objects) $(mod_test_depends)
+	- $(RM) $(mod_test_install_path) $(mod_test_objects) $(mod_test_depends)
 
 .PHONY: mod_re
 mod_re: mod_clean
@@ -69,18 +69,17 @@ mod_test_re: mod_test_clean
 mod_test_re: mod_test_all
 
 .PHONY: mod_test_run_all
-mod_test_run_all: $(mod_test_child_all_targets) ## build and run mod_test
-mod_test_run_all: $(mod_test_child_run_targets)
+mod_test_run_all: $(mod_test_child_run_targets) ## build and run mod_test
 ifneq ($(mod_test_objects),)
 mod_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(mod_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(mod_test_install_path)
 endif
 
 .PHONY: mod_test_run
 mod_test_run: mod_test_all
 ifneq ($(mod_test_objects),)
 mod_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(mod_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(mod_test_install_path)
 endif
 
 -include $(mod_depends)

@@ -8,7 +8,7 @@ riff_test_child_all_targets	:= $(foreach test_module,$(riff_child_module_names),
 riff_test_child_clean_targets	:= $(foreach test_module,$(riff_child_module_names),$(test_module)_test_clean)
 riff_test_child_run_targets	:= $(foreach test_module,$(riff_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-riff_test_install_path_static := $(riff_path_curtestdir)riff_static$(EXT_EXE)
+riff_test_install_path        := $(riff_path_curtestdir)riff$(EXT_EXE)
 endif
 riff_test_sources             := $(wildcard $(riff_path_curtestdir)*.c)
 riff_sources					:= $(wildcard $(riff_path_curdir)*.c)
@@ -19,17 +19,17 @@ riff_sources					+= $(wildcard $(riff_path_curdir)platform_specific/linux/*.c)
 else ifeq ($(PLATFORM), MAC)
 riff_sources					+= $(wildcard $(riff_path_curdir)platform_specific/mac/*.c)
 endif
-riff_static_objects			:= $(patsubst %.c, %_static.o, $(riff_sources))
+riff_objects                  := $(patsubst %.c, %.o, $(riff_sources))
 riff_test_objects				:= $(patsubst %.c, %.o, $(riff_test_sources))
 riff_test_depends				:= $(patsubst %.c, %.d, $(riff_test_sources))
 riff_depends					:= $(patsubst %.c, %.d, $(riff_sources))
 riff_depends_modules			:= 
 riff_test_depends_modules     := riff test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 riff_test_depends_modules     += riff
-riff_test_libdepend_static_objs   = $(foreach dep_module,$(riff_test_depends_modules),$($(dep_module)_static_objects))
+riff_test_libdepend_objs      = $(foreach dep_module,$(riff_test_depends_modules),$($(dep_module)_objects))
 riff_clean_files				:=
 riff_clean_files				+= $(riff_install_path_implib)
-riff_clean_files				+= $(riff_static_objects)
+riff_clean_files				+= $(riff_objects)
 riff_clean_files				+= $(riff_test_objects)
 riff_clean_files				+= $(riff_depends)
 
@@ -38,17 +38,17 @@ include $(riff_child_makefiles)
 $(riff_path_curtestdir)%.o: $(riff_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(riff_path_curdir)%_static.o: $(riff_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(riff_path_curdir)%.o: $(riff_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(riff_test_install_path_static): $(riff_test_objects) $(riff_test_libdepend_static_objs)
-	$(CC) -o $@ $(riff_test_objects) -Wl,--allow-multiple-definition $(riff_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(riff_test_install_path): $(riff_test_objects) $(riff_test_libdepend_objs)
+	$(CC) -o $@ $(riff_test_objects) -Wl,--allow-multiple-definition $(riff_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: riff_all
-riff_all: $(riff_static_objects) ## build all riff object files
+riff_all: $(riff_objects) ## build all riff object files
 
 .PHONY: riff_test_all
-riff_test_all: $(riff_test_install_path_static) ## build riff_test test
+riff_test_all: $(riff_test_install_path) ## build riff_test test
 
 .PHONY: riff_clean
 riff_clean: $(riff_child_clean_targets) ## remove all riff object files
@@ -58,7 +58,7 @@ riff_clean:
 .PHONY: riff_test_clean
 riff_test_clean: $(riff_test_child_clean_targets) ## remove all riff_test tests
 riff_test_clean:
-	- $(RM) $(riff_test_install_path_static) $(riff_test_objects) $(riff_test_depends)
+	- $(RM) $(riff_test_install_path) $(riff_test_objects) $(riff_test_depends)
 
 .PHONY: riff_re
 riff_re: riff_clean
@@ -69,18 +69,17 @@ riff_test_re: riff_test_clean
 riff_test_re: riff_test_all
 
 .PHONY: riff_test_run_all
-riff_test_run_all: $(riff_test_child_all_targets) ## build and run riff_test
-riff_test_run_all: $(riff_test_child_run_targets)
+riff_test_run_all: $(riff_test_child_run_targets) ## build and run riff_test
 ifneq ($(riff_test_objects),)
 riff_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path)
 endif
 
 .PHONY: riff_test_run
 riff_test_run: riff_test_all
 ifneq ($(riff_test_objects),)
 riff_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path)
 endif
 
 -include $(riff_depends)

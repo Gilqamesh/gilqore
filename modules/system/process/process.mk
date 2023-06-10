@@ -8,7 +8,7 @@ process_test_child_all_targets	:= $(foreach test_module,$(process_child_module_n
 process_test_child_clean_targets	:= $(foreach test_module,$(process_child_module_names),$(test_module)_test_clean)
 process_test_child_run_targets	:= $(foreach test_module,$(process_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-process_test_install_path_static := $(process_path_curtestdir)process_static$(EXT_EXE)
+process_test_install_path        := $(process_path_curtestdir)process$(EXT_EXE)
 endif
 process_test_sources             := $(wildcard $(process_path_curtestdir)*.c)
 process_sources					:= $(wildcard $(process_path_curdir)*.c)
@@ -19,17 +19,17 @@ process_sources					+= $(wildcard $(process_path_curdir)platform_specific/linux/
 else ifeq ($(PLATFORM), MAC)
 process_sources					+= $(wildcard $(process_path_curdir)platform_specific/mac/*.c)
 endif
-process_static_objects			:= $(patsubst %.c, %_static.o, $(process_sources))
+process_objects                  := $(patsubst %.c, %.o, $(process_sources))
 process_test_objects				:= $(patsubst %.c, %.o, $(process_test_sources))
 process_test_depends				:= $(patsubst %.c, %.d, $(process_test_sources))
 process_depends					:= $(patsubst %.c, %.d, $(process_sources))
 process_depends_modules			:= file common time system libc random compare 
 process_test_depends_modules     := process test_framework libc common file_reader hash compare circular_buffer mod file time system random 
 process_test_depends_modules     += process
-process_test_libdepend_static_objs   = $(foreach dep_module,$(process_test_depends_modules),$($(dep_module)_static_objects))
+process_test_libdepend_objs      = $(foreach dep_module,$(process_test_depends_modules),$($(dep_module)_objects))
 process_clean_files				:=
 process_clean_files				+= $(process_install_path_implib)
-process_clean_files				+= $(process_static_objects)
+process_clean_files				+= $(process_objects)
 process_clean_files				+= $(process_test_objects)
 process_clean_files				+= $(process_depends)
 
@@ -38,17 +38,17 @@ include $(process_child_makefiles)
 $(process_path_curtestdir)%.o: $(process_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(process_path_curdir)%_static.o: $(process_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(process_path_curdir)%.o: $(process_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(process_test_install_path_static): $(process_test_objects) $(process_test_libdepend_static_objs)
-	$(CC) -o $@ $(process_test_objects) -Wl,--allow-multiple-definition $(process_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(process_test_install_path): $(process_test_objects) $(process_test_libdepend_objs)
+	$(CC) -o $@ $(process_test_objects) -Wl,--allow-multiple-definition $(process_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: process_all
-process_all: $(process_static_objects) ## build all process object files
+process_all: $(process_objects) ## build all process object files
 
 .PHONY: process_test_all
-process_test_all: $(process_test_install_path_static) ## build process_test test
+process_test_all: $(process_test_install_path) ## build process_test test
 
 .PHONY: process_clean
 process_clean: $(process_child_clean_targets) ## remove all process object files
@@ -58,7 +58,7 @@ process_clean:
 .PHONY: process_test_clean
 process_test_clean: $(process_test_child_clean_targets) ## remove all process_test tests
 process_test_clean:
-	- $(RM) $(process_test_install_path_static) $(process_test_objects) $(process_test_depends)
+	- $(RM) $(process_test_install_path) $(process_test_objects) $(process_test_depends)
 
 .PHONY: process_re
 process_re: process_clean
@@ -69,18 +69,17 @@ process_test_re: process_test_clean
 process_test_re: process_test_all
 
 .PHONY: process_test_run_all
-process_test_run_all: $(process_test_child_all_targets) ## build and run process_test
-process_test_run_all: $(process_test_child_run_targets)
+process_test_run_all: $(process_test_child_run_targets) ## build and run process_test
 ifneq ($(process_test_objects),)
 process_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path)
 endif
 
 .PHONY: process_test_run
 process_test_run: process_test_all
 ifneq ($(process_test_objects),)
 process_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path)
 endif
 
 -include $(process_depends)

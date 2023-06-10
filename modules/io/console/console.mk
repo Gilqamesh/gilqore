@@ -8,7 +8,7 @@ console_test_child_all_targets	:= $(foreach test_module,$(console_child_module_n
 console_test_child_clean_targets	:= $(foreach test_module,$(console_child_module_names),$(test_module)_test_clean)
 console_test_child_run_targets	:= $(foreach test_module,$(console_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-console_test_install_path_static := $(console_path_curtestdir)console_static$(EXT_EXE)
+console_test_install_path        := $(console_path_curtestdir)console$(EXT_EXE)
 endif
 console_test_sources             := $(wildcard $(console_path_curtestdir)*.c)
 console_sources					:= $(wildcard $(console_path_curdir)*.c)
@@ -19,17 +19,17 @@ console_sources					+= $(wildcard $(console_path_curdir)platform_specific/linux/
 else ifeq ($(PLATFORM), MAC)
 console_sources					+= $(wildcard $(console_path_curdir)platform_specific/mac/*.c)
 endif
-console_static_objects			:= $(patsubst %.c, %_static.o, $(console_sources))
+console_objects                  := $(patsubst %.c, %.o, $(console_sources))
 console_test_objects				:= $(patsubst %.c, %.o, $(console_test_sources))
 console_test_depends				:= $(patsubst %.c, %.d, $(console_test_sources))
 console_depends					:= $(patsubst %.c, %.d, $(console_sources))
 console_depends_modules			:= libc common 
 console_test_depends_modules     := console test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 console_test_depends_modules     += console
-console_test_libdepend_static_objs   = $(foreach dep_module,$(console_test_depends_modules),$($(dep_module)_static_objects))
+console_test_libdepend_objs      = $(foreach dep_module,$(console_test_depends_modules),$($(dep_module)_objects))
 console_clean_files				:=
 console_clean_files				+= $(console_install_path_implib)
-console_clean_files				+= $(console_static_objects)
+console_clean_files				+= $(console_objects)
 console_clean_files				+= $(console_test_objects)
 console_clean_files				+= $(console_depends)
 
@@ -38,17 +38,17 @@ include $(console_child_makefiles)
 $(console_path_curtestdir)%.o: $(console_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(console_path_curdir)%_static.o: $(console_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(console_path_curdir)%.o: $(console_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(console_test_install_path_static): $(console_test_objects) $(console_test_libdepend_static_objs)
-	$(CC) -o $@ $(console_test_objects) -Wl,--allow-multiple-definition $(console_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(console_test_install_path): $(console_test_objects) $(console_test_libdepend_objs)
+	$(CC) -o $@ $(console_test_objects) -Wl,--allow-multiple-definition $(console_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: console_all
-console_all: $(console_static_objects) ## build all console object files
+console_all: $(console_objects) ## build all console object files
 
 .PHONY: console_test_all
-console_test_all: $(console_test_install_path_static) ## build console_test test
+console_test_all: $(console_test_install_path) ## build console_test test
 
 .PHONY: console_clean
 console_clean: $(console_child_clean_targets) ## remove all console object files
@@ -58,7 +58,7 @@ console_clean:
 .PHONY: console_test_clean
 console_test_clean: $(console_test_child_clean_targets) ## remove all console_test tests
 console_test_clean:
-	- $(RM) $(console_test_install_path_static) $(console_test_objects) $(console_test_depends)
+	- $(RM) $(console_test_install_path) $(console_test_objects) $(console_test_depends)
 
 .PHONY: console_re
 console_re: console_clean
@@ -69,18 +69,17 @@ console_test_re: console_test_clean
 console_test_re: console_test_all
 
 .PHONY: console_test_run_all
-console_test_run_all: $(console_test_child_all_targets) ## build and run console_test
-console_test_run_all: $(console_test_child_run_targets)
+console_test_run_all: $(console_test_child_run_targets) ## build and run console_test
 ifneq ($(console_test_objects),)
 console_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path)
 endif
 
 .PHONY: console_test_run
 console_test_run: console_test_all
 ifneq ($(console_test_objects),)
 console_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(console_test_install_path)
 endif
 
 -include $(console_depends)

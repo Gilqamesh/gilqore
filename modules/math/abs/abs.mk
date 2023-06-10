@@ -8,7 +8,7 @@ abs_test_child_all_targets	:= $(foreach test_module,$(abs_child_module_names),$(
 abs_test_child_clean_targets	:= $(foreach test_module,$(abs_child_module_names),$(test_module)_test_clean)
 abs_test_child_run_targets	:= $(foreach test_module,$(abs_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-abs_test_install_path_static := $(abs_path_curtestdir)abs_static$(EXT_EXE)
+abs_test_install_path        := $(abs_path_curtestdir)abs$(EXT_EXE)
 endif
 abs_test_sources             := $(wildcard $(abs_path_curtestdir)*.c)
 abs_sources					:= $(wildcard $(abs_path_curdir)*.c)
@@ -19,17 +19,17 @@ abs_sources					+= $(wildcard $(abs_path_curdir)platform_specific/linux/*.c)
 else ifeq ($(PLATFORM), MAC)
 abs_sources					+= $(wildcard $(abs_path_curdir)platform_specific/mac/*.c)
 endif
-abs_static_objects			:= $(patsubst %.c, %_static.o, $(abs_sources))
+abs_objects                  := $(patsubst %.c, %.o, $(abs_sources))
 abs_test_objects				:= $(patsubst %.c, %.o, $(abs_test_sources))
 abs_test_depends				:= $(patsubst %.c, %.d, $(abs_test_sources))
 abs_depends					:= $(patsubst %.c, %.d, $(abs_sources))
 abs_depends_modules			:= 
 abs_test_depends_modules     := abs test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
 abs_test_depends_modules     += abs
-abs_test_libdepend_static_objs   = $(foreach dep_module,$(abs_test_depends_modules),$($(dep_module)_static_objects))
+abs_test_libdepend_objs      = $(foreach dep_module,$(abs_test_depends_modules),$($(dep_module)_objects))
 abs_clean_files				:=
 abs_clean_files				+= $(abs_install_path_implib)
-abs_clean_files				+= $(abs_static_objects)
+abs_clean_files				+= $(abs_objects)
 abs_clean_files				+= $(abs_test_objects)
 abs_clean_files				+= $(abs_depends)
 
@@ -38,17 +38,17 @@ include $(abs_child_makefiles)
 $(abs_path_curtestdir)%.o: $(abs_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(abs_path_curdir)%_static.o: $(abs_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(abs_path_curdir)%.o: $(abs_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(abs_test_install_path_static): $(abs_test_objects) $(abs_test_libdepend_static_objs)
-	$(CC) -o $@ $(abs_test_objects) -Wl,--allow-multiple-definition $(abs_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(abs_test_install_path): $(abs_test_objects) $(abs_test_libdepend_objs)
+	$(CC) -o $@ $(abs_test_objects) -Wl,--allow-multiple-definition $(abs_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: abs_all
-abs_all: $(abs_static_objects) ## build all abs object files
+abs_all: $(abs_objects) ## build all abs object files
 
 .PHONY: abs_test_all
-abs_test_all: $(abs_test_install_path_static) ## build abs_test test
+abs_test_all: $(abs_test_install_path) ## build abs_test test
 
 .PHONY: abs_clean
 abs_clean: $(abs_child_clean_targets) ## remove all abs object files
@@ -58,7 +58,7 @@ abs_clean:
 .PHONY: abs_test_clean
 abs_test_clean: $(abs_test_child_clean_targets) ## remove all abs_test tests
 abs_test_clean:
-	- $(RM) $(abs_test_install_path_static) $(abs_test_objects) $(abs_test_depends)
+	- $(RM) $(abs_test_install_path) $(abs_test_objects) $(abs_test_depends)
 
 .PHONY: abs_re
 abs_re: abs_clean
@@ -69,18 +69,17 @@ abs_test_re: abs_test_clean
 abs_test_re: abs_test_all
 
 .PHONY: abs_test_run_all
-abs_test_run_all: $(abs_test_child_all_targets) ## build and run abs_test
-abs_test_run_all: $(abs_test_child_run_targets)
+abs_test_run_all: $(abs_test_child_run_targets) ## build and run abs_test
 ifneq ($(abs_test_objects),)
 abs_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(abs_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(abs_test_install_path)
 endif
 
 .PHONY: abs_test_run
 abs_test_run: abs_test_all
 ifneq ($(abs_test_objects),)
 abs_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(abs_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(abs_test_install_path)
 endif
 
 -include $(abs_depends)

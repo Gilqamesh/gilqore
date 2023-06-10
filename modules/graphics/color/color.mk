@@ -8,7 +8,7 @@ color_test_child_all_targets	:= $(foreach test_module,$(color_child_module_names
 color_test_child_clean_targets	:= $(foreach test_module,$(color_child_module_names),$(test_module)_test_clean)
 color_test_child_run_targets	:= $(foreach test_module,$(color_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-color_test_install_path_static := $(color_path_curtestdir)color_static$(EXT_EXE)
+color_test_install_path        := $(color_path_curtestdir)color$(EXT_EXE)
 endif
 color_test_sources             := $(wildcard $(color_path_curtestdir)*.c)
 color_sources					:= $(wildcard $(color_path_curdir)*.c)
@@ -19,17 +19,17 @@ color_sources					+= $(wildcard $(color_path_curdir)platform_specific/linux/*.c)
 else ifeq ($(PLATFORM), MAC)
 color_sources					+= $(wildcard $(color_path_curdir)platform_specific/mac/*.c)
 endif
-color_static_objects			:= $(patsubst %.c, %_static.o, $(color_sources))
+color_objects                  := $(patsubst %.c, %.o, $(color_sources))
 color_test_objects				:= $(patsubst %.c, %.o, $(color_test_sources))
 color_test_depends				:= $(patsubst %.c, %.d, $(color_test_sources))
 color_depends					:= $(patsubst %.c, %.d, $(color_sources))
-color_depends_modules			:= 
-color_test_depends_modules     := color test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
+color_depends_modules			:= v4 
+color_test_depends_modules     := color test_framework libc common process file time system random compare file_reader hash circular_buffer mod v4 
 color_test_depends_modules     += color
-color_test_libdepend_static_objs   = $(foreach dep_module,$(color_test_depends_modules),$($(dep_module)_static_objects))
+color_test_libdepend_objs      = $(foreach dep_module,$(color_test_depends_modules),$($(dep_module)_objects))
 color_clean_files				:=
 color_clean_files				+= $(color_install_path_implib)
-color_clean_files				+= $(color_static_objects)
+color_clean_files				+= $(color_objects)
 color_clean_files				+= $(color_test_objects)
 color_clean_files				+= $(color_depends)
 
@@ -38,17 +38,17 @@ include $(color_child_makefiles)
 $(color_path_curtestdir)%.o: $(color_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(color_path_curdir)%_static.o: $(color_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(color_path_curdir)%.o: $(color_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(color_test_install_path_static): $(color_test_objects) $(color_test_libdepend_static_objs)
-	$(CC) -o $@ $(color_test_objects) -Wl,--allow-multiple-definition $(color_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(color_test_install_path): $(color_test_objects) $(color_test_libdepend_objs)
+	$(CC) -o $@ $(color_test_objects) -Wl,--allow-multiple-definition $(color_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: color_all
-color_all: $(color_static_objects) ## build all color object files
+color_all: $(color_objects) ## build all color object files
 
 .PHONY: color_test_all
-color_test_all: $(color_test_install_path_static) ## build color_test test
+color_test_all: $(color_test_install_path) ## build color_test test
 
 .PHONY: color_clean
 color_clean: $(color_child_clean_targets) ## remove all color object files
@@ -58,7 +58,7 @@ color_clean:
 .PHONY: color_test_clean
 color_test_clean: $(color_test_child_clean_targets) ## remove all color_test tests
 color_test_clean:
-	- $(RM) $(color_test_install_path_static) $(color_test_objects) $(color_test_depends)
+	- $(RM) $(color_test_install_path) $(color_test_objects) $(color_test_depends)
 
 .PHONY: color_re
 color_re: color_clean
@@ -69,18 +69,17 @@ color_test_re: color_test_clean
 color_test_re: color_test_all
 
 .PHONY: color_test_run_all
-color_test_run_all: $(color_test_child_all_targets) ## build and run color_test
-color_test_run_all: $(color_test_child_run_targets)
+color_test_run_all: $(color_test_child_run_targets) ## build and run color_test
 ifneq ($(color_test_objects),)
 color_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path)
 endif
 
 .PHONY: color_test_run
 color_test_run: color_test_all
 ifneq ($(color_test_objects),)
 color_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path)
 endif
 
 -include $(color_depends)

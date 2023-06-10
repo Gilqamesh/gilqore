@@ -8,7 +8,7 @@ string_replacer_test_child_all_targets	:= $(foreach test_module,$(string_replace
 string_replacer_test_child_clean_targets	:= $(foreach test_module,$(string_replacer_child_module_names),$(test_module)_test_clean)
 string_replacer_test_child_run_targets	:= $(foreach test_module,$(string_replacer_child_module_names),$(test_module)_test_run)
 ifeq ($(PLATFORM), WINDOWS)
-string_replacer_test_install_path_static := $(string_replacer_path_curtestdir)string_replacer_static$(EXT_EXE)
+string_replacer_test_install_path        := $(string_replacer_path_curtestdir)string_replacer$(EXT_EXE)
 endif
 string_replacer_test_sources             := $(wildcard $(string_replacer_path_curtestdir)*.c)
 string_replacer_sources					:= $(wildcard $(string_replacer_path_curdir)*.c)
@@ -19,17 +19,17 @@ string_replacer_sources					+= $(wildcard $(string_replacer_path_curdir)platform
 else ifeq ($(PLATFORM), MAC)
 string_replacer_sources					+= $(wildcard $(string_replacer_path_curdir)platform_specific/mac/*.c)
 endif
-string_replacer_static_objects			:= $(patsubst %.c, %_static.o, $(string_replacer_sources))
+string_replacer_objects                  := $(patsubst %.c, %.o, $(string_replacer_sources))
 string_replacer_test_objects				:= $(patsubst %.c, %.o, $(string_replacer_test_sources))
 string_replacer_test_depends				:= $(patsubst %.c, %.d, $(string_replacer_test_sources))
 string_replacer_depends					:= $(patsubst %.c, %.d, $(string_replacer_sources))
 string_replacer_depends_modules			:= libc common compare file time system random hash v2 clamp v3 v4 math abs sqrt 
 string_replacer_test_depends_modules     := string_replacer test_framework libc common process file time system random compare file_reader hash circular_buffer mod v2 clamp v3 v4 math abs sqrt 
 string_replacer_test_depends_modules     += string_replacer
-string_replacer_test_libdepend_static_objs   = $(foreach dep_module,$(string_replacer_test_depends_modules),$($(dep_module)_static_objects))
+string_replacer_test_libdepend_objs      = $(foreach dep_module,$(string_replacer_test_depends_modules),$($(dep_module)_objects))
 string_replacer_clean_files				:=
 string_replacer_clean_files				+= $(string_replacer_install_path_implib)
-string_replacer_clean_files				+= $(string_replacer_static_objects)
+string_replacer_clean_files				+= $(string_replacer_objects)
 string_replacer_clean_files				+= $(string_replacer_test_objects)
 string_replacer_clean_files				+= $(string_replacer_depends)
 
@@ -38,17 +38,17 @@ include $(string_replacer_child_makefiles)
 $(string_replacer_path_curtestdir)%.o: $(string_replacer_path_curtestdir)%.c
 	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(string_replacer_path_curdir)%_static.o: $(string_replacer_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_STATIC
+$(string_replacer_path_curdir)%.o: $(string_replacer_path_curdir)%.c
+	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
-$(string_replacer_test_install_path_static): $(string_replacer_test_objects) $(string_replacer_test_libdepend_static_objs)
-	$(CC) -o $@ $(string_replacer_test_objects) -Wl,--allow-multiple-definition $(string_replacer_test_libdepend_static_objs) $(LFLAGS_COMMON) -mconsole
+$(string_replacer_test_install_path): $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs)
+	$(CC) -o $@ $(string_replacer_test_objects) -Wl,--allow-multiple-definition $(string_replacer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: string_replacer_all
-string_replacer_all: $(string_replacer_static_objects) ## build all string_replacer object files
+string_replacer_all: $(string_replacer_objects) ## build all string_replacer object files
 
 .PHONY: string_replacer_test_all
-string_replacer_test_all: $(string_replacer_test_install_path_static) ## build string_replacer_test test
+string_replacer_test_all: $(string_replacer_test_install_path) ## build string_replacer_test test
 
 .PHONY: string_replacer_clean
 string_replacer_clean: $(string_replacer_child_clean_targets) ## remove all string_replacer object files
@@ -58,7 +58,7 @@ string_replacer_clean:
 .PHONY: string_replacer_test_clean
 string_replacer_test_clean: $(string_replacer_test_child_clean_targets) ## remove all string_replacer_test tests
 string_replacer_test_clean:
-	- $(RM) $(string_replacer_test_install_path_static) $(string_replacer_test_objects) $(string_replacer_test_depends)
+	- $(RM) $(string_replacer_test_install_path) $(string_replacer_test_objects) $(string_replacer_test_depends)
 
 .PHONY: string_replacer_re
 string_replacer_re: string_replacer_clean
@@ -69,18 +69,17 @@ string_replacer_test_re: string_replacer_test_clean
 string_replacer_test_re: string_replacer_test_all
 
 .PHONY: string_replacer_test_run_all
-string_replacer_test_run_all: $(string_replacer_test_child_all_targets) ## build and run string_replacer_test
-string_replacer_test_run_all: $(string_replacer_test_child_run_targets)
+string_replacer_test_run_all: $(string_replacer_test_child_run_targets) ## build and run string_replacer_test
 ifneq ($(string_replacer_test_objects),)
 string_replacer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path)
 endif
 
 .PHONY: string_replacer_test_run
 string_replacer_test_run: string_replacer_test_all
 ifneq ($(string_replacer_test_objects),)
 string_replacer_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path_static)
+	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path)
 endif
 
 -include $(string_replacer_depends)
