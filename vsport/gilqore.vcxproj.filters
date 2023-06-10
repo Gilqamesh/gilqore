@@ -1,0 +1,597 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Gilqore">
+      <UniqueIdentifier>{18e12cc3-c997-42d8-91fe-8b947dc6b1c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\algorithms">
+      <UniqueIdentifier>{08639c97-fc8a-4001-9d01-6224f8e731dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\common">
+      <UniqueIdentifier>{a28daa5e-1536-4d61-b21d-3234758adc93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\data_structures">
+      <UniqueIdentifier>{a8924975-f554-49bc-aaeb-27e49fea3626}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types">
+      <UniqueIdentifier>{5abcd77d-aeac-4676-bf84-c6f0de141922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string">
+      <UniqueIdentifier>{d22eaf35-425b-4d39-b933-c6900722efc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer">
+      <UniqueIdentifier>{d25436d6-1642-49c2-a48c-388225a227f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer\platform_specific">
+      <UniqueIdentifier>{7f1e7590-ca60-4cb6-b2bf-d815281f1fc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\string\string_replacer\platform_specific\windows">
+      <UniqueIdentifier>{26e5fde1-de1a-468f-9e7f-a308b41b51cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc">
+      <UniqueIdentifier>{f9a1a264-934d-4cb6-a2db-e974db1fc9c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc\platform_specific">
+      <UniqueIdentifier>{47233188-326c-4e51-a82e-a1f1156a656e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\libc\platform_specific\windows">
+      <UniqueIdentifier>{a53c7af2-7a74-4b1b-8163-5c3d82bd5423}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io">
+      <UniqueIdentifier>{4f8ebf11-5f21-454f-851b-7eb69740d741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file">
+      <UniqueIdentifier>{879eca2c-aab5-4407-85f8-dd61a2a1f060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file\platform_specific">
+      <UniqueIdentifier>{5a9dd647-1585-49af-bdb2-c41681da7f1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\file\platform_specific\windows">
+      <UniqueIdentifier>{2e429724-816c-4d30-8e96-0430b4bb0680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\algorithms\hash">
+      <UniqueIdentifier>{03cb99f0-fca1-4828-a42d-b4a4780d3566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math">
+      <UniqueIdentifier>{58102138-0371-4978-9294-faa43b2e3f81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\compare">
+      <UniqueIdentifier>{718d3cb0-92d7-48df-8e89-7d311ac0f7c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\data_structures\circular_buffer">
+      <UniqueIdentifier>{f136b6d4-c3cf-41b5-8349-a6b4ebea96f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\graphics">
+      <UniqueIdentifier>{7b448c09-c04b-4715-81ef-1711b59f6380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\graphics\color">
+      <UniqueIdentifier>{badc1a58-40a5-4831-9286-6ac553510512}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\directory">
+      <UniqueIdentifier>{28f7a960-842e-4654-9bae-be50c9a87126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\directory\platform_specific">
+      <UniqueIdentifier>{90f3ec8e-3d92-4c98-a4f6-bb09bdd2c926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\directory\platform_specific\windows">
+      <UniqueIdentifier>{9ffceed6-b2f9-4e58-b03d-99ae0ea6eb6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\console">
+      <UniqueIdentifier>{e07838bb-5143-42ac-8465-ecb4e2baca4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\console\platform_specific">
+      <UniqueIdentifier>{87b78f22-e9df-4611-b0b1-fbe03e9354ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\io\console\platform_specific\windows">
+      <UniqueIdentifier>{6b56de7b-a38e-4a7c-8d4a-827f8ddffcba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\abs">
+      <UniqueIdentifier>{06b41c4b-738f-44ad-8cf6-fa7e175e3370}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\clamp">
+      <UniqueIdentifier>{a803cd1c-5674-4eeb-a073-d36fd51b5b3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\lerp">
+      <UniqueIdentifier>{52135722-dc6c-41f0-893e-d568dce5a353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\mod">
+      <UniqueIdentifier>{25458c90-226f-40ae-837c-e4f0e849cb77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\random">
+      <UniqueIdentifier>{dd0d2a22-ee87-4b0b-ae56-f1012d25af40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\math\sqrt">
+      <UniqueIdentifier>{1b71c281-c3a8-4c38-80f5-5f8e683cae05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\system">
+      <UniqueIdentifier>{6d285e4b-6f61-4f78-95c3-cb45e08a4c60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\system\process">
+      <UniqueIdentifier>{cd29c491-1289-4387-ac26-5dfaf0eb61b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\system\process\platform_specific">
+      <UniqueIdentifier>{39bb42e7-6a47-40ea-a76f-d625b385a5c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\system\process\platform_specific\windows">
+      <UniqueIdentifier>{41c082ea-40a8-40e4-bb16-9a797090b772}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\system\thread">
+      <UniqueIdentifier>{269b45a0-3418-4225-aa42-4f6bf95fa7f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\time">
+      <UniqueIdentifier>{4116ffc3-7d78-481e-b003-d5d3995e371c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\time\platform_specific">
+      <UniqueIdentifier>{83ba7013-0556-46f9-972e-b986cc28b992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\time\platform_specific\windows">
+      <UniqueIdentifier>{d0df8285-67b0-4263-8a02-065fc6b50b77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\basic_types">
+      <UniqueIdentifier>{2c74e1c8-1145-49a7-9ec2-31dabbb30608}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\vector_types">
+      <UniqueIdentifier>{4fdcc3d8-6ce8-41bf-9b00-3f5034aa583f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\vector_types\v2">
+      <UniqueIdentifier>{31afea20-70e8-483c-93c2-ad91c0858da1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\vector_types\v3">
+      <UniqueIdentifier>{7393b61e-1638-4e39-ba15-46f94dcdd51e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gilqore\types\vector_types\v4">
+      <UniqueIdentifier>{d9627ab7-d103-42bd-a7a7-b8665e2716ef}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\modules\defs.h">
+      <Filter>Gilqore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\modules_defs.h">
+      <Filter>Gilqore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string.h">
+      <Filter>Gilqore\types\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_defs.h">
+      <Filter>Gilqore\types\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer.h">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer_defs.h">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\string\string_replacer\platform_specific\windows\string_replacer_platform_specific_defs.h">
+      <Filter>Gilqore\types\string\string_replacer\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\libc.h">
+      <Filter>Gilqore\libc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\libc_defs.h">
+      <Filter>Gilqore\libc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.h">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific_defs.h">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\common_defs.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\compile_defs.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\data_types.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\error_code.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\common\helper_macros.h">
+      <Filter>Gilqore\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\io_defs.h">
+      <Filter>Gilqore\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\file.h">
+      <Filter>Gilqore\io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\file_defs.h">
+      <Filter>Gilqore\io\file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific_defs.h">
+      <Filter>Gilqore\io\file\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\algorithms_defs.h">
+      <Filter>Gilqore\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\hash\hash.h">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\algorithms\hash\hash_defs.h">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\math_defs.h">
+      <Filter>Gilqore\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\math.h">
+      <Filter>Gilqore\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\compare\compare.h">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\compare\compare_defs.h">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\data_structures\data_structures_defs.h">
+      <Filter>Gilqore\data_structures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\data_structures\circular_buffer\circular_buffer_defs.h">
+      <Filter>Gilqore\data_structures\circular_buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\data_structures\circular_buffer\circular_buffer.h">
+      <Filter>Gilqore\data_structures\circular_buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\graphics\graphics_defs.h">
+      <Filter>Gilqore\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\graphics\color\color_defs.h">
+      <Filter>Gilqore\graphics\color</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\graphics\color\color.h">
+      <Filter>Gilqore\graphics\color</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\directory\directory_defs.h">
+      <Filter>Gilqore\io\directory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\directory\directory.h">
+      <Filter>Gilqore\io\directory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\directory\platform_specific\windows\directory_platform_specific_defs.h">
+      <Filter>Gilqore\io\directory\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\console\console_defs.h">
+      <Filter>Gilqore\io\console</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\console\console.h">
+      <Filter>Gilqore\io\console</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\io\console\platform_specific\windows\console_platform_specific_defs.h">
+      <Filter>Gilqore\io\console\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\abs\abs_defs.h">
+      <Filter>Gilqore\math\abs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\abs\abs.h">
+      <Filter>Gilqore\math\abs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\clamp\clamp_defs.h">
+      <Filter>Gilqore\math\clamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\clamp\clamp.h">
+      <Filter>Gilqore\math\clamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\lerp\lerp_defs.h">
+      <Filter>Gilqore\math\lerp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\lerp\lerp.h">
+      <Filter>Gilqore\math\lerp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\mod\mod_defs.h">
+      <Filter>Gilqore\math\mod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\mod\mod.h">
+      <Filter>Gilqore\math\mod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\sqrt\sqrt_defs.h">
+      <Filter>Gilqore\math\sqrt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\sqrt\sqrt.h">
+      <Filter>Gilqore\math\sqrt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\random\random_defs.h">
+      <Filter>Gilqore\math\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\math\random\random.h">
+      <Filter>Gilqore\math\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\system_defs.h">
+      <Filter>Gilqore\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\system.h">
+      <Filter>Gilqore\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\process\process_defs.h">
+      <Filter>Gilqore\system\process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\process\process.h">
+      <Filter>Gilqore\system\process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\process\platform_specific\windows\process_platform_specific_defs.h">
+      <Filter>Gilqore\system\process\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\system\thread\thread_defs.h">
+      <Filter>Gilqore\system\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\time\time_defs.h">
+      <Filter>Gilqore\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\time\time.h">
+      <Filter>Gilqore\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\time\platform_specific\windows\time_platform_specific_defs.h">
+      <Filter>Gilqore\time\platform_specific\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\basic_types\basic_types_defs.h">
+      <Filter>Gilqore\types\basic_types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\basic_types\basic_types.h">
+      <Filter>Gilqore\types\basic_types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\types_defs.h">
+      <Filter>Gilqore\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\vector_types_defs.h">
+      <Filter>Gilqore\types\vector_types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2_defs.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2r32.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2r64.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s8.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s16.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s32.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s64.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u8.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u16.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u32.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u64.h">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3_defs.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3r32.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3r64.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s8.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s16.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s32.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s64.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u8.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u16.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u32.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u64.h">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4_defs.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4r32.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4r64.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s8.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s16.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s32.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s64.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u8.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u16.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u32.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u64.h">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\modules\types\string\string.c">
+      <Filter>Gilqore\types\string</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\string\string_replacer\string_replacer.c">
+      <Filter>Gilqore\types\string\string_replacer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\libc\libc.c">
+      <Filter>Gilqore\libc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.c">
+      <Filter>Gilqore\libc\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\common\error_code.c">
+      <Filter>Gilqore\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\algorithms\hash\hash.c">
+      <Filter>Gilqore\algorithms\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\compare\compare.c">
+      <Filter>Gilqore\math\compare</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\data_structures\circular_buffer\circular_buffer.c">
+      <Filter>Gilqore\data_structures\circular_buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\graphics\color\color.c">
+      <Filter>Gilqore\graphics\color</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\io\directory\platform_specific\windows\directory.c">
+      <Filter>Gilqore\io\directory\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\io\console\platform_specific\windows\console.c">
+      <Filter>Gilqore\io\console\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\abs\abs.c">
+      <Filter>Gilqore\math\abs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\clamp\clamp.c">
+      <Filter>Gilqore\math\clamp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\lerp\lerp.c">
+      <Filter>Gilqore\math\lerp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\mod\mod.c">
+      <Filter>Gilqore\math\mod</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\sqrt\sqrt.c">
+      <Filter>Gilqore\math\sqrt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\math\random\random.c">
+      <Filter>Gilqore\math\random</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\system\process\platform_specific\windows\process.c">
+      <Filter>Gilqore\system\process\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\time\platform_specific\windows\time.c">
+      <Filter>Gilqore\time\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\basic_types\basic_types.c">
+      <Filter>Gilqore\types\basic_types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2r32.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2r64.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s8.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s16.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s32.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s64.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u8.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u16.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u32.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u64.c">
+      <Filter>Gilqore\types\vector_types\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3r32.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3r64.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s8.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s16.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s32.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s64.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u8.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u16.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u32.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u64.c">
+      <Filter>Gilqore\types\vector_types\v3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4r32.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4r64.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s8.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s16.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s32.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s64.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u8.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u16.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u32.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u64.c">
+      <Filter>Gilqore\types\vector_types\v4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific.c">
+      <Filter>Gilqore\io\file\platform_specific\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\cpp_test.cpp">
+      <Filter>Gilqore</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

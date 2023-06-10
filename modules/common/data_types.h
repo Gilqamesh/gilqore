@@ -17,4 +17,8 @@ typedef int8_t   s8;
 typedef float  r32;
 typedef double r64;
 
-#endif
+# if !defined(NULL)
+#  define NULL ((char*)0)
+# endif
+
+#endif // DATA_TYPES

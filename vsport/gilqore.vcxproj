@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\modules\algorithms\algorithms_defs.h" />
+    <ClInclude Include="..\..\modules\algorithms\hash\hash.h" />
+    <ClInclude Include="..\..\modules\algorithms\hash\hash_defs.h" />
+    <ClInclude Include="..\..\modules\common\common_defs.h" />
+    <ClInclude Include="..\..\modules\common\compile_defs.h" />
+    <ClInclude Include="..\..\modules\common\data_types.h" />
+    <ClInclude Include="..\..\modules\common\error_code.h" />
+    <ClInclude Include="..\..\modules\common\helper_macros.h" />
+    <ClInclude Include="..\..\modules\data_structures\circular_buffer\circular_buffer.h" />
+    <ClInclude Include="..\..\modules\data_structures\circular_buffer\circular_buffer_defs.h" />
+    <ClInclude Include="..\..\modules\data_structures\data_structures_defs.h" />
+    <ClInclude Include="..\..\modules\defs.h" />
+    <ClInclude Include="..\..\modules\graphics\color\color.h" />
+    <ClInclude Include="..\..\modules\graphics\color\color_defs.h" />
+    <ClInclude Include="..\..\modules\graphics\graphics_defs.h" />
+    <ClInclude Include="..\..\modules\io\console\console.h" />
+    <ClInclude Include="..\..\modules\io\console\console_defs.h" />
+    <ClInclude Include="..\..\modules\io\console\platform_specific\windows\console_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\io\directory\directory.h" />
+    <ClInclude Include="..\..\modules\io\directory\directory_defs.h" />
+    <ClInclude Include="..\..\modules\io\directory\platform_specific\windows\directory_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\io\file\file.h" />
+    <ClInclude Include="..\..\modules\io\file\file_defs.h" />
+    <ClInclude Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\io\io_defs.h" />
+    <ClInclude Include="..\..\modules\libc\libc.h" />
+    <ClInclude Include="..\..\modules\libc\libc_defs.h" />
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.h" />
+    <ClInclude Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\math\abs\abs.h" />
+    <ClInclude Include="..\..\modules\math\abs\abs_defs.h" />
+    <ClInclude Include="..\..\modules\math\clamp\clamp.h" />
+    <ClInclude Include="..\..\modules\math\clamp\clamp_defs.h" />
+    <ClInclude Include="..\..\modules\math\compare\compare.h" />
+    <ClInclude Include="..\..\modules\math\compare\compare_defs.h" />
+    <ClInclude Include="..\..\modules\math\lerp\lerp.h" />
+    <ClInclude Include="..\..\modules\math\lerp\lerp_defs.h" />
+    <ClInclude Include="..\..\modules\math\math.h" />
+    <ClInclude Include="..\..\modules\math\math_defs.h" />
+    <ClInclude Include="..\..\modules\math\mod\mod.h" />
+    <ClInclude Include="..\..\modules\math\mod\mod_defs.h" />
+    <ClInclude Include="..\..\modules\math\random\random.h" />
+    <ClInclude Include="..\..\modules\math\random\random_defs.h" />
+    <ClInclude Include="..\..\modules\math\sqrt\sqrt.h" />
+    <ClInclude Include="..\..\modules\math\sqrt\sqrt_defs.h" />
+    <ClInclude Include="..\..\modules\modules_defs.h" />
+    <ClInclude Include="..\..\modules\system\process\platform_specific\windows\process_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\system\process\process.h" />
+    <ClInclude Include="..\..\modules\system\process\process_defs.h" />
+    <ClInclude Include="..\..\modules\system\system.h" />
+    <ClInclude Include="..\..\modules\system\system_defs.h" />
+    <ClInclude Include="..\..\modules\system\thread\thread_defs.h" />
+    <ClInclude Include="..\..\modules\time\platform_specific\windows\time_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\time\time.h" />
+    <ClInclude Include="..\..\modules\time\time_defs.h" />
+    <ClInclude Include="..\..\modules\types\basic_types\basic_types.h" />
+    <ClInclude Include="..\..\modules\types\basic_types\basic_types_defs.h" />
+    <ClInclude Include="..\..\modules\types\string\string.h" />
+    <ClInclude Include="..\..\modules\types\string\string_defs.h" />
+    <ClInclude Include="..\..\modules\types\string\string_replacer\platform_specific\windows\string_replacer_platform_specific_defs.h" />
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer.h" />
+    <ClInclude Include="..\..\modules\types\string\string_replacer\string_replacer_defs.h" />
+    <ClInclude Include="..\..\modules\types\types_defs.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2r32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2r64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2s8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2u8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v2\v2_defs.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3r32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3r64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3s8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3u8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v3\v3_defs.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4r32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4r64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4s8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u16.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u32.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u64.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4u8.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\v4\v4_defs.h" />
+    <ClInclude Include="..\..\modules\types\vector_types\vector_types_defs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\examples\cpp_test.cpp" />
+    <ClCompile Include="..\..\modules\algorithms\hash\hash.c" />
+    <ClCompile Include="..\..\modules\common\error_code.c" />
+    <ClCompile Include="..\..\modules\data_structures\circular_buffer\circular_buffer.c" />
+    <ClCompile Include="..\..\modules\graphics\color\color.c" />
+    <ClCompile Include="..\..\modules\io\console\platform_specific\windows\console.c" />
+    <ClCompile Include="..\..\modules\io\directory\platform_specific\windows\directory.c" />
+    <ClCompile Include="..\..\modules\io\file\platform_specific\windows\file_platform_specific.c" />
+    <ClCompile Include="..\..\modules\libc\libc.c" />
+    <ClCompile Include="..\..\modules\libc\platform_specific\windows\libc_platform_specific.c" />
+    <ClCompile Include="..\..\modules\math\abs\abs.c" />
+    <ClCompile Include="..\..\modules\math\clamp\clamp.c" />
+    <ClCompile Include="..\..\modules\math\compare\compare.c" />
+    <ClCompile Include="..\..\modules\math\lerp\lerp.c" />
+    <ClCompile Include="..\..\modules\math\mod\mod.c" />
+    <ClCompile Include="..\..\modules\math\random\random.c" />
+    <ClCompile Include="..\..\modules\math\sqrt\sqrt.c" />
+    <ClCompile Include="..\..\modules\system\process\platform_specific\windows\process.c" />
+    <ClCompile Include="..\..\modules\time\platform_specific\windows\time.c" />
+    <ClCompile Include="..\..\modules\types\basic_types\basic_types.c" />
+    <ClCompile Include="..\..\modules\types\string\string.c" />
+    <ClCompile Include="..\..\modules\types\string\string_replacer\string_replacer.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2r32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2r64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2s8.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v2\v2u8.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3r32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3r64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3s8.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v3\v3u8.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4r32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4r64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4s8.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u16.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u32.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u64.c" />
+    <ClCompile Include="..\..\modules\types\vector_types\v4\v4u8.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{6E35558F-1A13-4618-B3C2-0312BF33635F}</ProjectGuid>
+    <RootNamespace>gilqore</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\modules</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GIL_DEBUG;GIL_TEST_SHOULD_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\modules</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GIL_DEBUG;GIL_TEST_SHOULD_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\modules</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GIL_DEBUG;GIL_TEST_SHOULD_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\modules</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GIL_DEBUG;GIL_TEST_SHOULD_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
