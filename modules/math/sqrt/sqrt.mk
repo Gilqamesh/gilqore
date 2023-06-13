@@ -23,9 +23,8 @@ sqrt_objects                  := $(patsubst %.c, %.o, $(sqrt_sources))
 sqrt_test_objects				:= $(patsubst %.c, %.o, $(sqrt_test_sources))
 sqrt_test_depends				:= $(patsubst %.c, %.d, $(sqrt_test_sources))
 sqrt_depends					:= $(patsubst %.c, %.d, $(sqrt_sources))
-sqrt_depends_modules			:= 
+sqrt_depends_modules			:=  common
 sqrt_test_depends_modules     := sqrt test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-sqrt_test_depends_modules     += sqrt
 sqrt_test_libdepend_objs      = $(foreach dep_module,$(sqrt_test_depends_modules),$($(dep_module)_objects))
 sqrt_clean_files				:=
 sqrt_clean_files				+= $(sqrt_install_path_implib)
@@ -35,11 +34,11 @@ sqrt_clean_files				+= $(sqrt_depends)
 
 include $(sqrt_child_makefiles)
 
-$(sqrt_path_curtestdir)%.o: $(sqrt_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(sqrt_path_curtestdir)%.o: $(sqrt_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(sqrt_path_curdir)%.o: $(sqrt_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(sqrt_path_curdir)%.o: $(sqrt_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(sqrt_test_install_path): $(sqrt_test_objects) $(sqrt_test_libdepend_objs)
 	$(CC) -o $@ $(sqrt_test_objects) -Wl,--allow-multiple-definition $(sqrt_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ sqrt_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: sqrt_test_run
+sqrt_test_run: sqrt_all
 sqrt_test_run: sqrt_test_all
 ifneq ($(sqrt_test_objects),)
 sqrt_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

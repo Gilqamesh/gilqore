@@ -49,4 +49,6 @@ void module_compiler__check_cyclic_dependency(
 );
 u32 module_compiler__get_error_code(void);
 
+void module_compiler__preprocess_file(const char* path);
+
 #endif

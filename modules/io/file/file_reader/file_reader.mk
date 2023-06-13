@@ -23,9 +23,8 @@ file_reader_objects                  := $(patsubst %.c, %.o, $(file_reader_sourc
 file_reader_test_objects				:= $(patsubst %.c, %.o, $(file_reader_test_sources))
 file_reader_test_depends				:= $(patsubst %.c, %.d, $(file_reader_test_sources))
 file_reader_depends					:= $(patsubst %.c, %.d, $(file_reader_sources))
-file_reader_depends_modules			:= hash libc common compare circular_buffer mod file time system random 
+file_reader_depends_modules			:= hash libc common compare circular_buffer mod file time system random  common
 file_reader_test_depends_modules     := file_reader test_framework libc common process file time system random compare hash circular_buffer mod 
-file_reader_test_depends_modules     += file_reader
 file_reader_test_libdepend_objs      = $(foreach dep_module,$(file_reader_test_depends_modules),$($(dep_module)_objects))
 file_reader_clean_files				:=
 file_reader_clean_files				+= $(file_reader_install_path_implib)
@@ -35,11 +34,11 @@ file_reader_clean_files				+= $(file_reader_depends)
 
 include $(file_reader_child_makefiles)
 
-$(file_reader_path_curtestdir)%.o: $(file_reader_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(file_reader_path_curtestdir)%.o: $(file_reader_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(file_reader_path_curdir)%.o: $(file_reader_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(file_reader_path_curdir)%.o: $(file_reader_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(file_reader_test_install_path): $(file_reader_test_objects) $(file_reader_test_libdepend_objs)
 	$(CC) -o $@ $(file_reader_test_objects) -Wl,--allow-multiple-definition $(file_reader_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ file_reader_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: file_reader_test_run
+file_reader_test_run: file_reader_all
 file_reader_test_run: file_reader_test_all
 ifneq ($(file_reader_test_objects),)
 file_reader_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

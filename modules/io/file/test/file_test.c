@@ -11,6 +11,10 @@
 #include <stdio.h>
 
 int main() {
+    file__create(NULL);
+
+    return 0;
+    
     struct file file;
     enum file_type file_type;
     struct time last_modified1;

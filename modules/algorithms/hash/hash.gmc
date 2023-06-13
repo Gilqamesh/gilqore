@@ -2,4 +2,4 @@ unique_error_codes: [
 ]
 module_dependencies: 
 application_type: CONSOLE
-test_dependencies: 
+test_dependencies: libc

@@ -1,7 +1,8 @@
 #include "module_compiler_utils.h"
-#include <stdio.h>
+#include "test_framework/test_framework.h"
 
 #include "libc/libc.h"
+#include "io/file/file.h"
 
 void module_compiler__clear_transient_flags(
     struct module* modules,
@@ -109,10 +110,10 @@ static void module_compiler__check_cyclic_dependency_helper(
     u32 modules_size
 ) {
     if (from->transient_flag_for_processing > 0) {
-        printf("\ncyclic dependency detected between these modules: ");
+        libc__printf("\ncyclic dependency detected between these modules: ");
         for (u32 module_index = 0; module_index < modules_size; ++module_index) {
             if (modules[module_index].transient_flag_for_processing > 0) {
-                printf("%s ", modules[module_index].basename);
+                libc__printf("%s ", modules[module_index].basename);
             }
         }
         // error_code__exit(CYCLIC_DEPENDENCY_BETWEEN_MODULES);
@@ -141,7 +142,7 @@ void module_compiler__print_dependencies(struct module* self) {
     for (u32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
         struct module* dependency = self->dependencies[i];
         if (dependency != NULL && dependency->transient_flag_for_processing == 0) {
-            printf("%s ", dependency->basename);
+            libc__printf("%s ", dependency->basename);
             module_compiler__print_dependencies(dependency);
         }
     }
@@ -152,7 +153,7 @@ void module_compiler__print_test_dependencies(struct module* self) {
     for (u32 i = 0; i < ARRAY_SIZE(self->test_dependencies); ++i) {
         struct module* test_dependency = self->test_dependencies[i];
         if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
-            printf("%s ", test_dependency->basename);
+            libc__printf("%s ", test_dependency->basename);
             module_compiler__print_dependencies(test_dependency);
         }
     }
@@ -164,17 +165,17 @@ static void module_compiler__print_branch_helper(
     u32 modules_size,
     s32 cur_depth
 ) {
-    printf("%*s --== %s ==-- \n %*snumber of submodules: %d\n %*sdependencies: ",
+    libc__printf("%*s --== %s ==-- \n %*snumber of submodules: %d\n %*sdependencies: ",
     cur_depth << 2, "", from->basename,
     cur_depth << 2, "", from->number_of_submodules,
     cur_depth << 2, "");
 
     module_compiler__clear_transient_flags(modules, modules_size);
     module_compiler__print_dependencies(from);
-    printf("\n %*stest dependencies: ", cur_depth << 2, "");
+    libc__printf("\n %*stest dependencies: ", cur_depth << 2, "");
     module_compiler__clear_transient_flags(modules, modules_size);
     module_compiler__print_test_dependencies(from);
-    printf("\n\n");
+    libc__printf("\n\n");
     struct module* child = from->first_child;
     while (child) {
         module_compiler__print_branch_helper(modules, child, modules_size, cur_depth + 1);
@@ -196,7 +197,31 @@ void module_compiler__print_branch(
 }
 
 u32 module_compiler__get_error_code(void) {
-    static u32 error_code;
+    static u32 error_code = 1;
 
     return error_code++;
+}
+
+void module_compiler__preprocess_file(const char* path) {
+    TEST_FRAMEWORK_ASSERT(file__exists(path));
+
+    const char import_directive[] = "import ";
+    (void) import_directive;
+    // this is the only thing that will dictate the dependencies of the compiler
+    // so at this point we can add the dependencies instead of manually writing them into
+    // configuration file and then parsing them out from that
+/*
+#import utils::stringbuilder;
+
+#test
+void foo() {
+    // Only run during test builds...
+}
+
+void main() {
+    struct stringbuilder  sb;
+
+    // ...
+}
+*/
 }

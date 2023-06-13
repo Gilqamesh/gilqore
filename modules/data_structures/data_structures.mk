@@ -23,9 +23,8 @@ data_structures_objects                  := $(patsubst %.c, %.o, $(data_structur
 data_structures_test_objects				:= $(patsubst %.c, %.o, $(data_structures_test_sources))
 data_structures_test_depends				:= $(patsubst %.c, %.d, $(data_structures_test_sources))
 data_structures_depends					:= $(patsubst %.c, %.d, $(data_structures_sources))
-data_structures_depends_modules			:= 
+data_structures_depends_modules			:=  common
 data_structures_test_depends_modules     := data_structures test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-data_structures_test_depends_modules     += data_structures
 data_structures_test_libdepend_objs      = $(foreach dep_module,$(data_structures_test_depends_modules),$($(dep_module)_objects))
 data_structures_clean_files				:=
 data_structures_clean_files				+= $(data_structures_install_path_implib)
@@ -35,11 +34,11 @@ data_structures_clean_files				+= $(data_structures_depends)
 
 include $(data_structures_child_makefiles)
 
-$(data_structures_path_curtestdir)%.o: $(data_structures_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(data_structures_path_curtestdir)%.o: $(data_structures_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(data_structures_path_curdir)%.o: $(data_structures_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(data_structures_path_curdir)%.o: $(data_structures_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(data_structures_test_install_path): $(data_structures_test_objects) $(data_structures_test_libdepend_objs)
 	$(CC) -o $@ $(data_structures_test_objects) -Wl,--allow-multiple-definition $(data_structures_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ data_structures_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: data_structures_test_run
+data_structures_test_run: data_structures_all
 data_structures_test_run: data_structures_test_all
 ifneq ($(data_structures_test_objects),)
 data_structures_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

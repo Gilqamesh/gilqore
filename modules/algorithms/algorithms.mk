@@ -23,9 +23,8 @@ algorithms_objects                  := $(patsubst %.c, %.o, $(algorithms_sources
 algorithms_test_objects				:= $(patsubst %.c, %.o, $(algorithms_test_sources))
 algorithms_test_depends				:= $(patsubst %.c, %.d, $(algorithms_test_sources))
 algorithms_depends					:= $(patsubst %.c, %.d, $(algorithms_sources))
-algorithms_depends_modules			:= 
+algorithms_depends_modules			:=  common
 algorithms_test_depends_modules     := algorithms test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-algorithms_test_depends_modules     += algorithms
 algorithms_test_libdepend_objs      = $(foreach dep_module,$(algorithms_test_depends_modules),$($(dep_module)_objects))
 algorithms_clean_files				:=
 algorithms_clean_files				+= $(algorithms_install_path_implib)
@@ -35,11 +34,11 @@ algorithms_clean_files				+= $(algorithms_depends)
 
 include $(algorithms_child_makefiles)
 
-$(algorithms_path_curtestdir)%.o: $(algorithms_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(algorithms_path_curtestdir)%.o: $(algorithms_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(algorithms_path_curdir)%.o: $(algorithms_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(algorithms_path_curdir)%.o: $(algorithms_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(algorithms_test_install_path): $(algorithms_test_objects) $(algorithms_test_libdepend_objs)
 	$(CC) -o $@ $(algorithms_test_objects) -Wl,--allow-multiple-definition $(algorithms_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ algorithms_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: algorithms_test_run
+algorithms_test_run: algorithms_all
 algorithms_test_run: algorithms_test_all
 ifneq ($(algorithms_test_objects),)
 algorithms_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -90,6 +90,8 @@ GIL_API int WinMain(
     }
     libc__free(argv);
 
+    TEST_FRAMEWORK_ASSERT(libc__unfreed_byte_count() == 0);
+
     return 0;
 }
 

@@ -23,9 +23,8 @@ v4_objects                  := $(patsubst %.c, %.o, $(v4_sources))
 v4_test_objects				:= $(patsubst %.c, %.o, $(v4_test_sources))
 v4_test_depends				:= $(patsubst %.c, %.d, $(v4_test_sources))
 v4_depends					:= $(patsubst %.c, %.d, $(v4_sources))
-v4_depends_modules			:= 
+v4_depends_modules			:=  common
 v4_test_depends_modules     := v4 test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-v4_test_depends_modules     += v4
 v4_test_libdepend_objs      = $(foreach dep_module,$(v4_test_depends_modules),$($(dep_module)_objects))
 v4_clean_files				:=
 v4_clean_files				+= $(v4_install_path_implib)
@@ -35,11 +34,11 @@ v4_clean_files				+= $(v4_depends)
 
 include $(v4_child_makefiles)
 
-$(v4_path_curtestdir)%.o: $(v4_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(v4_path_curtestdir)%.o: $(v4_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(v4_path_curdir)%.o: $(v4_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(v4_path_curdir)%.o: $(v4_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v4_test_install_path): $(v4_test_objects) $(v4_test_libdepend_objs)
 	$(CC) -o $@ $(v4_test_objects) -Wl,--allow-multiple-definition $(v4_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ v4_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: v4_test_run
+v4_test_run: v4_all
 v4_test_run: v4_test_all
 ifneq ($(v4_test_objects),)
 v4_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -37,3 +37,20 @@ v4s8__scale_s8(struct v4s8 v, s8 s) {
 
     return v;
 }
+
+struct v4s8 v4s8__scale_r32(struct v4s8 v, r32 s) {
+    v.a *= s;
+    v.b *= s;
+    v.c *= s;
+    v.d *= s;
+
+    return v;
+}
+
+bool v4s8__eq(struct v4s8 v, struct v4s8 w) {
+    return
+    v.a == w.a &&
+    v.b == w.b &&
+    v.c == w.c &&
+    v.d == w.d;
+}

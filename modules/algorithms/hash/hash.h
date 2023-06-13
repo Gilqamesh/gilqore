@@ -3,7 +3,10 @@
 
 # include "hash_defs.h"
 
+// @returns sum of bytes in the string
 GIL_API u64 hash__sum(const char* str);
-GIL_API u64 hash__sum_n(const char* str, u32 str_len);
+// @param n max number of bytes to sum from string
+// @returns sum of bytes in the string
+GIL_API u64 hash__sum_n(const char* str, u32 n);
 
 #endif

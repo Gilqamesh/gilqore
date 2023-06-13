@@ -23,9 +23,8 @@ file_objects                  := $(patsubst %.c, %.o, $(file_sources))
 file_test_objects				:= $(patsubst %.c, %.o, $(file_test_sources))
 file_test_depends				:= $(patsubst %.c, %.d, $(file_test_sources))
 file_depends					:= $(patsubst %.c, %.d, $(file_sources))
-file_depends_modules			:= common time system libc random compare 
+file_depends_modules			:= common time system libc random compare  common
 file_test_depends_modules     := file test_framework libc common process file_reader hash compare circular_buffer mod random time system 
-file_test_depends_modules     += file
 file_test_libdepend_objs      = $(foreach dep_module,$(file_test_depends_modules),$($(dep_module)_objects))
 file_clean_files				:=
 file_clean_files				+= $(file_install_path_implib)
@@ -35,11 +34,11 @@ file_clean_files				+= $(file_depends)
 
 include $(file_child_makefiles)
 
-$(file_path_curtestdir)%.o: $(file_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(file_path_curtestdir)%.o: $(file_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(file_path_curdir)%.o: $(file_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(file_path_curdir)%.o: $(file_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(file_test_install_path): $(file_test_objects) $(file_test_libdepend_objs)
 	$(CC) -o $@ $(file_test_objects) -Wl,--allow-multiple-definition $(file_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ file_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: file_test_run
+file_test_run: file_all
 file_test_run: file_test_all
 ifneq ($(file_test_objects),)
 file_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -23,9 +23,8 @@ v3_objects                  := $(patsubst %.c, %.o, $(v3_sources))
 v3_test_objects				:= $(patsubst %.c, %.o, $(v3_test_sources))
 v3_test_depends				:= $(patsubst %.c, %.d, $(v3_test_sources))
 v3_depends					:= $(patsubst %.c, %.d, $(v3_sources))
-v3_depends_modules			:= 
+v3_depends_modules			:=  common
 v3_test_depends_modules     := v3 test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-v3_test_depends_modules     += v3
 v3_test_libdepend_objs      = $(foreach dep_module,$(v3_test_depends_modules),$($(dep_module)_objects))
 v3_clean_files				:=
 v3_clean_files				+= $(v3_install_path_implib)
@@ -35,11 +34,11 @@ v3_clean_files				+= $(v3_depends)
 
 include $(v3_child_makefiles)
 
-$(v3_path_curtestdir)%.o: $(v3_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(v3_path_curtestdir)%.o: $(v3_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(v3_path_curdir)%.o: $(v3_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(v3_path_curdir)%.o: $(v3_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v3_test_install_path): $(v3_test_objects) $(v3_test_libdepend_objs)
 	$(CC) -o $@ $(v3_test_objects) -Wl,--allow-multiple-definition $(v3_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ v3_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: v3_test_run
+v3_test_run: v3_all
 v3_test_run: v3_test_all
 ifneq ($(v3_test_objects),)
 v3_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -23,9 +23,8 @@ hash_objects                  := $(patsubst %.c, %.o, $(hash_sources))
 hash_test_objects				:= $(patsubst %.c, %.o, $(hash_test_sources))
 hash_test_depends				:= $(patsubst %.c, %.d, $(hash_test_sources))
 hash_depends					:= $(patsubst %.c, %.d, $(hash_sources))
-hash_depends_modules			:= 
+hash_depends_modules			:=  common
 hash_test_depends_modules     := hash test_framework libc common process file time system random compare file_reader circular_buffer mod 
-hash_test_depends_modules     += hash
 hash_test_libdepend_objs      = $(foreach dep_module,$(hash_test_depends_modules),$($(dep_module)_objects))
 hash_clean_files				:=
 hash_clean_files				+= $(hash_install_path_implib)
@@ -35,11 +34,11 @@ hash_clean_files				+= $(hash_depends)
 
 include $(hash_child_makefiles)
 
-$(hash_path_curtestdir)%.o: $(hash_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(hash_path_curtestdir)%.o: $(hash_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(hash_path_curdir)%.o: $(hash_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(hash_path_curdir)%.o: $(hash_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(hash_test_install_path): $(hash_test_objects) $(hash_test_libdepend_objs)
 	$(CC) -o $@ $(hash_test_objects) -Wl,--allow-multiple-definition $(hash_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ hash_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: hash_test_run
+hash_test_run: hash_all
 hash_test_run: hash_test_all
 ifneq ($(hash_test_objects),)
 hash_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

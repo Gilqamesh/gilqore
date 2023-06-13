@@ -23,9 +23,8 @@ color_objects                  := $(patsubst %.c, %.o, $(color_sources))
 color_test_objects				:= $(patsubst %.c, %.o, $(color_test_sources))
 color_test_depends				:= $(patsubst %.c, %.d, $(color_test_sources))
 color_depends					:= $(patsubst %.c, %.d, $(color_sources))
-color_depends_modules			:= v4 
-color_test_depends_modules     := color test_framework libc common process file time system random compare file_reader hash circular_buffer mod v4 
-color_test_depends_modules     += color
+color_depends_modules			:= v4  common
+color_test_depends_modules     := color test_framework libc common process file time system random compare file_reader hash circular_buffer mod v4 clamp v2 sqrt abs v3 
 color_test_libdepend_objs      = $(foreach dep_module,$(color_test_depends_modules),$($(dep_module)_objects))
 color_clean_files				:=
 color_clean_files				+= $(color_install_path_implib)
@@ -35,11 +34,11 @@ color_clean_files				+= $(color_depends)
 
 include $(color_child_makefiles)
 
-$(color_path_curtestdir)%.o: $(color_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(color_path_curtestdir)%.o: $(color_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(color_path_curdir)%.o: $(color_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(color_path_curdir)%.o: $(color_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(color_test_install_path): $(color_test_objects) $(color_test_libdepend_objs)
 	$(CC) -o $@ $(color_test_objects) -Wl,--allow-multiple-definition $(color_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ color_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: color_test_run
+color_test_run: color_all
 color_test_run: color_test_all
 ifneq ($(color_test_objects),)
 color_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

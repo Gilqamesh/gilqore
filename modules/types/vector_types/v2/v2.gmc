@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: 
+module_dependencies: sqrt abs
 application_type: CONSOLE
 test_dependencies: 

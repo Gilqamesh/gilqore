@@ -23,9 +23,8 @@ wav_objects                  := $(patsubst %.c, %.o, $(wav_sources))
 wav_test_objects				:= $(patsubst %.c, %.o, $(wav_test_sources))
 wav_test_depends				:= $(patsubst %.c, %.d, $(wav_test_sources))
 wav_depends					:= $(patsubst %.c, %.d, $(wav_sources))
-wav_depends_modules			:= 
+wav_depends_modules			:=  common
 wav_test_depends_modules     := wav test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-wav_test_depends_modules     += wav
 wav_test_libdepend_objs      = $(foreach dep_module,$(wav_test_depends_modules),$($(dep_module)_objects))
 wav_clean_files				:=
 wav_clean_files				+= $(wav_install_path_implib)
@@ -35,11 +34,11 @@ wav_clean_files				+= $(wav_depends)
 
 include $(wav_child_makefiles)
 
-$(wav_path_curtestdir)%.o: $(wav_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(wav_path_curtestdir)%.o: $(wav_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(wav_path_curdir)%.o: $(wav_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(wav_path_curdir)%.o: $(wav_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(wav_test_install_path): $(wav_test_objects) $(wav_test_libdepend_objs)
 	$(CC) -o $@ $(wav_test_objects) -Wl,--allow-multiple-definition $(wav_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ wav_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: wav_test_run
+wav_test_run: wav_all
 wav_test_run: wav_test_all
 ifneq ($(wav_test_objects),)
 wav_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

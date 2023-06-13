@@ -23,9 +23,8 @@ math_objects                  := $(patsubst %.c, %.o, $(math_sources))
 math_test_objects				:= $(patsubst %.c, %.o, $(math_test_sources))
 math_test_depends				:= $(patsubst %.c, %.d, $(math_test_sources))
 math_depends					:= $(patsubst %.c, %.d, $(math_sources))
-math_depends_modules			:= 
+math_depends_modules			:=  common
 math_test_depends_modules     := math test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-math_test_depends_modules     += math
 math_test_libdepend_objs      = $(foreach dep_module,$(math_test_depends_modules),$($(dep_module)_objects))
 math_clean_files				:=
 math_clean_files				+= $(math_install_path_implib)
@@ -35,11 +34,11 @@ math_clean_files				+= $(math_depends)
 
 include $(math_child_makefiles)
 
-$(math_path_curtestdir)%.o: $(math_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(math_path_curtestdir)%.o: $(math_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(math_path_curdir)%.o: $(math_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(math_path_curdir)%.o: $(math_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(math_test_install_path): $(math_test_objects) $(math_test_libdepend_objs)
 	$(CC) -o $@ $(math_test_objects) -Wl,--allow-multiple-definition $(math_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ math_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: math_test_run
+math_test_run: math_all
 math_test_run: math_test_all
 ifneq ($(math_test_objects),)
 math_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

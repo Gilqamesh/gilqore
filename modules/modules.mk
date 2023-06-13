@@ -23,9 +23,8 @@ modules_objects                  := $(patsubst %.c, %.o, $(modules_sources))
 modules_test_objects				:= $(patsubst %.c, %.o, $(modules_test_sources))
 modules_test_depends				:= $(patsubst %.c, %.d, $(modules_test_sources))
 modules_depends					:= $(patsubst %.c, %.d, $(modules_sources))
-modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 clamp v3 v4 math abs sqrt file_path 
-modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 clamp v3 v4 math abs sqrt file_path 
-modules_test_depends_modules     += modules
+modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path  common
+modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path 
 modules_test_libdepend_objs      = $(foreach dep_module,$(modules_test_depends_modules),$($(dep_module)_objects))
 modules_clean_files				:=
 modules_clean_files				+= $(modules_install_path_implib)
@@ -35,11 +34,11 @@ modules_clean_files				+= $(modules_depends)
 
 include $(modules_child_makefiles)
 
-$(modules_path_curtestdir)%.o: $(modules_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(modules_path_curtestdir)%.o: $(modules_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(modules_path_curdir)%.o: $(modules_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(modules_path_curdir)%.o: $(modules_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(modules_test_install_path): $(modules_test_objects) $(modules_test_libdepend_objs)
 	$(CC) -o $@ $(modules_test_objects) -Wl,--allow-multiple-definition $(modules_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ modules_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: modules_test_run
+modules_test_run: modules_all
 modules_test_run: modules_test_all
 ifneq ($(modules_test_objects),)
 modules_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

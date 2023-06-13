@@ -23,9 +23,8 @@ clamp_objects                  := $(patsubst %.c, %.o, $(clamp_sources))
 clamp_test_objects				:= $(patsubst %.c, %.o, $(clamp_test_sources))
 clamp_test_depends				:= $(patsubst %.c, %.d, $(clamp_test_sources))
 clamp_depends					:= $(patsubst %.c, %.d, $(clamp_sources))
-clamp_depends_modules			:= v2 v3 v4 
-clamp_test_depends_modules     := clamp test_framework libc common process file time system random compare file_reader hash circular_buffer mod v2 v3 v4 
-clamp_test_depends_modules     += clamp
+clamp_depends_modules			:= v2 sqrt abs v3 v4  common
+clamp_test_depends_modules     := clamp test_framework libc common process file time system random compare file_reader hash circular_buffer mod v2 sqrt abs v3 v4 
 clamp_test_libdepend_objs      = $(foreach dep_module,$(clamp_test_depends_modules),$($(dep_module)_objects))
 clamp_clean_files				:=
 clamp_clean_files				+= $(clamp_install_path_implib)
@@ -35,11 +34,11 @@ clamp_clean_files				+= $(clamp_depends)
 
 include $(clamp_child_makefiles)
 
-$(clamp_path_curtestdir)%.o: $(clamp_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(clamp_path_curtestdir)%.o: $(clamp_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(clamp_path_curdir)%.o: $(clamp_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(clamp_path_curdir)%.o: $(clamp_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(clamp_test_install_path): $(clamp_test_objects) $(clamp_test_libdepend_objs)
 	$(CC) -o $@ $(clamp_test_objects) -Wl,--allow-multiple-definition $(clamp_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ clamp_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: clamp_test_run
+clamp_test_run: clamp_all
 clamp_test_run: clamp_test_all
 ifneq ($(clamp_test_objects),)
 clamp_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

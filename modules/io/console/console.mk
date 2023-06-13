@@ -23,9 +23,8 @@ console_objects                  := $(patsubst %.c, %.o, $(console_sources))
 console_test_objects				:= $(patsubst %.c, %.o, $(console_test_sources))
 console_test_depends				:= $(patsubst %.c, %.d, $(console_test_sources))
 console_depends					:= $(patsubst %.c, %.d, $(console_sources))
-console_depends_modules			:= libc common 
+console_depends_modules			:= libc common  common
 console_test_depends_modules     := console test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-console_test_depends_modules     += console
 console_test_libdepend_objs      = $(foreach dep_module,$(console_test_depends_modules),$($(dep_module)_objects))
 console_clean_files				:=
 console_clean_files				+= $(console_install_path_implib)
@@ -35,11 +34,11 @@ console_clean_files				+= $(console_depends)
 
 include $(console_child_makefiles)
 
-$(console_path_curtestdir)%.o: $(console_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(console_path_curtestdir)%.o: $(console_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(console_path_curdir)%.o: $(console_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(console_path_curdir)%.o: $(console_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(console_test_install_path): $(console_test_objects) $(console_test_libdepend_objs)
 	$(CC) -o $@ $(console_test_objects) -Wl,--allow-multiple-definition $(console_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ console_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: console_test_run
+console_test_run: console_all
 console_test_run: console_test_all
 ifneq ($(console_test_objects),)
 console_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

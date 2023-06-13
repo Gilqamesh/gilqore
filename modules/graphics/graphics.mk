@@ -23,9 +23,8 @@ graphics_objects                  := $(patsubst %.c, %.o, $(graphics_sources))
 graphics_test_objects				:= $(patsubst %.c, %.o, $(graphics_test_sources))
 graphics_test_depends				:= $(patsubst %.c, %.d, $(graphics_test_sources))
 graphics_depends					:= $(patsubst %.c, %.d, $(graphics_sources))
-graphics_depends_modules			:= 
+graphics_depends_modules			:=  common
 graphics_test_depends_modules     := graphics test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-graphics_test_depends_modules     += graphics
 graphics_test_libdepend_objs      = $(foreach dep_module,$(graphics_test_depends_modules),$($(dep_module)_objects))
 graphics_clean_files				:=
 graphics_clean_files				+= $(graphics_install_path_implib)
@@ -35,11 +34,11 @@ graphics_clean_files				+= $(graphics_depends)
 
 include $(graphics_child_makefiles)
 
-$(graphics_path_curtestdir)%.o: $(graphics_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(graphics_path_curtestdir)%.o: $(graphics_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(graphics_path_curdir)%.o: $(graphics_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(graphics_path_curdir)%.o: $(graphics_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(graphics_test_install_path): $(graphics_test_objects) $(graphics_test_libdepend_objs)
 	$(CC) -o $@ $(graphics_test_objects) -Wl,--allow-multiple-definition $(graphics_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ graphics_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: graphics_test_run
+graphics_test_run: graphics_all
 graphics_test_run: graphics_test_all
 ifneq ($(graphics_test_objects),)
 graphics_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

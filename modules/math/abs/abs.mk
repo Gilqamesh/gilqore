@@ -23,9 +23,8 @@ abs_objects                  := $(patsubst %.c, %.o, $(abs_sources))
 abs_test_objects				:= $(patsubst %.c, %.o, $(abs_test_sources))
 abs_test_depends				:= $(patsubst %.c, %.d, $(abs_test_sources))
 abs_depends					:= $(patsubst %.c, %.d, $(abs_sources))
-abs_depends_modules			:= 
+abs_depends_modules			:=  common
 abs_test_depends_modules     := abs test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-abs_test_depends_modules     += abs
 abs_test_libdepend_objs      = $(foreach dep_module,$(abs_test_depends_modules),$($(dep_module)_objects))
 abs_clean_files				:=
 abs_clean_files				+= $(abs_install_path_implib)
@@ -35,11 +34,11 @@ abs_clean_files				+= $(abs_depends)
 
 include $(abs_child_makefiles)
 
-$(abs_path_curtestdir)%.o: $(abs_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(abs_path_curtestdir)%.o: $(abs_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(abs_path_curdir)%.o: $(abs_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(abs_path_curdir)%.o: $(abs_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(abs_test_install_path): $(abs_test_objects) $(abs_test_libdepend_objs)
 	$(CC) -o $@ $(abs_test_objects) -Wl,--allow-multiple-definition $(abs_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ abs_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: abs_test_run
+abs_test_run: abs_all
 abs_test_run: abs_test_all
 ifneq ($(abs_test_objects),)
 abs_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

@@ -23,9 +23,8 @@ circular_buffer_objects                  := $(patsubst %.c, %.o, $(circular_buff
 circular_buffer_test_objects				:= $(patsubst %.c, %.o, $(circular_buffer_test_sources))
 circular_buffer_test_depends				:= $(patsubst %.c, %.d, $(circular_buffer_test_sources))
 circular_buffer_depends					:= $(patsubst %.c, %.d, $(circular_buffer_sources))
-circular_buffer_depends_modules			:= libc common compare mod 
+circular_buffer_depends_modules			:= libc common compare mod  common
 circular_buffer_test_depends_modules     := circular_buffer test_framework libc common process file time system random compare file_reader hash mod 
-circular_buffer_test_depends_modules     += circular_buffer
 circular_buffer_test_libdepend_objs      = $(foreach dep_module,$(circular_buffer_test_depends_modules),$($(dep_module)_objects))
 circular_buffer_clean_files				:=
 circular_buffer_clean_files				+= $(circular_buffer_install_path_implib)
@@ -35,11 +34,11 @@ circular_buffer_clean_files				+= $(circular_buffer_depends)
 
 include $(circular_buffer_child_makefiles)
 
-$(circular_buffer_path_curtestdir)%.o: $(circular_buffer_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(circular_buffer_path_curtestdir)%.o: $(circular_buffer_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(circular_buffer_path_curdir)%.o: $(circular_buffer_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(circular_buffer_path_curdir)%.o: $(circular_buffer_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(circular_buffer_test_install_path): $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs)
 	$(CC) -o $@ $(circular_buffer_test_objects) -Wl,--allow-multiple-definition $(circular_buffer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ circular_buffer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: circular_buffer_test_run
+circular_buffer_test_run: circular_buffer_all
 circular_buffer_test_run: circular_buffer_test_all
 ifneq ($(circular_buffer_test_objects),)
 circular_buffer_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

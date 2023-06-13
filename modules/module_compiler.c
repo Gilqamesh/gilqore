@@ -14,8 +14,6 @@
 #include "common/error_code.h"
 #include "time/time.h"
 
-#include <stdio.h>
-
 #define CONFIG_EXTENSION "gmc"
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define TEST_FOLDER_NAME "test"
@@ -48,7 +46,7 @@
 
 #define MODULES_PATH "modules"
 
-#define COMMON_TEST_DEPENDENCY_MODULE "test_framework"
+#define TEST_FRAMEWORK_MODULE_NAME "test_framework"
 
 static struct module* g_modules;
 static u32* g_modules_size_cur;
@@ -270,7 +268,7 @@ static const char* dispatch_by_application_type(const char* application_type) {
         static const char* app_lflag_windows = "-mwindows";
         result = app_lflag_windows;
     } else {
-        printf("unknown application type\n");
+        libc__printf("unknown application type\n");
         TEST_FRAMEWORK_ASSERT(false);
     }
 
@@ -297,8 +295,8 @@ static void parse_config_file_application_type(
         const char* application_type = dispatch_by_application_type(buffer);
         libc__memcpy(self->application_type, application_type, libc__strlen(application_type));
     } else {
-        printf("Application type parsed from module [%s] is not supported: %s\n", self->basename, buffer);
-        printf("Application types supported: %s, %s\n", VALUE_APPLICATION_TYPE_CONSOLE, VALUE_APPLICATION_TYPE_WINDOWS);
+        libc__printf("Application type parsed from module [%s] is not supported: %s\n", self->basename, buffer);
+        libc__printf("Application types supported: %s, %s\n", VALUE_APPLICATION_TYPE_CONSOLE, VALUE_APPLICATION_TYPE_WINDOWS);
         // error_code__exit(APPLICATION_TYPE_NOT_SUPPORTED);
         error_code__exit(89935);
     }
@@ -885,7 +883,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer) == false) {
         TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer, CONFIG_FILE_TEMPLATE_PATH));
-        printf("File created: %s\n", config_file_name_buffer);
+        libc__printf("File created: %s\n", config_file_name_buffer);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer));
     // todo: parse out .gmc key/values
@@ -904,7 +902,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
-        printf("Directory created: %s\n", config_file_name_buffer_2);
+        libc__printf("Directory created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
 
@@ -918,7 +916,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
-        printf("Directory created: %s\n", config_file_name_buffer_2);
+        libc__printf("Directory created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     TEST_FRAMEWORK_ASSERT(
@@ -931,7 +929,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
-        printf("File created: %s\n", config_file_name_buffer_2);
+        libc__printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     // todo: parse out .gmc key/values
@@ -946,7 +944,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
-        printf("Directory created: %s\n", config_file_name_buffer_2);
+        libc__printf("Directory created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     TEST_FRAMEWORK_ASSERT(
@@ -959,7 +957,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
-        printf("File created: %s\n", config_file_name_buffer_2);
+        libc__printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     // todo: parse out .gmc key/values
@@ -974,7 +972,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(directory__create(config_file_name_buffer_2));
-        printf("Directory created: %s\n", config_file_name_buffer_2);
+        libc__printf("Directory created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     TEST_FRAMEWORK_ASSERT(
@@ -987,7 +985,7 @@ static void update_gmc_files(
     );
     if (file__exists(config_file_name_buffer_2) == false) {
         TEST_FRAMEWORK_ASSERT(file__copy(config_file_name_buffer_2, PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH));
-        printf("File created: %s\n", config_file_name_buffer_2);
+        libc__printf("File created: %s\n", config_file_name_buffer_2);
     }
     TEST_FRAMEWORK_ASSERT(file__exists(config_file_name_buffer_2));
     // todo: parse out .gmc key/values
@@ -1079,10 +1077,15 @@ void module_compiler__parse_config_file(
             struct time def_file_last_modified;
             TEST_FRAMEWORK_ASSERT(file__last_modified(config_file_name_buffer, &config_file_last_modified));
             TEST_FRAMEWORK_ASSERT(file__last_modified(def_file_name_buffer, &def_file_last_modified));
-            // note: only update def file if .gmc file is newer
+            // note: only update def file if:
+            //  - .gmc file is newer
             if (time__cmp(def_file_last_modified, config_file_last_modified) >= 0) {
                 should_update_def_file = false;
             }
+            // todo: determine when exactly to update def file
+            // if I just set it to true, def files will always be updated and a full
+            // rebuild will be forced on each compile 
+            // should_update_def_file = true;
         }
         if (should_update_def_file) {
             def_file_add_error_codes_place_holder__update(
@@ -1292,7 +1295,7 @@ static void assert_create_dir(
     };
     if (file__exists(buffer) == false) {
         TEST_FRAMEWORK_ASSERT(directory__create(buffer));
-        printf("Directory created: %s\n", buffer);
+        libc__printf("Directory created: %s\n", buffer);
     }
 }
 
@@ -1319,7 +1322,7 @@ static void assert_create_gitkeep(
                 GITKEEP_PATH
             )
         );
-        printf("File created: %s\n", buffer);
+        libc__printf("File created: %s\n", buffer);
     }
 }
 
@@ -1412,8 +1415,6 @@ static void ensure_test_file_template_exists(
     // todo: remove this unnecessary work and the assumption about self->dirprefix
     const char modules_prefix[] = "modules/";
     TEST_FRAMEWORK_ASSERT(libc__strncmp(modules_prefix, self->dirprefix, ARRAY_SIZE(modules_prefix) - 1) == 0);
-    const char* whaaat = self->dirprefix + ARRAY_SIZE(modules_prefix) - 1;
-    (void) whaaat;
     string_replacer__replace_word_f(
         string_replacer,
         1, what, ARRAY_SIZE(what) - 1,
@@ -1457,18 +1458,20 @@ bool is_module_path(const char* path) {
     update_platform_specific_directories(path);
     // create test folder
     // todo: merge these 2 (or 3) into one since we already know the prefix which is the test folder, no need to recreate them again and again
-    assert_create_dir(
-        parent_basename_buffer,
-        ARRAY_SIZE(parent_basename_buffer),
-        "%s/%s",
-        path, TEST_FOLDER_NAME
-    );
-    assert_create_gitkeep(
-        parent_basename_buffer,
-        ARRAY_SIZE(parent_basename_buffer),
-        "%s/%s/.gitkeep",
-        path, TEST_FOLDER_NAME, PLATFORM_SPECIFIC_FOLDER_NAME
-    );
+    if (libc__strcmp(child_basename_buffer, TEST_FRAMEWORK_MODULE_NAME) != 0) {
+        assert_create_dir(
+            parent_basename_buffer,
+            ARRAY_SIZE(parent_basename_buffer),
+            "%s/%s",
+            path, TEST_FOLDER_NAME
+        );
+        assert_create_gitkeep(
+            parent_basename_buffer,
+            ARRAY_SIZE(parent_basename_buffer),
+            "%s/%s/.gitkeep",
+            path, TEST_FOLDER_NAME, PLATFORM_SPECIFIC_FOLDER_NAME
+        );
+    }
 
     u32 parent_basename_len;
     TEST_FRAMEWORK_ASSERT(
@@ -1543,7 +1546,7 @@ static u32 module_compiler__get_test_dependencies(
     module_compiler__write_dependency_into_buffer_and_increment(self, dependency_buffer, &dependency_buffer_size);
     self->transient_flag_for_processing = 1;
 
-    struct module* common_test_dependency = module_compiler__find_module_by_name(g_modules, COMMON_TEST_DEPENDENCY_MODULE, *g_modules_size_cur);
+    struct module* common_test_dependency = module_compiler__find_module_by_name(g_modules, TEST_FRAMEWORK_MODULE_NAME, *g_modules_size_cur);
     if (common_test_dependency == NULL) {
         error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
     }
@@ -1552,7 +1555,6 @@ static u32 module_compiler__get_test_dependencies(
     dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
 
     dependency_buffer_size = module_compiler__get_dependencies(self, dependency_buffer, dependency_buffer_size);
-
 
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
         struct module* test_dependency = self->test_dependencies[dependency_index];
@@ -1696,6 +1698,10 @@ static void module_compiler__ensure_test_file_templates_exist(
 ) {
     for (u32 module_index = 0; module_index < *g_modules_size_cur; ++module_index) {
         struct module* module = &g_modules[module_index];
+        if (libc__strcmp(module->basename, TEST_FRAMEWORK_MODULE_NAME) == 0) {
+            continue;
+        }
+
         ensure_test_file_template_exists(string_replacer, module);
     }
 }

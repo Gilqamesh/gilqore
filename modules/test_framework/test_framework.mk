@@ -23,9 +23,8 @@ test_framework_objects                  := $(patsubst %.c, %.o, $(test_framework
 test_framework_test_objects				:= $(patsubst %.c, %.o, $(test_framework_test_sources))
 test_framework_test_depends				:= $(patsubst %.c, %.d, $(test_framework_test_sources))
 test_framework_depends					:= $(patsubst %.c, %.d, $(test_framework_sources))
-test_framework_depends_modules			:= libc common process file time system random compare file_reader hash circular_buffer mod 
+test_framework_depends_modules			:= libc common process file time system random compare file_reader hash circular_buffer mod  common
 test_framework_test_depends_modules     := test_framework test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
-test_framework_test_depends_modules     += test_framework
 test_framework_test_libdepend_objs      = $(foreach dep_module,$(test_framework_test_depends_modules),$($(dep_module)_objects))
 test_framework_clean_files				:=
 test_framework_clean_files				+= $(test_framework_install_path_implib)
@@ -35,11 +34,11 @@ test_framework_clean_files				+= $(test_framework_depends)
 
 include $(test_framework_child_makefiles)
 
-$(test_framework_path_curtestdir)%.o: $(test_framework_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$(test_framework_path_curtestdir)%.o: $(test_framework_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$(test_framework_path_curdir)%.o: $(test_framework_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$(test_framework_path_curdir)%.o: $(test_framework_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(test_framework_test_install_path): $(test_framework_test_objects) $(test_framework_test_libdepend_objs)
 	$(CC) -o $@ $(test_framework_test_objects) -Wl,--allow-multiple-definition $(test_framework_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
@@ -76,6 +75,7 @@ test_framework_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: test_framework_test_run
+test_framework_test_run: test_framework_all
 test_framework_test_run: test_framework_test_all
 ifneq ($(test_framework_test_objects),)
 test_framework_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

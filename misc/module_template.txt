@@ -23,9 +23,8 @@ $(MODULE_NAME)_objects                  := $(patsubst %.c, %.o, $($(MODULE_NAME)
 $(MODULE_NAME)_test_objects				:= $(patsubst %.c, %.o, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_test_depends				:= $(patsubst %.c, %.d, $($(MODULE_NAME)_test_sources))
 $(MODULE_NAME)_depends					:= $(patsubst %.c, %.d, $($(MODULE_NAME)_sources))
-$(MODULE_NAME)_depends_modules			:= $(MODULE_LIBDEP_MODULES)
+$(MODULE_NAME)_depends_modules			:= $(MODULE_LIBDEP_MODULES) common
 $(MODULE_NAME)_test_depends_modules     := $(MODULE_TEST_DEPENDS)
-$(MODULE_NAME)_test_depends_modules     += $(MODULE_NAME)
 $(MODULE_NAME)_test_libdepend_objs      = $(foreach dep_module,$($(MODULE_NAME)_test_depends_modules),$($(dep_module)_objects))
 $(MODULE_NAME)_clean_files				:=
 $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_install_path_implib)
@@ -35,11 +34,11 @@ $(MODULE_NAME)_clean_files				+= $($(MODULE_NAME)_depends)
 
 include $($(MODULE_NAME)_child_makefiles)
 
-$($(MODULE_NAME)_path_curtestdir)%.o: $($(MODULE_NAME)_path_curtestdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
+#$($(MODULE_NAME)_path_curtestdir)%.o: $($(MODULE_NAME)_path_curtestdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d) -DGIL_LIB_SHARED_EXPORT
 
-$($(MODULE_NAME)_path_curdir)%.o: $($(MODULE_NAME)_path_curdir)%.c
-	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
+#$($(MODULE_NAME)_path_curdir)%.o: $($(MODULE_NAME)_path_curdir)%.c
+#	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $($(MODULE_NAME)_test_install_path): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_objs)
 	$(CC) -o $@ $($(MODULE_NAME)_test_objects) -Wl,--allow-multiple-definition $($(MODULE_NAME)_test_libdepend_objs) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
@@ -76,6 +75,7 @@ $(MODULE_NAME)_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
 endif
 
 .PHONY: $(MODULE_NAME)_test_run
+$(MODULE_NAME)_test_run: $(MODULE_NAME)_all
 $(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all
 ifneq ($($(MODULE_NAME)_test_objects),)
 $(MODULE_NAME)_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)

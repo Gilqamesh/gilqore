@@ -18,4 +18,8 @@ GIL_API struct v4s8 v4s8__sub(struct v4s8 v1, struct v4s8 v2);
 
 GIL_API struct v4s8 v4s8__scale_s8(struct v4s8 v, s8 s);
 
+GIL_API struct v4s8 v4s8__scale_r32(struct v4s8 v, r32 s);
+
+GIL_API bool v4s8__eq(struct v4s8 v, struct v4s8 w);
+
 #endif

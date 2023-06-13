@@ -1,0 +1,10 @@
+unique_error_codes: [
+    OVERFLOW_IN_PUSH: overflow in linear_allocator__push
+    UNDERFLOW_IN_POP: underflow in linear_allocator__pop
+    ALIGNMENT_NOT_POW_OF_2: supplied alignment is not a power of 2 for linear_allocator
+    OVERFLOW_IN_PUSH_ALIGNED: overflow in linear_allocator__push_aligned
+    UNEXPECTED_MEMORY_ADDRESS_IN_POP: unexpected memory address supplied in linear_allocator__pop
+]
+module_dependencies: libc math compare
+test_dependencies:
+application_type: CONSOLE

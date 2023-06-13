@@ -46,3 +46,11 @@ v4u8__scale_r32(struct v4u8 v, r32 s) {
 
     return v;
 }
+
+bool v4u8__eq(struct v4u8 v, struct v4u8 w) {
+    return
+    v.a == w.a &&
+    v.b == w.b &&
+    v.c == w.c &&
+    v.d == w.d;
+}

@@ -1,17 +1,17 @@
 #include "lerp.h"
 
-u32 lerp__u32(u32 a, r32 normalized_value, u32 b) {
+u32 lerp__u32(u32 a, r32 t, u32 b) {
     return
-    (u32) ((r32) a + normalized_value * (r32) (b - a));
+    (u32) ((r32) a + t * (r32) (b - a));
 }
 
-struct color lerp__color(struct color a, r32 normalized_value, struct color b) {
+struct color lerp__color(struct color a, r32 t, struct color b) {
     return
     color__add(
-        a,
+        b,
         color__scale_r32(
-            color__sub(b, a),
-            normalized_value
+            a,
+            1.0f - t
         )
     );
 }

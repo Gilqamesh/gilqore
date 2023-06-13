@@ -71,7 +71,7 @@ static void debug__bookkeep_memory_remove(void* addr) {
 #endif
 }
 
-void* libc__malloc(u32 size_bytes) {
+void* libc__malloc(u64 size_bytes) {
     void* result = malloc(size_bytes);
     if (result == NULL) {
         error_code__exit(LIBC_ERROR_CODE_MALLOC_FAILED);
@@ -81,7 +81,7 @@ void* libc__malloc(u32 size_bytes) {
     return result;
 }
 
-void* libc__calloc(u32 size_bytes) {
+void* libc__calloc(u64 size_bytes) {
     void* result = calloc(1, size_bytes);
     if (result == NULL) {
         // error_code__exit(LIBC_ERROR_CODE_CALLOC_FAILED);
