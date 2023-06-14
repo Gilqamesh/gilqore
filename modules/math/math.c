@@ -11,5 +11,5 @@ r64 r64__nextafter(r64 a, r64 b) {
 }
 
 bool is_pow_of_2__u32(u32 n) {
-    return (n & (n - 1)) == 0;
+    return n > 0 && (n & (n - 1)) == 0;
 }

@@ -71,6 +71,7 @@ GIL_API int WinMain(
     if (module_process_exit_code > 0) {
         test_framework__translate_error_code(module_process_exit_code, error_code_msg, ARRAY_SIZE(error_code_msg));
         libc__printf("Error code: %u\nReason: %s\n", module_process_exit_code, error_code_msg);
+        // todo: free leaked memory from process
     } else {
         libc__printf("Success\n");
     }

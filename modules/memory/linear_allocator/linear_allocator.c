@@ -24,6 +24,7 @@ struct linear_allocator_memory_slice linear_allocator__push(struct linear_alloca
     struct linear_allocator_memory_slice result;
     result.memory = self->memory;
     result.size = size;
+    result.offset = 0;
 
     self->fill += size;
     self->memory = (char*) self->memory + size;
@@ -36,7 +37,6 @@ struct linear_allocator_memory_slice linear_allocator__push_aligned(struct linea
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_ALIGNMENT_NOT_POW_OF_2);
     }
 
-    struct linear_allocator_memory_slice result;
     u64 modulo = ((u64) self->memory) & ((u64) (alignment - 1));
     u64 offset = modulo != 0 ? (u64) alignment - modulo : 0;
 
@@ -44,8 +44,10 @@ struct linear_allocator_memory_slice linear_allocator__push_aligned(struct linea
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_OVERFLOW_IN_PUSH_ALIGNED);
     }
 
-    result.memory = (void*) ((u64) self->memory + offset);
-    result.size = size + offset;
+    struct linear_allocator_memory_slice result;
+    result.memory = (char*) self->memory + offset;
+    result.size = size;
+    result.offset = offset;
 
     self->fill += size + offset;
     self->memory = (char*) self->memory + size + offset;
@@ -54,15 +56,16 @@ struct linear_allocator_memory_slice linear_allocator__push_aligned(struct linea
 }
 
 void linear_allocator__pop(struct linear_allocator* self, struct linear_allocator_memory_slice memory_slice) {
-    if (memory_slice.size > self->fill) {
+    if (memory_slice.size + memory_slice.offset > self->fill) {
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_UNDERFLOW_IN_POP);
     }
 
-    self->fill -= memory_slice.size;
+    self->fill -= memory_slice.size + memory_slice.offset;
     self->memory = (char*) self->memory - memory_slice.size;
     if (memory_slice.memory != self->memory) {
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_UNEXPECTED_MEMORY_ADDRESS_IN_POP);
     }
+    self->memory = (char*) self->memory - memory_slice.offset;
 }
 
 u64 linear_allocator__available(struct linear_allocator* self) {

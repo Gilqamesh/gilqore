@@ -12,6 +12,7 @@ struct linear_allocator {
 struct linear_allocator_memory_slice {
     void* memory;
     u64 size;
+    u64 offset;
 };
 
 GIL_API bool linear_allocator__create(struct linear_allocator* self, void* memory, u64 size);
