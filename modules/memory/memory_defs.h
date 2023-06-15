@@ -5,7 +5,6 @@
 
 enum memory_error_code {
     MEMORY_ERROR_CODE_START,
-
 };
 
 #endif

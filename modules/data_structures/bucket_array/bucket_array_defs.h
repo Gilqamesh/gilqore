@@ -5,7 +5,6 @@
 
 enum bucket_array_error_code {
     BUCKET_ARRAY_ERROR_CODE_START,
-
 };
 
 #endif
