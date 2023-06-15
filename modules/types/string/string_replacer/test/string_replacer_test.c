@@ -605,8 +605,8 @@ int main() {
     "    HANDLE handle;\n"
     "};\n"
     "\n"
-    "GIL_API bool file__create(struct file* self);\n"
-    "GIL_API void file__destroy(struct file* self);\n"
+    "PUBLIC_API bool file__create(struct file* self);\n"
+    "PUBLIC_API void file__destroy(struct file* self);\n"
     "\n"
     "#endif\n";
     u32 filecontent_size = libc__strlen(filecontent);

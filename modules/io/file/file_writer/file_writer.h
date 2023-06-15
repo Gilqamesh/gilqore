@@ -10,10 +10,10 @@ struct file_writer {
     u32    buffer_size;
 };
 
-GIL_API bool file_writer__create(struct file_writer* self);
-GIL_API void file_writer__destroy(struct file_writer* self);
+PUBLIC_API bool file_writer__create(struct file_writer* self);
+PUBLIC_API void file_writer__destroy(struct file_writer* self);
 
 // @returns the number of bytes written to the file
-GIL_API s32 file_writer__write_format(struct file_writer* self, struct file* file, const char* format, ...);
+PUBLIC_API s32 file_writer__write_format(struct file_writer* self, struct file* file, const char* format, ...);
 
 #endif

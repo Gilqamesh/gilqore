@@ -4,9 +4,9 @@
 # include "system_defs.h"
 
 // @brief incur some initialization overhead, must use this fn before any system calls here
-GIL_API void system__init_module(void);
+PUBLIC_API void system__init_module(void);
 
-GIL_API void system__sleep(u32 seconds);
-GIL_API void system__usleep(u32 useconds);
+PUBLIC_API void system__sleep(u32 seconds);
+PUBLIC_API void system__usleep(u32 useconds);
 
 #endif

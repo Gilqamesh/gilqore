@@ -18,27 +18,27 @@ struct directory;
 # endif
 
 // @brief opens the first file in the specified directory
-GIL_API bool directory__open(struct directory* self, const char* path);
+PUBLIC_API bool directory__open(struct directory* self, const char* path);
 // @brief closes the directory handle
-GIL_API void directory__close(struct directory* self);
+PUBLIC_API void directory__close(struct directory* self);
 // @brief returns the name of the current file of the opened directory, and moves to the next file
 // @param bytes_written optional parameter to retrieve the number of bytes written into the buffer
 // @returns true on success, false if no more files are in the directory
-GIL_API bool directory__read(struct directory* self, char* buffer, u32 buffer_size, u32* bytes_written);
+PUBLIC_API bool directory__read(struct directory* self, char* buffer, u32 buffer_size, u32* bytes_written);
 
 // @brief if it doesn't already exist, create a directory
-GIL_API bool directory__create(const char* path);
+PUBLIC_API bool directory__create(const char* path);
 // @brief deletes a directory if exists and empty
-GIL_API bool directory__delete(const char* path);
+PUBLIC_API bool directory__delete(const char* path);
 
 // @brief apply fn on each file_type on path one level deep
-GIL_API void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+PUBLIC_API void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
 // @brief apply fn on each file_type on path recursively
 // @param fn function to apply on each of the matching files, should return true if the algorithm should keep recursing on the matched file if it's a directory
-GIL_API void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+PUBLIC_API void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
 // @brief apply fn on each file_type on path depth level deep
 // @param depth 0 depth is equal to a for each shallow
 // @param fn function to apply on each of the matching files, should return true if the algorithm should keep recursing on the matched file if it's a directory
-GIL_API void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth);
+PUBLIC_API void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth);
 
 #endif

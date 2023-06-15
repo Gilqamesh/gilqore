@@ -13,6 +13,7 @@
 #include "types/string/string_replacer/string_replacer.h"
 #include "common/error_code.h"
 #include "time/time.h"
+#include "memory/linear_allocator/linear_allocator.h"
 
 #define CONFIG_EXTENSION "gmc"
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"

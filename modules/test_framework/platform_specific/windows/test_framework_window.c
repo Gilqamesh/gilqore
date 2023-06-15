@@ -6,7 +6,7 @@
 #include "libc/libc.h"
 #include "system/process/process.h"
 
-GIL_API int WinMain(
+PUBLIC_API int WinMain(
     HINSTANCE instance,
     HINSTANCE prev_instance,
     LPSTR     cmd_line,

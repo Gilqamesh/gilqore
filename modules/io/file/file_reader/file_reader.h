@@ -12,30 +12,30 @@ struct file_reader {
     bool eof_reached;
 };
 
-GIL_API bool file_reader__create(struct file_reader* self, struct file* file);
-GIL_API void file_reader__destroy(struct file_reader* self);
+PUBLIC_API bool file_reader__create(struct file_reader* self, struct file* file);
+PUBLIC_API void file_reader__destroy(struct file_reader* self);
 
 // @brief clear internal state and replace the file to read from
-GIL_API void file_reader__clear(struct file_reader* self, struct file* file);
+PUBLIC_API void file_reader__clear(struct file_reader* self, struct file* file);
 
 // @returns the top most byte without advancing the file stream
-GIL_API char file_reader__peek(struct file_reader* self);
+PUBLIC_API char file_reader__peek(struct file_reader* self);
 // @brief reads size bytes into out or until eof hasn't been met
 // @param out optional
 // @returns amount of bytes read
-GIL_API u32 file_reader__read_one(struct file_reader* self, void* out, u32 size);
+PUBLIC_API u32 file_reader__read_one(struct file_reader* self, void* out, u32 size);
 // @brief reads size bytes while neither byte from the set is matched or until eof is reached
 // @param out optional, if not provided size is ignored as well
 // @returns amount of bytes read
-GIL_API u32 file_reader__read_while_not(struct file_reader* self, void* out, u32 size, const char* set);
+PUBLIC_API u32 file_reader__read_while_not(struct file_reader* self, void* out, u32 size, const char* set);
 // @brief reads size bytes while either byte from the set is matched or until eof is reached
 // @param out optional, if not provided size is ignored as well
 // @returns amount of bytes read
-GIL_API u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const char* set);
+PUBLIC_API u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const char* set);
 // @brief reads max size bytes to out while word hasn't been matched, so if word is matched, out will contain it at its end
 // @param out must be provided
 // @returns whether or not word has been read as well as the amount of bytes read
-GIL_API bool file_reader__read_while_not_word(
+PUBLIC_API bool file_reader__read_while_not_word(
     struct file_reader* self,
     void* out,
     u32 size,
@@ -45,6 +45,6 @@ GIL_API bool file_reader__read_while_not_word(
 );
 // @brief out must be provided
 // @returns amount of bytes_read
-GIL_API u32 file_reader__read_format(struct file_reader* self, void* out, u32 size, const char* format, ...);
+PUBLIC_API u32 file_reader__read_format(struct file_reader* self, void* out, u32 size, const char* format, ...);
 
 #endif

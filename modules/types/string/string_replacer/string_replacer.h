@@ -29,22 +29,22 @@ struct string_replacer {
 
 struct file;
 
-GIL_API bool string_replacer__create(
+PUBLIC_API bool string_replacer__create(
     struct string_replacer* self,
     const char* original,
     u32 original_len,
     u32 max_number_of_replacements,
     u32 total_size_of_replacements_in_bytes
 );
-GIL_API void string_replacer__destroy(struct string_replacer* self);
+PUBLIC_API void string_replacer__destroy(struct string_replacer* self);
 
 // @brief clears the replacements and replace the original string with a new one
-GIL_API void string_replacer__clear(struct string_replacer* self, const char* original, u32 original_len);
+PUBLIC_API void string_replacer__clear(struct string_replacer* self, const char* original, u32 original_len);
 
 // @brief replace part of the string with another by providing the position of the string to be replaced
 // @param what_length can be 0 in which case 'with' is inserted at 'what_position'
 // @returns the string's length after the replacement
-GIL_API u32 string_replacer__replace_at_position(
+PUBLIC_API u32 string_replacer__replace_at_position(
     struct string_replacer* self,
     u32 what_position,
     u32 what_length,
@@ -55,7 +55,7 @@ GIL_API u32 string_replacer__replace_at_position(
 // @brief replace part of the string with another by providing the position of the string to be replaced
 // @param what_length can be 0 in which case 'with' is inserted at 'what_position'
 // @returns the string's length after the replacement
-GIL_API u32 string_replacer__replace_at_position_f(
+PUBLIC_API u32 string_replacer__replace_at_position_f(
     struct string_replacer* self,
     u32 what_position,
     u32 what_length,
@@ -66,7 +66,7 @@ GIL_API u32 string_replacer__replace_at_position_f(
 // @brief replace part of the string with another by providing the position of the string to be replaced
 // @param what_length can be 0 in which case 'with' is inserted at 'what_position'
 // @returns the string's length after the replacement
-GIL_API u32 string_replacer__replace_at_position_vf(
+PUBLIC_API u32 string_replacer__replace_at_position_vf(
     struct string_replacer* self,
     u32 what_position,
     u32 what_length,
@@ -76,7 +76,7 @@ GIL_API u32 string_replacer__replace_at_position_vf(
 
 // @brief replace part of the string with another by providing the string to be replaced
 // @param what_length cannot be 0
-GIL_API u32 string_replacer__replace_word(
+PUBLIC_API u32 string_replacer__replace_word(
     struct string_replacer* self,
     u32 max_number_of_what_occurances,
     const char* what,
@@ -87,7 +87,7 @@ GIL_API u32 string_replacer__replace_word(
 
 // @brief replace part of the string with another by providing the string to be replaced
 // @param what_length cannot be 0
-GIL_API u32 string_replacer__replace_word_f(
+PUBLIC_API u32 string_replacer__replace_word_f(
     struct string_replacer* self,
     u32 max_number_of_what_occurances,
     const char* what,
@@ -98,7 +98,7 @@ GIL_API u32 string_replacer__replace_word_f(
 
 // @brief replace part of the string with another by providing the string to be replaced
 // @param what_length cannot be 0
-GIL_API u32 string_replacer__replace_word_vf(
+PUBLIC_API u32 string_replacer__replace_word_vf(
     struct string_replacer* self,
     u32 max_number_of_what_occurances,
     const char* what,
@@ -110,7 +110,7 @@ GIL_API u32 string_replacer__replace_word_vf(
 // @brief reads (max buffer_size bytes) the replaced string into buffer, null terminates the result
 // @param offset_to_read_from offset to start reading from in the replaced string
 // @returns number of bytes written to buffer, excluding the null-terminating character
-GIL_API u32 string_replacer__read(
+PUBLIC_API u32 string_replacer__read(
     struct string_replacer* self,
     char* buffer,
     u32 buffer_size,
@@ -120,7 +120,7 @@ GIL_API u32 string_replacer__read(
 // @brief reads the replaced string into file
 // @param offset_to_read_from offset to start reading from in the replaced string
 // @returns number of bytes written
-GIL_API u32 string_replacer__read_into_file(
+PUBLIC_API u32 string_replacer__read_into_file(
     struct string_replacer* self,
     struct file* file,
     u32 offset_to_read_from

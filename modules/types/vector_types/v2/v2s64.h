@@ -8,8 +8,8 @@ struct v2s64 {
     s64 y;
 };
 
-GIL_API struct v2s64 v2s64(s64 x, s64 y);
+PUBLIC_API struct v2s64 v2s64(s64 x, s64 y);
 
-GIL_API struct v2s64 v2s64__scale_s64(struct v2s64 v, s64 s);
+PUBLIC_API struct v2s64 v2s64__scale_s64(struct v2s64 v, s64 s);
 
 #endif

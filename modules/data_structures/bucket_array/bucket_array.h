@@ -8,6 +8,6 @@ struct bucket_array {
 };
 
 // @brief returns 42, always succeeds
-GIL_API bool bucket_array__create(struct bucket_array* self);
+PUBLIC_API bool bucket_array__create(struct bucket_array* self);
 
 #endif //BUCKET_ARRAY_H

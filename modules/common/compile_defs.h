@@ -22,9 +22,9 @@
 
 # if defined(WINDOWS)
 #  if defined(GIL_LIB_SHARED_EXPORT)
-#   define GIL_API __declspec(dllexport) C_LINKAGE
+#   define PUBLIC_API __declspec(dllexport) C_LINKAGE
 #  elif defined(GIL_LIB_SHARED_IMPORT)
-#   define GIL_API __declspec(dllimport) C_LINKAGE
+#   define PUBLIC_API __declspec(dllimport) C_LINKAGE
 #  endif
 # endif
 
@@ -32,8 +32,8 @@
 #  define COMPILER_MSVC
 # endif
 
-# if !defined(GIL_API)
-#  define GIL_API C_LINKAGE
+# if !defined(PUBLIC_API)
+#  define PUBLIC_API C_LINKAGE
 # endif
 
 # if defined(GIL_DEBUG)

@@ -13,8 +13,8 @@
     } \
 }
 
-GIL_API s32 test_framework__printf(const char* format, ...);
+PUBLIC_API s32 test_framework__printf(const char* format, ...);
 
-GIL_API void test_framework__translate_error_code(u32 error_code, char* buffer, u32 buffer_size);
+PUBLIC_API void test_framework__translate_error_code(u32 error_code, char* buffer, u32 buffer_size);
 
 #endif

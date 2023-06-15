@@ -120,7 +120,8 @@ struct test_data test_data__create(
     test_data.item_size = item_size;
 
     test_data.item_container_size = memory_size / test_data.item_size;
-    u64 item_container__total_size = test_data.item_container_size * test_data.item_size;
+    // u64 item_container__total_size = test_data.item_container_size * test_data.item_size;
+    u64 item_container__total_size = test_data.item_container_size * sizeof(*test_data.item_container);
     test_data.item_container_memory_slice = linear_allocator__push(main_allocator, item_container__total_size);
     TEST_FRAMEWORK_ASSERT(test_data.item_container_memory_slice.size == item_container__total_size);
     test_data.item_container = test_data.item_container_memory_slice.memory;
@@ -199,10 +200,10 @@ u32 test_data__main(
     struct random randomizer;
     random__init(&randomizer, seed);
 
-    u32 item_size = 10;
-    while (item_size < max_item_size) {
-        u64 memory_size = 10;
-        while (memory_size < max_memory_size) {
+    u32 item_size = 1;
+    while (item_size <= max_item_size) {
+        u64 memory_size = 1;
+        while (memory_size <= max_memory_size) {
             test_data__params(memory_size, item_size, main_allocator);
             ++test_runs;
 
@@ -227,9 +228,9 @@ u32 test_evaluate_subresult(
     u32 max_item_size,
     struct linear_allocator* main_allocator
 ) {
-    libc__printf("seed: %-10u\tmax memory size: %-6lu\tmax item size: %-3u\n", seed, max_memory_size, max_item_size);
+    // libc__printf("seed: %-10u\tmax memory size: %-6lu\tmax item size: %-3u\n", seed, max_memory_size, max_item_size);
     u32 test_runs = test_data__main(seed, max_memory_size, max_item_size, main_allocator);
-    libc__printf("number of test runs: %u\n", test_runs);
+    // libc__printf("number of test runs: %u\n", test_runs);
 
     return test_runs;
 }
@@ -238,10 +239,9 @@ int main() {
     struct random randomizer;
     random__init(&randomizer, 42);
 
-    const u32 number_of_test_batches = 10;
-    const u64 min_memory_size = 10;
-    const u64 max_memory_size = KILOBYTES(16);
-    const u32 min_item_size = BYTES(5);
+    const u64 min_memory_size = 1;
+    const u64 max_memory_size = KILOBYTES(23);
+    const u32 min_item_size = 1;
     const u32 max_item_size = BYTES(178);
 
     u64 aux_memory = MEGABYTES(256);
@@ -250,11 +250,18 @@ int main() {
     struct linear_allocator main_allocator;
     linear_allocator__create(&main_allocator,  main_memory, main_memory_size);
 
-    // todo: revisit with thread api
     u32 total_test_runs = 0;
-    for (u32 test_batch_index = 0; test_batch_index < number_of_test_batches; ++test_batch_index) {
-        libc__printf("-------------------------== TEST BATCH %u ==-------------------------\n", test_batch_index + 1);
 
+    const u32 number_of_min_tests = 10;
+    for (u32 test_batch_index = 0; test_batch_index < number_of_min_tests; ++test_batch_index) {
+        u64 random_seed = random__u64(&randomizer);
+
+        total_test_runs += test_evaluate_subresult(random_seed, 1, 1, &main_allocator);
+    }
+
+    // todo: revisit with thread api
+    const u32 number_of_test_batches = 10;
+    for (u32 test_batch_index = 0; test_batch_index < number_of_test_batches; ++test_batch_index) {
         u64 random_seed = random__u64(&randomizer);
         u64 memory_size = random__u64_closed(&randomizer, min_memory_size, max_memory_size);
         u32 item_size = random__u32_closed(&randomizer, min_item_size, max_item_size);

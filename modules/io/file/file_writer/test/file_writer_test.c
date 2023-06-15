@@ -27,7 +27,7 @@ int main() {
         "    %s_start\n"
         "};\n"
         "\n"
-        "GIL_API void fn();\n"
+        "PUBLIC_API void fn();\n"
         "%u\n"
         "%d\n"
         "%f\n"

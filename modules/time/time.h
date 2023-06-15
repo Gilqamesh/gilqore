@@ -14,9 +14,9 @@ struct time;
 # endif
 
 // @returns current time with a granularity of at least 1s
-GIL_API struct time time__get(void);
+PUBLIC_API struct time time__get(void);
 
 // @returns <0, 0 or >0 if t1 is found, respectively, to be less than, equal to or be greater than t2
-GIL_API s64 time__cmp(struct time t1, struct time t2);
+PUBLIC_API s64 time__cmp(struct time t1, struct time t2);
 
 #endif

@@ -69,6 +69,7 @@ void linear_allocator__pop(struct linear_allocator* self, struct linear_allocato
 }
 
 u64 linear_allocator__available(struct linear_allocator* self) {
+    ASSERT(self->fill <= self->size);
     return self->size - self->fill;
 }
 

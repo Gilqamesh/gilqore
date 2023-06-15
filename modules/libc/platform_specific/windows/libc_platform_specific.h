@@ -3,6 +3,6 @@
 
 # include "libc_platform_specific_defs.h"
 
-GIL_API char* libc__itoa(s64 n, char* buffer, u32 radix);
+PUBLIC_API char* libc__itoa(s64 n, char* buffer, u32 radix);
 
 #endif

@@ -8,8 +8,8 @@ struct v2u8 {
     u8 y;
 };
 
-GIL_API struct v2u8 v2u8(u8 x, u8 y);
+PUBLIC_API struct v2u8 v2u8(u8 x, u8 y);
 
-GIL_API struct v2u8 v2u8__scale_u8(struct v2u8 v, u8 s);
+PUBLIC_API struct v2u8 v2u8__scale_u8(struct v2u8 v, u8 s);
 
 #endif

@@ -9,8 +9,8 @@ struct v3s16 {
     s16 z;
 };
 
-GIL_API struct v3s16 v3s16(s16 x, s16 y, s16 z);
+PUBLIC_API struct v3s16 v3s16(s16 x, s16 y, s16 z);
 
-GIL_API struct v3s16 v3s16__scale_s16(struct v3s16 v, s16 s);
+PUBLIC_API struct v3s16 v3s16__scale_s16(struct v3s16 v, s16 s);
 
 #endif

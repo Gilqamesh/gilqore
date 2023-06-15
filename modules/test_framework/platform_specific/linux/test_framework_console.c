@@ -10,7 +10,7 @@ struct test_framework_console {
 
 static struct test_framework_console g_test_framework;
 
-GIL_API int main(int argc, char** argv) {
+PUBLIC_API int main(int argc, char** argv) {
     g_test_framework.argc = argc;
     g_test_framework.argv = argv;
 }

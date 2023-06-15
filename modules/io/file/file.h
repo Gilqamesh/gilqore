@@ -32,26 +32,26 @@ enum file_type {
     FILE_TYPE_FILE      = 1 << 1
 };
 
-GIL_API bool file__open( 
+PUBLIC_API bool file__open( 
     struct file* self,
     const char* path,
     enum file_access_mode access_mode,
     enum file_creation_mode creation
 );
-GIL_API void file__close(struct file* self);
+PUBLIC_API void file__close(struct file* self);
 
-GIL_API bool file__exists(const char* path);
-GIL_API bool file__delete(const char* path);
+PUBLIC_API bool file__exists(const char* path);
+PUBLIC_API bool file__delete(const char* path);
 // @brief renames or moves a directory (including its children) if exists
-GIL_API bool file__move(const char* src_path, const char* dest_path);
+PUBLIC_API bool file__move(const char* src_path, const char* dest_path);
 // @returns last time that the file was modified
-GIL_API bool file__last_modified(const char* path, struct time* last_modified);
-GIL_API bool file__stat(const char* path, enum file_type* file_type);
+PUBLIC_API bool file__last_modified(const char* path, struct time* last_modified);
+PUBLIC_API bool file__stat(const char* path, enum file_type* file_type);
 // @returns whether the operations was successful or not as well as the file_size if it was
-GIL_API bool file__size(const char* path, u64* file_size);
+PUBLIC_API bool file__size(const char* path, u64* file_size);
 // @brief copies the source file to the destination path
 // @note if dest exists, its contents will be overwritten
-GIL_API bool file__copy(const char* dest_path, const char* src_path);
+PUBLIC_API bool file__copy(const char* dest_path, const char* src_path);
 
 enum file_seek_type {
     FILE_SEEK_TYPE_BEGIN,
@@ -60,10 +60,10 @@ enum file_seek_type {
 };
 
 // @brief reads from opened file, returns bytes read
-GIL_API u32 file__read(struct file* self, void* out, u32 size);
+PUBLIC_API u32 file__read(struct file* self, void* out, u32 size);
 // @brief writes to the opened file, returns bytes written
-GIL_API u32 file__write(struct file* self, const void* in, u32 size);
+PUBLIC_API u32 file__write(struct file* self, const void* in, u32 size);
 // @returns file pointer position
-GIL_API u32 file__seek(struct file* self, u32 offset, enum file_seek_type type);
+PUBLIC_API u32 file__seek(struct file* self, u32 offset, enum file_seek_type type);
 
 #endif
