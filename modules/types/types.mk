@@ -12,6 +12,7 @@ types_test_install_path        := $(types_path_curtestdir)types$(EXT_EXE)
 endif
 types_test_sources             := $(wildcard $(types_path_curtestdir)*.c)
 types_sources					:= $(wildcard $(types_path_curdir)*.c)
+types_sources					+= $(wildcard $(types_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 types_sources					+= $(wildcard $(types_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

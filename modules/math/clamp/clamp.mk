@@ -12,6 +12,7 @@ clamp_test_install_path        := $(clamp_path_curtestdir)clamp$(EXT_EXE)
 endif
 clamp_test_sources             := $(wildcard $(clamp_path_curtestdir)*.c)
 clamp_sources					:= $(wildcard $(clamp_path_curdir)*.c)
+clamp_sources					+= $(wildcard $(clamp_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 clamp_sources					+= $(wildcard $(clamp_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

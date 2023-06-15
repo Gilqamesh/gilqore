@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main() {
-    module_compiler__compile();
+    module_compiler__main();
 
     return 0;
 }

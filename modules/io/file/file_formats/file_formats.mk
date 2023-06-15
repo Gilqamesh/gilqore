@@ -12,6 +12,7 @@ file_formats_test_install_path        := $(file_formats_path_curtestdir)file_for
 endif
 file_formats_test_sources             := $(wildcard $(file_formats_path_curtestdir)*.c)
 file_formats_sources					:= $(wildcard $(file_formats_path_curdir)*.c)
+file_formats_sources					+= $(wildcard $(file_formats_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 file_formats_sources					+= $(wildcard $(file_formats_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

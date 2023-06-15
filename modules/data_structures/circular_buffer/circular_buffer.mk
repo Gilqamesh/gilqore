@@ -12,6 +12,7 @@ circular_buffer_test_install_path        := $(circular_buffer_path_curtestdir)ci
 endif
 circular_buffer_test_sources             := $(wildcard $(circular_buffer_path_curtestdir)*.c)
 circular_buffer_sources					:= $(wildcard $(circular_buffer_path_curdir)*.c)
+circular_buffer_sources					+= $(wildcard $(circular_buffer_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 circular_buffer_sources					+= $(wildcard $(circular_buffer_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

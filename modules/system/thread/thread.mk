@@ -12,6 +12,7 @@ thread_test_install_path        := $(thread_path_curtestdir)thread$(EXT_EXE)
 endif
 thread_test_sources             := $(wildcard $(thread_path_curtestdir)*.c)
 thread_sources					:= $(wildcard $(thread_path_curdir)*.c)
+thread_sources					+= $(wildcard $(thread_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 thread_sources					+= $(wildcard $(thread_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

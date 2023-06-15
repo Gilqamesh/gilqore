@@ -17,7 +17,6 @@
 
 #define CONFIG_EXTENSION "gmc"
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
-#define TEST_FOLDER_NAME "test"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 // todo(david) remove and make file__create to just create a file "without opening it"
 #define GITKEEP_PATH "misc/.gitkeep"
@@ -27,6 +26,8 @@
 #define DEF_FILE_TEMPLATE_PATH "misc/def_file_template.h"
 #define TEST_FILE_TEMPLATE_PATH "misc/test_file_template.txt"
 #define TEST_FILE_SUFFIX "_test.c"
+#define TEST_FOLDER_NAME "test"
+#define IMPLEMENTATION_FOLDER_NAME "impl"
 
 #define PLATFORM_SPECIFIC_WINDOWS "windows"
 #define PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS "WINDOWS"
@@ -1450,9 +1451,14 @@ bool is_module_path(const char* path) {
     if (
         directory_len == 0 ||
         libc__strcmp(PLATFORM_SPECIFIC_FOLDER_NAME, child_basename_buffer) == 0 ||
-        libc__strcmp(TEST_FOLDER_NAME, child_basename_buffer) == 0
+        libc__strcmp(TEST_FOLDER_NAME, child_basename_buffer) == 0 ||
+        libc__strcmp(IMPLEMENTATION_FOLDER_NAME, child_basename_buffer) == 0
     ) {
-        // note: root module or we are in a platform specific folder or we are in the module's test folder
+        // skip if:
+        //  - root module
+        //  - platform specific folder
+        //  - test folder
+        //  - implementation folder
         return false;
     }
 
@@ -1466,11 +1472,25 @@ bool is_module_path(const char* path) {
             "%s/%s",
             path, TEST_FOLDER_NAME
         );
+        
         assert_create_gitkeep(
             parent_basename_buffer,
             ARRAY_SIZE(parent_basename_buffer),
             "%s/%s/.gitkeep",
             path, TEST_FOLDER_NAME, PLATFORM_SPECIFIC_FOLDER_NAME
+        );
+
+        assert_create_dir(
+            parent_basename_buffer,
+            ARRAY_SIZE(parent_basename_buffer),
+            "%s/%s",
+            path, IMPLEMENTATION_FOLDER_NAME
+        );
+        assert_create_gitkeep(
+            parent_basename_buffer,
+            ARRAY_SIZE(parent_basename_buffer),
+            "%s/%s/.gitkeep",
+            path, IMPLEMENTATION_FOLDER_NAME, PLATFORM_SPECIFIC_FOLDER_NAME
         );
     }
 
@@ -1707,7 +1727,7 @@ static void module_compiler__ensure_test_file_templates_exist(
     }
 }
 
-void module_compiler__compile(void) {
+void module_compiler__main(void) {
     u32 max_number_of_modules = 256;
     g_modules_size_max = 256;
     u32 cur_number_of_modules = 0;

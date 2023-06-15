@@ -12,6 +12,7 @@ mod_test_install_path        := $(mod_path_curtestdir)mod$(EXT_EXE)
 endif
 mod_test_sources             := $(wildcard $(mod_path_curtestdir)*.c)
 mod_sources					:= $(wildcard $(mod_path_curdir)*.c)
+mod_sources					+= $(wildcard $(mod_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 mod_sources					+= $(wildcard $(mod_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

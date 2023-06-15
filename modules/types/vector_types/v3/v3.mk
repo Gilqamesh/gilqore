@@ -12,6 +12,7 @@ v3_test_install_path        := $(v3_path_curtestdir)v3$(EXT_EXE)
 endif
 v3_test_sources             := $(wildcard $(v3_path_curtestdir)*.c)
 v3_sources					:= $(wildcard $(v3_path_curdir)*.c)
+v3_sources					+= $(wildcard $(v3_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 v3_sources					+= $(wildcard $(v3_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

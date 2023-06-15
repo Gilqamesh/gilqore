@@ -12,6 +12,7 @@ algorithms_test_install_path        := $(algorithms_path_curtestdir)algorithms$(
 endif
 algorithms_test_sources             := $(wildcard $(algorithms_path_curtestdir)*.c)
 algorithms_sources					:= $(wildcard $(algorithms_path_curdir)*.c)
+algorithms_sources					+= $(wildcard $(algorithms_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 algorithms_sources					+= $(wildcard $(algorithms_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,6 +12,7 @@ modules_test_install_path        := $(modules_path_curtestdir)modules$(EXT_EXE)
 endif
 modules_test_sources             := $(wildcard $(modules_path_curtestdir)*.c)
 modules_sources					:= $(wildcard $(modules_path_curdir)*.c)
+modules_sources					+= $(wildcard $(modules_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 modules_sources					+= $(wildcard $(modules_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

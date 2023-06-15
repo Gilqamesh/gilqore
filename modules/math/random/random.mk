@@ -12,6 +12,7 @@ random_test_install_path        := $(random_path_curtestdir)random$(EXT_EXE)
 endif
 random_test_sources             := $(wildcard $(random_path_curtestdir)*.c)
 random_sources					:= $(wildcard $(random_path_curdir)*.c)
+random_sources					+= $(wildcard $(random_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 random_sources					+= $(wildcard $(random_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

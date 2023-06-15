@@ -12,6 +12,7 @@ common_test_install_path        := $(common_path_curtestdir)common$(EXT_EXE)
 endif
 common_test_sources             := $(wildcard $(common_path_curtestdir)*.c)
 common_sources					:= $(wildcard $(common_path_curdir)*.c)
+common_sources					+= $(wildcard $(common_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 common_sources					+= $(wildcard $(common_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,6 +12,7 @@ memory_test_install_path        := $(memory_path_curtestdir)memory$(EXT_EXE)
 endif
 memory_test_sources             := $(wildcard $(memory_path_curtestdir)*.c)
 memory_sources					:= $(wildcard $(memory_path_curdir)*.c)
+memory_sources					+= $(wildcard $(memory_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 memory_sources					+= $(wildcard $(memory_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

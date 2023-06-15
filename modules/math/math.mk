@@ -12,6 +12,7 @@ math_test_install_path        := $(math_path_curtestdir)math$(EXT_EXE)
 endif
 math_test_sources             := $(wildcard $(math_path_curtestdir)*.c)
 math_sources					:= $(wildcard $(math_path_curdir)*.c)
+math_sources					+= $(wildcard $(math_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 math_sources					+= $(wildcard $(math_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

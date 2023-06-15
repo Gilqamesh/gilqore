@@ -12,6 +12,7 @@ time_test_install_path        := $(time_path_curtestdir)time$(EXT_EXE)
 endif
 time_test_sources             := $(wildcard $(time_path_curtestdir)*.c)
 time_sources					:= $(wildcard $(time_path_curdir)*.c)
+time_sources					+= $(wildcard $(time_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 time_sources					+= $(wildcard $(time_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

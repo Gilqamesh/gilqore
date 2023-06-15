@@ -12,6 +12,7 @@ basic_types_test_install_path        := $(basic_types_path_curtestdir)basic_type
 endif
 basic_types_test_sources             := $(wildcard $(basic_types_path_curtestdir)*.c)
 basic_types_sources					:= $(wildcard $(basic_types_path_curdir)*.c)
+basic_types_sources					+= $(wildcard $(basic_types_path_curdir)impl/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 basic_types_sources					+= $(wildcard $(basic_types_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)
