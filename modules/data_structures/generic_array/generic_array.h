@@ -22,7 +22,7 @@ PUBLIC_API bool generic_array__create(
 PUBLIC_API void generic_array__destroy(struct generic_array* self);
 
 // @brief adds an item to the array
-PUBLIC_API void generic_array__push(struct generic_array* self, void* item);
+PUBLIC_API void* generic_array__push(struct generic_array* self);
 // @brief removes the top most item from the array
 // @returns top item from the array
 PUBLIC_API void* generic_array__pop(struct generic_array* self);

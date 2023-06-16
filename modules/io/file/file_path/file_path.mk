@@ -12,7 +12,7 @@ file_path_test_install_path        := $(file_path_path_curtestdir)file_path$(EXT
 endif
 file_path_test_sources             := $(wildcard $(file_path_path_curtestdir)*.c)
 file_path_sources					:= $(wildcard $(file_path_path_curdir)*.c)
-file_path_sources					+= $(wildcard $(file_path_path_curdir)impl/*.c)
+file_path_sources					+= $(wildcard $(file_path_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 file_path_sources					+= $(wildcard $(file_path_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,7 +12,7 @@ compare_test_install_path        := $(compare_path_curtestdir)compare$(EXT_EXE)
 endif
 compare_test_sources             := $(wildcard $(compare_path_curtestdir)*.c)
 compare_sources					:= $(wildcard $(compare_path_curdir)*.c)
-compare_sources					+= $(wildcard $(compare_path_curdir)impl/*.c)
+compare_sources					+= $(wildcard $(compare_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 compare_sources					+= $(wildcard $(compare_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

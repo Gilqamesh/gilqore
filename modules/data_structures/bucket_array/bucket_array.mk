@@ -12,7 +12,7 @@ bucket_array_test_install_path        := $(bucket_array_path_curtestdir)bucket_a
 endif
 bucket_array_test_sources             := $(wildcard $(bucket_array_path_curtestdir)*.c)
 bucket_array_sources					:= $(wildcard $(bucket_array_path_curdir)*.c)
-bucket_array_sources					+= $(wildcard $(bucket_array_path_curdir)impl/*.c)
+bucket_array_sources					+= $(wildcard $(bucket_array_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 bucket_array_sources					+= $(wildcard $(bucket_array_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

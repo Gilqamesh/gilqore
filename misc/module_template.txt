@@ -12,7 +12,7 @@ $(MODULE_NAME)_test_install_path        := $($(MODULE_NAME)_path_curtestdir)$(MO
 endif
 $(MODULE_NAME)_test_sources             := $(wildcard $($(MODULE_NAME)_path_curtestdir)*.c)
 $(MODULE_NAME)_sources					:= $(wildcard $($(MODULE_NAME)_path_curdir)*.c)
-$(MODULE_NAME)_sources					+= $(wildcard $($(MODULE_NAME)_path_curdir)impl/*.c)
+$(MODULE_NAME)_sources					+= $(wildcard $($(MODULE_NAME)_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 $(MODULE_NAME)_sources					+= $(wildcard $($(MODULE_NAME)_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

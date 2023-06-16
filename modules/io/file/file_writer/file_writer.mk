@@ -12,7 +12,7 @@ file_writer_test_install_path        := $(file_writer_path_curtestdir)file_write
 endif
 file_writer_test_sources             := $(wildcard $(file_writer_path_curtestdir)*.c)
 file_writer_sources					:= $(wildcard $(file_writer_path_curdir)*.c)
-file_writer_sources					+= $(wildcard $(file_writer_path_curdir)impl/*.c)
+file_writer_sources					+= $(wildcard $(file_writer_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 file_writer_sources					+= $(wildcard $(file_writer_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

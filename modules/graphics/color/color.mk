@@ -12,7 +12,7 @@ color_test_install_path        := $(color_path_curtestdir)color$(EXT_EXE)
 endif
 color_test_sources             := $(wildcard $(color_path_curtestdir)*.c)
 color_sources					:= $(wildcard $(color_path_curdir)*.c)
-color_sources					+= $(wildcard $(color_path_curdir)impl/*.c)
+color_sources					+= $(wildcard $(color_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 color_sources					+= $(wildcard $(color_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

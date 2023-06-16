@@ -12,7 +12,7 @@ v4_test_install_path        := $(v4_path_curtestdir)v4$(EXT_EXE)
 endif
 v4_test_sources             := $(wildcard $(v4_path_curtestdir)*.c)
 v4_sources					:= $(wildcard $(v4_path_curdir)*.c)
-v4_sources					+= $(wildcard $(v4_path_curdir)impl/*.c)
+v4_sources					+= $(wildcard $(v4_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 v4_sources					+= $(wildcard $(v4_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

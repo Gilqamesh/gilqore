@@ -12,7 +12,7 @@ generic_array_test_install_path        := $(generic_array_path_curtestdir)generi
 endif
 generic_array_test_sources             := $(wildcard $(generic_array_path_curtestdir)*.c)
 generic_array_sources					:= $(wildcard $(generic_array_path_curdir)*.c)
-generic_array_sources					+= $(wildcard $(generic_array_path_curdir)impl/*.c)
+generic_array_sources					+= $(wildcard $(generic_array_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 generic_array_sources					+= $(wildcard $(generic_array_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

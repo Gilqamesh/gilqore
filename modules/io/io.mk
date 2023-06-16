@@ -12,7 +12,7 @@ io_test_install_path        := $(io_path_curtestdir)io$(EXT_EXE)
 endif
 io_test_sources             := $(wildcard $(io_path_curtestdir)*.c)
 io_sources					:= $(wildcard $(io_path_curdir)*.c)
-io_sources					+= $(wildcard $(io_path_curdir)impl/*.c)
+io_sources					+= $(wildcard $(io_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 io_sources					+= $(wildcard $(io_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

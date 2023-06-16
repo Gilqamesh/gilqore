@@ -12,7 +12,7 @@ sqrt_test_install_path        := $(sqrt_path_curtestdir)sqrt$(EXT_EXE)
 endif
 sqrt_test_sources             := $(wildcard $(sqrt_path_curtestdir)*.c)
 sqrt_sources					:= $(wildcard $(sqrt_path_curdir)*.c)
-sqrt_sources					+= $(wildcard $(sqrt_path_curdir)impl/*.c)
+sqrt_sources					+= $(wildcard $(sqrt_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 sqrt_sources					+= $(wildcard $(sqrt_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

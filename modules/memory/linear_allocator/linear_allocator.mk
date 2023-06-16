@@ -12,7 +12,7 @@ linear_allocator_test_install_path        := $(linear_allocator_path_curtestdir)
 endif
 linear_allocator_test_sources             := $(wildcard $(linear_allocator_path_curtestdir)*.c)
 linear_allocator_sources					:= $(wildcard $(linear_allocator_path_curdir)*.c)
-linear_allocator_sources					+= $(wildcard $(linear_allocator_path_curdir)impl/*.c)
+linear_allocator_sources					+= $(wildcard $(linear_allocator_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 linear_allocator_sources					+= $(wildcard $(linear_allocator_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

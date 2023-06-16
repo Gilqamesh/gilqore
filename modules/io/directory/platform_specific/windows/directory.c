@@ -98,15 +98,15 @@ bool directory__delete(const char* path) {
     return true;
 }
 
-void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags) {
-    directory__foreach(path, fn, file_type_flags, 0);
+void directory__foreach_shallow(const char* path, bool (*fn)(const char* path, void* user_data), void* user_data, enum file_type file_type_flags) {
+    directory__foreach(path, fn, user_data, file_type_flags, 0);
 }
 
-void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags) {
-    directory__foreach(path, fn, file_type_flags, (u32) -1);
+void directory__foreach_deep(const char* path, bool (*fn)(const char* path, void* user_data), void* user_data, enum file_type file_type_flags) {
+    directory__foreach(path, fn, user_data, file_type_flags, U32_MAX);
 }
 
-void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth) {
+void directory__foreach(const char* path, bool (*fn)(const char* path, void* user_data), void* user_data, enum file_type file_type_flags, u32 depth) {
     struct directory dir;
     u32 buffer_size = MAX_PATH;
     u32 buffer2_size = MAX_PATH;
@@ -133,10 +133,10 @@ void directory__foreach(const char* path, bool (*fn)(const char* path), enum fil
 
             bool should_recurse = depth > 0;
             if (type & file_type_flags) {
-                should_recurse &= fn(buffer2);
+                should_recurse &= fn(buffer2, user_data);
             }
             if (should_recurse && type == FILE_TYPE_DIRECTORY) {
-                directory__foreach(buffer2, fn, file_type_flags, depth - 1);
+                directory__foreach(buffer2, fn, user_data, file_type_flags, depth - 1);
             }
         }
         directory__close(&dir);

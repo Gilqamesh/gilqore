@@ -12,7 +12,7 @@ graphics_test_install_path        := $(graphics_path_curtestdir)graphics$(EXT_EX
 endif
 graphics_test_sources             := $(wildcard $(graphics_path_curtestdir)*.c)
 graphics_sources					:= $(wildcard $(graphics_path_curdir)*.c)
-graphics_sources					+= $(wildcard $(graphics_path_curdir)impl/*.c)
+graphics_sources					+= $(wildcard $(graphics_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 graphics_sources					+= $(wildcard $(graphics_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

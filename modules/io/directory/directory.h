@@ -32,13 +32,17 @@ PUBLIC_API bool directory__create(const char* path);
 PUBLIC_API bool directory__delete(const char* path);
 
 // @brief apply fn on each file_type on path one level deep
-PUBLIC_API void directory__foreach_shallow(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+PUBLIC_API void directory__foreach_shallow(const char* path, bool (*fn)(const char* path, void* user_data), void* user_data, enum file_type file_type_flags);
 // @brief apply fn on each file_type on path recursively
 // @param fn function to apply on each of the matching files, should return true if the algorithm should keep recursing on the matched file if it's a directory
-PUBLIC_API void directory__foreach_deep(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags);
+PUBLIC_API void directory__foreach_deep(
+    const char* path,
+    bool (*fn)(const char* path, void* user_data), void* user_data,
+    enum file_type file_type_flags
+);
 // @brief apply fn on each file_type on path depth level deep
 // @param depth 0 depth is equal to a for each shallow
 // @param fn function to apply on each of the matching files, should return true if the algorithm should keep recursing on the matched file if it's a directory
-PUBLIC_API void directory__foreach(const char* path, bool (*fn)(const char* path), enum file_type file_type_flags, u32 depth);
+PUBLIC_API void directory__foreach(const char* path, bool (*fn)(const char* path, void* user_data), void* user_data, enum file_type file_type_flags, u32 depth);
 
 #endif

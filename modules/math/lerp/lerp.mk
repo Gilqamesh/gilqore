@@ -12,7 +12,7 @@ lerp_test_install_path        := $(lerp_path_curtestdir)lerp$(EXT_EXE)
 endif
 lerp_test_sources             := $(wildcard $(lerp_path_curtestdir)*.c)
 lerp_sources					:= $(wildcard $(lerp_path_curdir)*.c)
-lerp_sources					+= $(wildcard $(lerp_path_curdir)impl/*.c)
+lerp_sources					+= $(wildcard $(lerp_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 lerp_sources					+= $(wildcard $(lerp_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

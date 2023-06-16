@@ -12,7 +12,7 @@ abs_test_install_path        := $(abs_path_curtestdir)abs$(EXT_EXE)
 endif
 abs_test_sources             := $(wildcard $(abs_path_curtestdir)*.c)
 abs_sources					:= $(wildcard $(abs_path_curdir)*.c)
-abs_sources					+= $(wildcard $(abs_path_curdir)impl/*.c)
+abs_sources					+= $(wildcard $(abs_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 abs_sources					+= $(wildcard $(abs_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,7 +12,7 @@ v2_test_install_path        := $(v2_path_curtestdir)v2$(EXT_EXE)
 endif
 v2_test_sources             := $(wildcard $(v2_path_curtestdir)*.c)
 v2_sources					:= $(wildcard $(v2_path_curdir)*.c)
-v2_sources					+= $(wildcard $(v2_path_curdir)impl/*.c)
+v2_sources					+= $(wildcard $(v2_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 v2_sources					+= $(wildcard $(v2_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

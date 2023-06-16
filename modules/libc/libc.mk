@@ -12,7 +12,7 @@ libc_test_install_path        := $(libc_path_curtestdir)libc$(EXT_EXE)
 endif
 libc_test_sources             := $(wildcard $(libc_path_curtestdir)*.c)
 libc_sources					:= $(wildcard $(libc_path_curdir)*.c)
-libc_sources					+= $(wildcard $(libc_path_curdir)impl/*.c)
+libc_sources					+= $(wildcard $(libc_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 libc_sources					+= $(wildcard $(libc_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

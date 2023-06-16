@@ -12,7 +12,7 @@ test_framework_test_install_path        := $(test_framework_path_curtestdir)test
 endif
 test_framework_test_sources             := $(wildcard $(test_framework_path_curtestdir)*.c)
 test_framework_sources					:= $(wildcard $(test_framework_path_curdir)*.c)
-test_framework_sources					+= $(wildcard $(test_framework_path_curdir)impl/*.c)
+test_framework_sources					+= $(wildcard $(test_framework_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 test_framework_sources					+= $(wildcard $(test_framework_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

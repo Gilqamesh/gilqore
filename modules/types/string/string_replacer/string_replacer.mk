@@ -12,7 +12,7 @@ string_replacer_test_install_path        := $(string_replacer_path_curtestdir)st
 endif
 string_replacer_test_sources             := $(wildcard $(string_replacer_path_curtestdir)*.c)
 string_replacer_sources					:= $(wildcard $(string_replacer_path_curdir)*.c)
-string_replacer_sources					+= $(wildcard $(string_replacer_path_curdir)impl/*.c)
+string_replacer_sources					+= $(wildcard $(string_replacer_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 string_replacer_sources					+= $(wildcard $(string_replacer_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

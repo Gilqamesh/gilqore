@@ -12,7 +12,7 @@ modules_test_install_path        := $(modules_path_curtestdir)modules$(EXT_EXE)
 endif
 modules_test_sources             := $(wildcard $(modules_path_curtestdir)*.c)
 modules_sources					:= $(wildcard $(modules_path_curdir)*.c)
-modules_sources					+= $(wildcard $(modules_path_curdir)impl/*.c)
+modules_sources					+= $(wildcard $(modules_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 modules_sources					+= $(wildcard $(modules_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)
@@ -24,8 +24,8 @@ modules_objects                  := $(patsubst %.c, %.o, $(modules_sources))
 modules_test_objects				:= $(patsubst %.c, %.o, $(modules_test_sources))
 modules_test_depends				:= $(patsubst %.c, %.d, $(modules_test_sources))
 modules_depends					:= $(patsubst %.c, %.d, $(modules_sources))
-modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path linear_allocator  common
-modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path linear_allocator 
+modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path linear_allocator generic_array  common
+modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math file_path linear_allocator generic_array 
 modules_test_libdepend_objs      = $(foreach dep_module,$(modules_test_depends_modules),$($(dep_module)_objects))
 modules_clean_files				:=
 modules_clean_files				+= $(modules_install_path_implib)

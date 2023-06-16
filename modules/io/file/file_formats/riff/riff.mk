@@ -12,7 +12,7 @@ riff_test_install_path        := $(riff_path_curtestdir)riff$(EXT_EXE)
 endif
 riff_test_sources             := $(wildcard $(riff_path_curtestdir)*.c)
 riff_sources					:= $(wildcard $(riff_path_curdir)*.c)
-riff_sources					+= $(wildcard $(riff_path_curdir)impl/*.c)
+riff_sources					+= $(wildcard $(riff_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 riff_sources					+= $(wildcard $(riff_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,7 +12,7 @@ hash_test_install_path        := $(hash_path_curtestdir)hash$(EXT_EXE)
 endif
 hash_test_sources             := $(wildcard $(hash_path_curtestdir)*.c)
 hash_sources					:= $(wildcard $(hash_path_curdir)*.c)
-hash_sources					+= $(wildcard $(hash_path_curdir)impl/*.c)
+hash_sources					+= $(wildcard $(hash_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 hash_sources					+= $(wildcard $(hash_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

@@ -12,7 +12,7 @@ wav_test_install_path        := $(wav_path_curtestdir)wav$(EXT_EXE)
 endif
 wav_test_sources             := $(wildcard $(wav_path_curtestdir)*.c)
 wav_sources					:= $(wildcard $(wav_path_curdir)*.c)
-wav_sources					+= $(wildcard $(wav_path_curdir)impl/*.c)
+wav_sources					+= $(wildcard $(wav_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 wav_sources					+= $(wildcard $(wav_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

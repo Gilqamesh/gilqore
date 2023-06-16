@@ -29,9 +29,8 @@ int main() {
 
     u32 number_of_pushes = expected_capacity;
     for (u32 push_index = 0; push_index < number_of_pushes; ++push_index) {
-        struct item item;
-        libc__memset(&item, push_index, sizeof(item));
-        generic_array__push(&generic_array, &item);
+        struct item* item = generic_array__push(&generic_array);
+        libc__memset(item, push_index, sizeof(*item));
         --expected_available;
         ++expected_size;
 

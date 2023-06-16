@@ -12,7 +12,7 @@ vector_types_test_install_path        := $(vector_types_path_curtestdir)vector_t
 endif
 vector_types_test_sources             := $(wildcard $(vector_types_path_curtestdir)*.c)
 vector_types_sources					:= $(wildcard $(vector_types_path_curdir)*.c)
-vector_types_sources					+= $(wildcard $(vector_types_path_curdir)impl/*.c)
+vector_types_sources					+= $(wildcard $(vector_types_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 vector_types_sources					+= $(wildcard $(vector_types_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

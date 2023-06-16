@@ -12,7 +12,7 @@ console_test_install_path        := $(console_path_curtestdir)console$(EXT_EXE)
 endif
 console_test_sources             := $(wildcard $(console_path_curtestdir)*.c)
 console_sources					:= $(wildcard $(console_path_curdir)*.c)
-console_sources					+= $(wildcard $(console_path_curdir)impl/*.c)
+console_sources					+= $(wildcard $(console_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 console_sources					+= $(wildcard $(console_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)

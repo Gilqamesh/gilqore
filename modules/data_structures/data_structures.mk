@@ -12,7 +12,7 @@ data_structures_test_install_path        := $(data_structures_path_curtestdir)da
 endif
 data_structures_test_sources             := $(wildcard $(data_structures_path_curtestdir)*.c)
 data_structures_sources					:= $(wildcard $(data_structures_path_curdir)*.c)
-data_structures_sources					+= $(wildcard $(data_structures_path_curdir)impl/*.c)
+data_structures_sources					+= $(wildcard $(data_structures_path_curdir)platform_non_specific/*.c)
 ifeq ($(PLATFORM), WINDOWS)
 data_structures_sources					+= $(wildcard $(data_structures_path_curdir)platform_specific/windows/*.c)
 else ifeq ($(PLATFORM), LINUX)
