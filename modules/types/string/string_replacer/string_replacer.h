@@ -5,36 +5,47 @@
 
 # include "string_replacer_defs.h"
 
+# include "memory/linear_allocator/linear_allocator.h"
+
 # include <stdarg.h>
 
 struct string_replacer {
-    const char*  original;                  // the unmodified string currently being replaced
+    const char*  original;          // the unmodified string currently being replaced
     
-    u32*         whats;                     // indices of the replacements into the original string
-    u32*         what_sizes;                // length of the replacements in the original string
+    u32*         whats;             // indices of the replacements into the original string
+    u32*         what_sizes;        // length of the replacements in the original string
 
-    char**       withs;                     // pointers to the replacements
-    u32*         with_sizes;                // length of the replacements
-    char*        with_buffer;               // the contiguous buffer in which all the replacements are stored
+    char**       withs;             // pointers to the replacements
+    u32*         with_sizes;        // length of the replacements
+    char*        with_buffer;       // the contiguous buffer in which all the replacements are stored
 
-    u32          withs_top;                 // the current number of replacements
-    u32          withs_size;                // the allocated (max) number for replacements
+    u32          withs_top;         // the current number of replacements
+    u32          withs_size;        // the allocated (max) number for replacements
 
-    u32          with_buffer_top;           // the current size of the with buffer
-    u32          with_buffer_size;          // the total size of the with buffer
+    u32          with_buffer_top;   // the current size of the with buffer
+    u32          with_buffer_size;  // the total size of the with buffer
 
-    u32          original_str_len;          // the unmodified string's length
-    u32          current_str_len;           // the resulting replaced string's length
+    u32          original_str_len;  // the unmodified string's length
+    u32          current_str_len;   // the resulting replaced string's length
+
+    // auxiliary memory allocated by the string_replacer for internal indexing
+    struct linear_allocator* allocator;
+    struct memory_slice      whats_memory_slice;
+    struct memory_slice      what_sizes_memory_slice;
+    struct memory_slice      withs_memory_slice;
+    struct memory_slice      with_sizes_memory_slice;
+    struct memory_slice      with_buffer_memory_slice;
 };
 
 struct file;
 
 PUBLIC_API bool string_replacer__create(
     struct string_replacer* self,
+    struct linear_allocator* allocator,
     const char* original,
     u32 original_len,
     u32 max_number_of_replacements,
-    u32 total_size_of_replacements_in_bytes
+    u32 average_size_of_replacement_in_bytes
 );
 PUBLIC_API void string_replacer__destroy(struct string_replacer* self);
 

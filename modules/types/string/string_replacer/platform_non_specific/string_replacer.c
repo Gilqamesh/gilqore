@@ -8,11 +8,14 @@
 
 bool string_replacer__create(
     struct string_replacer* self,
+    struct linear_allocator* allocator,
     const char* original,
     u32 original_len,
     u32 max_number_of_replacements,
-    u32 total_size_of_replacements_in_bytes
+    u32 average_size_of_replacement_in_bytes
 ) {
+    self->allocator = allocator;
+
     self->original = original;
     self->original_str_len = original_len;
     self->current_str_len = self->original_str_len;
@@ -20,24 +23,32 @@ bool string_replacer__create(
     self->withs_top = 0;
     self->withs_size = max_number_of_replacements;
 
-    self->whats = libc__malloc(self->withs_size * sizeof(*self->whats));
-    self->withs = libc__malloc(self->withs_size * sizeof(*self->withs));
-    self->with_sizes = libc__malloc(self->withs_size * sizeof(*self->with_sizes));
-    self->what_sizes = libc__malloc(self->withs_size * sizeof(*self->what_sizes));
+    self->whats_memory_slice = linear_allocator__push(allocator, max_number_of_replacements * sizeof(*self->whats));
+    self->whats = memory_slice__memory(&self->whats_memory_slice);
+
+    self->with_sizes_memory_slice = linear_allocator__push(allocator, max_number_of_replacements * sizeof(*self->with_sizes));
+    self->with_sizes = memory_slice__memory(&self->with_sizes_memory_slice);
+
+    self->withs_memory_slice = linear_allocator__push(allocator, max_number_of_replacements * sizeof(*self->withs));
+    self->withs = memory_slice__memory(&self->withs_memory_slice);
+
+    self->what_sizes_memory_slice = linear_allocator__push(allocator, max_number_of_replacements * sizeof(*self->what_sizes));
+    self->what_sizes = memory_slice__memory(&self->what_sizes_memory_slice);
     
     self->with_buffer_top = 0;
-    self->with_buffer_size = self->withs_size * total_size_of_replacements_in_bytes;
-    self->with_buffer = libc__malloc(self->with_buffer_size);
+    self->with_buffer_size = self->withs_size * average_size_of_replacement_in_bytes;
+    self->with_buffer_memory_slice = linear_allocator__push(allocator, self->with_buffer_size);
+    self->with_buffer = memory_slice__memory(&self->with_buffer_memory_slice);
 
     return true;
 }
 
 void string_replacer__destroy(struct string_replacer* self) {
-    libc__free(self->whats);
-    libc__free(self->withs);
-    libc__free(self->with_sizes);
-    libc__free(self->what_sizes);
-    libc__free(self->with_buffer);
+    linear_allocator__pop(self->allocator, self->with_buffer_memory_slice);
+    linear_allocator__pop(self->allocator, self->what_sizes_memory_slice);
+    linear_allocator__pop(self->allocator, self->withs_memory_slice);
+    linear_allocator__pop(self->allocator, self->with_sizes_memory_slice);
+    linear_allocator__pop(self->allocator, self->whats_memory_slice);
 }
 
 void string_replacer__clear(struct string_replacer* self, const char* original, u32 original_len) {

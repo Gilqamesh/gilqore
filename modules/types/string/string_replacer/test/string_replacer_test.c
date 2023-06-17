@@ -538,19 +538,34 @@ int main() {
     printf("Original string: \"%s\"\n", original);
 #endif
 
-    u32 buffer_size = 131072;
+    u32 buffer_size = KILOBYTES(131);
     char* buffer = libc__malloc(buffer_size);
 
     u32 total_number_of_replacements = 16;
     u32 average_replacement_size = 1024;
     u32 total_size_of_replacements_in_bytes = total_number_of_replacements * average_replacement_size;
+
+    u32 string_replacer_memory_size = total_size_of_replacements_in_bytes + KILOBYTES(16);
+    void* string_replacer_memory = libc__malloc(string_replacer_memory_size);
+
+    struct linear_allocator string_replacer_allocator;
+    TEST_FRAMEWORK_ASSERT(
+        linear_allocator__create(
+            &string_replacer_allocator,
+            memory_slice__create(
+                string_replacer_memory,
+                string_replacer_memory_size
+            )
+        )
+    );
     TEST_FRAMEWORK_ASSERT(
         string_replacer__create(
             &string_replacer,
+            &string_replacer_allocator,
             original,
             original_len,
             total_number_of_replacements,
-            total_size_of_replacements_in_bytes
+            average_replacement_size
         ) == true
     );
 
@@ -644,6 +659,8 @@ int main() {
 
     TEST_FRAMEWORK_ASSERT(file__delete(filename) == true);
     libc__free(buffer);
+
+    string_replacer__destroy(&string_replacer);
 
     return 0;
 }

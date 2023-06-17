@@ -13,7 +13,7 @@
 #include "common/error_code.h"
 #include "time/time.h"
 #include "memory/linear_allocator/linear_allocator.h"
-#include "data_structures/generic_array/generic_array.h"
+#include "data_structures/stack/stack.h"
 
 #define CONFIG_EXTENSION "gmc"
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
@@ -47,25 +47,27 @@
 #define VALUE_APPLICATION_TYPE_DEFAULT VALUE_APPLICATION_TYPE_CONSOLE
 
 #define MODULES_PATH "modules"
-
 #define TEST_FRAMEWORK_MODULE_NAME "test_framework"
 
-void module_compiler__clear_transient_flags(struct generic_array* modules) {
-    for (u32 module_index = 0; module_index < generic_array__size(modules); ++module_index) {
-        ((struct module*) generic_array__at(modules, module_index))->transient_flag_for_processing = 0;
+// todo: put this into file module
+#define MAX_FILE_PATH_SIZE 256
+
+void module_compiler__clear_transient_flags(struct stack* modules) {
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
+        ((struct module*) stack__at(modules, module_index))->transient_flag_for_processing = 0;
     }
 }
 
 struct module* module_compiler__add_child(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     const char* child_module_basename
 ) {
-    if (generic_array__size(modules) == generic_array__capacity(modules)) {
+    if (stack__size(modules) == stack__capacity(modules)) {
         // error_code__exit(REACHED_MAX_MODULES_SIZE);
         error_code__exit(214);
     }
-    struct module* child = generic_array__push(modules);
+    struct module* child = stack__push(modules);
     child->parent = self;
     if (
         (u32) libc__snprintf(
@@ -147,13 +149,13 @@ void module_compiler__add_test_dependency(struct module* self, struct module* de
 
 static void module_compiler__check_cyclic_dependency_helper(
     struct module* module,
-    struct generic_array* all_modules
+    struct stack* all_modules
 ) {
     if (module->transient_flag_for_processing > 0) {
         libc__printf("\ncyclic dependency detected between these modules: ");
-        for (u32 module_index = 0; module_index < generic_array__size(all_modules); ++module_index) {
-            if (((struct module*)generic_array__at(all_modules, module_index))->transient_flag_for_processing > 0) {
-                libc__printf("%s ", ((struct module*)generic_array__at(all_modules, module_index))->basename);
+        for (u32 module_index = 0; module_index < stack__size(all_modules); ++module_index) {
+            if (((struct module*)stack__at(all_modules, module_index))->transient_flag_for_processing > 0) {
+                libc__printf("%s ", ((struct module*)stack__at(all_modules, module_index))->basename);
             }
         }
         // error_code__exit(CYCLIC_DEPENDENCY_BETWEEN_MODULES);
@@ -168,13 +170,13 @@ static void module_compiler__check_cyclic_dependency_helper(
     module->transient_flag_for_processing = 0;
 }
 
-void module_compiler__check_cyclic_dependency(struct generic_array* modules) {
-    if (generic_array__size(modules) == 0) {
+void module_compiler__check_cyclic_dependency(struct stack* modules) {
+    if (stack__size(modules) == 0) {
         return ;
     }
 
     module_compiler__clear_transient_flags(modules);
-    module_compiler__check_cyclic_dependency_helper(generic_array__at(modules, 0), modules);
+    module_compiler__check_cyclic_dependency_helper(stack__at(modules, 0), modules);
 }
 
 void module_compiler__print_dependencies(struct module* self) {
@@ -200,7 +202,7 @@ void module_compiler__print_test_dependencies(struct module* self) {
 }
 
 static void module_compiler__print_branch_helper(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* from,
     s32 cur_depth
 ) {
@@ -224,7 +226,7 @@ static void module_compiler__print_branch_helper(
 
 void module_compiler__print_branch(
     struct module* from,
-    struct generic_array* modules
+    struct stack* modules
 ) {
     module_compiler__print_branch_helper(
         modules,
@@ -264,12 +266,12 @@ void main() {
 }
 
 struct module* module_compiler__find_module_by_name(
-    struct generic_array* modules,
+    struct stack* modules,
     const char* basename
 ) {
     // todo: store modules in a hashmap by their base names
-    for (u32 module_index = 0; module_index < generic_array__size(modules); ++module_index) {
-        struct module* cur_module = generic_array__at(modules, module_index);
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
+        struct module* cur_module = stack__at(modules, module_index);
         if (libc__strcmp(cur_module->basename, basename) == 0) {
             return cur_module;
         }
@@ -277,7 +279,10 @@ struct module* module_compiler__find_module_by_name(
     return NULL;
 }
 
-void module_compiler__parse_config_files(struct generic_array* modules) {
+void module_compiler__parse_config_files(
+    struct stack* modules,
+    struct linear_allocator* allocator
+) {
     struct file error_codes_file;
     struct file_writer file_writer;
     struct file_reader file_reader;
@@ -285,16 +290,16 @@ void module_compiler__parse_config_files(struct generic_array* modules) {
     TEST_FRAMEWORK_ASSERT(file__open(&error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
     u32 max_number_of_replacements_in_def_files = 16;
     u32 average_size_of_replacement_in_bytes = 256;
-    u32 max_module_defs_file_size_in_bytes = max_number_of_replacements_in_def_files * average_size_of_replacement_in_bytes;
     file_writer__create(&file_writer);
     file_reader__create(&file_reader, NULL);
     TEST_FRAMEWORK_ASSERT(
         string_replacer__create(
             &string_replacer,
+            allocator,
             "",
             0,
             max_number_of_replacements_in_def_files,
-            max_module_defs_file_size_in_bytes
+            average_size_of_replacement_in_bytes
         ) == true
     );
 
@@ -309,10 +314,10 @@ void module_compiler__parse_config_files(struct generic_array* modules) {
     char* def_file_name_buffer = libc__malloc(def_file_name_buffer_size);
     char* config_file_name_buffer = libc__malloc(config_file_name_buffer_size);
 
-    for (u32 module_index = 0; module_index < generic_array__size(modules); ++module_index) {
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         module_compiler__parse_config_file(
             modules,
-            generic_array__at(modules, module_index),
+            stack__at(modules, module_index),
             &file_writer,
             &file_reader,
             &error_codes_file,
@@ -424,7 +429,7 @@ void parse_config_file_unique_error_codes(
 }
 
 static void parse_config_file_dependencies(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     struct file_reader* config_file_reader,
     char* buffer,
@@ -498,7 +503,7 @@ static void parse_config_file_application_type(
 }
 
 static void parse_config_file_test_dependencies(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     struct file_reader* config_file_reader,
     char* buffer,
@@ -876,7 +881,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
 }
 
 static void parse_and_handle_config_file(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     struct file_reader* file_reader,
     struct file_writer* file_writer,
@@ -987,7 +992,7 @@ static void parse_and_handle_config_file(
 }
 
 static void parse_and_handle_platform_specific_config_file(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     struct file_reader* file_reader,
     struct file_writer* file_writer,
@@ -1192,7 +1197,7 @@ static void update_gmc_files(
 }
 
 void module_compiler__parse_config_file(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     struct file_writer* file_writer,
     struct file_reader* file_reader,
@@ -1576,8 +1581,8 @@ static void update_platform_specific_directories(const char* path) {
 }
 
 static void ensure_test_file_template_exists(
-    struct string_replacer* string_replacer,
-    struct module* self
+    struct module* self,
+    struct linear_allocator* allocator
 ) {
     static char test_file_template_buffer[1024];
     static u32 test_file_template_len;
@@ -1613,22 +1618,33 @@ static void ensure_test_file_template_exists(
         test_file_template_len = read_bytes;
     }
 
+    u32 max_number_of_replacements = 1;
+    u32 average_number_of_replacement_size = MAX_FILE_PATH_SIZE + 16;
+    struct string_replacer test_file_template_replacer;
+    string_replacer__create(
+        &test_file_template_replacer,
+        allocator,
+        test_file_template_buffer,
+        test_file_template_len,
+        max_number_of_replacements,
+        average_number_of_replacement_size
+    );
     static char what[] = "$(MODULE_HEADER)";
-    string_replacer__clear(string_replacer, test_file_template_buffer, test_file_template_len);
     // todo: remove this unnecessary work and the assumption about self->dirprefix
     const char modules_prefix[] = "modules/";
     TEST_FRAMEWORK_ASSERT(libc__strncmp(modules_prefix, self->dirprefix, ARRAY_SIZE(modules_prefix) - 1) == 0);
     string_replacer__replace_word_f(
-        string_replacer,
+        &test_file_template_replacer,
         1, what, ARRAY_SIZE(what) - 1,
         "%s/%s.h", self->dirprefix + ARRAY_SIZE(modules_prefix) - 1, self->basename
     );
 
     struct file module_test_file;
     TEST_FRAMEWORK_ASSERT(file__open(&module_test_file, module_test_file_path, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-    string_replacer__read_into_file(string_replacer, &module_test_file, 0);
-
+    string_replacer__read_into_file(&test_file_template_replacer, &module_test_file, 0);
     file__close(&module_test_file);
+
+    string_replacer__destroy(&test_file_template_replacer);
 }
 
 // @returns true if path is a module
@@ -1710,7 +1726,7 @@ bool is_module_path(const char* path, void* modules) {
 }
 
 void module_compiler__explore_children(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self
 ) {
     struct directory dir;
@@ -1762,7 +1778,7 @@ static u32 module_compiler__get_dependencies(
 }
 
 static u32 module_compiler__get_test_dependencies(
-    struct generic_array* modules,
+    struct stack* modules,
     struct module* self,
     char** dependency_buffer,
     u32 dependency_buffer_size
@@ -1796,34 +1812,34 @@ static u32 module_compiler__get_test_dependencies(
 }
 
 void module_compiler__embed_dependencies_into_makefile(
-    struct generic_array* modules,
-    const char* file_path_prefix,
-    char* file_path_buffer,
-    char* file_buffer,
-    char* dependencies_buffer,
-    char* auxiliary_buffer,
-    struct string_replacer* string_replacer,
-    struct string_replacer* string_replacer_aux,
-    u32 file_path_buffer_size,
-    u32 file_buffer_size,
-    u32 dependencies_buffer_size,
-    u32 auxiliary_buffer_size
+    struct stack* modules,
+    struct linear_allocator* allocator
 ) {
     struct file modules_makefile_template_file;
-    TEST_FRAMEWORK_ASSERT(file__open(&modules_makefile_template_file, MODULES_TEMPLATE_PATH, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
-    u32 modules_makefile_template_file_size = file__read(&modules_makefile_template_file, file_buffer, file_buffer_size);
-    if (modules_makefile_template_file_size == file_buffer_size) {
+    ASSERT(file__open(&modules_makefile_template_file, MODULES_TEMPLATE_PATH, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN));
+    u32 modules_makefile_max_size = KILOBYTES(32);
+    ASSERT(modules_makefile_max_size <= linear_allocator__available(allocator));
+    struct memory_slice modules_makefile_template_memory_slice = linear_allocator__push(allocator, modules_makefile_max_size);
+    u32 modules_makefile_template_file_size = file__read(
+        &modules_makefile_template_file,
+        memory_slice__memory(&modules_makefile_template_memory_slice),
+        memory_slice__size(&modules_makefile_template_memory_slice)
+    );
+    if (modules_makefile_template_file_size == (u32) memory_slice__size(&modules_makefile_template_memory_slice)) {
         // error_code__exit(FILE_BUFFER_TOO_SMALL);
         error_code__exit(43825);
     }
     file__close(&modules_makefile_template_file);
 
-    for (u32 module_index = 0; module_index < generic_array__size(modules); ++module_index) {
-        struct module* cur_module = (struct module*) generic_array__at(modules, module_index);
+    struct memory_slice makefile_path_memory_slice = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
 
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
+        struct module* cur_module = (struct module*) stack__at(modules, module_index);
+
+        struct memory_slice dependencies_memory_slice = linear_allocator__push(allocator, ARRAY_SIZE(cur_module->basename) * (stack__capacity(modules) >> 1));
+        char* cur_dependency_buffer = memory_slice__memory(&dependencies_memory_slice);
         module_compiler__clear_transient_flags(modules);
-        char* cur_dependency_buffer = dependencies_buffer;
-        u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, dependencies_buffer_size);
+        u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, memory_slice__size(&dependencies_memory_slice));
 
         static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
         static const char module_test_dependency_replace_what[] = "$(MODULE_TEST_DEPENDS)";
@@ -1834,33 +1850,44 @@ void module_compiler__embed_dependencies_into_makefile(
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
         static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
 
-        string_replacer__clear(string_replacer, file_buffer, modules_makefile_template_file_size);
+        const u32 max_number_of_module_name_occurances = 128;
+        const u32 max_number_of_occurances_aux = 16;
+        const u32 average_replacement_size = 32;
+        struct string_replacer modules_makefile_template_replacer;
+        ASSERT(string_replacer__create(
+            &modules_makefile_template_replacer,
+            allocator,
+            memory_slice__memory(&modules_makefile_template_memory_slice),
+            modules_makefile_template_file_size,
+            max_number_of_module_name_occurances + max_number_of_occurances_aux,
+            average_replacement_size
+        ));
         u32 number_of_what_replacements = 1;
         string_replacer__replace_word(
-            string_replacer,
+            &modules_makefile_template_replacer,
             number_of_what_replacements,
             module_dependency_replace_what,
             module_dependency_replace_what_len,
-            dependencies_buffer,
-            dependencies_buffer_size - dependencies_buffer_size_left
+            memory_slice__memory(&dependencies_memory_slice),
+            memory_slice__size(&dependencies_memory_slice) - dependencies_buffer_size_left
         );
 
         module_compiler__clear_transient_flags(modules);
-        cur_dependency_buffer = dependencies_buffer;
-        dependencies_buffer_size_left = module_compiler__get_test_dependencies(modules, cur_module, &cur_dependency_buffer, dependencies_buffer_size);
+        cur_dependency_buffer = memory_slice__memory(&dependencies_memory_slice);
+        dependencies_buffer_size_left = module_compiler__get_test_dependencies(modules, cur_module, &cur_dependency_buffer, memory_slice__size(&dependencies_memory_slice));
         number_of_what_replacements = (u32) 1;
         string_replacer__replace_word(
-            string_replacer,
+            &modules_makefile_template_replacer,
             number_of_what_replacements,
             module_test_dependency_replace_what,
             module_test_dependency_replace_what_len,
-            dependencies_buffer,
-            dependencies_buffer_size - dependencies_buffer_size_left
+            memory_slice__memory(&dependencies_memory_slice),
+            memory_slice__size(&dependencies_memory_slice) - dependencies_buffer_size_left
         );
 
         number_of_what_replacements = (u32) -1;
         string_replacer__replace_word(
-            string_replacer,
+            &modules_makefile_template_replacer,
             number_of_what_replacements,
             module_name_replace_what,
             module_name_replace_what_len,
@@ -1870,7 +1897,7 @@ void module_compiler__embed_dependencies_into_makefile(
 
         number_of_what_replacements = 1;
         u32 new_makefile_size = string_replacer__replace_word(
-            string_replacer,
+            &modules_makefile_template_replacer,
             number_of_what_replacements,
             module_lflags_specific_replace_what,
             module_lflags_specific_replace_what_len,
@@ -1878,53 +1905,76 @@ void module_compiler__embed_dependencies_into_makefile(
             libc__strlen(cur_module->application_type)
         );
 
+
         u32 written_bytes = libc__snprintf(
-            auxiliary_buffer,
-            auxiliary_buffer_size,
+            memory_slice__memory(&makefile_path_memory_slice),
+            memory_slice__size(&makefile_path_memory_slice),
             "%s/%s.mk",
             cur_module->dirprefix, cur_module->basename
         );
-        TEST_FRAMEWORK_ASSERT(written_bytes < auxiliary_buffer_size);
+        TEST_FRAMEWORK_ASSERT(written_bytes < memory_slice__size(&makefile_path_memory_slice));
         static const char modules_dir_path[] = "modules";
         const u32 modules_dir_path_size = ARRAY_SIZE(modules_dir_path) - 1;
-        string_replacer__clear(string_replacer_aux, auxiliary_buffer, written_bytes);
+
+        struct string_replacer string_replacer_aux;
+        ASSERT(string_replacer__create(
+            &string_replacer_aux,
+            allocator,
+            memory_slice__memory(&makefile_path_memory_slice),
+            written_bytes,
+            1,
+            libc__strlen(MODULES_PATH)
+        ));
         string_replacer__replace_word(
-            string_replacer_aux,
+            &string_replacer_aux,
             1,
             modules_dir_path, modules_dir_path_size,
-            file_path_prefix, libc__strlen(file_path_prefix)
+            MODULES_PATH, libc__strlen(MODULES_PATH)
+        );
+        struct memory_slice file_path_memory =
+        linear_allocator__push(
+            allocator,
+            ARRAY_SIZE(cur_module->basename) + ARRAY_SIZE(cur_module->dirprefix)
         );
         TEST_FRAMEWORK_ASSERT(
             string_replacer__read(
-                string_replacer_aux,
-                file_path_buffer,
-                file_path_buffer_size,
+                &string_replacer_aux,
+                memory_slice__memory(&file_path_memory),
+                memory_slice__size(&file_path_memory),
                 0
-            ) < file_path_buffer_size
+            ) < memory_slice__size(&file_path_memory)
         );
         struct file makefile;
-        TEST_FRAMEWORK_ASSERT(file__open(&makefile, file_path_buffer, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+        TEST_FRAMEWORK_ASSERT(file__open(&makefile, memory_slice__memory(&file_path_memory), FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
         TEST_FRAMEWORK_ASSERT(
             string_replacer__read_into_file(
-                string_replacer,
+                &modules_makefile_template_replacer,
                 &makefile,
                 0
             ) == new_makefile_size
         );
+
+        linear_allocator__pop(allocator, file_path_memory);
+        string_replacer__destroy(&string_replacer_aux);
+        string_replacer__destroy(&modules_makefile_template_replacer);
+        linear_allocator__pop(allocator, dependencies_memory_slice);
         file__close(&makefile);
     }
+
+    linear_allocator__pop(allocator, makefile_path_memory_slice);
+    linear_allocator__pop(allocator, modules_makefile_template_memory_slice);
 }
 
 void module_compiler__ensure_test_file_templates_exist(
-    struct generic_array* modules,
-    struct string_replacer* string_replacer
+    struct stack* modules,
+    struct linear_allocator* allocator
 ) {
-    for (u32 module_index = 0; module_index < generic_array__size(modules); ++module_index) {
-        struct module* module = generic_array__at(modules, module_index);
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
+        struct module* module = stack__at(modules, module_index);
         if (libc__strcmp(module->basename, TEST_FRAMEWORK_MODULE_NAME) == 0) {
             continue;
         }
 
-        ensure_test_file_template_exists(string_replacer, module);
+        ensure_test_file_template_exists(module, allocator);
     }
 }

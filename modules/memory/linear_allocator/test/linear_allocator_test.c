@@ -12,7 +12,7 @@ void test_push(
     struct linear_allocator *allocator,
     void **item_container,
     void *expected_item,
-    struct linear_allocator_memory_slice *memory_slices,
+    struct memory_slice *memory_slices,
     u32 item_container_size,
     u32 item_size,
     u32 memory_slices_size,
@@ -86,18 +86,18 @@ void test_push(
 
 struct test_data {
     struct linear_allocator allocator;
-    struct linear_allocator_memory_slice* memory_slices;
-    struct linear_allocator_memory_slice memory_slices_memory_slice;
+    struct memory_slice* memory_slices;
+    struct memory_slice memory_slices_memory_slice;
     u32 memory_slices_size;
     void** item_container;
-    struct linear_allocator_memory_slice item_container_memory_slice;
+    struct memory_slice item_container_memory_slice;
     u32 item_container_size;
     void* aux_item;
-    struct linear_allocator_memory_slice aux_item_memory_slice;
+    struct memory_slice aux_item_memory_slice;
     u32 item_size;
 
     void* memory;
-    struct linear_allocator_memory_slice memory_memory_slice;
+    struct memory_slice memory_memory_slice;
 };
 
 struct test_data test_data__create(
@@ -111,7 +111,12 @@ struct test_data test_data__create(
     TEST_FRAMEWORK_ASSERT(test_data.memory_memory_slice.size == memory_size);
     test_data.memory = test_data.memory_memory_slice.memory;
 
-    TEST_FRAMEWORK_ASSERT(linear_allocator__create(&test_data.allocator, test_data.memory, memory_size));
+    TEST_FRAMEWORK_ASSERT(
+        linear_allocator__create(
+            &test_data.allocator,
+            memory_slice__create(test_data.memory, memory_size)
+        )
+    );
     TEST_FRAMEWORK_ASSERT(linear_allocator__available(&test_data.allocator) == memory_size);
 
     test_data.aux_item_memory_slice = linear_allocator__push(main_allocator, item_size);
@@ -248,7 +253,10 @@ int main() {
     u64 main_memory_size = aux_memory + max_memory_size;
     void* main_memory = libc__malloc(main_memory_size);
     struct linear_allocator main_allocator;
-    linear_allocator__create(&main_allocator,  main_memory, main_memory_size);
+    linear_allocator__create(
+        &main_allocator,
+        memory_slice__create(main_memory, main_memory_size)
+    );
 
     u32 total_test_runs = 0;
 
@@ -269,7 +277,7 @@ int main() {
         total_test_runs += test_evaluate_subresult(random_seed, memory_size, item_size, &main_allocator);
     }
 
-    libc__printf("total test runs: %u\n", total_test_runs);
+    // libc__printf("total test runs: %u\n", total_test_runs);
 
     linear_allocator__destroy(&main_allocator);
     libc__free(main_memory);

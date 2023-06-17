@@ -1,0 +1,14 @@
+#ifndef STACK_DEFS_H
+# define STACK_DEFS_H
+
+# include "../data_structures_defs.h"
+
+enum stack_error_code {
+    STACK_ERROR_CODE_START,
+    STACK_ERROR_CODE_SIZE_OF_ONE_ITEM_IS_ZERO_IN_CREATE = 16,
+    STACK_ERROR_CODE_INDEX_OUT_OF_RANGE_IN_AT = 17,
+    STACK_ERROR_CODE_UNDERFLOW_IN_POP = 18,
+    STACK_ERROR_CODE_OVERFLOW_IN_PUSH = 19,
+};
+
+#endif

@@ -7,4 +7,10 @@ enum memory_error_code {
     MEMORY_ERROR_CODE_START,
 };
 
+struct memory_slice {
+    void* memory;
+    u64 size;
+    u64 offset; // implementation specific, for now it's just offset
+};
+
 #endif

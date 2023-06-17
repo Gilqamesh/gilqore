@@ -1,9 +1,0 @@
-unique_error_codes: [
-    SIZE_OF_ONE_ITEM_IS_ZERO_IN_CREATE: supplied parameter size of one item is 0 in generic_array__create
-    INDEX_OUT_OF_RANGE_IN_AT: provided index is out of range generic_array__at
-    UNDERFLOW_IN_POP: underflow in generic_array__pop
-    OVERFLOW_IN_PUSH: overflow in generic_array__push
-]
-module_dependencies:
-test_dependencies:
-application_type: CONSOLE
