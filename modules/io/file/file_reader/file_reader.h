@@ -3,16 +3,22 @@
 
 # include "file_reader_defs.h"
 
-# include "../file.h"
+struct file;
+struct memory_slice;
+
 # include "data_structures/circular_buffer/circular_buffer.h"
 
 struct file_reader {
-    circular_buffer_t circular_buffer;
+    struct circular_buffer circular_buffer;
     struct file* file;
     bool eof_reached;
 };
 
-PUBLIC_API bool file_reader__create(struct file_reader* self, struct file* file);
+PUBLIC_API bool file_reader__create(
+    struct file_reader* self,
+    struct file* file,
+    struct memory_slice internal_buffer
+);
 PUBLIC_API void file_reader__destroy(struct file_reader* self);
 
 // @brief clear internal state and replace the file to read from

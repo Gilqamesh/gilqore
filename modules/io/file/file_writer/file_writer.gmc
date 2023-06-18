@@ -1,6 +1,6 @@
 unique_error_codes: [
     FILE_WRITE_UNEXPECTED_NUMBER_OF_BYTES_WRITTEN: file__write in file_reader__write written a number of bytes other than the specified amount
 ]
-module_dependencies: libc common file
+module_dependencies: libc common file memory
 application_type: CONSOLE
 test_dependencies: 

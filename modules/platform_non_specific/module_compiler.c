@@ -377,27 +377,17 @@ void module_compiler__parse_config_files(
     struct linear_allocator* allocator
 ) {
     struct file error_codes_file;
-    struct file_writer file_writer;
-    struct file_reader file_reader;
     TEST_FRAMEWORK_ASSERT(file__open(&error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-
-    // todo: make these work with memory_slice or linear_allocator and remove these from here
-    file_writer__create(&file_writer);
-    file_reader__create(&file_reader, NULL);
 
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         module_compiler__parse_config_file(
             modules,
             stack__at(modules, module_index),
             allocator,
-            &file_writer,
-            &file_reader,
             &error_codes_file
         );
     }
 
-    file_writer__destroy(&file_writer);
-    file_reader__destroy(&file_reader);
     file__close(&error_codes_file);
 }
 
@@ -789,7 +779,6 @@ static void def_file_add_error_codes_place_holder__update(
     struct module* self,
     struct linear_allocator* allocator,
     struct file* def_file,
-    struct file_reader* file_reader,
     char* def_file_name_buffer,
     char* module_name_capitalized,
     const char* rest_of_the_error_codes
@@ -813,7 +802,15 @@ static void def_file_add_error_codes_place_holder__update(
         )
     );
     TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-    file_reader__clear(file_reader, def_file);
+    struct memory_slice file_reader_memory_slice = linear_allocator__push(allocator, KILOBYTES(2));
+    struct file_reader file_reader;
+    TEST_FRAMEWORK_ASSERT(
+        file_reader__create(
+            &file_reader,
+            def_file,
+            file_reader_memory_slice
+        )
+    );
 
     struct memory_slice enum_error_code_memory_slice = linear_allocator__push(allocator, ENUM_ERROR_CODE_MAX_SIZE);
     u32 bytes_written = libc__snprintf(
@@ -829,7 +826,7 @@ static void def_file_add_error_codes_place_holder__update(
     struct memory_slice def_file_aux_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 what_position;
     bool does_enum_error_codes_exit = file_reader__read_while_not_word(
-        file_reader,
+        &file_reader,
         memory_slice__memory(&def_file_aux_memory_slice), memory_slice__size(&def_file_aux_memory_slice),
         memory_slice__memory(&enum_error_code_memory_slice), bytes_written,
         &what_position
@@ -839,7 +836,7 @@ static void def_file_add_error_codes_place_holder__update(
         error_code__exit(32476);
     }
     if (does_enum_error_codes_exit) {
-        u32 what_size = file_reader__read_while_not(file_reader, NULL, 0, "}");
+        u32 what_size = file_reader__read_while_not(&file_reader, NULL, 0, "}");
         string_replacer__replace_at_position_f(
             &def_file_string_replacer,
             what_position,
@@ -861,10 +858,10 @@ static void def_file_add_error_codes_place_holder__update(
             error_code__exit(32476);
         }
         TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-        file_reader__clear(file_reader, def_file);
+        file_reader__clear(&file_reader, def_file);
         TEST_FRAMEWORK_ASSERT(
             file_reader__read_while_not_word(
-                file_reader,
+                &file_reader,
                 memory_slice__memory(&def_file_aux_memory_slice), memory_slice__size(&def_file_aux_memory_slice),
                 memory_slice__memory(&enum_error_code_memory_slice), bytes_written,
                 &what_position
@@ -895,6 +892,9 @@ static void def_file_add_error_codes_place_holder__update(
     linear_allocator__pop(allocator, def_file_aux_memory_slice);
     linear_allocator__pop(allocator, enum_error_code_memory_slice);
 
+    file_reader__destroy(&file_reader);
+    linear_allocator__pop(allocator, file_reader_memory_slice);
+
     string_replacer__destroy(&def_file_string_replacer);
 
     linear_allocator__pop(allocator, def_file_memory_slice);
@@ -904,7 +904,6 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
     struct module* self,
     struct linear_allocator* allocator,
     struct file* def_file,
-    struct file_reader* file_reader,
     char* def_file_name_buffer,
     char* module_name_capitalized,
     const char* rest_of_the_error_codes,
@@ -930,7 +929,15 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
         )
     );
     TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-    file_reader__clear(file_reader, def_file);
+    struct memory_slice file_reader_memory_slice = linear_allocator__push(allocator, KILOBYTES(2));
+    struct file_reader file_reader;
+    TEST_FRAMEWORK_ASSERT(
+        file_reader__create(
+            &file_reader,
+            def_file,
+            file_reader_memory_slice
+        )
+    );
 
     struct memory_slice enum_error_code_memory_slice = linear_allocator__push(allocator, ENUM_ERROR_CODE_MAX_SIZE);
     u32 bytes_written = libc__snprintf(
@@ -946,7 +953,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
     struct memory_slice def_file_aux_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 what_position;
     bool does_enum_error_codes_exit = file_reader__read_while_not_word(
-        file_reader,
+        &file_reader,
         memory_slice__memory(&def_file_aux_memory_slice), memory_slice__size(&def_file_aux_memory_slice),
         memory_slice__memory(&enum_error_code_memory_slice), bytes_written,
         &what_position
@@ -956,7 +963,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
         error_code__exit(32476);
     }
     if (does_enum_error_codes_exit) {
-        u32 what_size = file_reader__read_while_not(file_reader, NULL, 0, "}");
+        u32 what_size = file_reader__read_while_not(&file_reader, NULL, 0, "}");
         string_replacer__replace_at_position_f(
             &def_file_string_replacer,
             what_position,
@@ -977,10 +984,10 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
             error_code__exit(32476);
         }
         TEST_FRAMEWORK_ASSERT(file__seek(def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-        file_reader__clear(file_reader, def_file);
+        file_reader__clear(&file_reader, def_file);
         TEST_FRAMEWORK_ASSERT(
             file_reader__read_while_not_word(
-                file_reader,
+                &file_reader,
                 memory_slice__memory(&def_file_aux_memory_slice), memory_slice__size(&def_file_aux_memory_slice),
                 memory_slice__memory(&enum_error_code_memory_slice), bytes_written,
                 &what_position
@@ -1011,6 +1018,9 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
     linear_allocator__pop(allocator, def_file_aux_memory_slice);
     linear_allocator__pop(allocator, enum_error_code_memory_slice);
 
+    file_reader__destroy(&file_reader);
+    linear_allocator__pop(allocator, file_reader_memory_slice);
+
     string_replacer__destroy(&def_file_string_replacer);
 
     linear_allocator__pop(allocator, def_file_memory_slice);
@@ -1020,8 +1030,6 @@ static void parse_and_handle_config_file(
     struct stack* modules,
     struct linear_allocator* allocator,
     struct module* self,
-    struct file_reader* file_reader,
-    struct file_writer* file_writer,
     struct file* error_codes_file,
     char* config_file_name,
     char* module_name_capitalized,
@@ -1029,10 +1037,21 @@ static void parse_and_handle_config_file(
 ) {
     struct file config_file;
     TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-    file_reader__clear(file_reader, &config_file);
+    struct memory_slice file_reader_memory_slice = linear_allocator__push(allocator, KILOBYTES(1));
+    struct file_reader config_file_reader;
+    TEST_FRAMEWORK_ASSERT(
+        file_reader__create(
+            &config_file_reader,
+            &config_file,
+            file_reader_memory_slice
+        )
+    );
 
     struct memory_slice key_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice config_file_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
+    struct memory_slice def_file_writer_memory = linear_allocator__push(allocator, KILOBYTES(1));
+    struct file_writer def_file_writer;
+    TEST_FRAMEWORK_ASSERT(file_writer__create(&def_file_writer, def_file_writer_memory));
     bool parsed_unique_error_codes = false;
     bool parsed_module_dependencies = false;
     bool parsed_application_type = false;
@@ -1043,12 +1062,12 @@ static void parse_and_handle_config_file(
         parsed_unique_error_codes == false ||
         parsed_application_type == false
     ) {
-        parse_key_from_file(file_reader, key_memory_slice);
+        parse_key_from_file(&config_file_reader, key_memory_slice);
 
         if (libc__strcmp(memory_slice__memory(&key_memory_slice), KEY_UNIQUE_ERROR_CODES) == 0) {
             parse_config_file_unique_error_codes(
-                file_reader,
-                file_writer,
+                &config_file_reader,
+                &def_file_writer,
                 error_codes_file,
                 module_name_capitalized,
                 config_file_memory_slice,
@@ -1059,14 +1078,14 @@ static void parse_and_handle_config_file(
             parse_config_file_dependencies(
                 modules,
                 self,
-                file_reader,
+                &config_file_reader,
                 config_file_memory_slice
             );
             parsed_module_dependencies = true;
         } else if (libc__strcmp(memory_slice__memory(&key_memory_slice), KEY_APPLICATION_TYPE) == 0) {
             parse_config_file_application_type(
                 self,
-                file_reader,
+                &config_file_reader,
                 config_file_memory_slice
             );
             parsed_application_type = true;
@@ -1074,7 +1093,7 @@ static void parse_and_handle_config_file(
             parse_config_file_test_dependencies(
                 modules,
                 self,
-                file_reader,
+                &config_file_reader,
                 config_file_memory_slice
             );
             parsed_test_dependencies = true;
@@ -1082,7 +1101,7 @@ static void parse_and_handle_config_file(
             file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
             if (parsed_module_dependencies == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: \n",
                     KEY_MODULE_DEPENDENCIES
@@ -1091,7 +1110,7 @@ static void parse_and_handle_config_file(
             }
             if (parsed_test_dependencies == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: \n",
                     KEY_TEST_DEPENDENCIES
@@ -1100,7 +1119,7 @@ static void parse_and_handle_config_file(
             }
             if (parsed_unique_error_codes == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: [\n"
                     "]\n",
@@ -1110,7 +1129,7 @@ static void parse_and_handle_config_file(
             }
             if (parsed_application_type == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: %s\n",
                     KEY_APPLICATION_TYPE, VALUE_APPLICATION_TYPE_DEFAULT
@@ -1122,16 +1141,20 @@ static void parse_and_handle_config_file(
     }
     file__close(&config_file);
 
+    file_writer__destroy(&def_file_writer);
+    linear_allocator__pop(allocator, def_file_writer_memory);
+
     linear_allocator__pop(allocator, config_file_memory_slice);
     linear_allocator__pop(allocator, key_memory_slice);
+
+    file_reader__destroy(&config_file_reader);
+    linear_allocator__pop(allocator, file_reader_memory_slice);
 }
 
 static void parse_and_handle_platform_specific_config_file(
     struct stack* modules,
     struct linear_allocator* allocator,
     struct module* self,
-    struct file_reader* file_reader,
-    struct file_writer* file_writer,
     struct file* error_codes_file,
     char* config_file_name,
     char* module_name_capitalized,
@@ -1139,21 +1162,32 @@ static void parse_and_handle_platform_specific_config_file(
 ) {
     struct file config_file;
     TEST_FRAMEWORK_ASSERT(file__open(&config_file, config_file_name, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-    file_reader__clear(file_reader, &config_file);
+    struct memory_slice file_reader_memory_slice = linear_allocator__push(allocator, KILOBYTES(1));
+    struct file_reader config_file_reader;
+    TEST_FRAMEWORK_ASSERT(
+        file_reader__create(
+            &config_file_reader,
+            &config_file,
+            file_reader_memory_slice
+        )
+    );
 
     struct memory_slice key_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice config_file_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
+    struct memory_slice def_file_writer_memory = linear_allocator__push(allocator, KILOBYTES(1));
+    struct file_writer def_file_writer;
+    TEST_FRAMEWORK_ASSERT(file_writer__create(&def_file_writer, def_file_writer_memory));
     bool parsed_unique_error_codes = false;
     bool parsed_platform_specific_dependencies = false;
     while (
         parsed_unique_error_codes == false
     ) {
-        parse_key_from_file(file_reader, key_memory_slice);
+        parse_key_from_file(&config_file_reader, key_memory_slice);
 
         if (libc__strcmp(memory_slice__memory(&key_memory_slice), KEY_UNIQUE_ERROR_CODES) == 0) {
             parse_config_file_unique_error_codes(
-                file_reader,
-                file_writer,
+                &config_file_reader,
+                &def_file_writer,
                 error_codes_file,
                 module_name_capitalized,
                 config_file_memory_slice,
@@ -1164,7 +1198,7 @@ static void parse_and_handle_platform_specific_config_file(
             parse_config_file_dependencies(
                 modules,
                 self,
-                file_reader,
+                &config_file_reader,
                 config_file_memory_slice
             );
             parsed_platform_specific_dependencies = true;
@@ -1172,7 +1206,7 @@ static void parse_and_handle_platform_specific_config_file(
             file__seek(&config_file, 0, FILE_SEEK_TYPE_END);
             if (parsed_unique_error_codes == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: [\n"
                     "]\n",
@@ -1182,7 +1216,7 @@ static void parse_and_handle_platform_specific_config_file(
             }
             if (parsed_platform_specific_dependencies == false) {
                 file_writer__write_format(
-                    file_writer,
+                    &def_file_writer,
                     &config_file,
                     "%s: \n",
                     KEY_PLATFORM_SPECIFIC_MODULE_DEPENDENCIES
@@ -1194,8 +1228,14 @@ static void parse_and_handle_platform_specific_config_file(
     }
     file__close(&config_file);
 
+    file_writer__destroy(&def_file_writer);
+    linear_allocator__pop(allocator, def_file_writer_memory);
+
     linear_allocator__pop(allocator, config_file_memory_slice);
     linear_allocator__pop(allocator, key_memory_slice);
+
+    file_reader__destroy(&config_file_reader);
+    linear_allocator__pop(allocator, file_reader_memory_slice);
 }
 
 // static void parse_gmc_file(
@@ -1279,8 +1319,6 @@ void module_compiler__parse_config_file(
     struct stack* modules,
     struct module* self,
     struct linear_allocator* allocator,
-    struct file_writer* file_writer,
-    struct file_reader* file_reader,
     struct file* error_codes_file
 ) {
     update_gmc_files(self, allocator);
@@ -1365,7 +1403,6 @@ void module_compiler__parse_config_file(
                 self,
                 allocator,
                 &def_file,
-                file_reader,
                 memory_slice__memory(&def_file_path_memory_slice),
                 module_name_capitalized,
                 rest_of_the_error_codes
@@ -1400,8 +1437,6 @@ void module_compiler__parse_config_file(
         modules,
         allocator,
         self,
-        file_reader,
-        file_writer,
         error_codes_file,
         memory_slice__memory(&config_file_path_memory_slice),
         module_name_capitalized,
@@ -1509,7 +1544,6 @@ void module_compiler__parse_config_file(
                 self,
                 allocator,
                 &def_file,
-                file_reader,
                 memory_slice__memory(&def_file_path_memory_slice),
                 module_name_capitalized,
                 rest_of_the_error_codes,
@@ -1544,8 +1578,6 @@ void module_compiler__parse_config_file(
         modules,
         allocator,
         self,
-        file_reader,
-        file_writer,
         error_codes_file,
         memory_slice__memory(&config_file_path_memory_slice),
         module_name_capitalized,

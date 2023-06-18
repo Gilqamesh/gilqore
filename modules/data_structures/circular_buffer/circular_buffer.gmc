@@ -1,6 +1,6 @@
 unique_error_codes: [
     INVALID_PARAMETERS_DURING_CREATION: some of the parameters provided when creating the circular_buffer are incorrect
 ]
-module_dependencies: libc common compare mod
+module_dependencies: libc common compare mod memory
 application_type: CONSOLE
 test_dependencies: 

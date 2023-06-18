@@ -1,6 +1,9 @@
+#include "test_framework/test_framework.h"
+
 #include "io/file/file_writer/file_writer.h"
 
 #include "io/file/file.h"
+#include "libc/libc.h"
 
 int main() {
     struct file_writer writer;
@@ -8,10 +11,18 @@ int main() {
 
     const char* filename = "123fdsauji_dsa9324j";
     if (file__exists(filename)) {
-        ASSERT(file__delete(filename) == true);
+        TEST_FRAMEWORK_ASSERT(file__delete(filename));
     }
-    ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE) == true);
-    ASSERT(file_writer__create(&writer) == true);
+    TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
+
+    u32 file_writer_buffer_size = KILOBYTES(1);
+    void* file_writer_buffer = libc__malloc(file_writer_buffer_size);
+    TEST_FRAMEWORK_ASSERT(
+        file_writer__create(
+            &writer,
+            memory_slice__create(file_writer_buffer, file_writer_buffer_size)
+        )
+    );
 
     const char* module_name = "window";
     u32 u = 64328234;

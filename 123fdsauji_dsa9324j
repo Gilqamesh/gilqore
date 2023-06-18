@@ -1,0 +1,10 @@
+#include "def.h"
+enum window_error_code {
+    window_start
+};
+
+PUBLIC_API void fn();
+64328234
+-1234544
+34543.343750
+324483279085764.312500

@@ -3,14 +3,15 @@
 
 # include "file_writer_defs.h"
 
+# include "memory/memory.h"
+
 struct file;
 
 struct file_writer {
-    char*  buffer;
-    u32    buffer_size;
+    struct memory_slice buffer;
 };
 
-PUBLIC_API bool file_writer__create(struct file_writer* self);
+PUBLIC_API bool file_writer__create(struct file_writer* self, struct memory_slice buffer);
 PUBLIC_API void file_writer__destroy(struct file_writer* self);
 
 // @returns the number of bytes written to the file

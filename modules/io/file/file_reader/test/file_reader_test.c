@@ -1,8 +1,10 @@
 #include "test_framework/test_framework.h"
 
+#include "io/file/file.h"
 #include "io/file/file_reader/file_reader.h"
 #include "math/random/random.h"
 #include "libc/libc.h"
+#include "memory/memory.h"
 
 #define FILE_SIZE  MEGABYTES(64)
 #define CHUNK_SIZE 4096
@@ -23,7 +25,9 @@ int main() {
     TEST_FRAMEWORK_ASSERT(file__seek(&file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
 
     struct file_reader file_reader;
-    TEST_FRAMEWORK_ASSERT(file_reader__create(&file_reader, &file) == true);
+    const u32 file_reader_memory_size = KILOBYTES(4);
+    void* file_reader_memory = libc__malloc(file_reader_memory_size);
+    TEST_FRAMEWORK_ASSERT(file_reader__create(&file_reader, &file, memory_slice__create(file_reader_memory, file_reader_memory_size)));
 
     TEST_FRAMEWORK_ASSERT(buffer_size % CHUNK_SIZE == 0);
     for (u32 i = 0; i < buffer_size; i += CHUNK_SIZE) {
@@ -68,6 +72,7 @@ int main() {
     file__close(&file);
 
     file_reader__destroy(&file_reader);
+    libc__free(file_reader_memory);
     TEST_FRAMEWORK_ASSERT(file__delete(filename));
 
     libc__free(buffer);

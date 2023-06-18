@@ -66,8 +66,6 @@ PUBLIC_API void module_compiler__parse_config_file(
     struct stack* modules,
     struct module* self,
     struct linear_allocator* allocator,
-    struct file_writer* file_writer,
-    struct file_reader* file_reader,
     struct file* error_codes_file
 );
 PUBLIC_API void module_compiler__parse_config_files(

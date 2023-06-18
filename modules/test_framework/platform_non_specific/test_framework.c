@@ -26,8 +26,16 @@ void test_framework__translate_error_code(u32 error_code, char* buffer, u32 buff
         // error_code__exit(MODULE_COMPILER_ERROR_CODE_ERROR_CODES_FILE_OPEN_FAIL);
         error_code__exit(12121);
     }
+
+    // todo: allocate memory for reader
     struct file_reader reader;
-    file_reader__create(&reader, &error_codes_file);
+    TEST_FRAMEWORK_ASSERT(
+        file_reader__create(
+            &reader,
+            &error_codes_file,
+            memory_slice__create(buffer, buffer_size)
+        )
+    );
     u32 bytes_read;
     do {
         bytes_read = file_reader__read_while_not(&reader, line_buffer, ARRAY_SIZE(line_buffer), "\r\n");
@@ -51,11 +59,13 @@ void test_framework__translate_error_code(u32 error_code, char* buffer, u32 buff
             // error_code__exit(MODULE_COMPILER_ERROR_CODE_VSSCANF_FAILED_TO_PARSE_LINE_ERROR_CODES);
             error_code__exit(9534);
         }
-        if (parsed_error_code == error_code) {  
+        if (parsed_error_code == error_code) {
             if (libc__snprintf(buffer, buffer_size, "%s", message_buffer) >= (s32) buffer_size) {
                 // error_code__exit(MODULE_COMPILER_ERROR_CODE_BUFFER_SIZE_TOO_SMALL_ERROR_CODES);
                 error_code__exit(23835);
             }
+            file_reader__destroy(&reader);
+            file__close(&error_codes_file);
             return ;
         }
         file_reader__read_while(&reader, NULL, 0, "\r\n");
