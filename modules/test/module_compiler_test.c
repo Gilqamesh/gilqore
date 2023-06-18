@@ -15,16 +15,16 @@ int main() {
     u64 main_memory_size = MEGABYTES(64);
     void* main_memory = libc__calloc(main_memory_size);
 
-    struct linear_allocator linear_allocator;
+    struct linear_allocator allocator;
     linear_allocator__create(
-        &linear_allocator,
+        &allocator,
         memory_slice__create(main_memory, main_memory_size)
     );
 
     const u32 total_number_of_modules = 256;
     const u32 cache_size = 64;
     struct memory_slice modules_memory_slice = linear_allocator__push_aligned(
-        &linear_allocator,
+        &allocator,
         total_number_of_modules * sizeof(struct module),
         cache_size
     );
@@ -38,29 +38,35 @@ int main() {
 
     module_compiler__explore_children(
         &modules_stack,
-        &linear_allocator,
+        &allocator,
         parent_module
     );
 
     // todo: rename to something like update def files, and do the config file parsing prior to this
-    module_compiler__parse_config_files(&modules_stack, &linear_allocator);
+    module_compiler__parse_config_files(&modules_stack, &allocator);
 
     module_compiler__check_cyclic_dependency(&modules_stack);
 
     // todo: at some point merge all logical units into one path for more data locality
-    module_compiler__ensure_test_file_templates_exist(&modules_stack, &linear_allocator);
+    module_compiler__ensure_test_file_templates_exist(&modules_stack, &allocator);
 
     module_compiler__embed_dependencies_into_makefile(
         &modules_stack,
-        &linear_allocator
+        &allocator
     );
+
+    // module_compiler__preprocess(parent_module, &allocator);
+    for (u32 module_index = 0; module_index < stack__size(&modules_stack); ++module_index) {
+        struct module* module = stack__at(&modules_stack, module_index);
+        module_compiler__preprocess(module, &allocator);
+    }
 
     // module_compiler__print_branch(parent_module, &modules_stack);
 
     stack__destroy(&modules_stack);
 
-    linear_allocator__pop(&linear_allocator, modules_memory_slice);
-    linear_allocator__destroy(&linear_allocator);
+    linear_allocator__pop(&allocator, modules_memory_slice);
+    linear_allocator__destroy(&allocator);
     libc__free(main_memory);
 
     u64 clock_end = __rdtsc();
