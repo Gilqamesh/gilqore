@@ -34,13 +34,13 @@ static inline DWORD file_creation_mode(enum file_creation_mode creation_mode) {
     return result;
 }
 
-bool file__open(
-    struct file* self,
+static HANDLE create_file(
     const char* path,
     enum file_access_mode access_mode,
     enum file_creation_mode creation_mode
 ) {
-    if ((self->handle = CreateFileA(
+    return
+    CreateFileA(
         path,
         file_access_mode(access_mode),
         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -48,7 +48,18 @@ bool file__open(
         file_creation_mode(creation_mode),
         FILE_ATTRIBUTE_NORMAL,
         NULL
-    )) == INVALID_HANDLE_VALUE) {
+    );
+}
+
+bool file__open(
+    struct file* self,
+    const char* path,
+    enum file_access_mode access_mode,
+    enum file_creation_mode creation_mode
+) {
+    self->handle = create_file(path, access_mode, creation_mode);
+
+    if (self->handle == INVALID_HANDLE_VALUE) {
         // todo: diagnostics, GetLastError()
         return false;
     }
@@ -56,10 +67,27 @@ bool file__open(
     return true;
 }
 
-void file__close(struct file* self) {
-    if (CloseHandle(self->handle) == FALSE) {
+static void close_file(HANDLE file_handle) {
+    if (CloseHandle(file_handle) == FALSE) {
         error_code__exit(FILE_ERROR_CODE_WINDOWS_CLOSE);
     }
+}
+
+void file__close(struct file* self) {
+    close_file(self->handle);
+}
+
+bool file__create(const char* path) {
+    HANDLE file_handle = create_file(path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE);
+
+    if (file_handle == INVALID_HANDLE_VALUE) {
+        // todo: diagnostics, GetLastError()
+        return false;
+    }
+
+    close_file(file_handle);
+
+    return true;
 }
 
 bool file__exists(const char* path) {

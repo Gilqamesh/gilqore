@@ -32,7 +32,7 @@ enum file_type {
     FILE_TYPE_FILE      = 1 << 1
 };
 
-PUBLIC_API bool file__open( 
+PUBLIC_API bool file__open(
     struct file* self,
     const char* path,
     enum file_access_mode access_mode,
@@ -40,6 +40,9 @@ PUBLIC_API bool file__open(
 );
 PUBLIC_API void file__close(struct file* self);
 
+// @brief creates an empty file on the specified path
+// @note if the file existed on the path, it gets replaced
+PUBLIC_API bool file__create(const char* path);
 PUBLIC_API bool file__exists(const char* path);
 PUBLIC_API bool file__delete(const char* path);
 // @brief renames or moves a directory (including its children) if exists

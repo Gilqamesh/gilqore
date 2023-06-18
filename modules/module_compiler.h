@@ -57,26 +57,18 @@ PUBLIC_API void module_compiler__ensure_test_file_templates_exist(
 
 PUBLIC_API void module_compiler__explore_children(
     struct stack* modules,
+    struct linear_allocator* allocator,
     struct module* self
 );
 
+// keep either this or module_compiler__parse_config_files
 PUBLIC_API void module_compiler__parse_config_file(
     struct stack* modules,
     struct module* self,
+    struct linear_allocator* allocator,
     struct file_writer* file_writer,
     struct file_reader* file_reader,
-    struct file* error_codes_file,
-    struct string_replacer* string_replacer,
-    char* def_file_buffer,
-    char* error_codes_buffer,
-    char* auxiliary_buffer,
-    char* def_file_name_buffer,
-    char* config_file_name_buffer,
-    u32 def_file_buffer_size,
-    u32 error_codes_buffer_size,
-    u32 auxiliary_buffer_size,
-    u32 def_file_name_buffer_size,
-    u32 config_file_name_buffer_size
+    struct file* error_codes_file
 );
 PUBLIC_API void module_compiler__parse_config_files(
     struct stack* modules,

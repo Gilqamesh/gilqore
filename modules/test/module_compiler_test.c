@@ -36,7 +36,11 @@ int main() {
     libc__strncpy(parent_module->dirprefix, "modules", ARRAY_SIZE(parent_module->basename));
     libc__strncpy(parent_module->basename, "modules", ARRAY_SIZE(parent_module->basename));
 
-    module_compiler__explore_children(&modules_stack, parent_module);
+    module_compiler__explore_children(
+        &modules_stack,
+        &linear_allocator,
+        parent_module
+    );
 
     // todo: rename to something like update def files, and do the config file parsing prior to this
     module_compiler__parse_config_files(&modules_stack, &linear_allocator);
