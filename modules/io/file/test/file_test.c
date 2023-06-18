@@ -11,10 +11,6 @@
 #include <stdio.h>
 
 int main() {
-    file__create(NULL);
-
-    return 0;
-    
     struct file file;
     enum file_type file_type;
     struct time last_modified1;
@@ -27,8 +23,14 @@ int main() {
 
     char* filename = "asd";
     if (file__exists(filename)) {
-        file__delete(filename);
+        TEST_FRAMEWORK_ASSERT(file__delete(filename));
     }
+
+    TEST_FRAMEWORK_ASSERT(file__create(filename));
+    TEST_FRAMEWORK_ASSERT(file__exists(filename));
+    TEST_FRAMEWORK_ASSERT(file__create(filename));
+    TEST_FRAMEWORK_ASSERT(file__exists(filename));
+    TEST_FRAMEWORK_ASSERT(file__delete(filename));
 
     TEST_FRAMEWORK_ASSERT(file__exists(filename) == false);
     TEST_FRAMEWORK_ASSERT(file__open(&file, filename, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == false);
