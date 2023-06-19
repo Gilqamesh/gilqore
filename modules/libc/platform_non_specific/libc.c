@@ -235,6 +235,26 @@ s64 libc__atoi(const char* str, u32 radix) {
     return atoi(str);
 }
 
+void libc__itoa(s64 n, char* buffer, u32 buffer_size)
+{
+    if (n == S64_MIN) {
+        libc__snprintf(buffer, buffer_size, "-9223372036854775808");
+        return ;
+    }
+    if (n < 0) {
+        n *= -1;
+        *buffer++ = '-';
+    }
+    if (n == 0) {
+        *buffer++ = '0';
+    }
+    while (n != 0) {
+		*buffer++ = n % 10 + '0';
+		n /= 10;
+	}
+    *buffer = '\0';
+}
+
 void libc__qsort(
     void* base,
     u32 n_of_items,

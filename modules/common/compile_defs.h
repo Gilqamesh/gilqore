@@ -1,7 +1,7 @@
 #ifndef COMPILE_DEFS_H
 # define COMPILE_DEFS_H
 
-# if defined (_WIN32)
+# if defined (_WIN32) || defined (__CYGWIN__)
 #  define WINDOWS
 # elif defined(__linux__)
 #  define LINUX
