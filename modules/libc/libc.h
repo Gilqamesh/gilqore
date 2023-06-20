@@ -53,6 +53,7 @@ PUBLIC_API bool libc__isspace(char c);
 PUBLIC_API bool libc__isdigit(char c);
 
 PUBLIC_API s64 libc__atoi(const char* str, u32 radix);
+PUBLIC_API void libc__itoa(s64 n, char* buffer, u32 buffer_size);
 
 PUBLIC_API void libc__qsort(
     void* base,
