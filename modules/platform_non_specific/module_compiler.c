@@ -366,22 +366,20 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
                     memory_slice__memory(&cmd_line), memory_slice__size(&cmd_line),
                     // "%s -c %s -o %s %s -MMD -MP -MF %s",
                     "%s -c %s %s",
-                    "cc", path, "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules", 
+                    "cc", path, "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules"
                 );
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
-                struct process compilation_process;
-                process__create(
-                    &compilation_process,
-                    memory_slice__memory(&cmd_line)
-                );
-                process__wait_execution(&compilation_process);
-                u32 error_code = process__destroy(&cmd_line_len);
-                if (error_code > 0) {
-                    libc__printf(
-                        "Process '%s' returned with %u status\n",
-                        memory_slice__memory(&cmd_line), error_code
-                    );
-                }
+                // struct process compilation_process;
+                // process__create(
+                //     &compilation_process,
+                //     memory_slice__memory(&cmd_line)
+                // );
+                // process__wait_execution(&compilation_process);
+                // u32 error_code = process__destroy(&compilation_process);
+                // libc__printf(
+                //     "Process '%s' returned with %u status\n",
+                //     memory_slice__memory(&cmd_line), error_code
+                // );
             }
         }
     }
