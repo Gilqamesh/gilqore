@@ -241,18 +241,26 @@ void libc__itoa(s64 n, char* buffer, u32 buffer_size)
         libc__snprintf(buffer, buffer_size, "-9223372036854775808");
         return ;
     }
+    s64 cur_n = n;
+    u32 n_len = cur_n == 0 ? 1 : 0;
+    while (cur_n) {
+        cur_n /= 10;
+        ++n_len;
+    }
+
     if (n < 0) {
         n *= -1;
-        *buffer++ = '-';
+        *buffer = '-';
+        *(buffer + n_len + 1) = '\0';
     }
     if (n == 0) {
-        *buffer++ = '0';
+        *buffer = '0';
+        *(buffer + n_len) = '\0';
     }
-    while (n != 0) {
-		*buffer++ = n % 10 + '0';
+    while (n != 0 && n_len--) {
+		*(buffer + n_len) = n % 10 + '0';
 		n /= 10;
 	}
-    *buffer = '\0';
 }
 
 void libc__qsort(
