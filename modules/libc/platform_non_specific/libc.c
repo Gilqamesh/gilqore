@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include "common/error_code.h"
+#include "math/compare/compare.h"
 
 #if defined(GIL_DEBUG)
 struct debug_memory_entry {
@@ -237,6 +238,9 @@ s64 libc__atoi(const char* str, u32 radix) {
 
 void libc__itoa(s64 n, char* buffer, u32 buffer_size)
 {
+    if (buffer_size == 0) {
+        return ;
+    }
     if (n == S64_MIN) {
         libc__snprintf(buffer, buffer_size, "-9223372036854775808");
         return ;
@@ -250,15 +254,17 @@ void libc__itoa(s64 n, char* buffer, u32 buffer_size)
 
     if (n < 0) {
         n *= -1;
+        ++n_len;
         *buffer = '-';
-        *(buffer + n_len + 1) = '\0';
     }
     if (n == 0) {
         *buffer = '0';
-        *(buffer + n_len) = '\0';
     }
-    while (n != 0 && n_len--) {
-		*(buffer + n_len) = n % 10 + '0';
+
+    n_len = max__u32(n_len, buffer_size - 1);
+    *(buffer + n_len) = '\0';
+    while (n && n_len) {
+		*(buffer + --n_len) = n % 10 + '0';
 		n /= 10;
 	}
 }
