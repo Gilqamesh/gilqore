@@ -356,6 +356,8 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
     };
     const u32 c_extension_index = 1;
     struct memory_slice cmd_line = linear_allocator__push(context->allocator, MAX_CMD_LINE_SIZE);
+    struct process compilation_processes[256];
+    u32 compilation_processes_size = 0;
     for (u32 preprocessed_extensions_index = 0; preprocessed_extensions_index < ARRAY_SIZE(preprocessed_extensions); ++preprocessed_extensions_index) {
         if (libc__strcmp(preprocessed_extensions[preprocessed_extensions_index], extension) == 0) {
             libc__printf("Preprocessing file: %s\n", path);
@@ -370,11 +372,13 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
                 );
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
                 // struct process compilation_process;
-                // process__create(
-                //     &compilation_process,
-                //     memory_slice__memory(&cmd_line)
-                // );
-                // process__wait_execution(&compilation_process);
+                ASSERT(compilation_processes_size < ARRAY_SIZE(compilation_processes))
+                process__create(
+                    &compilation_processes[compilation_processes_size],
+                    memory_slice__memory(&cmd_line)
+                );
+                // process__wait_execution(&compilation_processes[compilation_processes_size]);
+                ++compilation_processes_size;
                 // u32 error_code = process__destroy(&compilation_process);
                 // libc__printf(
                 //     "Process '%s' returned with %u status\n",
@@ -382,6 +386,14 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
                 // );
             }
         }
+    }
+    for (u32 process_index = 0; process_index < compilation_processes_size; ++process_index) {
+        process__wait_execution(&compilation_processes[process_index]);
+        u32 error_code = process__destroy(&compilation_processes[process_index]);
+        libc__printf(
+            "Process '%s' returned with %u status\n",
+            memory_slice__memory(&cmd_line), error_code
+        );
     }
     linear_allocator__pop(context->allocator, cmd_line);
 
