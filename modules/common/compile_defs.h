@@ -1,6 +1,12 @@
 #ifndef COMPILE_DEFS_H
 # define COMPILE_DEFS_H
 
+# ifdef __TINYC__
+#  define COMPILER_TCC
+# elif defined(_MSC_VER)
+#  define COMPILER_MSVC
+# endif
+
 # if defined (_WIN32) || defined (__CYGWIN__)
 #  define WINDOWS
 # elif defined(__linux__)
@@ -26,10 +32,6 @@
 #  elif defined(GIL_LIB_SHARED_IMPORT)
 #   define PUBLIC_API __declspec(dllimport) C_LINKAGE
 #  endif
-# endif
-
-# if defined(_MSC_VER)
-#  define COMPILER_MSVC
 # endif
 
 # if !defined(PUBLIC_API)

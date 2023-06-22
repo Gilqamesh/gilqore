@@ -25,7 +25,7 @@ v3_test_objects				:= $(patsubst %.c, %.o, $(v3_test_sources))
 v3_test_depends				:= $(patsubst %.c, %.d, $(v3_test_sources))
 v3_depends					:= $(patsubst %.c, %.d, $(v3_sources))
 v3_depends_modules			:=  common
-v3_test_depends_modules     := v3 test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+v3_test_depends_modules     := v3 test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 v3_test_libdepend_objs      = $(foreach dep_module,$(v3_test_depends_modules),$($(dep_module)_objects))
 v3_clean_files				:=
 v3_clean_files				+= $(v3_install_path_implib)
@@ -42,7 +42,7 @@ include $(v3_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v3_test_install_path): $(v3_test_objects) $(v3_test_libdepend_objs)
-	$(CC) -o $@ $(v3_test_objects) -Wl,--allow-multiple-definition $(v3_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(v3_test_objects) $(v3_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: v3_all
 v3_all: $(v3_objects) ## build all v3 object files

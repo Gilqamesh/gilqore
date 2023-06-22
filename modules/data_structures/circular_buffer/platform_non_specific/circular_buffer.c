@@ -2,8 +2,8 @@
 
 #include "libc/libc.h"
 #include "common/error_code.h"
-#include "math/compare/compare.h"
-#include "math/mod/mod.h"
+#include "gil_math/compare/compare.h"
+#include "gil_math/mod/mod.h"
 
 static inline void circular_buffer__advance_and_wrap_head(struct circular_buffer* self, u32 advance_by) {
     self->head_index = mod__u32(self->head_index + advance_by, self->num_of_items_total);

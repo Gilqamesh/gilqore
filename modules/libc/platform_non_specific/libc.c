@@ -1,13 +1,13 @@
 #include "libc/libc.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <ctype.h>
+#include "stdlib.h"
+#include "string.h"
+#include "stdio.h"
+#include "stdarg.h"
+#include "ctype.h"
 
 #include "common/error_code.h"
-#include "math/compare/compare.h"
+#include "gil_math/compare/compare.h"
 
 #if defined(GIL_DEBUG)
 struct debug_memory_entry {
@@ -117,8 +117,16 @@ void* libc__memset(void *dest, s32 value, u64 size) {
     return memset(dest, value, size);
 }
 
-u64 libc__strlen(const char* str) {
-    return (u64) strlen(str);
+u32 libc__strlen(const char* str) {
+    return (u32) strlen(str);
+}
+
+u32 libc__strnlen(const char* str, u32 max_len) {
+    u32 result = 0;
+    while (*str++ && max_len--) {
+        ++result;
+    }
+    return result;
 }
 
 s32 libc__strcmp(const char* str1, const char* str2) {

@@ -1,1 +1,2 @@
-PYTHON := ./.venv/Scripts/python.exe
+# PYTHON := ./.venv/Scripts/python.exe
+PYTHON := python.exe

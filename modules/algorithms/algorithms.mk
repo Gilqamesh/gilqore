@@ -25,7 +25,7 @@ algorithms_test_objects				:= $(patsubst %.c, %.o, $(algorithms_test_sources))
 algorithms_test_depends				:= $(patsubst %.c, %.d, $(algorithms_test_sources))
 algorithms_depends					:= $(patsubst %.c, %.d, $(algorithms_sources))
 algorithms_depends_modules			:=  common
-algorithms_test_depends_modules     := algorithms test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+algorithms_test_depends_modules     := algorithms test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 algorithms_test_libdepend_objs      = $(foreach dep_module,$(algorithms_test_depends_modules),$($(dep_module)_objects))
 algorithms_clean_files				:=
 algorithms_clean_files				+= $(algorithms_install_path_implib)
@@ -42,7 +42,7 @@ include $(algorithms_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(algorithms_test_install_path): $(algorithms_test_objects) $(algorithms_test_libdepend_objs)
-	$(CC) -o $@ $(algorithms_test_objects) -Wl,--allow-multiple-definition $(algorithms_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(algorithms_test_objects) $(algorithms_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: algorithms_all
 algorithms_all: $(algorithms_objects) ## build all algorithms object files

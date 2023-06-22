@@ -1,4 +1,4 @@
-#include "color.h"
+#include "graphics/color/color.h"
 
 #define COLOR_SHIFT_RED     16
 #define COLOR_SHIFT_GREEN   8

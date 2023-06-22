@@ -25,7 +25,7 @@ file_reader_test_objects				:= $(patsubst %.c, %.o, $(file_reader_test_sources))
 file_reader_test_depends				:= $(patsubst %.c, %.d, $(file_reader_test_sources))
 file_reader_depends					:= $(patsubst %.c, %.d, $(file_reader_sources))
 file_reader_depends_modules			:= hash libc common compare circular_buffer mod memory file time system random  common
-file_reader_test_depends_modules     := file_reader test_framework libc common process file time system random compare hash circular_buffer mod memory 
+file_reader_test_depends_modules     := file_reader hash libc common compare circular_buffer mod memory file time system random test_framework process 
 file_reader_test_libdepend_objs      = $(foreach dep_module,$(file_reader_test_depends_modules),$($(dep_module)_objects))
 file_reader_clean_files				:=
 file_reader_clean_files				+= $(file_reader_install_path_implib)
@@ -42,7 +42,7 @@ include $(file_reader_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(file_reader_test_install_path): $(file_reader_test_objects) $(file_reader_test_libdepend_objs)
-	$(CC) -o $@ $(file_reader_test_objects) -Wl,--allow-multiple-definition $(file_reader_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(file_reader_test_objects) $(file_reader_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: file_reader_all
 file_reader_all: $(file_reader_objects) ## build all file_reader object files

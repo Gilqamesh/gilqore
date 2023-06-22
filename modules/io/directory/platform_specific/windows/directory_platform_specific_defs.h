@@ -15,7 +15,7 @@ enum DIRECTORY_ERROR_CODE_WINDOWS {
     DIRECTORY_ERROR_CODE_WINDOWS_INVALID_DIRECTORY_READ_INPUT
 };
 
-# include <Windows.h>
+# include "windows.h"
 
 struct directory {
     HANDLE            handle;

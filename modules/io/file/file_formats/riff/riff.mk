@@ -25,7 +25,7 @@ riff_test_objects				:= $(patsubst %.c, %.o, $(riff_test_sources))
 riff_test_depends				:= $(patsubst %.c, %.d, $(riff_test_sources))
 riff_depends					:= $(patsubst %.c, %.d, $(riff_sources))
 riff_depends_modules			:=  common
-riff_test_depends_modules     := riff test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+riff_test_depends_modules     := riff test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 riff_test_libdepend_objs      = $(foreach dep_module,$(riff_test_depends_modules),$($(dep_module)_objects))
 riff_clean_files				:=
 riff_clean_files				+= $(riff_install_path_implib)
@@ -42,7 +42,7 @@ include $(riff_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(riff_test_install_path): $(riff_test_objects) $(riff_test_libdepend_objs)
-	$(CC) -o $@ $(riff_test_objects) -Wl,--allow-multiple-definition $(riff_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(riff_test_objects) $(riff_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: riff_all
 riff_all: $(riff_objects) ## build all riff object files

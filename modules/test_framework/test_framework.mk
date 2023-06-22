@@ -24,8 +24,8 @@ test_framework_objects                  := $(patsubst %.c, %.o, $(test_framework
 test_framework_test_objects				:= $(patsubst %.c, %.o, $(test_framework_test_sources))
 test_framework_test_depends				:= $(patsubst %.c, %.d, $(test_framework_test_sources))
 test_framework_depends					:= $(patsubst %.c, %.d, $(test_framework_sources))
-test_framework_depends_modules			:= libc common process file time system random compare file_reader hash circular_buffer mod memory  common
-test_framework_test_depends_modules     := test_framework test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+test_framework_depends_modules			:= libc common compare process file time system random file_reader hash circular_buffer mod memory  common
+test_framework_test_depends_modules     := test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 test_framework_test_libdepend_objs      = $(foreach dep_module,$(test_framework_test_depends_modules),$($(dep_module)_objects))
 test_framework_clean_files				:=
 test_framework_clean_files				+= $(test_framework_install_path_implib)
@@ -42,7 +42,7 @@ include $(test_framework_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(test_framework_test_install_path): $(test_framework_test_objects) $(test_framework_test_libdepend_objs)
-	$(CC) -o $@ $(test_framework_test_objects) -Wl,--allow-multiple-definition $(test_framework_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(test_framework_test_objects) $(test_framework_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: test_framework_all
 test_framework_all: $(test_framework_objects) ## build all test_framework object files

@@ -1,8 +1,8 @@
 #include "memory/linear_allocator/linear_allocator.h"
 
 #include "libc/libc.h"
-#include "math/math.h"
-#include "math/compare/compare.h"
+#include "gil_math/gil_math.h"
+#include "gil_math/compare/compare.h"
 
 bool linear_allocator__create(struct linear_allocator* self, struct memory_slice memory_slice) {
     self->memory_slice = memory_slice;

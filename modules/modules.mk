@@ -24,8 +24,8 @@ modules_objects                  := $(patsubst %.c, %.o, $(modules_sources))
 modules_test_objects				:= $(patsubst %.c, %.o, $(modules_test_sources))
 modules_test_depends				:= $(patsubst %.c, %.d, $(modules_test_sources))
 modules_depends					:= $(patsubst %.c, %.d, $(modules_sources))
-modules_depends_modules			:= file common time system libc random compare file_reader hash circular_buffer mod memory file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math linear_allocator file_path stack  common
-modules_test_depends_modules     := modules test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 math linear_allocator file_path stack 
+modules_depends_modules			:= file common time system libc compare random file_reader hash circular_buffer mod memory file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 gil_math linear_allocator file_path stack thread  common
+modules_test_depends_modules     := modules file common time system libc compare random file_reader hash circular_buffer mod memory file_writer string directory string_replacer v2 sqrt abs clamp v3 v4 gil_math linear_allocator file_path stack thread test_framework process 
 modules_test_libdepend_objs      = $(foreach dep_module,$(modules_test_depends_modules),$($(dep_module)_objects))
 modules_clean_files				:=
 modules_clean_files				+= $(modules_install_path_implib)
@@ -42,7 +42,7 @@ include $(modules_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(modules_test_install_path): $(modules_test_objects) $(modules_test_libdepend_objs)
-	$(CC) -o $@ $(modules_test_objects) -Wl,--allow-multiple-definition $(modules_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(modules_test_objects) $(modules_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: modules_all
 modules_all: $(modules_objects) ## build all modules object files

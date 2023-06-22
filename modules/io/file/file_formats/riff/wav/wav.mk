@@ -25,7 +25,7 @@ wav_test_objects				:= $(patsubst %.c, %.o, $(wav_test_sources))
 wav_test_depends				:= $(patsubst %.c, %.d, $(wav_test_sources))
 wav_depends					:= $(patsubst %.c, %.d, $(wav_sources))
 wav_depends_modules			:=  common
-wav_test_depends_modules     := wav test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+wav_test_depends_modules     := wav test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 wav_test_libdepend_objs      = $(foreach dep_module,$(wav_test_depends_modules),$($(dep_module)_objects))
 wav_clean_files				:=
 wav_clean_files				+= $(wav_install_path_implib)
@@ -42,7 +42,7 @@ include $(wav_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(wav_test_install_path): $(wav_test_objects) $(wav_test_libdepend_objs)
-	$(CC) -o $@ $(wav_test_objects) -Wl,--allow-multiple-definition $(wav_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(wav_test_objects) $(wav_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: wav_all
 wav_all: $(wav_objects) ## build all wav object files

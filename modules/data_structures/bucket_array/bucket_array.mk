@@ -25,7 +25,7 @@ bucket_array_test_objects				:= $(patsubst %.c, %.o, $(bucket_array_test_sources
 bucket_array_test_depends				:= $(patsubst %.c, %.d, $(bucket_array_test_sources))
 bucket_array_depends					:= $(patsubst %.c, %.d, $(bucket_array_sources))
 bucket_array_depends_modules			:=  common
-bucket_array_test_depends_modules     := bucket_array test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+bucket_array_test_depends_modules     := bucket_array test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 bucket_array_test_libdepend_objs      = $(foreach dep_module,$(bucket_array_test_depends_modules),$($(dep_module)_objects))
 bucket_array_clean_files				:=
 bucket_array_clean_files				+= $(bucket_array_install_path_implib)
@@ -42,7 +42,7 @@ include $(bucket_array_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(bucket_array_test_install_path): $(bucket_array_test_objects) $(bucket_array_test_libdepend_objs)
-	$(CC) -o $@ $(bucket_array_test_objects) -Wl,--allow-multiple-definition $(bucket_array_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(bucket_array_test_objects) $(bucket_array_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: bucket_array_all
 bucket_array_all: $(bucket_array_objects) ## build all bucket_array object files

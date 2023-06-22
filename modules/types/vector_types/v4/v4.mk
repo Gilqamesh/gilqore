@@ -25,7 +25,7 @@ v4_test_objects				:= $(patsubst %.c, %.o, $(v4_test_sources))
 v4_test_depends				:= $(patsubst %.c, %.d, $(v4_test_sources))
 v4_depends					:= $(patsubst %.c, %.d, $(v4_sources))
 v4_depends_modules			:=  common
-v4_test_depends_modules     := v4 test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+v4_test_depends_modules     := v4 test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 v4_test_libdepend_objs      = $(foreach dep_module,$(v4_test_depends_modules),$($(dep_module)_objects))
 v4_clean_files				:=
 v4_clean_files				+= $(v4_install_path_implib)
@@ -42,7 +42,7 @@ include $(v4_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v4_test_install_path): $(v4_test_objects) $(v4_test_libdepend_objs)
-	$(CC) -o $@ $(v4_test_objects) -Wl,--allow-multiple-definition $(v4_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(v4_test_objects) $(v4_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: v4_all
 v4_all: $(v4_objects) ## build all v4 object files

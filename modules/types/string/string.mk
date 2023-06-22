@@ -24,8 +24,8 @@ string_objects                  := $(patsubst %.c, %.o, $(string_sources))
 string_test_objects				:= $(patsubst %.c, %.o, $(string_test_sources))
 string_test_depends				:= $(patsubst %.c, %.d, $(string_test_sources))
 string_depends					:= $(patsubst %.c, %.d, $(string_sources))
-string_depends_modules			:= libc common  common
-string_test_depends_modules     := string test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+string_depends_modules			:= libc common compare  common
+string_test_depends_modules     := string libc common compare test_framework process file time system random file_reader hash circular_buffer mod memory 
 string_test_libdepend_objs      = $(foreach dep_module,$(string_test_depends_modules),$($(dep_module)_objects))
 string_clean_files				:=
 string_clean_files				+= $(string_install_path_implib)
@@ -42,7 +42,7 @@ include $(string_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(string_test_install_path): $(string_test_objects) $(string_test_libdepend_objs)
-	$(CC) -o $@ $(string_test_objects) -Wl,--allow-multiple-definition $(string_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(string_test_objects) $(string_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: string_all
 string_all: $(string_objects) ## build all string object files

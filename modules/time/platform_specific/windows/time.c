@@ -1,4 +1,4 @@
-#include "../../time.h"
+#include "time/time.h"
 #include "time_platform_specific_defs.h"
 
 #include "common/error_code.h"

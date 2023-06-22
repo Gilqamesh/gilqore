@@ -24,8 +24,8 @@ basic_types_objects                  := $(patsubst %.c, %.o, $(basic_types_sourc
 basic_types_test_objects				:= $(patsubst %.c, %.o, $(basic_types_test_sources))
 basic_types_test_depends				:= $(patsubst %.c, %.d, $(basic_types_test_sources))
 basic_types_depends					:= $(patsubst %.c, %.d, $(basic_types_sources))
-basic_types_depends_modules			:= math  common
-basic_types_test_depends_modules     := basic_types test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory math 
+basic_types_depends_modules			:= gil_math  common
+basic_types_test_depends_modules     := basic_types gil_math test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 basic_types_test_libdepend_objs      = $(foreach dep_module,$(basic_types_test_depends_modules),$($(dep_module)_objects))
 basic_types_clean_files				:=
 basic_types_clean_files				+= $(basic_types_install_path_implib)
@@ -42,7 +42,7 @@ include $(basic_types_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(basic_types_test_install_path): $(basic_types_test_objects) $(basic_types_test_libdepend_objs)
-	$(CC) -o $@ $(basic_types_test_objects) -Wl,--allow-multiple-definition $(basic_types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(basic_types_test_objects) $(basic_types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: basic_types_all
 basic_types_all: $(basic_types_objects) ## build all basic_types object files

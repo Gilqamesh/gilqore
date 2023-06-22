@@ -25,7 +25,7 @@ v2_test_objects				:= $(patsubst %.c, %.o, $(v2_test_sources))
 v2_test_depends				:= $(patsubst %.c, %.d, $(v2_test_sources))
 v2_depends					:= $(patsubst %.c, %.d, $(v2_sources))
 v2_depends_modules			:= sqrt abs  common
-v2_test_depends_modules     := v2 test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory sqrt abs 
+v2_test_depends_modules     := v2 sqrt abs test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 v2_test_libdepend_objs      = $(foreach dep_module,$(v2_test_depends_modules),$($(dep_module)_objects))
 v2_clean_files				:=
 v2_clean_files				+= $(v2_install_path_implib)
@@ -42,7 +42,7 @@ include $(v2_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v2_test_install_path): $(v2_test_objects) $(v2_test_libdepend_objs)
-	$(CC) -o $@ $(v2_test_objects) -Wl,--allow-multiple-definition $(v2_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(v2_test_objects) $(v2_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: v2_all
 v2_all: $(v2_objects) ## build all v2 object files

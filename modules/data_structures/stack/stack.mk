@@ -24,8 +24,8 @@ stack_objects                  := $(patsubst %.c, %.o, $(stack_sources))
 stack_test_objects				:= $(patsubst %.c, %.o, $(stack_test_sources))
 stack_test_depends				:= $(patsubst %.c, %.d, $(stack_test_sources))
 stack_depends					:= $(patsubst %.c, %.d, $(stack_sources))
-stack_depends_modules			:= libc common memory  common
-stack_test_depends_modules     := stack test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+stack_depends_modules			:= libc common compare memory  common
+stack_test_depends_modules     := stack libc common compare memory test_framework process file time system random file_reader hash circular_buffer mod 
 stack_test_libdepend_objs      = $(foreach dep_module,$(stack_test_depends_modules),$($(dep_module)_objects))
 stack_clean_files				:=
 stack_clean_files				+= $(stack_install_path_implib)
@@ -42,7 +42,7 @@ include $(stack_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(stack_test_install_path): $(stack_test_objects) $(stack_test_libdepend_objs)
-	$(CC) -o $@ $(stack_test_objects) -Wl,--allow-multiple-definition $(stack_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(stack_test_objects) $(stack_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: stack_all
 stack_all: $(stack_objects) ## build all stack object files

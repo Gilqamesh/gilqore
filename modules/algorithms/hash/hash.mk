@@ -25,7 +25,7 @@ hash_test_objects				:= $(patsubst %.c, %.o, $(hash_test_sources))
 hash_test_depends				:= $(patsubst %.c, %.d, $(hash_test_sources))
 hash_depends					:= $(patsubst %.c, %.d, $(hash_sources))
 hash_depends_modules			:=  common
-hash_test_depends_modules     := hash test_framework libc common process file time system random compare file_reader circular_buffer mod memory 
+hash_test_depends_modules     := hash libc common compare test_framework process file time system random file_reader circular_buffer mod memory 
 hash_test_libdepend_objs      = $(foreach dep_module,$(hash_test_depends_modules),$($(dep_module)_objects))
 hash_clean_files				:=
 hash_clean_files				+= $(hash_install_path_implib)
@@ -42,7 +42,7 @@ include $(hash_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(hash_test_install_path): $(hash_test_objects) $(hash_test_libdepend_objs)
-	$(CC) -o $@ $(hash_test_objects) -Wl,--allow-multiple-definition $(hash_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(hash_test_objects) $(hash_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: hash_all
 hash_all: $(hash_objects) ## build all hash object files

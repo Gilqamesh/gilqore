@@ -67,8 +67,8 @@ PUBLIC_API struct module* module_compiler__find_module_by_name(
     const char* basename
 );
 
-PUBLIC_API void module_compiler__preprocess(
-    struct module* self,
+PUBLIC_API void module_compiler__preprocess_all(
+    struct stack* modules,
     struct linear_allocator* allocator
 );
 

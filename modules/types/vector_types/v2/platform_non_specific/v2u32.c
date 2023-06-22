@@ -1,6 +1,6 @@
 #include "types/vector_types/v2/v2u32.h"
 
-#include "math/abs/abs.h"
+#include "gil_math/abs/abs.h"
 
 struct v2u32 v2u32(u32 x, u32 y) {
     struct v2u32 v = {x, y};

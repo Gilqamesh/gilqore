@@ -1,7 +1,7 @@
 #include "types/string/string_replacer/string_replacer.h"
 
 #include "libc/libc.h"
-#include "math/compare/compare.h"
+#include "gil_math/compare/compare.h"
 #include "common/error_code.h"
 #include "io/file/file.h"
 #include "algorithms/hash/hash.h"

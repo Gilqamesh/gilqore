@@ -1,10 +1,10 @@
 #ifndef DATA_TYPES
 # define DATA_TYPES
 
-# include <stdint.h>
-# include <stdbool.h>
-# include <float.h>
-# include <stddef.h>
+# include "stdint.h"
+# include "stdbool.h"
+# include "float.h"
+# include "stddef.h"
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -16,8 +16,8 @@ typedef int32_t  s32;
 typedef int16_t  s16;
 typedef int8_t   s8;
 
-typedef double      r64;
-typedef float       r32;
+typedef double   r64;
+typedef float    r32;
 
 typedef size_t memory_index;
 

@@ -24,8 +24,8 @@ linear_allocator_objects                  := $(patsubst %.c, %.o, $(linear_alloc
 linear_allocator_test_objects				:= $(patsubst %.c, %.o, $(linear_allocator_test_sources))
 linear_allocator_test_depends				:= $(patsubst %.c, %.d, $(linear_allocator_test_sources))
 linear_allocator_depends					:= $(patsubst %.c, %.d, $(linear_allocator_sources))
-linear_allocator_depends_modules			:= libc common math compare memory  common
-linear_allocator_test_depends_modules     := linear_allocator test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory math 
+linear_allocator_depends_modules			:= libc common compare gil_math memory  common
+linear_allocator_test_depends_modules     := linear_allocator libc common compare gil_math memory random test_framework process file time system file_reader hash circular_buffer mod 
 linear_allocator_test_libdepend_objs      = $(foreach dep_module,$(linear_allocator_test_depends_modules),$($(dep_module)_objects))
 linear_allocator_clean_files				:=
 linear_allocator_clean_files				+= $(linear_allocator_install_path_implib)
@@ -42,7 +42,7 @@ include $(linear_allocator_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(linear_allocator_test_install_path): $(linear_allocator_test_objects) $(linear_allocator_test_libdepend_objs)
-	$(CC) -o $@ $(linear_allocator_test_objects) -Wl,--allow-multiple-definition $(linear_allocator_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(linear_allocator_test_objects) $(linear_allocator_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: linear_allocator_all
 linear_allocator_all: $(linear_allocator_objects) ## build all linear_allocator object files

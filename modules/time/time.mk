@@ -25,7 +25,7 @@ time_test_objects				:= $(patsubst %.c, %.o, $(time_test_sources))
 time_test_depends				:= $(patsubst %.c, %.d, $(time_test_sources))
 time_depends					:= $(patsubst %.c, %.d, $(time_sources))
 time_depends_modules			:= common system  common
-time_test_depends_modules     := time test_framework libc common process file random compare file_reader hash circular_buffer mod memory system 
+time_test_depends_modules     := time common system test_framework libc compare process file random file_reader hash circular_buffer mod memory 
 time_test_libdepend_objs      = $(foreach dep_module,$(time_test_depends_modules),$($(dep_module)_objects))
 time_clean_files				:=
 time_clean_files				+= $(time_install_path_implib)
@@ -42,7 +42,7 @@ include $(time_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(time_test_install_path): $(time_test_objects) $(time_test_libdepend_objs)
-	$(CC) -o $@ $(time_test_objects) -Wl,--allow-multiple-definition $(time_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(time_test_objects) $(time_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: time_all
 time_all: $(time_objects) ## build all time object files

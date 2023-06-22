@@ -25,7 +25,7 @@ data_structures_test_objects				:= $(patsubst %.c, %.o, $(data_structures_test_s
 data_structures_test_depends				:= $(patsubst %.c, %.d, $(data_structures_test_sources))
 data_structures_depends					:= $(patsubst %.c, %.d, $(data_structures_sources))
 data_structures_depends_modules			:=  common
-data_structures_test_depends_modules     := data_structures test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+data_structures_test_depends_modules     := data_structures test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 data_structures_test_libdepend_objs      = $(foreach dep_module,$(data_structures_test_depends_modules),$($(dep_module)_objects))
 data_structures_clean_files				:=
 data_structures_clean_files				+= $(data_structures_install_path_implib)
@@ -42,7 +42,7 @@ include $(data_structures_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(data_structures_test_install_path): $(data_structures_test_objects) $(data_structures_test_libdepend_objs)
-	$(CC) -o $@ $(data_structures_test_objects) -Wl,--allow-multiple-definition $(data_structures_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(data_structures_test_objects) $(data_structures_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: data_structures_all
 data_structures_all: $(data_structures_objects) ## build all data_structures object files

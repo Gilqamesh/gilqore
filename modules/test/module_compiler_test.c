@@ -6,11 +6,11 @@
 #include "libc/libc.h"
 #include "data_structures/stack/stack.h"
 
-// todo: move into its module
-#include <immintrin.h>
+// // todo: move into its module
+// #include <immintrin.h>
 
 int main() {
-    u64 clock_start = __rdtsc();
+    // u64 clock_start = __rdtsc();
 
     u64 main_memory_size = MEGABYTES(64);
     void* main_memory = libc__calloc(main_memory_size);
@@ -55,11 +55,7 @@ int main() {
         &allocator
     );
 
-    // module_compiler__preprocess(parent_module, &allocator);
-    for (u32 module_index = 0; module_index < stack__size(&modules_stack); ++module_index) {
-        struct module* module = stack__at(&modules_stack, module_index);
-        module_compiler__preprocess(module, &allocator);
-    }
+    // module_compiler__preprocess_all(&modules_stack, &allocator);
 
     // module_compiler__print_branch(parent_module, &modules_stack);
 
@@ -69,13 +65,13 @@ int main() {
     linear_allocator__destroy(&allocator);
     libc__free(main_memory);
 
-    u64 clock_end = __rdtsc();
+    // u64 clock_end = __rdtsc();
 
     // todo: query this somehow at the start
-    const r64 processor_speed_in_ghz = 2.11;
-    u64 clock_cycles_taken = clock_end - clock_start;
-    libc__printf("Clock cycles taken: %.3lfM\n", (r64) clock_cycles_taken / 1000000.0);
-    libc__printf("Time taken: %.3lfs\n", (r64) clock_cycles_taken / (processor_speed_in_ghz * 1000000000.0));
+    // const r64 processor_speed_in_ghz = 2.11;
+    // u64 clock_cycles_taken = clock_end - clock_start;
+    // libc__printf("Clock cycles taken: %.3lfM\n", (r64) clock_cycles_taken / 1000000.0);
+    // libc__printf("Time taken: %.3lfs\n", (r64) clock_cycles_taken / (processor_speed_in_ghz * 1000000000.0));
 
     return 0;
 }

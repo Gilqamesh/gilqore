@@ -5,7 +5,7 @@
 #include "common/error_code.h"
 #include "libc/libc.h"
 
-#include <windows.h>
+#include "windows.h"
 
 struct console {
     HANDLE out_handle;
@@ -61,7 +61,7 @@ u32 console__log(console_t self, const char* msg, ...) {
             // todo(david): diagnostic, truncated msg
         }
 
-        if (WriteConsoleA(self->out_handle, self->buffer, (DWORD)strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == 0) {
+        if (WriteConsoleA(self->out_handle, self->buffer, (DWORD)libc__strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == 0) {
             // error_code__exit(WRITE_CONSOLE_A);
             // TODO(david): diagnostic, GetLastError()
         }

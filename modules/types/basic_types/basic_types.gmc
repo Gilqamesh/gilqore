@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: math
+module_dependencies: gil_math
 application_type: CONSOLE
 test_dependencies: 

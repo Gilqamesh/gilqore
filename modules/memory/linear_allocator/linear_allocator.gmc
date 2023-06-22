@@ -5,6 +5,6 @@ unique_error_codes: [
     OVERFLOW_IN_PUSH_ALIGNED: overflow in linear_allocator__push_aligned
     UNEXPECTED_MEMORY_ADDRESS_IN_POP: unexpected memory address supplied in linear_allocator__pop
 ]
-module_dependencies: libc math compare memory
+module_dependencies: libc gil_math compare memory
 test_dependencies: random
 application_type: CONSOLE

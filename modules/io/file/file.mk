@@ -24,8 +24,8 @@ file_objects                  := $(patsubst %.c, %.o, $(file_sources))
 file_test_objects				:= $(patsubst %.c, %.o, $(file_test_sources))
 file_test_depends				:= $(patsubst %.c, %.d, $(file_test_sources))
 file_depends					:= $(patsubst %.c, %.d, $(file_sources))
-file_depends_modules			:= common time system libc random compare  common
-file_test_depends_modules     := file test_framework libc common process file_reader hash compare circular_buffer mod memory random time system 
+file_depends_modules			:= common time system libc compare random  common
+file_test_depends_modules     := file common time system libc compare random test_framework process file_reader hash circular_buffer mod memory 
 file_test_libdepend_objs      = $(foreach dep_module,$(file_test_depends_modules),$($(dep_module)_objects))
 file_clean_files				:=
 file_clean_files				+= $(file_install_path_implib)
@@ -42,7 +42,7 @@ include $(file_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(file_test_install_path): $(file_test_objects) $(file_test_libdepend_objs)
-	$(CC) -o $@ $(file_test_objects) -Wl,--allow-multiple-definition $(file_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(file_test_objects) $(file_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: file_all
 file_all: $(file_objects) ## build all file object files

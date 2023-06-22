@@ -25,7 +25,7 @@ memory_test_objects				:= $(patsubst %.c, %.o, $(memory_test_sources))
 memory_test_depends				:= $(patsubst %.c, %.d, $(memory_test_sources))
 memory_depends					:= $(patsubst %.c, %.d, $(memory_sources))
 memory_depends_modules			:=  common
-memory_test_depends_modules     := memory test_framework libc common process file time system random compare file_reader hash circular_buffer mod 
+memory_test_depends_modules     := memory test_framework libc common compare process file time system random file_reader hash circular_buffer mod 
 memory_test_libdepend_objs      = $(foreach dep_module,$(memory_test_depends_modules),$($(dep_module)_objects))
 memory_clean_files				:=
 memory_clean_files				+= $(memory_install_path_implib)
@@ -42,7 +42,7 @@ include $(memory_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(memory_test_install_path): $(memory_test_objects) $(memory_test_libdepend_objs)
-	$(CC) -o $@ $(memory_test_objects) -Wl,--allow-multiple-definition $(memory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(memory_test_objects) $(memory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: memory_all
 memory_all: $(memory_objects) ## build all memory object files

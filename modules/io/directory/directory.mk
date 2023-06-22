@@ -25,7 +25,7 @@ directory_test_objects				:= $(patsubst %.c, %.o, $(directory_test_sources))
 directory_test_depends				:= $(patsubst %.c, %.d, $(directory_test_sources))
 directory_depends					:= $(patsubst %.c, %.d, $(directory_sources))
 directory_depends_modules			:= common libc compare file time system random  common
-directory_test_depends_modules     := directory test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+directory_test_depends_modules     := directory common libc compare file time system random test_framework process file_reader hash circular_buffer mod memory 
 directory_test_libdepend_objs      = $(foreach dep_module,$(directory_test_depends_modules),$($(dep_module)_objects))
 directory_clean_files				:=
 directory_clean_files				+= $(directory_install_path_implib)
@@ -42,7 +42,7 @@ include $(directory_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(directory_test_install_path): $(directory_test_objects) $(directory_test_libdepend_objs)
-	$(CC) -o $@ $(directory_test_objects) -Wl,--allow-multiple-definition $(directory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(directory_test_objects) $(directory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: directory_all
 directory_all: $(directory_objects) ## build all directory object files

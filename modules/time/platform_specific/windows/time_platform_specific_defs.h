@@ -8,7 +8,7 @@ enum time_windows_error_code {
     TIME_ERROR_CODE_SYSTEM_TIME_TO_FILE_TIME = 41,
 };
 
-# include <Windows.h>
+# include "windows.h"
 
 struct time {
     FILETIME val;

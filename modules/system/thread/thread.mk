@@ -24,8 +24,8 @@ thread_objects                  := $(patsubst %.c, %.o, $(thread_sources))
 thread_test_objects				:= $(patsubst %.c, %.o, $(thread_test_sources))
 thread_test_depends				:= $(patsubst %.c, %.d, $(thread_test_sources))
 thread_depends					:= $(patsubst %.c, %.d, $(thread_sources))
-thread_depends_modules			:=  common
-thread_test_depends_modules     := thread test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+thread_depends_modules			:= libc common compare random  common
+thread_test_depends_modules     := thread libc common compare random test_framework process file time system file_reader hash circular_buffer mod memory 
 thread_test_libdepend_objs      = $(foreach dep_module,$(thread_test_depends_modules),$($(dep_module)_objects))
 thread_clean_files				:=
 thread_clean_files				+= $(thread_install_path_implib)
@@ -42,7 +42,7 @@ include $(thread_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(thread_test_install_path): $(thread_test_objects) $(thread_test_libdepend_objs)
-	$(CC) -o $@ $(thread_test_objects) -Wl,--allow-multiple-definition $(thread_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(thread_test_objects) $(thread_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: thread_all
 thread_all: $(thread_objects) ## build all thread object files

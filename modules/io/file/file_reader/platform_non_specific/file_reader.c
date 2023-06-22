@@ -1,6 +1,6 @@
 #include "io/file/file_reader/file_reader.h"
 
-#include "math/compare/compare.h"
+#include "gil_math/compare/compare.h"
 #include "libc/libc.h"
 #include "algorithms/hash/hash.h"
 #include "io/file/file.h"

@@ -17,7 +17,7 @@ enum PROCESS_ERROR_CODE_WINDOWS {
     PROCESS_ERROR_CODE_WINDOWS_DUPLICATE_HANDLE
 };
 
-# include <Windows.h>
+# include "windows.h"
 
 struct process {
     PROCESS_INFORMATION process_info;

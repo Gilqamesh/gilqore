@@ -11,7 +11,7 @@ enum file_windows_error_code {
     FILE_ERROR_CODE_WINDOWS_CLOSE = 25,
 };
 
-#include <Windows.h>
+#include "windows.h"
 
 struct file {
     HANDLE handle;

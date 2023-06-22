@@ -25,7 +25,7 @@ common_test_objects				:= $(patsubst %.c, %.o, $(common_test_sources))
 common_test_depends				:= $(patsubst %.c, %.d, $(common_test_sources))
 common_depends					:= $(patsubst %.c, %.d, $(common_sources))
 common_depends_modules			:=  common
-common_test_depends_modules     := common test_framework libc process file time system random compare file_reader hash circular_buffer mod memory 
+common_test_depends_modules     := common test_framework libc compare process file time system random file_reader hash circular_buffer mod memory 
 common_test_libdepend_objs      = $(foreach dep_module,$(common_test_depends_modules),$($(dep_module)_objects))
 common_clean_files				:=
 common_clean_files				+= $(common_install_path_implib)
@@ -42,7 +42,7 @@ include $(common_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(common_test_install_path): $(common_test_objects) $(common_test_libdepend_objs)
-	$(CC) -o $@ $(common_test_objects) -Wl,--allow-multiple-definition $(common_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(common_test_objects) $(common_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: common_all
 common_all: $(common_objects) ## build all common object files

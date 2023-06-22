@@ -24,7 +24,8 @@ PUBLIC_API void* libc__memcpy(void* dest, const void* src, u64 size);
 PUBLIC_API s32   libc__memcmp(const void *s1, const void *s2, u64 size);
 PUBLIC_API void* libc__memset(void *dest, s32 value, u64 size);
 
-PUBLIC_API u64 libc__strlen(const char* str);
+PUBLIC_API u32 libc__strlen(const char* str);
+PUBLIC_API u32 libc__strnlen(const char* str,  u32 max_len);
 PUBLIC_API s32 libc__strcmp(const char* str1, const char* str2);
 PUBLIC_API s32 libc__strncmp(const char* str1, const char* str2, u64 size);
 PUBLIC_API void* libc__strcat(char* dest, const char* src);

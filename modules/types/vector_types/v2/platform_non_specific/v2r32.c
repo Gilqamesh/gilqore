@@ -1,7 +1,7 @@
 #include "types/vector_types/v2/v2r32.h"
 
-#include "math/sqrt/sqrt.h"
-#include "math/abs/abs.h"
+#include "gil_math/sqrt/sqrt.h"
+#include "gil_math/abs/abs.h"
 
 struct v2r32 v2r32(r32 x, r32 y) {
     struct v2r32 v = {x, y};

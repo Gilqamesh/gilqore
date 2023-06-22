@@ -25,7 +25,7 @@ types_test_objects				:= $(patsubst %.c, %.o, $(types_test_sources))
 types_test_depends				:= $(patsubst %.c, %.d, $(types_test_sources))
 types_depends					:= $(patsubst %.c, %.d, $(types_sources))
 types_depends_modules			:=  common
-types_test_depends_modules     := types test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+types_test_depends_modules     := types test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 types_test_libdepend_objs      = $(foreach dep_module,$(types_test_depends_modules),$($(dep_module)_objects))
 types_clean_files				:=
 types_clean_files				+= $(types_install_path_implib)
@@ -42,7 +42,7 @@ include $(types_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(types_test_install_path): $(types_test_objects) $(types_test_libdepend_objs)
-	$(CC) -o $@ $(types_test_objects) -Wl,--allow-multiple-definition $(types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(types_test_objects) $(types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: types_all
 types_all: $(types_objects) ## build all types object files

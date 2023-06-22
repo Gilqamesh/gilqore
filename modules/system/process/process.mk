@@ -24,8 +24,8 @@ process_objects                  := $(patsubst %.c, %.o, $(process_sources))
 process_test_objects				:= $(patsubst %.c, %.o, $(process_test_sources))
 process_test_depends				:= $(patsubst %.c, %.d, $(process_test_sources))
 process_depends					:= $(patsubst %.c, %.d, $(process_sources))
-process_depends_modules			:= file common time system libc random compare  common
-process_test_depends_modules     := process test_framework libc common file_reader hash compare circular_buffer mod memory file time system random 
+process_depends_modules			:= file common time system libc compare random  common
+process_test_depends_modules     := process file common time system libc compare random test_framework file_reader hash circular_buffer mod memory 
 process_test_libdepend_objs      = $(foreach dep_module,$(process_test_depends_modules),$($(dep_module)_objects))
 process_clean_files				:=
 process_clean_files				+= $(process_install_path_implib)
@@ -42,7 +42,7 @@ include $(process_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(process_test_install_path): $(process_test_objects) $(process_test_libdepend_objs)
-	$(CC) -o $@ $(process_test_objects) -Wl,--allow-multiple-definition $(process_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(process_test_objects) $(process_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: process_all
 process_all: $(process_objects) ## build all process object files

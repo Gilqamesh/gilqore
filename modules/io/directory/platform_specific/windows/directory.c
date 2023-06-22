@@ -1,9 +1,9 @@
 #include "directory_platform_specific_defs.h"
-#include "../../directory.h"
+#include "io/directory/directory.h"
 
 #include "common/error_code.h"
 #include "libc/libc.h"
-#include "math/compare/compare.h"
+#include "gil_math/compare/compare.h"
 #include "io/file/file.h"
 
 bool directory__open(struct directory* self, const char* path) {

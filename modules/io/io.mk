@@ -25,7 +25,7 @@ io_test_objects				:= $(patsubst %.c, %.o, $(io_test_sources))
 io_test_depends				:= $(patsubst %.c, %.d, $(io_test_sources))
 io_depends					:= $(patsubst %.c, %.d, $(io_sources))
 io_depends_modules			:=  common
-io_test_depends_modules     := io test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+io_test_depends_modules     := io test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 io_test_libdepend_objs      = $(foreach dep_module,$(io_test_depends_modules),$($(dep_module)_objects))
 io_clean_files				:=
 io_clean_files				+= $(io_install_path_implib)
@@ -42,7 +42,7 @@ include $(io_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(io_test_install_path): $(io_test_objects) $(io_test_libdepend_objs)
-	$(CC) -o $@ $(io_test_objects) -Wl,--allow-multiple-definition $(io_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(io_test_objects) $(io_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: io_all
 io_all: $(io_objects) ## build all io object files

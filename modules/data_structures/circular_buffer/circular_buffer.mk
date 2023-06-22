@@ -25,7 +25,7 @@ circular_buffer_test_objects				:= $(patsubst %.c, %.o, $(circular_buffer_test_s
 circular_buffer_test_depends				:= $(patsubst %.c, %.d, $(circular_buffer_test_sources))
 circular_buffer_depends					:= $(patsubst %.c, %.d, $(circular_buffer_sources))
 circular_buffer_depends_modules			:= libc common compare mod memory  common
-circular_buffer_test_depends_modules     := circular_buffer test_framework libc common process file time system random compare file_reader hash mod memory 
+circular_buffer_test_depends_modules     := circular_buffer libc common compare mod memory test_framework process file time system random file_reader hash 
 circular_buffer_test_libdepend_objs      = $(foreach dep_module,$(circular_buffer_test_depends_modules),$($(dep_module)_objects))
 circular_buffer_clean_files				:=
 circular_buffer_clean_files				+= $(circular_buffer_install_path_implib)
@@ -42,7 +42,7 @@ include $(circular_buffer_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(circular_buffer_test_install_path): $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs)
-	$(CC) -o $@ $(circular_buffer_test_objects) -Wl,--allow-multiple-definition $(circular_buffer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: circular_buffer_all
 circular_buffer_all: $(circular_buffer_objects) ## build all circular_buffer object files

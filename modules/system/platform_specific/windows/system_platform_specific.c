@@ -1,7 +1,7 @@
-#include "../../system.h"
+#include "system/system.h"
 #include "system_platform_specific_defs.h"
 
-#include <Windows.h>
+#include "windows.h"
 
 #include "common/error_code.h"
 

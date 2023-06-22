@@ -16,6 +16,9 @@
 #include "data_structures/stack/stack.h"
 #include "system/process/process.h"
 
+// compiler backend
+#include "../tcc/libtcc/libtcc.h"
+
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 #define PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH "misc/platform_specific_gmc_file_template.txt"
@@ -340,6 +343,9 @@ u32 module_compiler__get_error_code(void) {
 struct module_compiler__preprocess_file_context {
     struct module* module;
     struct linear_allocator* allocator;
+    TCCState* tcc_state;
+    // struct process compilation_processes[128];
+    // u32 compilation_processes_size;
 };
 
 bool module_compiler__preprocess_file(const char* path, void* user_data) {
@@ -356,45 +362,60 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
     };
     const u32 c_extension_index = 1;
     struct memory_slice cmd_line = linear_allocator__push(context->allocator, MAX_CMD_LINE_SIZE);
-    struct process compilation_processes[256];
-    u32 compilation_processes_size = 0;
+    struct memory_slice path_to_obj_file = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
     for (u32 preprocessed_extensions_index = 0; preprocessed_extensions_index < ARRAY_SIZE(preprocessed_extensions); ++preprocessed_extensions_index) {
         if (libc__strcmp(preprocessed_extensions[preprocessed_extensions_index], extension) == 0) {
-            libc__printf("Preprocessing file: %s\n", path);
             // do the actual preprocessing only if necessary:
             //  - file's dependencies changed <- what are these?
             if (preprocessed_extensions_index == c_extension_index) {
+                u32 obj_file_len = libc__snprintf(
+                    memory_slice__memory(&path_to_obj_file),
+                    memory_slice__size(&path_to_obj_file),
+                    "%s", path
+                );
+                TEST_FRAMEWORK_ASSERT(obj_file_len < memory_slice__size(&path_to_obj_file));
+                ASSERT(obj_file_len > 1);
+                ASSERT(((char*) memory_slice__memory(&path_to_obj_file))[obj_file_len - 1] == 'c');
+                ((char*) memory_slice__memory(&path_to_obj_file))[obj_file_len - 1] = 'o';
                 u32 cmd_line_len = libc__snprintf(
                     memory_slice__memory(&cmd_line), memory_slice__size(&cmd_line),
                     // "%s -c %s -o %s %s -MMD -MP -MF %s",
-                    "%s -c %s %s",
-                    "cc", path, "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules"
+                    "%s -c -o %s %s %s",
+                    "cc", memory_slice__memory(&path_to_obj_file), path, "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules -DGIL_DEBUG"
                 );
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
-                // struct process compilation_process;
-                ASSERT(compilation_processes_size < ARRAY_SIZE(compilation_processes))
-                process__create(
-                    &compilation_processes[compilation_processes_size],
-                    memory_slice__memory(&cmd_line)
-                );
-                // process__wait_execution(&compilation_processes[compilation_processes_size]);
-                ++compilation_processes_size;
-                // u32 error_code = process__destroy(&compilation_process);
-                // libc__printf(
-                //     "Process '%s' returned with %u status\n",
-                //     memory_slice__memory(&cmd_line), error_code
+
+                ASSERT(tcc_set_output_type(context->tcc_state, TCC_OUTPUT_OBJ) != -1);
+
+                if (tcc_add_file(context->tcc_state, path) == -1) {
+                    libc__printf("tcc_add_file failed with path: [%s]\n", path);
+                    continue ;
+                }
+
+                if (tcc_output_file(context->tcc_state, memory_slice__memory(&path_to_obj_file)) == -1) {
+                    libc__printf("tcc_output_file failed with path: [%s]\n", memory_slice__memory(&path_to_obj_file));
+                    continue ;
+                }
+
+                // ASSERT(context->compilation_processes_size < ARRAY_SIZE(context->compilation_processes));
+                // libc__printf("%s\n", memory_slice__memory(&cmd_line));
+                // process__create(
+                //     &context->compilation_processes[context->compilation_processes_size],
+                //     memory_slice__memory(&cmd_line)
                 // );
+                // if (++context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+                //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+                //         process__wait_execution(&context->compilation_processes[process_index]);
+                //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+                //         (void) error_code;
+                //         // todo: log error
+                //     }
+                //     context->compilation_processes_size = 0;
+                // }
             }
         }
     }
-    for (u32 process_index = 0; process_index < compilation_processes_size; ++process_index) {
-        process__wait_execution(&compilation_processes[process_index]);
-        u32 error_code = process__destroy(&compilation_processes[process_index]);
-        libc__printf(
-            "Process '%s' returned with %u status\n",
-            memory_slice__memory(&cmd_line), error_code
-        );
-    }
+    linear_allocator__pop(context->allocator, path_to_obj_file);
     linear_allocator__pop(context->allocator, cmd_line);
 
     const char import_directive[] = "import ";
@@ -419,42 +440,53 @@ void main() {
     return true;
 }
 
-void module_compiler__preprocess(
-    struct module* self,
-    struct linear_allocator* allocator
-) {
-    struct module_compiler__preprocess_file_context context;
-    context.module = self;
-    context.allocator = allocator;
-
+void module_compiler__preprocess(struct module_compiler__preprocess_file_context* context) {
     // discover relevant files to preprocess:
-    struct memory_slice file_path = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
+    struct memory_slice file_path = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
     // current dir
     u64 dirpath_len = libc__snprintf(
         memory_slice__memory(&file_path),
         memory_slice__size(&file_path),
-        "%s", self->dirprefix
+        "%s", context->module->dirprefix
     );
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
         &module_compiler__preprocess_file,
-        &context,
+        context,
         FILE_TYPE_FILE
     );
+    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+    //         process__wait_execution(&context->compilation_processes[process_index]);
+    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+    //         (void) error_code;
+    //         // todo: log error
+    //     }
+    //     context->compilation_processes_size = 0;
+    // }
     // non-platform specific
     dirpath_len = libc__snprintf(
         memory_slice__memory(&file_path),
         memory_slice__size(&file_path),
-        "%s/%s", self->dirprefix, IMPLEMENTATION_FOLDER_NAME
+        "%s/%s", context->module->dirprefix, IMPLEMENTATION_FOLDER_NAME
     );
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
         &module_compiler__preprocess_file,
-        &context,
+        context,
         FILE_TYPE_FILE
     );
+    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+    //         process__wait_execution(&context->compilation_processes[process_index]);
+    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+    //         (void) error_code;
+    //         // todo: log error
+    //     }
+    //     context->compilation_processes_size = 0;
+    // }
     // platform specific
     const char* platform_specific_folder_name = PLATFORM_SPECIFIC_WINDOWS;
 #if defined(WINDOWS)
@@ -467,17 +499,69 @@ void module_compiler__preprocess(
     dirpath_len = libc__snprintf(
         memory_slice__memory(&file_path),
         memory_slice__size(&file_path),
-        "%s/%s/%s", self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, platform_specific_folder_name
+        "%s/%s/%s", context->module->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, platform_specific_folder_name
     );
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
         &module_compiler__preprocess_file,
-        &context,
+        context,
         FILE_TYPE_FILE
     );
+    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+    //         process__wait_execution(&context->compilation_processes[process_index]);
+    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+    //         (void) error_code;
+    //         // todo: log error
+    //     }
+    //     context->compilation_processes_size = 0;
+    // }
 
-    linear_allocator__pop(allocator, file_path);
+    linear_allocator__pop(context->allocator, file_path);
+}
+
+void module_compiler__preprocess_all(
+    struct stack* modules,
+    struct linear_allocator* allocator
+) {
+    struct module_compiler__preprocess_file_context context;
+    context.allocator = allocator;
+    context.tcc_state =  tcc_new();
+    // context.compilation_processes_size = 0;
+
+    const char* modules_include_path = "modules";
+    if (tcc_add_include_path(context.tcc_state, modules_include_path) == -1) {
+        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", modules_include_path);
+        return ;
+    }
+    const char* libtcc_include_path = "tcc/include";
+    if (tcc_add_include_path(context.tcc_state, libtcc_include_path) == -1) {
+        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", libtcc_include_path);
+        return ;
+    }
+    const char* windows_include_path = "tcc/include/winapi";
+    if (tcc_add_include_path(context.tcc_state, windows_include_path) == -1) {
+        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", windows_include_path);
+        return ;
+    }
+    tcc_define_symbol(context.tcc_state, "GIL_DEBUG", "1");
+
+    for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
+        struct module* module = stack__at(modules, module_index);
+        context.module = module;
+        module_compiler__preprocess(&context);
+    }
+
+    tcc_delete(context.tcc_state);
+
+    // for (u32 process_index = 0; process_index < context.compilation_processes_size; ++process_index) {
+    //     process__wait_execution(&context.compilation_processes[process_index]);
+    //     u32 error_code = process__destroy(&context.compilation_processes[process_index]);
+    //     (void) error_code;
+    //     // todo: log error
+    // }
+    // context.compilation_processes_size = 0;
 }
 
 struct module* module_compiler__find_module_by_name(
@@ -641,6 +725,7 @@ static void parse_config_file_dependencies(
         // note: add the dependency to the module
         struct module* found_module = module_compiler__find_module_by_name(modules, memory_slice__memory(&config_file_memory_slice));
         if (found_module == NULL) {
+            libc__printf("%s\n", self->basename);
             error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
         }
         module_compiler__add_dependency(self, found_module);
@@ -725,6 +810,7 @@ static void parse_config_file_test_dependencies(
         // note: add the dependency to the module
         struct module* found_module = module_compiler__find_module_by_name(modules, memory_slice__memory(&config_file_memory_slice));
         if (found_module == NULL) {
+            libc__printf("%s\n", self->basename);
             error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
         }
         module_compiler__add_test_dependency(self, found_module);
@@ -1989,17 +2075,14 @@ static u32 module_compiler__get_test_dependencies(
     u32 dependency_buffer_size
 ) {
     module_compiler__write_dependency_into_buffer_and_increment(self, dependency_buffer, &dependency_buffer_size);
-    self->transient_flag_for_processing = 1;
+    dependency_buffer_size = module_compiler__get_dependencies(self, dependency_buffer, dependency_buffer_size);
 
     struct module* common_test_dependency = module_compiler__find_module_by_name(modules, TEST_FRAMEWORK_MODULE_NAME);
     if (common_test_dependency == NULL) {
+        libc__printf("%s\n", self->basename);
         error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
     }
-    module_compiler__write_dependency_into_buffer_and_increment(common_test_dependency, dependency_buffer, &dependency_buffer_size);
-    common_test_dependency->transient_flag_for_processing = 1;
-    dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
-
-    dependency_buffer_size = module_compiler__get_dependencies(self, dependency_buffer, dependency_buffer_size);
+    bool added_common_test_dependency = false;
 
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
         struct module* test_dependency = self->test_dependencies[dependency_index];
@@ -2010,7 +2093,15 @@ static u32 module_compiler__get_test_dependencies(
                 dependency_buffer,
                 dependency_buffer_size
             );
+            if (test_dependency == common_test_dependency) {
+                added_common_test_dependency = true;
+            }
         }
+    }
+
+    if (added_common_test_dependency == false) {
+        module_compiler__write_dependency_into_buffer_and_increment(common_test_dependency, dependency_buffer, &dependency_buffer_size);
+        dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
     }
 
     return dependency_buffer_size;
@@ -2055,9 +2146,9 @@ void module_compiler__embed_dependencies_into_makefile(
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
         static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
 
-        const u32 max_number_of_module_name_occurances = 128;
-        const u32 max_number_of_occurances_aux = 16;
-        const u32 average_replacement_size = 32;
+        static const u32 max_number_of_module_name_occurances = 128;
+        static const u32 max_number_of_occurances_aux = 16;
+        static const u32 average_replacement_size = 32;
         struct string_replacer modules_makefile_template_replacer;
         ASSERT(string_replacer__create(
             &modules_makefile_template_replacer,
@@ -2109,7 +2200,6 @@ void module_compiler__embed_dependencies_into_makefile(
             cur_module->application_type,
             libc__strlen(cur_module->application_type)
         );
-
 
         u32 written_bytes = libc__snprintf(
             memory_slice__memory(&makefile_path_memory_slice),

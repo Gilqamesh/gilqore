@@ -24,8 +24,8 @@ string_replacer_objects                  := $(patsubst %.c, %.o, $(string_replac
 string_replacer_test_objects				:= $(patsubst %.c, %.o, $(string_replacer_test_sources))
 string_replacer_test_depends				:= $(patsubst %.c, %.d, $(string_replacer_test_sources))
 string_replacer_depends					:= $(patsubst %.c, %.d, $(string_replacer_sources))
-string_replacer_depends_modules			:= libc common compare file time system random hash v2 sqrt abs clamp v3 v4 math linear_allocator memory  common
-string_replacer_test_depends_modules     := string_replacer test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory v2 sqrt abs clamp v3 v4 math linear_allocator 
+string_replacer_depends_modules			:= libc common compare file time system random hash v2 sqrt abs clamp v3 v4 gil_math linear_allocator memory  common
+string_replacer_test_depends_modules     := string_replacer libc common compare file time system random hash v2 sqrt abs clamp v3 v4 gil_math linear_allocator memory test_framework process file_reader circular_buffer mod 
 string_replacer_test_libdepend_objs      = $(foreach dep_module,$(string_replacer_test_depends_modules),$($(dep_module)_objects))
 string_replacer_clean_files				:=
 string_replacer_clean_files				+= $(string_replacer_install_path_implib)
@@ -42,7 +42,7 @@ include $(string_replacer_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(string_replacer_test_install_path): $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs)
-	$(CC) -o $@ $(string_replacer_test_objects) -Wl,--allow-multiple-definition $(string_replacer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: string_replacer_all
 string_replacer_all: $(string_replacer_objects) ## build all string_replacer object files

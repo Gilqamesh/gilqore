@@ -25,7 +25,7 @@ graphics_test_objects				:= $(patsubst %.c, %.o, $(graphics_test_sources))
 graphics_test_depends				:= $(patsubst %.c, %.d, $(graphics_test_sources))
 graphics_depends					:= $(patsubst %.c, %.d, $(graphics_sources))
 graphics_depends_modules			:=  common
-graphics_test_depends_modules     := graphics test_framework libc common process file time system random compare file_reader hash circular_buffer mod memory 
+graphics_test_depends_modules     := graphics test_framework libc common compare process file time system random file_reader hash circular_buffer mod memory 
 graphics_test_libdepend_objs      = $(foreach dep_module,$(graphics_test_depends_modules),$($(dep_module)_objects))
 graphics_clean_files				:=
 graphics_clean_files				+= $(graphics_install_path_implib)
@@ -42,7 +42,7 @@ include $(graphics_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(graphics_test_install_path): $(graphics_test_objects) $(graphics_test_libdepend_objs)
-	$(CC) -o $@ $(graphics_test_objects) -Wl,--allow-multiple-definition $(graphics_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
+	$(CC) -o $@ $(graphics_test_objects) $(graphics_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
 
 .PHONY: graphics_all
 graphics_all: $(graphics_objects) ## build all graphics object files
