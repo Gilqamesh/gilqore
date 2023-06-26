@@ -42,7 +42,7 @@ include $(test_framework_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(test_framework_test_install_path): $(test_framework_test_objects) $(test_framework_test_libdepend_objs)
-	$(CC) -o $@ $(test_framework_test_objects) $(test_framework_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(test_framework_test_objects) $(test_framework_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: test_framework_all
 test_framework_all: $(test_framework_objects) ## build all test_framework object files

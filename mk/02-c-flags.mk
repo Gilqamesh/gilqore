@@ -1,8 +1,5 @@
-CC = tcc/tcc.exe
 # CFLAGS_COMMON	:= -O2 -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
-# CFLAGS_COMMON	:= -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
-CFLAGS_COMMON	:= -std=c2x -g -Wall -Wextra -Werror -I$(PATH_MODULES) -I$(PATH_TCC_INCLUDE) -I$(PATH_TCC_INCLUDE_PLATFORM)
-# CFLAGS_COMMON	:= -std=c2x -g -Wall -Wextra -Werror -I$(PATH_MODULES)
+CFLAGS_COMMON	:= -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
 LFLAGS_COMMON	:=
 
 GIL_BUILD_MODE  := GIL_BUILD_MODE_DEBUG

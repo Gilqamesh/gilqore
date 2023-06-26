@@ -42,7 +42,7 @@ include $(libc_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(libc_test_install_path): $(libc_test_objects) $(libc_test_libdepend_objs)
-	$(CC) -o $@ $(libc_test_objects) $(libc_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(libc_test_objects) $(libc_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole -Btcc
 
 .PHONY: libc_all
 libc_all: $(libc_objects) ## build all libc object files

@@ -42,7 +42,7 @@ include $($(MODULE_NAME)_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $($(MODULE_NAME)_test_install_path): $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_objs)
-	$(CC) -o $@ $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_objs) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC) tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $($(MODULE_NAME)_test_objects) $($(MODULE_NAME)_test_libdepend_objs) $(LFLAGS_COMMON) $(LFLAGS_SPECIFIC)
 
 .PHONY: $(MODULE_NAME)_all
 $(MODULE_NAME)_all: $($(MODULE_NAME)_objects) ## build all $(MODULE_NAME) object files

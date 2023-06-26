@@ -148,14 +148,17 @@ bool file__size(const char* path, u64* file_size) {
     }
 
     LARGE_INTEGER size;
-    if (GetFileSizeEx(file.handle, &size) == FALSE) {
-        // todo: diagnostics, GetLastError()
-        file__close(&file);
+    DWORD high;
+    size.LowPart = GetFileSize(file.handle, &high);
+    size.HighPart = high;
+    *file_size = size.QuadPart;
+    file__close(&file);
+
+    // note: file size could either be exactly 0xffffffff, so check if this is indeed the case
+    if (size.LowPart == INVALID_FILE_SIZE && GetLastError() != NO_ERROR) {
+        // todo: diagnostics
         return false;
     }
-    *file_size = size.QuadPart;
-
-    file__close(&file);
 
     return true;
 }

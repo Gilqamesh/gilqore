@@ -16,9 +16,6 @@
 #include "data_structures/stack/stack.h"
 #include "system/process/process.h"
 
-// compiler backend
-#include "../tcc/libtcc/libtcc.h"
-
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 #define PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH "misc/platform_specific_gmc_file_template.txt"
@@ -343,9 +340,8 @@ u32 module_compiler__get_error_code(void) {
 struct module_compiler__preprocess_file_context {
     struct module* module;
     struct linear_allocator* allocator;
-    TCCState* tcc_state;
-    // struct process compilation_processes[128];
-    // u32 compilation_processes_size;
+    struct process compilation_processes[128];
+    u32 compilation_processes_size;
 };
 
 bool module_compiler__preprocess_file(const char* path, void* user_data) {
@@ -385,33 +381,21 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
                 );
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
 
-                ASSERT(tcc_set_output_type(context->tcc_state, TCC_OUTPUT_OBJ) != -1);
-
-                if (tcc_add_file(context->tcc_state, path) == -1) {
-                    libc__printf("tcc_add_file failed with path: [%s]\n", path);
-                    continue ;
+                ASSERT(context->compilation_processes_size < ARRAY_SIZE(context->compilation_processes));
+                libc__printf("%s\n", memory_slice__memory(&cmd_line));
+                process__create(
+                    &context->compilation_processes[context->compilation_processes_size],
+                    memory_slice__memory(&cmd_line)
+                );
+                if (++context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+                    for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+                        process__wait_execution(&context->compilation_processes[process_index]);
+                        u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+                        (void) error_code;
+                        // todo: log error
+                    }
+                    context->compilation_processes_size = 0;
                 }
-
-                if (tcc_output_file(context->tcc_state, memory_slice__memory(&path_to_obj_file)) == -1) {
-                    libc__printf("tcc_output_file failed with path: [%s]\n", memory_slice__memory(&path_to_obj_file));
-                    continue ;
-                }
-
-                // ASSERT(context->compilation_processes_size < ARRAY_SIZE(context->compilation_processes));
-                // libc__printf("%s\n", memory_slice__memory(&cmd_line));
-                // process__create(
-                //     &context->compilation_processes[context->compilation_processes_size],
-                //     memory_slice__memory(&cmd_line)
-                // );
-                // if (++context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
-                //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
-                //         process__wait_execution(&context->compilation_processes[process_index]);
-                //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
-                //         (void) error_code;
-                //         // todo: log error
-                //     }
-                //     context->compilation_processes_size = 0;
-                // }
             }
         }
     }
@@ -456,15 +440,15 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
         context,
         FILE_TYPE_FILE
     );
-    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
-    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
-    //         process__wait_execution(&context->compilation_processes[process_index]);
-    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
-    //         (void) error_code;
-    //         // todo: log error
-    //     }
-    //     context->compilation_processes_size = 0;
-    // }
+    if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+        for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+            process__wait_execution(&context->compilation_processes[process_index]);
+            u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+            (void) error_code;
+            // todo: log error
+        }
+        context->compilation_processes_size = 0;
+    }
     // non-platform specific
     dirpath_len = libc__snprintf(
         memory_slice__memory(&file_path),
@@ -478,15 +462,15 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
         context,
         FILE_TYPE_FILE
     );
-    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
-    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
-    //         process__wait_execution(&context->compilation_processes[process_index]);
-    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
-    //         (void) error_code;
-    //         // todo: log error
-    //     }
-    //     context->compilation_processes_size = 0;
-    // }
+    if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+        for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+            process__wait_execution(&context->compilation_processes[process_index]);
+            u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+            (void) error_code;
+            // todo: log error
+        }
+        context->compilation_processes_size = 0;
+    }
     // platform specific
     const char* platform_specific_folder_name = PLATFORM_SPECIFIC_WINDOWS;
 #if defined(WINDOWS)
@@ -508,15 +492,15 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
         context,
         FILE_TYPE_FILE
     );
-    // if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
-    //     for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
-    //         process__wait_execution(&context->compilation_processes[process_index]);
-    //         u32 error_code = process__destroy(&context->compilation_processes[process_index]);
-    //         (void) error_code;
-    //         // todo: log error
-    //     }
-    //     context->compilation_processes_size = 0;
-    // }
+    if (context->compilation_processes_size == ARRAY_SIZE(context->compilation_processes)) {
+        for (u32 process_index = 0; process_index < context->compilation_processes_size; ++process_index) {
+            process__wait_execution(&context->compilation_processes[process_index]);
+            u32 error_code = process__destroy(&context->compilation_processes[process_index]);
+            (void) error_code;
+            // todo: log error
+        }
+        context->compilation_processes_size = 0;
+    }
 
     linear_allocator__pop(context->allocator, file_path);
 }
@@ -527,41 +511,20 @@ void module_compiler__preprocess_all(
 ) {
     struct module_compiler__preprocess_file_context context;
     context.allocator = allocator;
-    context.tcc_state =  tcc_new();
-    // context.compilation_processes_size = 0;
-
-    const char* modules_include_path = "modules";
-    if (tcc_add_include_path(context.tcc_state, modules_include_path) == -1) {
-        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", modules_include_path);
-        return ;
-    }
-    const char* libtcc_include_path = "tcc/include";
-    if (tcc_add_include_path(context.tcc_state, libtcc_include_path) == -1) {
-        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", libtcc_include_path);
-        return ;
-    }
-    const char* windows_include_path = "tcc/include/winapi";
-    if (tcc_add_include_path(context.tcc_state, windows_include_path) == -1) {
-        libc__printf("tcc_add_include_path failed with include_path: [%s]\n", windows_include_path);
-        return ;
-    }
-    tcc_define_symbol(context.tcc_state, "GIL_DEBUG", "1");
+    context.compilation_processes_size = 0;
 
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* module = stack__at(modules, module_index);
         context.module = module;
         module_compiler__preprocess(&context);
     }
-
-    tcc_delete(context.tcc_state);
-
-    // for (u32 process_index = 0; process_index < context.compilation_processes_size; ++process_index) {
-    //     process__wait_execution(&context.compilation_processes[process_index]);
-    //     u32 error_code = process__destroy(&context.compilation_processes[process_index]);
-    //     (void) error_code;
-    //     // todo: log error
-    // }
-    // context.compilation_processes_size = 0;
+    for (u32 process_index = 0; process_index < context.compilation_processes_size; ++process_index) {
+        process__wait_execution(&context.compilation_processes[process_index]);
+        u32 error_code = process__destroy(&context.compilation_processes[process_index]);
+        (void) error_code;
+        // todo: log error
+    }
+    context.compilation_processes_size = 0;
 }
 
 struct module* module_compiler__find_module_by_name(
