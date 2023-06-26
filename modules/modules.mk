@@ -71,16 +71,16 @@ modules_test_re: modules_test_all
 .PHONY: modules_test_run_all
 modules_test_run_all: $(modules_test_child_run_targets) ## build and run modules_test
 ifneq ($(modules_test_objects),)
-modules_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(modules_test_install_path)
+modules_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(modules_test_install_path)
 endif
 
 .PHONY: modules_test_run
 modules_test_run: modules_all
 modules_test_run: modules_test_all
 ifneq ($(modules_test_objects),)
-modules_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(modules_test_install_path)
+modules_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(modules_test_install_path)
 endif
 
 -include $(modules_depends)

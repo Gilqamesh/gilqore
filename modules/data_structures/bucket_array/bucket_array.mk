@@ -42,7 +42,7 @@ include $(bucket_array_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(bucket_array_test_install_path): $(bucket_array_test_objects) $(bucket_array_test_libdepend_objs)
-	$(CC) -o $@ $(bucket_array_test_objects) $(bucket_array_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(bucket_array_test_objects) $(bucket_array_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: bucket_array_all
 bucket_array_all: $(bucket_array_objects) ## build all bucket_array object files
@@ -71,16 +71,16 @@ bucket_array_test_re: bucket_array_test_all
 .PHONY: bucket_array_test_run_all
 bucket_array_test_run_all: $(bucket_array_test_child_run_targets) ## build and run bucket_array_test
 ifneq ($(bucket_array_test_objects),)
-bucket_array_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(bucket_array_test_install_path)
+bucket_array_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(bucket_array_test_install_path)
 endif
 
 .PHONY: bucket_array_test_run
 bucket_array_test_run: bucket_array_all
 bucket_array_test_run: bucket_array_test_all
 ifneq ($(bucket_array_test_objects),)
-bucket_array_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(bucket_array_test_install_path)
+bucket_array_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(bucket_array_test_install_path)
 endif
 
 -include $(bucket_array_depends)

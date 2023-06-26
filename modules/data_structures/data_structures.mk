@@ -42,7 +42,7 @@ include $(data_structures_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(data_structures_test_install_path): $(data_structures_test_objects) $(data_structures_test_libdepend_objs)
-	$(CC) -o $@ $(data_structures_test_objects) $(data_structures_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(data_structures_test_objects) $(data_structures_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: data_structures_all
 data_structures_all: $(data_structures_objects) ## build all data_structures object files
@@ -71,16 +71,16 @@ data_structures_test_re: data_structures_test_all
 .PHONY: data_structures_test_run_all
 data_structures_test_run_all: $(data_structures_test_child_run_targets) ## build and run data_structures_test
 ifneq ($(data_structures_test_objects),)
-data_structures_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(data_structures_test_install_path)
+data_structures_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(data_structures_test_install_path)
 endif
 
 .PHONY: data_structures_test_run
 data_structures_test_run: data_structures_all
 data_structures_test_run: data_structures_test_all
 ifneq ($(data_structures_test_objects),)
-data_structures_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(data_structures_test_install_path)
+data_structures_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(data_structures_test_install_path)
 endif
 
 -include $(data_structures_depends)

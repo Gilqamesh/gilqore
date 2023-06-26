@@ -42,7 +42,7 @@ include $(color_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(color_test_install_path): $(color_test_objects) $(color_test_libdepend_objs)
-	$(CC) -o $@ $(color_test_objects) $(color_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(color_test_objects) $(color_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: color_all
 color_all: $(color_objects) ## build all color object files
@@ -71,16 +71,16 @@ color_test_re: color_test_all
 .PHONY: color_test_run_all
 color_test_run_all: $(color_test_child_run_targets) ## build and run color_test
 ifneq ($(color_test_objects),)
-color_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path)
+color_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(color_test_install_path)
 endif
 
 .PHONY: color_test_run
 color_test_run: color_all
 color_test_run: color_test_all
 ifneq ($(color_test_objects),)
-color_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(color_test_install_path)
+color_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(color_test_install_path)
 endif
 
 -include $(color_depends)

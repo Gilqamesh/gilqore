@@ -42,7 +42,7 @@ include $(riff_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(riff_test_install_path): $(riff_test_objects) $(riff_test_libdepend_objs)
-	$(CC) -o $@ $(riff_test_objects) $(riff_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(riff_test_objects) $(riff_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: riff_all
 riff_all: $(riff_objects) ## build all riff object files
@@ -71,16 +71,16 @@ riff_test_re: riff_test_all
 .PHONY: riff_test_run_all
 riff_test_run_all: $(riff_test_child_run_targets) ## build and run riff_test
 ifneq ($(riff_test_objects),)
-riff_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path)
+riff_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(riff_test_install_path)
 endif
 
 .PHONY: riff_test_run
 riff_test_run: riff_all
 riff_test_run: riff_test_all
 ifneq ($(riff_test_objects),)
-riff_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(riff_test_install_path)
+riff_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(riff_test_install_path)
 endif
 
 -include $(riff_depends)

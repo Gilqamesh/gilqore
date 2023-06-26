@@ -3,7 +3,12 @@
 
 # include "../../common"
 
+enu
+
 enum common_windows_error_code {
+    WINDOWS_COMMON_ERROR_CODE_START,
+};
+m common_windows_error_code {
     WINDOWS_COMMON_ERROR_CODE_START,
 
 };

@@ -42,7 +42,7 @@ include $(clamp_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(clamp_test_install_path): $(clamp_test_objects) $(clamp_test_libdepend_objs)
-	$(CC) -o $@ $(clamp_test_objects) $(clamp_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(clamp_test_objects) $(clamp_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: clamp_all
 clamp_all: $(clamp_objects) ## build all clamp object files
@@ -71,16 +71,16 @@ clamp_test_re: clamp_test_all
 .PHONY: clamp_test_run_all
 clamp_test_run_all: $(clamp_test_child_run_targets) ## build and run clamp_test
 ifneq ($(clamp_test_objects),)
-clamp_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(clamp_test_install_path)
+clamp_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(clamp_test_install_path)
 endif
 
 .PHONY: clamp_test_run
 clamp_test_run: clamp_all
 clamp_test_run: clamp_test_all
 ifneq ($(clamp_test_objects),)
-clamp_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(clamp_test_install_path)
+clamp_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(clamp_test_install_path)
 endif
 
 -include $(clamp_depends)

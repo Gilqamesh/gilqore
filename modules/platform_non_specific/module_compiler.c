@@ -337,18 +337,44 @@ u32 module_compiler__get_error_code(void) {
     return error_code++;
 }
 
-struct module_compiler__preprocess_file_context {
+void module_compiler__tokenize_file(
+    const char* file_path,
+    struct linear_allocator* allocator
+) {
+    const u32 MAX_SOURCE_FILE_CONTENT_SIZE = MEGABYTES(16);
+    struct memory_slice source_file_contents = linear_allocator__push(allocator, MAX_SOURCE_FILE_CONTENT_SIZE);
+    struct file source_file;
+    TEST_FRAMEWORK_ASSERT(file__open(&source_file, file_path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
+    u32 source_file_size = file__read(
+        &source_file,
+        memory_slice__memory(&source_file_contents), memory_slice__size(&source_file_contents)
+    );
+    TEST_FRAMEWORK_ASSERT(source_file_size < memory_slice__size(&source_file_contents));
+    file__close(&source_file);
+    struct string_replacer source_file_replacer;
+    string_replacer__create(
+        &source_file_replacer,
+        allocator,
+        memory_slice__memory(&source_file_contents), source_file_size,
+        64, BYTES(32)
+    );
+
+    string_replacer__destroy(&source_file_replacer);
+    linear_allocator__pop(allocator, source_file_contents);
+}
+
+struct module_compiler__compile_file_context {
     struct module* module;
     struct linear_allocator* allocator;
     struct process compilation_processes[128];
     u32 compilation_processes_size;
 };
 
-bool module_compiler__preprocess_file(const char* path, void* user_data) {
-    struct module_compiler__preprocess_file_context* context = (struct module_compiler__preprocess_file_context*) user_data;
-    TEST_FRAMEWORK_ASSERT(file__exists(path));
+bool module_compiler__compile_file(const char* file_path, void* user_data) {
+    struct module_compiler__compile_file_context* context = (struct module_compiler__compile_file_context*) user_data;
+    TEST_FRAMEWORK_ASSERT(file__exists(file_path));
 
-    char* extension = string__rsearch_n(path, libc__strlen(path), ".", 1, false);
+    char* extension = string__rsearch_n(file_path, libc__strlen(file_path), ".", 1, false);
     if (extension == NULL) {
         return false;
     }
@@ -364,10 +390,14 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
             // do the actual preprocessing only if necessary:
             //  - file's dependencies changed <- what are these?
             if (preprocessed_extensions_index == c_extension_index) {
+                // preprocess
+                module_compiler__tokenize_file(file_path, context->allocator);
+
+                // compilation
                 u32 obj_file_len = libc__snprintf(
                     memory_slice__memory(&path_to_obj_file),
                     memory_slice__size(&path_to_obj_file),
-                    "%s", path
+                    "%s", file_path
                 );
                 TEST_FRAMEWORK_ASSERT(obj_file_len < memory_slice__size(&path_to_obj_file));
                 ASSERT(obj_file_len > 1);
@@ -376,8 +406,8 @@ bool module_compiler__preprocess_file(const char* path, void* user_data) {
                 u32 cmd_line_len = libc__snprintf(
                     memory_slice__memory(&cmd_line), memory_slice__size(&cmd_line),
                     // "%s -c %s -o %s %s -MMD -MP -MF %s",
-                    "%s -c -o %s %s %s",
-                    "cc", memory_slice__memory(&path_to_obj_file), path, "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules -DGIL_DEBUG"
+                    "%s -c %s -o %s %s",
+                    "cc", file_path, memory_slice__memory(&path_to_obj_file), "-std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules -DGIL_DEBUG"
                 );
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
 
@@ -424,7 +454,7 @@ void main() {
     return true;
 }
 
-void module_compiler__preprocess(struct module_compiler__preprocess_file_context* context) {
+void module_compiler__compile(struct module_compiler__compile_file_context* context) {
     // discover relevant files to preprocess:
     struct memory_slice file_path = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
     // current dir
@@ -436,7 +466,7 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
-        &module_compiler__preprocess_file,
+        &module_compiler__compile_file,
         context,
         FILE_TYPE_FILE
     );
@@ -458,7 +488,7 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
-        &module_compiler__preprocess_file,
+        &module_compiler__compile_file,
         context,
         FILE_TYPE_FILE
     );
@@ -488,7 +518,7 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
     TEST_FRAMEWORK_ASSERT(dirpath_len < memory_slice__size(&file_path));
     directory__foreach_shallow(
         memory_slice__memory(&file_path),
-        &module_compiler__preprocess_file,
+        &module_compiler__compile_file,
         context,
         FILE_TYPE_FILE
     );
@@ -505,18 +535,18 @@ void module_compiler__preprocess(struct module_compiler__preprocess_file_context
     linear_allocator__pop(context->allocator, file_path);
 }
 
-void module_compiler__preprocess_all(
+void module_compiler__compile_all(
     struct stack* modules,
     struct linear_allocator* allocator
 ) {
-    struct module_compiler__preprocess_file_context context;
+    struct module_compiler__compile_file_context context;
     context.allocator = allocator;
     context.compilation_processes_size = 0;
 
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* module = stack__at(modules, module_index);
         context.module = module;
-        module_compiler__preprocess(&context);
+        module_compiler__compile(&context);
     }
     for (u32 process_index = 0; process_index < context.compilation_processes_size; ++process_index) {
         process__wait_execution(&context.compilation_processes[process_index]);
@@ -2046,19 +2076,25 @@ static u32 module_compiler__get_test_dependencies(
         error_code__exit(MODULE_COMPILER_ERROR_CODE_DEPENDENCY_NOT_FOUND);
     }
     bool added_common_test_dependency = false;
+    if (self == common_test_dependency) {
+        added_common_test_dependency = true;
+    }
 
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
         struct module* test_dependency = self->test_dependencies[dependency_index];
         if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
+            if (test_dependency == common_test_dependency) {
+                if (added_common_test_dependency) {
+                    continue ;
+                }
+                added_common_test_dependency = true;
+            }
             module_compiler__write_dependency_into_buffer_and_increment(test_dependency, dependency_buffer, &dependency_buffer_size);
             dependency_buffer_size = module_compiler__get_dependencies(
                 test_dependency,
                 dependency_buffer,
                 dependency_buffer_size
             );
-            if (test_dependency == common_test_dependency) {
-                added_common_test_dependency = true;
-            }
         }
     }
 

@@ -3,7 +3,7 @@
 #include "system/thread/thread.h"
 
 #include "libc/libc.h"
-#include "math/random/random.h"
+#include "gil_math/random/random.h"
 
 u32 worker_fn(void* user_data) {
     (void) user_data;

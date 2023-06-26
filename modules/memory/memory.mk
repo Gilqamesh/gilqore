@@ -42,7 +42,7 @@ include $(memory_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(memory_test_install_path): $(memory_test_objects) $(memory_test_libdepend_objs)
-	$(CC) -o $@ $(memory_test_objects) $(memory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(memory_test_objects) $(memory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: memory_all
 memory_all: $(memory_objects) ## build all memory object files
@@ -71,16 +71,16 @@ memory_test_re: memory_test_all
 .PHONY: memory_test_run_all
 memory_test_run_all: $(memory_test_child_run_targets) ## build and run memory_test
 ifneq ($(memory_test_objects),)
-memory_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(memory_test_install_path)
+memory_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(memory_test_install_path)
 endif
 
 .PHONY: memory_test_run
 memory_test_run: memory_all
 memory_test_run: memory_test_all
 ifneq ($(memory_test_objects),)
-memory_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(memory_test_install_path)
+memory_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(memory_test_install_path)
 endif
 
 -include $(memory_depends)

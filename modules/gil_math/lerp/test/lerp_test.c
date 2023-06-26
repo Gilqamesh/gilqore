@@ -1,6 +1,6 @@
 #include "test_framework/test_framework.h"
 
-#include "math/lerp/lerp.h"
+#include "gil_math/lerp/lerp.h"
 
 #include "libc/libc.h"
 

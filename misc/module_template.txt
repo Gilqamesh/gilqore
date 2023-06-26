@@ -71,16 +71,16 @@ $(MODULE_NAME)_test_re: $(MODULE_NAME)_test_all
 .PHONY: $(MODULE_NAME)_test_run_all
 $(MODULE_NAME)_test_run_all: $($(MODULE_NAME)_test_child_run_targets) ## build and run $(MODULE_NAME)_test
 ifneq ($($(MODULE_NAME)_test_objects),)
-$(MODULE_NAME)_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path)
+$(MODULE_NAME)_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $($(MODULE_NAME)_test_install_path)
 endif
 
 .PHONY: $(MODULE_NAME)_test_run
 $(MODULE_NAME)_test_run: $(MODULE_NAME)_all
 $(MODULE_NAME)_test_run: $(MODULE_NAME)_test_all
 ifneq ($($(MODULE_NAME)_test_objects),)
-$(MODULE_NAME)_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $($(MODULE_NAME)_test_install_path)
+$(MODULE_NAME)_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $($(MODULE_NAME)_test_install_path)
 endif
 
 -include $($(MODULE_NAME)_depends)

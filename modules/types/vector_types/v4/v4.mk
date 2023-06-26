@@ -42,7 +42,7 @@ include $(v4_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v4_test_install_path): $(v4_test_objects) $(v4_test_libdepend_objs)
-	$(CC) -o $@ $(v4_test_objects) $(v4_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(v4_test_objects) $(v4_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: v4_all
 v4_all: $(v4_objects) ## build all v4 object files
@@ -71,16 +71,16 @@ v4_test_re: v4_test_all
 .PHONY: v4_test_run_all
 v4_test_run_all: $(v4_test_child_run_targets) ## build and run v4_test
 ifneq ($(v4_test_objects),)
-v4_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v4_test_install_path)
+v4_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(v4_test_install_path)
 endif
 
 .PHONY: v4_test_run
 v4_test_run: v4_all
 v4_test_run: v4_test_all
 ifneq ($(v4_test_objects),)
-v4_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v4_test_install_path)
+v4_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(v4_test_install_path)
 endif
 
 -include $(v4_depends)

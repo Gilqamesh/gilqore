@@ -1,6 +1,6 @@
 #include "types/basic_types/basic_types.h"
 
-#include "math/math.h"
+#include "gil_math/gil_math.h"
 
 #define EPSILON_R32 0.00001f
 #define EPSILON_R64 0.0000000000001

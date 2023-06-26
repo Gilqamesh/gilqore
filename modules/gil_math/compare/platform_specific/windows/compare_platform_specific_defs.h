@@ -5,6 +5,11 @@
 
 enum compare_windows_error_code {
     WINDOWS_COMPARE_ERROR_CODE_START,
+};
+
+
+enum compare_windows_error_code {
+    WINDOWS_COMPARE_ERROR_CODE_START,
 
 };
 

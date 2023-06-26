@@ -42,7 +42,7 @@ include $(v3_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(v3_test_install_path): $(v3_test_objects) $(v3_test_libdepend_objs)
-	$(CC) -o $@ $(v3_test_objects) $(v3_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(v3_test_objects) $(v3_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: v3_all
 v3_all: $(v3_objects) ## build all v3 object files
@@ -71,16 +71,16 @@ v3_test_re: v3_test_all
 .PHONY: v3_test_run_all
 v3_test_run_all: $(v3_test_child_run_targets) ## build and run v3_test
 ifneq ($(v3_test_objects),)
-v3_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v3_test_install_path)
+v3_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(v3_test_install_path)
 endif
 
 .PHONY: v3_test_run
 v3_test_run: v3_all
 v3_test_run: v3_test_all
 ifneq ($(v3_test_objects),)
-v3_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(v3_test_install_path)
+v3_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(v3_test_install_path)
 endif
 
 -include $(v3_depends)

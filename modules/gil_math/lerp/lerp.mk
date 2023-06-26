@@ -42,7 +42,7 @@ include $(lerp_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(lerp_test_install_path): $(lerp_test_objects) $(lerp_test_libdepend_objs)
-	$(CC) -o $@ $(lerp_test_objects) $(lerp_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(lerp_test_objects) $(lerp_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: lerp_all
 lerp_all: $(lerp_objects) ## build all lerp object files
@@ -71,16 +71,16 @@ lerp_test_re: lerp_test_all
 .PHONY: lerp_test_run_all
 lerp_test_run_all: $(lerp_test_child_run_targets) ## build and run lerp_test
 ifneq ($(lerp_test_objects),)
-lerp_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(lerp_test_install_path)
+lerp_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(lerp_test_install_path)
 endif
 
 .PHONY: lerp_test_run
 lerp_test_run: lerp_all
 lerp_test_run: lerp_test_all
 ifneq ($(lerp_test_objects),)
-lerp_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(lerp_test_install_path)
+lerp_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(lerp_test_install_path)
 endif
 
 -include $(lerp_depends)

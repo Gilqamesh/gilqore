@@ -1,4 +1,4 @@
-#include "math/lerp/lerp.h"
+#include "gil_math/lerp/lerp.h"
 
 u32 lerp__u32(u32 a, r32 t, u32 b) {
     return

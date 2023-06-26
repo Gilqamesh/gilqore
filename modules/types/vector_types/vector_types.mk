@@ -42,7 +42,7 @@ include $(vector_types_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(vector_types_test_install_path): $(vector_types_test_objects) $(vector_types_test_libdepend_objs)
-	$(CC) -o $@ $(vector_types_test_objects) $(vector_types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(vector_types_test_objects) $(vector_types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: vector_types_all
 vector_types_all: $(vector_types_objects) ## build all vector_types object files
@@ -71,16 +71,16 @@ vector_types_test_re: vector_types_test_all
 .PHONY: vector_types_test_run_all
 vector_types_test_run_all: $(vector_types_test_child_run_targets) ## build and run vector_types_test
 ifneq ($(vector_types_test_objects),)
-vector_types_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(vector_types_test_install_path)
+vector_types_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(vector_types_test_install_path)
 endif
 
 .PHONY: vector_types_test_run
 vector_types_test_run: vector_types_all
 vector_types_test_run: vector_types_test_all
 ifneq ($(vector_types_test_objects),)
-vector_types_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(vector_types_test_install_path)
+vector_types_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(vector_types_test_install_path)
 endif
 
 -include $(vector_types_depends)

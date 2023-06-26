@@ -42,7 +42,7 @@ include $(libc_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(libc_test_install_path): $(libc_test_objects) $(libc_test_libdepend_objs)
-	$(CC) -o $@ $(libc_test_objects) $(libc_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole -Btcc
+	$(CC) -o $@ $(libc_test_objects) $(libc_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: libc_all
 libc_all: $(libc_objects) ## build all libc object files
@@ -71,16 +71,16 @@ libc_test_re: libc_test_all
 .PHONY: libc_test_run_all
 libc_test_run_all: $(libc_test_child_run_targets) ## build and run libc_test
 ifneq ($(libc_test_objects),)
-libc_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(libc_test_install_path)
+libc_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(libc_test_install_path)
 endif
 
 .PHONY: libc_test_run
 libc_test_run: libc_all
 libc_test_run: libc_test_all
 ifneq ($(libc_test_objects),)
-libc_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(libc_test_install_path)
+libc_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(libc_test_install_path)
 endif
 
 -include $(libc_depends)

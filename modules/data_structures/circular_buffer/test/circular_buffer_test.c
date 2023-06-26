@@ -2,8 +2,8 @@
 
 #include "data_structures/circular_buffer/circular_buffer.h"
 #include "libc/libc.h"
-#include "math/random/random.h"
-#include "math/mod/mod.h"
+#include "gil_math/random/random.h"
+#include "gil_math/mod/mod.h"
 
 struct circular_buffer_context {
     struct memory_slice circular_buffer_memory;

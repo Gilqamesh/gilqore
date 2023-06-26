@@ -1,6 +1,6 @@
 #include "test_framework/test_framework.h"
 
-#include "math/math.h"
+#include "gil_math/gil_math.h"
 
 int main() {
     for (u32 n = 1, i = 0; i < 32; ++i, n <<= 1) {

@@ -42,7 +42,7 @@ include $(thread_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(thread_test_install_path): $(thread_test_objects) $(thread_test_libdepend_objs)
-	$(CC) -o $@ $(thread_test_objects) $(thread_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(thread_test_objects) $(thread_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: thread_all
 thread_all: $(thread_objects) ## build all thread object files
@@ -71,16 +71,16 @@ thread_test_re: thread_test_all
 .PHONY: thread_test_run_all
 thread_test_run_all: $(thread_test_child_run_targets) ## build and run thread_test
 ifneq ($(thread_test_objects),)
-thread_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path)
+thread_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(thread_test_install_path)
 endif
 
 .PHONY: thread_test_run
 thread_test_run: thread_all
 thread_test_run: thread_test_all
 ifneq ($(thread_test_objects),)
-thread_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(thread_test_install_path)
+thread_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(thread_test_install_path)
 endif
 
 -include $(thread_depends)

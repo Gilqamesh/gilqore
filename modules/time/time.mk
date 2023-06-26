@@ -42,7 +42,7 @@ include $(time_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(time_test_install_path): $(time_test_objects) $(time_test_libdepend_objs)
-	$(CC) -o $@ $(time_test_objects) $(time_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(time_test_objects) $(time_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: time_all
 time_all: $(time_objects) ## build all time object files
@@ -71,16 +71,16 @@ time_test_re: time_test_all
 .PHONY: time_test_run_all
 time_test_run_all: $(time_test_child_run_targets) ## build and run time_test
 ifneq ($(time_test_objects),)
-time_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(time_test_install_path)
+time_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(time_test_install_path)
 endif
 
 .PHONY: time_test_run
 time_test_run: time_all
 time_test_run: time_test_all
 ifneq ($(time_test_objects),)
-time_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(time_test_install_path)
+time_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(time_test_install_path)
 endif
 
 -include $(time_depends)

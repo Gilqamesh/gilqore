@@ -42,7 +42,7 @@ include $(circular_buffer_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(circular_buffer_test_install_path): $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs)
-	$(CC) -o $@ $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(circular_buffer_test_objects) $(circular_buffer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: circular_buffer_all
 circular_buffer_all: $(circular_buffer_objects) ## build all circular_buffer object files
@@ -71,16 +71,16 @@ circular_buffer_test_re: circular_buffer_test_all
 .PHONY: circular_buffer_test_run_all
 circular_buffer_test_run_all: $(circular_buffer_test_child_run_targets) ## build and run circular_buffer_test
 ifneq ($(circular_buffer_test_objects),)
-circular_buffer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(circular_buffer_test_install_path)
+circular_buffer_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(circular_buffer_test_install_path)
 endif
 
 .PHONY: circular_buffer_test_run
 circular_buffer_test_run: circular_buffer_all
 circular_buffer_test_run: circular_buffer_test_all
 ifneq ($(circular_buffer_test_objects),)
-circular_buffer_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(circular_buffer_test_install_path)
+circular_buffer_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(circular_buffer_test_install_path)
 endif
 
 -include $(circular_buffer_depends)

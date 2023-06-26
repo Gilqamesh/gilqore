@@ -2,7 +2,7 @@
 
 #include "io/file/file.h"
 #include "io/file/file_reader/file_reader.h"
-#include "math/random/random.h"
+#include "gil_math/random/random.h"
 #include "libc/libc.h"
 #include "memory/memory.h"
 

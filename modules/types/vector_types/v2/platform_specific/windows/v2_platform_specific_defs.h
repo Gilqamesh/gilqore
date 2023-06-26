@@ -5,6 +5,11 @@
 
 enum v2_windows_error_code {
     WINDOWS_V2_ERROR_CODE_START,
+};
+
+
+enum v2_windows_error_code {
+    WINDOWS_V2_ERROR_CODE_START,
 
 };
 

@@ -3,7 +3,12 @@
 
 # include "../../data_structures"
 
+enu
+
 enum data_structures_windows_error_code {
+    WINDOWS_DATA_STRUCTURES_ERROR_CODE_START,
+};
+m data_structures_windows_error_code {
     WINDOWS_DATA_STRUCTURES_ERROR_CODE_START,
 
 };

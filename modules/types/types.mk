@@ -42,7 +42,7 @@ include $(types_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(types_test_install_path): $(types_test_objects) $(types_test_libdepend_objs)
-	$(CC) -o $@ $(types_test_objects) $(types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(types_test_objects) $(types_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: types_all
 types_all: $(types_objects) ## build all types object files
@@ -71,16 +71,16 @@ types_test_re: types_test_all
 .PHONY: types_test_run_all
 types_test_run_all: $(types_test_child_run_targets) ## build and run types_test
 ifneq ($(types_test_objects),)
-types_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(types_test_install_path)
+types_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(types_test_install_path)
 endif
 
 .PHONY: types_test_run
 types_test_run: types_all
 types_test_run: types_test_all
 ifneq ($(types_test_objects),)
-types_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(types_test_install_path)
+types_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(types_test_install_path)
 endif
 
 -include $(types_depends)

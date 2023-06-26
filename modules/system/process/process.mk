@@ -42,7 +42,7 @@ include $(process_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(process_test_install_path): $(process_test_objects) $(process_test_libdepend_objs)
-	$(CC) -o $@ $(process_test_objects) $(process_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(process_test_objects) $(process_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: process_all
 process_all: $(process_objects) ## build all process object files
@@ -71,16 +71,16 @@ process_test_re: process_test_all
 .PHONY: process_test_run_all
 process_test_run_all: $(process_test_child_run_targets) ## build and run process_test
 ifneq ($(process_test_objects),)
-process_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path)
+process_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(process_test_install_path)
 endif
 
 .PHONY: process_test_run
 process_test_run: process_all
 process_test_run: process_test_all
 ifneq ($(process_test_objects),)
-process_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(process_test_install_path)
+process_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(process_test_install_path)
 endif
 
 -include $(process_depends)

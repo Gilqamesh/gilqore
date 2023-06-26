@@ -42,7 +42,7 @@ include $(gil_math_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(gil_math_test_install_path): $(gil_math_test_objects) $(gil_math_test_libdepend_objs)
-	$(CC) -o $@ $(gil_math_test_objects) $(gil_math_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(gil_math_test_objects) $(gil_math_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: gil_math_all
 gil_math_all: $(gil_math_objects) ## build all gil_math object files
@@ -71,16 +71,16 @@ gil_math_test_re: gil_math_test_all
 .PHONY: gil_math_test_run_all
 gil_math_test_run_all: $(gil_math_test_child_run_targets) ## build and run gil_math_test
 ifneq ($(gil_math_test_objects),)
-gil_math_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(gil_math_test_install_path)
+gil_math_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(gil_math_test_install_path)
 endif
 
 .PHONY: gil_math_test_run
 gil_math_test_run: gil_math_all
 gil_math_test_run: gil_math_test_all
 ifneq ($(gil_math_test_objects),)
-gil_math_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(gil_math_test_install_path)
+gil_math_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(gil_math_test_install_path)
 endif
 
 -include $(gil_math_depends)

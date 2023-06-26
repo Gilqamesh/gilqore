@@ -5,6 +5,11 @@
 
 enum clamp_windows_error_code {
     WINDOWS_CLAMP_ERROR_CODE_START,
+};
+
+
+enum clamp_windows_error_code {
+    WINDOWS_CLAMP_ERROR_CODE_START,
 
 };
 

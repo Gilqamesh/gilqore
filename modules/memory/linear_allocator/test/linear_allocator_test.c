@@ -2,7 +2,7 @@
 
 #include "memory/linear_allocator/linear_allocator.h"
 #include "libc/libc.h"
-#include "math/random/random.h"
+#include "gil_math/random/random.h"
 
 #if defined(TEST_FRAMEWORK_SHOULD_PRINT)
 # undef TEST_FRAMEWORK_SHOULD_PRINT

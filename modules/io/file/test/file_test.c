@@ -3,8 +3,8 @@
 #include "io/file/file.h"
 
 #include "libc/libc.h"
-#include "math/random/random.h"
-#include "math/compare/compare.h"
+#include "gil_math/random/random.h"
+#include "gil_math/compare/compare.h"
 #include "time/time.h"
 #include "system/process/process.h"
 

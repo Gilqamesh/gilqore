@@ -42,7 +42,7 @@ include $(system_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(system_test_install_path): $(system_test_objects) $(system_test_libdepend_objs)
-	$(CC) -o $@ $(system_test_objects) $(system_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(system_test_objects) $(system_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: system_all
 system_all: $(system_objects) ## build all system object files
@@ -71,16 +71,16 @@ system_test_re: system_test_all
 .PHONY: system_test_run_all
 system_test_run_all: $(system_test_child_run_targets) ## build and run system_test
 ifneq ($(system_test_objects),)
-system_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(system_test_install_path)
+system_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(system_test_install_path)
 endif
 
 .PHONY: system_test_run
 system_test_run: system_all
 system_test_run: system_test_all
 ifneq ($(system_test_objects),)
-system_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(system_test_install_path)
+system_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(system_test_install_path)
 endif
 
 -include $(system_depends)

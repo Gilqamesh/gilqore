@@ -42,7 +42,7 @@ include $(algorithms_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(algorithms_test_install_path): $(algorithms_test_objects) $(algorithms_test_libdepend_objs)
-	$(CC) -o $@ $(algorithms_test_objects) $(algorithms_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(algorithms_test_objects) $(algorithms_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: algorithms_all
 algorithms_all: $(algorithms_objects) ## build all algorithms object files
@@ -71,16 +71,16 @@ algorithms_test_re: algorithms_test_all
 .PHONY: algorithms_test_run_all
 algorithms_test_run_all: $(algorithms_test_child_run_targets) ## build and run algorithms_test
 ifneq ($(algorithms_test_objects),)
-algorithms_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(algorithms_test_install_path)
+algorithms_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(algorithms_test_install_path)
 endif
 
 .PHONY: algorithms_test_run
 algorithms_test_run: algorithms_all
 algorithms_test_run: algorithms_test_all
 ifneq ($(algorithms_test_objects),)
-algorithms_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(algorithms_test_install_path)
+algorithms_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(algorithms_test_install_path)
 endif
 
 -include $(algorithms_depends)

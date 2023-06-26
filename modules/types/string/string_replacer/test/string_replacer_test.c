@@ -3,7 +3,7 @@
 #include "types/string/string_replacer/string_replacer.h"
 
 #include "libc/libc.h"
-#include "math/clamp/clamp.h"
+#include "gil_math/clamp/clamp.h"
 #include "types/vector_types/v2/v2u32.h"
 #include "io/file/file.h"
 

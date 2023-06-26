@@ -2,8 +2,8 @@
 
 #include "graphics/color/color.h"
 
-#include "math/clamp/clamp.h"
-#include "math/random/random.h"
+#include "gil_math/clamp/clamp.h"
+#include "gil_math/random/random.h"
 #include "libc/libc.h"
 
 #define COLOR_CHANNEL_VALUE_MIN 0

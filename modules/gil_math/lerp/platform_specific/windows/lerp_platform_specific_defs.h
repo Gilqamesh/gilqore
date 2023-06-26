@@ -5,6 +5,11 @@
 
 enum lerp_windows_error_code {
     WINDOWS_LERP_ERROR_CODE_START,
+};
+
+
+enum lerp_windows_error_code {
+    WINDOWS_LERP_ERROR_CODE_START,
 
 };
 

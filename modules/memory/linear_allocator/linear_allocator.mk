@@ -42,7 +42,7 @@ include $(linear_allocator_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(linear_allocator_test_install_path): $(linear_allocator_test_objects) $(linear_allocator_test_libdepend_objs)
-	$(CC) -o $@ $(linear_allocator_test_objects) $(linear_allocator_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(linear_allocator_test_objects) $(linear_allocator_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: linear_allocator_all
 linear_allocator_all: $(linear_allocator_objects) ## build all linear_allocator object files
@@ -71,16 +71,16 @@ linear_allocator_test_re: linear_allocator_test_all
 .PHONY: linear_allocator_test_run_all
 linear_allocator_test_run_all: $(linear_allocator_test_child_run_targets) ## build and run linear_allocator_test
 ifneq ($(linear_allocator_test_objects),)
-linear_allocator_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(linear_allocator_test_install_path)
+linear_allocator_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(linear_allocator_test_install_path)
 endif
 
 .PHONY: linear_allocator_test_run
 linear_allocator_test_run: linear_allocator_all
 linear_allocator_test_run: linear_allocator_test_all
 ifneq ($(linear_allocator_test_objects),)
-linear_allocator_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(linear_allocator_test_install_path)
+linear_allocator_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(linear_allocator_test_install_path)
 endif
 
 -include $(linear_allocator_depends)

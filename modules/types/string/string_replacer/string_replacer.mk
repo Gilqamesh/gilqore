@@ -42,7 +42,7 @@ include $(string_replacer_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(string_replacer_test_install_path): $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs)
-	$(CC) -o $@ $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(string_replacer_test_objects) $(string_replacer_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: string_replacer_all
 string_replacer_all: $(string_replacer_objects) ## build all string_replacer object files
@@ -71,16 +71,16 @@ string_replacer_test_re: string_replacer_test_all
 .PHONY: string_replacer_test_run_all
 string_replacer_test_run_all: $(string_replacer_test_child_run_targets) ## build and run string_replacer_test
 ifneq ($(string_replacer_test_objects),)
-string_replacer_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path)
+string_replacer_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(string_replacer_test_install_path)
 endif
 
 .PHONY: string_replacer_test_run
 string_replacer_test_run: string_replacer_all
 string_replacer_test_run: string_replacer_test_all
 ifneq ($(string_replacer_test_objects),)
-string_replacer_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(string_replacer_test_install_path)
+string_replacer_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(string_replacer_test_install_path)
 endif
 
 -include $(string_replacer_depends)

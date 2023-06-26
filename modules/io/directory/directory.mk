@@ -42,7 +42,7 @@ include $(directory_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(directory_test_install_path): $(directory_test_objects) $(directory_test_libdepend_objs)
-	$(CC) -o $@ $(directory_test_objects) $(directory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(directory_test_objects) $(directory_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: directory_all
 directory_all: $(directory_objects) ## build all directory object files
@@ -71,16 +71,16 @@ directory_test_re: directory_test_all
 .PHONY: directory_test_run_all
 directory_test_run_all: $(directory_test_child_run_targets) ## build and run directory_test
 ifneq ($(directory_test_objects),)
-directory_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(directory_test_install_path)
+directory_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(directory_test_install_path)
 endif
 
 .PHONY: directory_test_run
 directory_test_run: directory_all
 directory_test_run: directory_test_all
 ifneq ($(directory_test_objects),)
-directory_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(directory_test_install_path)
+directory_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(directory_test_install_path)
 endif
 
 -include $(directory_depends)

@@ -5,6 +5,11 @@
 
 enum bucket_array_windows_error_code {
     WINDOWS_BUCKET_ARRAY_ERROR_CODE_START,
+};
+
+
+enum bucket_array_windows_error_code {
+    WINDOWS_BUCKET_ARRAY_ERROR_CODE_START,
 
 };
 

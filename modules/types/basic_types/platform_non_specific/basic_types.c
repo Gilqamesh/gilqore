@@ -1,6 +1,6 @@
 #include "types/basic_types/basic_types.h"
 
-#include <math.h>
+#include <gil_math.h>
 
 r32 r32__modular_fraction(r32 r, r32* integral_part) {
     return modff(r, integral_part);

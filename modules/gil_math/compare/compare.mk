@@ -42,7 +42,7 @@ include $(compare_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(compare_test_install_path): $(compare_test_objects) $(compare_test_libdepend_objs)
-	$(CC) -o $@ $(compare_test_objects) $(compare_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(compare_test_objects) $(compare_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: compare_all
 compare_all: $(compare_objects) ## build all compare object files
@@ -71,16 +71,16 @@ compare_test_re: compare_test_all
 .PHONY: compare_test_run_all
 compare_test_run_all: $(compare_test_child_run_targets) ## build and run compare_test
 ifneq ($(compare_test_objects),)
-compare_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(compare_test_install_path)
+compare_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(compare_test_install_path)
 endif
 
 .PHONY: compare_test_run
 compare_test_run: compare_all
 compare_test_run: compare_test_all
 ifneq ($(compare_test_objects),)
-compare_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(compare_test_install_path)
+compare_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(compare_test_install_path)
 endif
 
 -include $(compare_depends)

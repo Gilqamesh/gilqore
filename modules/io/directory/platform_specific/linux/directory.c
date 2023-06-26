@@ -7,7 +7,7 @@
 
 #include "common/error_code.h"
 #include "libc/libc.h"
-#include "math/compare/compare.h"
+#include "gil_math/compare/compare.h"
 
 bool directory__open(struct directory* self, const char* path) {
     if ((self->handle = opendir(path)) == NULL) {

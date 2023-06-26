@@ -42,7 +42,7 @@ include $(wav_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(wav_test_install_path): $(wav_test_objects) $(wav_test_libdepend_objs)
-	$(CC) -o $@ $(wav_test_objects) $(wav_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(wav_test_objects) $(wav_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: wav_all
 wav_all: $(wav_objects) ## build all wav object files
@@ -71,16 +71,16 @@ wav_test_re: wav_test_all
 .PHONY: wav_test_run_all
 wav_test_run_all: $(wav_test_child_run_targets) ## build and run wav_test
 ifneq ($(wav_test_objects),)
-wav_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(wav_test_install_path)
+wav_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(wav_test_install_path)
 endif
 
 .PHONY: wav_test_run
 wav_test_run: wav_all
 wav_test_run: wav_test_all
 ifneq ($(wav_test_objects),)
-wav_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(wav_test_install_path)
+wav_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(wav_test_install_path)
 endif
 
 -include $(wav_depends)

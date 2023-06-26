@@ -42,7 +42,7 @@ include $(random_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(random_test_install_path): $(random_test_objects) $(random_test_libdepend_objs)
-	$(CC) -o $@ $(random_test_objects) $(random_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(random_test_objects) $(random_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: random_all
 random_all: $(random_objects) ## build all random object files
@@ -71,16 +71,16 @@ random_test_re: random_test_all
 .PHONY: random_test_run_all
 random_test_run_all: $(random_test_child_run_targets) ## build and run random_test
 ifneq ($(random_test_objects),)
-random_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(random_test_install_path)
+random_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(random_test_install_path)
 endif
 
 .PHONY: random_test_run
 random_test_run: random_all
 random_test_run: random_test_all
 ifneq ($(random_test_objects),)
-random_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(random_test_install_path)
+random_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(random_test_install_path)
 endif
 
 -include $(random_depends)

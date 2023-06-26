@@ -42,7 +42,7 @@ include $(common_child_makefiles)
 #	$(CC) -c $< -o $@ $(CFLAGS_COMMON) -MMD -MP -MF $(<:.c=.d)
 
 $(common_test_install_path): $(common_test_objects) $(common_test_libdepend_objs)
-	$(CC) -o $@ $(common_test_objects) $(common_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole tcc/lib/libtcc1-64.a tcc/libtcc.dll
+	$(CC) -o $@ $(common_test_objects) $(common_test_libdepend_objs) $(LFLAGS_COMMON) -mconsole
 
 .PHONY: common_all
 common_all: $(common_objects) ## build all common object files
@@ -71,16 +71,16 @@ common_test_re: common_test_all
 .PHONY: common_test_run_all
 common_test_run_all: $(common_test_child_run_targets) ## build and run common_test
 ifneq ($(common_test_objects),)
-common_test_run_all: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(common_test_install_path)
+common_test_run_all: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(common_test_install_path)
 endif
 
 .PHONY: common_test_run
 common_test_run: common_all
 common_test_run: common_test_all
 ifneq ($(common_test_objects),)
-common_test_run: $(PATH_INSTALL)/test_framework$(EXT_EXE)
-	@$(PATH_INSTALL)/test_framework$(EXT_EXE) $(common_test_install_path)
+common_test_run: $(TEST_FRAMEWORK_EXE)
+	@$(TEST_FRAMEWORK_EXE) $(common_test_install_path)
 endif
 
 -include $(common_depends)
