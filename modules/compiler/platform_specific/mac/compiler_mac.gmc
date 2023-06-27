@@ -1,0 +1,5 @@
+unique_error_codes: [
+]
+module_dependencies:
+test_dependencies:
+application_type: CONSOLE

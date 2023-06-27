@@ -55,7 +55,7 @@ int main() {
         &allocator
     );
 
-    module_compiler__preprocess_all(&modules_stack, &allocator);
+    module_compiler__compile_all(&modules_stack, &allocator);
 
     // module_compiler__print_branch(parent_module, &modules_stack);
 

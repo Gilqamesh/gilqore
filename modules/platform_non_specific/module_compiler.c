@@ -391,7 +391,7 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
             //  - file's dependencies changed <- what are these?
             if (preprocessed_extensions_index == c_extension_index) {
                 // preprocess
-                module_compiler__tokenize_file(file_path, context->allocator);
+                // module_compiler__tokenize_file(file_path, context->allocator);
 
                 // compilation
                 u32 obj_file_len = libc__snprintf(
@@ -1486,6 +1486,7 @@ static void update_gmc_files(
     );
     assert_copy_file(
         file_path_memory_slice,
+        CONFIG_FILE_TEMPLATE_PATH,
         "%s/%s/%s/%s_%s.%s",
         self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_WINDOWS,
         self->basename, PLATFORM_SPECIFIC_WINDOWS, CONFIG_EXTENSION
@@ -1500,6 +1501,7 @@ static void update_gmc_files(
     );
     assert_copy_file(
         file_path_memory_slice,
+        CONFIG_FILE_TEMPLATE_PATH,
         "%s/%s/%s/%s_%s.%s",
         self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_LINUX,
         self->basename, PLATFORM_SPECIFIC_LINUX, CONFIG_EXTENSION
@@ -1514,6 +1516,7 @@ static void update_gmc_files(
     );
     assert_copy_file(
         file_path_memory_slice,
+        CONFIG_FILE_TEMPLATE_PATH,
         "%s/%s/%s/%s_%s.%s",
         self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME, PLATFORM_SPECIFIC_MAC,
         self->basename, PLATFORM_SPECIFIC_MAC, CONFIG_EXTENSION
@@ -1529,6 +1532,10 @@ void module_compiler__parse_config_file(
     struct linear_allocator* allocator,
     struct file* error_codes_file
 ) {
+    if (libc__strcmp("compiler", self->basename) == 0) {
+        int dbg = 0;
+        ++dbg;
+    }
     update_gmc_files(self, allocator);
 
     // todo: parse these out from def_file_template_h
@@ -1711,6 +1718,7 @@ void module_compiler__parse_config_file(
             self->basename, platform_specific, CONFIG_EXTENSION
         ) < memory_slice__size(&config_file_path_memory_slice)
     );
+    libc__printf("%s\n", memory_slice__memory(&config_file_path_memory_slice));
     TEST_FRAMEWORK_ASSERT(file__exists(memory_slice__memory(&config_file_path_memory_slice)));
 
     bytes_written = libc__snprintf(
