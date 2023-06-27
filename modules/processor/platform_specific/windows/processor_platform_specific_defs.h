@@ -5,6 +5,11 @@
 
 enum processor_windows_error_code {
     WINDOWS_PROCESSOR_ERROR_CODE_START,
+};
+
+
+enum processor_windows_error_code {
+    WINDOWS_PROCESSOR_ERROR_CODE_START,
 
 };
 

@@ -21,4 +21,7 @@ PUBLIC_API char* string__rsearch_while    (const char* str, u32 str_len, const c
 // @brief decrements 'str' 'max' amount from the back while it does not match either characters from 'set'
 PUBLIC_API char* string__rsearch_while_not(const char* str, u32 str_len, const char* set, u32 max);
 
+// @returns position in 'str' after the matched prefix or NULL if there wasn't a match
+PUBLIC_API char* string__starts_with(const char* str, const char* prefix);
+
 #endif // STRING_H

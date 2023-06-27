@@ -62,7 +62,7 @@ static void test_v(
         test_params.n = n;
         test_params.set = set;
         test_params.return_last_occurance = return_last_occurance;
-        libc_printf("%s\n", expected);
+        libc__printf("%s\n", expected);
         test_fn(
             expected,
             fn_to_apply_on_str_buffer,
@@ -304,6 +304,16 @@ int main() {
         "W", 50, false, "Whadap",
         TERMINATING_PTR
     );
+
+    const char* str = "lajos";
+    const char* prefix = "laf";
+    TEST_FRAMEWORK_ASSERT(string__starts_with(str, prefix) == NULL);
+
+    const char* prefix2 = "laj";
+    TEST_FRAMEWORK_ASSERT(string__starts_with(str, prefix2) == str + 3 && *(str + 3) == 'o');
+
+    const char* prefix3 = "";
+    TEST_FRAMEWORK_ASSERT(string__starts_with(str, prefix3) == str + 0 && *(str + 0) == 'l');
 
     libc__free(str_buffer);
 

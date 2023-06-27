@@ -1,7 +1,5 @@
 #include "test_framework/test_framework.h"
-
 #include "module_compiler.h"
-
 #include "io/file/file.h"
 #include "io/file/file_reader/file_reader.h"
 #include "io/file/file_writer/file_writer.h"
@@ -15,37 +13,30 @@
 #include "memory/linear_allocator/linear_allocator.h"
 #include "data_structures/stack/stack.h"
 #include "system/process/process.h"
-
 #define PLATFORM_SPECIFIC_FOLDER_NAME "platform_specific"
 #define ERROR_CODES_FILE_NAME "modules/error_codes"
 #define PLATFORM_SPECIFIC_CONFIG_FILE_TEMPLATE_PATH "misc/platform_specific_gmc_file_template.txt"
 #define MODULES_TEMPLATE_PATH "misc/module_template.txt"
-
 #define DEF_FILE_TEMPLATE_PATH "misc/def_file_template.h"
 #define ENUM_ERROR_CODE_MAX_SIZE 128
 #define DEF_FILE_MAX_SIZE KILOBYTES(16)
 #define ERROR_CODES_MAX_NUMBER 64
 #define DEF_FILE_MAX_NUMBER_OF_STRING_REPLACEMENTS ERROR_CODES_MAX_NUMBER
 #define DEF_FILE_AVERAGE_REPLACEMENT_SIZE BYTES(64)
-
 #define TEST_FILE_TEMPLATE_PATH "misc/test_file_template.txt"
 #define TEST_FILE_SUFFIX "_test.c"
 #define TEST_FOLDER_NAME "test"
 #define TEST_FILE_TEMPLATE_MAX_SIZE KILOBYTES(4)
-
 #define IMPLEMENTATION_FOLDER_NAME "platform_non_specific"
-
 #define PLATFORM_SPECIFIC_WINDOWS "windows"
 #define PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS "WINDOWS"
 #define PLATFORM_SPECIFIC_LINUX "linux"
 #define PLATFORM_SPECIFIC_CAPITALIZED_LINUX "LINUX"
 #define PLATFORM_SPECIFIC_MAC "mac"
 #define PLATFORM_SPECIFIC_CAPITALIZED_MAC "MAC"
-
 #define CONFIG_EXTENSION "gmc"
 #define CONFIG_FILE_TEMPLATE_PATH "misc/gmc_file_template.txt"
 #define CONFIG_FILE_MAX_SIZE KILOBYTES(8)
-
 #define MAX_KEY_LENGTH BYTES(64)
 #define ERROR_CODE_LINE_AVERAGE_LENGTH BYTES(256)
 #define KEY_UNIQUE_ERROR_CODES "unique_error_codes"
@@ -53,21 +44,15 @@
 #define KEY_PLATFORM_SPECIFIC_MODULE_DEPENDENCIES "platform_specific_module_dependencies"
 #define KEY_TEST_DEPENDENCIES "test_dependencies"
 #define KEY_APPLICATION_TYPE "application_type"
-
 #define VALUE_APPLICATION_TYPE_CONSOLE "CONSOLE"
 #define VALUE_APPLICATION_TYPE_WINDOWS "WINDOWS"
 #define VALUE_APPLICATION_TYPE_DEFAULT VALUE_APPLICATION_TYPE_CONSOLE
-
 #define MODULES_PATH "modules"
 #define TEST_FRAMEWORK_MODULE_NAME "test_framework"
-
 #define PREPROCESSED_DIR "preprocessed"
-
 // todo: put this into file module
 #define MAX_FILE_PATH_SIZE 256
-
 #define MAX_CMD_LINE_SIZE 1024
-
 static void assert_create_dir(
     struct memory_slice memory_slice,
     const char* directory_path_f,
@@ -81,7 +66,6 @@ static void assert_create_dir(
         memory_slice__memory(&memory_slice), memory_slice__size(&memory_slice),
         directory_path_f, ap);
     va_end(ap);
-
     if (bytes_written == memory_slice__size(&memory_slice)) {
         // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
         error_code__exit(354553);
@@ -92,7 +76,6 @@ static void assert_create_dir(
         libc__printf("Directory created: %s\n", memory_slice__memory(&memory_slice));
     }
 }
-
 static void assert_copy_file(
     struct memory_slice memory_slice,
     const char* src_file,
@@ -100,7 +83,6 @@ static void assert_copy_file(
     ...
 ) {
     va_list ap;
-
     va_start(ap, file_path_f);
     u32 bytes_written =
     libc__vsnprintf(
@@ -108,7 +90,6 @@ static void assert_copy_file(
         file_path_f, ap
     );
     va_end(ap);
-
     if (bytes_written == memory_slice__size(&memory_slice)) {
         // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
         error_code__exit(354553);
@@ -119,14 +100,12 @@ static void assert_copy_file(
         libc__printf("File created: %s\n", memory_slice__memory(&memory_slice));
     }
 }
-
 static void assert_create_file(
     struct memory_slice memory_slice,
     const char* format,
     ...
 ) {
     va_list ap;
-
     va_start(ap, format);
     u32 bytes_written =
     libc__vsnprintf(
@@ -134,7 +113,6 @@ static void assert_create_file(
         format, ap
     );
     va_end(ap);
-
     if (bytes_written == memory_slice__size(&memory_slice)) {
         // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
         error_code__exit(354553);
@@ -145,13 +123,11 @@ static void assert_create_file(
         libc__printf("File created: %s\n", memory_slice__memory(&memory_slice));
     }
 }
-
 void module_compiler__clear_transient_flags(struct stack* modules) {
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         ((struct module*) stack__at(modules, module_index))->transient_flag_for_processing = 0;
     }
 }
-
 struct module* module_compiler__add_child(
     struct stack* modules,
     struct module* self,
@@ -175,7 +151,6 @@ struct module* module_compiler__add_child(
         // error_code__exit(CHILD_PREFIX_TOO_LONG);
         error_code__exit(836);
     }
-
     u32 name_index = 0;
     while (
         name_index + 1 < ARRAY_SIZE(child->basename) &&
@@ -185,14 +160,11 @@ struct module* module_compiler__add_child(
         ++name_index;
     }
     child->basename[name_index] = '\0';
-
     struct module* first_child = self->first_child;
     self->first_child = child;
     child->next_sibling = first_child;
-
     return child;
 }
-
 void module_compiler__add_dependency(struct module* self, struct module* dependency) {
     u32 hash_value = (dependency->basename[0] * 56237) & ARRAY_SIZE(self->dependencies);
     for (u32 i = hash_value; i < ARRAY_SIZE(self->dependencies); ++i) {
@@ -218,7 +190,6 @@ void module_compiler__add_dependency(struct module* self, struct module* depende
     // error_code__exit(MAX_AMOUNT_OF_DEPENDENCIES_REACHED_FOR_MODULE);
     error_code__exit(43556);
 }
-
 void module_compiler__add_test_dependency(struct module* self, struct module* dependency) {
     u32 hash_value = (dependency->basename[0] * 56237) & ARRAY_SIZE(self->test_dependencies);
     for (u32 i = hash_value; i < ARRAY_SIZE(self->test_dependencies); ++i) {
@@ -244,7 +215,6 @@ void module_compiler__add_test_dependency(struct module* self, struct module* de
     // error_code__exit(MAX_AMOUNT_OF_DEPENDENCIES_REACHED_FOR_MODULE);
     error_code__exit(43556);
 }
-
 static void module_compiler__check_cyclic_dependency_helper(
     struct module* module,
     struct stack* all_modules
@@ -267,16 +237,13 @@ static void module_compiler__check_cyclic_dependency_helper(
     }
     module->transient_flag_for_processing = 0;
 }
-
 void module_compiler__check_cyclic_dependency(struct stack* modules) {
     if (stack__size(modules) == 0) {
         return ;
     }
-
     module_compiler__clear_transient_flags(modules);
     module_compiler__check_cyclic_dependency_helper(stack__at(modules, 0), modules);
 }
-
 void module_compiler__print_dependencies(struct module* self) {
     self->transient_flag_for_processing = 1;
     for (u32 i = 0; i < ARRAY_SIZE(self->dependencies); ++i) {
@@ -287,7 +254,6 @@ void module_compiler__print_dependencies(struct module* self) {
         }
     }
 }
-
 void module_compiler__print_test_dependencies(struct module* self) {
     self->transient_flag_for_processing = 1;
     for (u32 i = 0; i < ARRAY_SIZE(self->test_dependencies); ++i) {
@@ -298,7 +264,6 @@ void module_compiler__print_test_dependencies(struct module* self) {
         }
     }
 }
-
 static void module_compiler__print_branch_helper(
     struct stack* modules,
     struct module* from,
@@ -308,7 +273,6 @@ static void module_compiler__print_branch_helper(
     cur_depth << 2, "", from->basename,
     cur_depth << 2, "", from->number_of_submodules,
     cur_depth << 2, "");
-
     module_compiler__clear_transient_flags(modules);
     module_compiler__print_dependencies(from);
     libc__printf("\n %*stest dependencies: ", cur_depth << 2, "");
@@ -321,7 +285,6 @@ static void module_compiler__print_branch_helper(
         child = child->next_sibling;
     }
 }
-
 void module_compiler__print_branch(
     struct module* from,
     struct stack* modules
@@ -332,13 +295,10 @@ void module_compiler__print_branch(
         0
     );
 }
-
 u32 module_compiler__get_error_code(void) {
     static u32 error_code = 1;
-
     return error_code++;
 }
-
 void module_compiler__preprocess_file(
     struct stack* modules,
     const char* file_path,
@@ -360,27 +320,21 @@ void module_compiler__preprocess_file(
     TEST_FRAMEWORK_ASSERT(wrote_bytes < memory_slice__size(&preprocessed_file_path));
     struct file preprocessed_file;
     TEST_FRAMEWORK_ASSERT(file__open(&preprocessed_file, memory_slice__memory(&preprocessed_file_path), FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-
     const u32 max_line_length = KILOBYTES(2);
     struct file_writer writer;
     struct memory_slice writer_internal_buffer = linear_allocator__push(allocator, max_line_length);
     file_writer__create(&writer, writer_internal_buffer);
-
     struct file source_file;
     TEST_FRAMEWORK_ASSERT(file__open(&source_file, file_path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-
     struct memory_slice reader_internal_buffer = linear_allocator__push(allocator, KILOBYTES(16));
     struct memory_slice line_buffer = linear_allocator__push(allocator, max_line_length);
     struct file_reader reader;
     TEST_FRAMEWORK_ASSERT(file_reader__create(&reader, &source_file, reader_internal_buffer));
-
     // import file::reader -> // #include ""
-    // import libc
+#include "modules/libc/libc.h"
     // import math
-    // import graphics
-
+#include "modules/graphics/graphics.h"
     const char* import_token_key = "    // import ";
-
     u32 read_bytes;
     while (
         (read_bytes = file_reader__read_while_not(
@@ -391,7 +345,6 @@ void module_compiler__preprocess_file(
     ) {
         TEST_FRAMEWORK_ASSERT(read_bytes < memory_slice__size(&line_buffer));
         ((char*)memory_slice__memory(&line_buffer))[read_bytes] = '\0';
-
         char* import_token_value = string__starts_with(memory_slice__memory(&line_buffer), import_token_key);
         if (import_token_value) {
             struct memory_slice module_path = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
@@ -399,7 +352,6 @@ void module_compiler__preprocess_file(
                 memory_slice__memory(&module_path), memory_slice__size(&module_path),
                 "%s", import_token_value
             ) < memory_slice__size(&module_path));
-
             struct module* found_module = module_compiler__find_module_by_name(modules, memory_slice__memory(&module_path));
             if (found_module) {
                 file_writer__write_format(
@@ -416,18 +368,14 @@ void module_compiler__preprocess_file(
         }
         file_reader__read_while(&reader, NULL, 0, "\r\n");
     }
-
     file_reader__destroy(&reader);
     file_writer__destroy(&writer);
-
     linear_allocator__pop(allocator, line_buffer);
     linear_allocator__pop(allocator, reader_internal_buffer);
     linear_allocator__pop(allocator, writer_internal_buffer);
-
     file__close(&source_file);
     file__close(&preprocessed_file);
 }
-
 struct module_compiler__compile_file_context {
     struct stack* modules;
     struct module* module;
@@ -435,11 +383,9 @@ struct module_compiler__compile_file_context {
     struct process compilation_processes[128];
     u32 compilation_processes_size;
 };
-
 bool module_compiler__compile_file(const char* file_path, void* user_data) {
     struct module_compiler__compile_file_context* context = (struct module_compiler__compile_file_context*) user_data;
     TEST_FRAMEWORK_ASSERT(file__exists(file_path));
-
     char* extension = string__rsearch_n(file_path, libc__strlen(file_path), ".", 1, false);
     if (extension == NULL) {
         return false;
@@ -459,10 +405,8 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
                 // preprocess
                 struct memory_slice preprocessed_file_path = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
                 module_compiler__preprocess_file(context->modules, file_path, preprocessed_file_path, context->allocator);
-
                 // todo: remove when preprocessing is done
                 libc__strncpy(memory_slice__memory(&preprocessed_file_path), file_path, memory_slice__size(&preprocessed_file_path));
-
                 // compilation
                 u32 obj_file_len = libc__snprintf(
                     memory_slice__memory(&path_to_obj_file),
@@ -481,7 +425,6 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
                 );
                 linear_allocator__pop(context->allocator, preprocessed_file_path);
                 TEST_FRAMEWORK_ASSERT(cmd_line_len < memory_slice__size(&cmd_line));
-
                 ASSERT(context->compilation_processes_size < ARRAY_SIZE(context->compilation_processes));
                 libc__printf("%s\n", memory_slice__memory(&cmd_line));
                 process__create(
@@ -502,7 +445,6 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
     }
     linear_allocator__pop(context->allocator, path_to_obj_file);
     linear_allocator__pop(context->allocator, cmd_line);
-
     const char import_directive[] = "import ";
     (void) import_directive;
     // this is the only thing that will dictate the dependencies of the compiler
@@ -510,21 +452,17 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
     // configuration file and then parsing them out from that
 /*
 #import utils::stringbuilder;
-
 #test
 void foo() {
     // Only run during test builds...
 }
-
 void main() {
     struct stringbuilder  sb;
-
     // ...
 }
 */
     return true;
 }
-
 void module_compiler__compile(struct module_compiler__compile_file_context* context) {
     // discover relevant files to preprocess:
     struct memory_slice file_path = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
@@ -602,10 +540,8 @@ void module_compiler__compile(struct module_compiler__compile_file_context* cont
         }
         context->compilation_processes_size = 0;
     }
-
     linear_allocator__pop(context->allocator, file_path);
 }
-
 void module_compiler__compile_all(
     struct stack* modules,
     struct linear_allocator* allocator
@@ -614,7 +550,6 @@ void module_compiler__compile_all(
     context.modules = modules;
     context.allocator = allocator;
     context.compilation_processes_size = 0;
-
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* module = stack__at(modules, module_index);
         context.module = module;
@@ -628,7 +563,6 @@ void module_compiler__compile_all(
     }
     context.compilation_processes_size = 0;
 }
-
 struct module* module_compiler__find_module_by_name(
     struct stack* modules,
     const char* basename
@@ -642,21 +576,18 @@ struct module* module_compiler__find_module_by_name(
     }
     return NULL;
 }
-
 void module_compiler__parse_config_file(
     struct stack* modules,
     struct module* self,
     struct linear_allocator* allocator,
     struct file* error_codes_file
 );
-
 void module_compiler__parse_config_files(
     struct stack* modules,
     struct linear_allocator* allocator
 ) {
     struct file error_codes_file;
     TEST_FRAMEWORK_ASSERT(file__open(&error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
-
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         module_compiler__parse_config_file(
             modules,
@@ -665,10 +596,8 @@ void module_compiler__parse_config_files(
             &error_codes_file
         );
     }
-
     file__close(&error_codes_file);
 }
-
 static void parse_key_from_file(
     struct file_reader* file_reader,
     struct memory_slice key
@@ -682,7 +611,6 @@ static void parse_key_from_file(
     ((char*) memory_slice__memory(&key))[read_bytes] = '\0';
     file_reader__read_one(file_reader, NULL, 1);
 }
-
 void parse_config_file_unique_error_codes(
     struct file_reader* config_file_reader,
     struct file_writer* file_writer,
@@ -718,7 +646,6 @@ void parse_config_file_unique_error_codes(
         }
         ((char*) memory_slice__memory(&config_file_memory_slice))[read_bytes] = '\0';
         u32 error_code = module_compiler__get_error_code();
-
         file_writer__write_format(
             file_writer,
             error_codes_file,
@@ -726,7 +653,6 @@ void parse_config_file_unique_error_codes(
             error_code,
             memory_slice__memory(&config_file_memory_slice)
         );
-
         // note: read error enum into def file
         u32 written_bytes = libc__snprintf(
             error_codes_buffer,
@@ -740,7 +666,6 @@ void parse_config_file_unique_error_codes(
         }
         error_codes_buffer += written_bytes;
         remaining_error_codes_buffer_size -= written_bytes;
-
         file_reader__read_while(config_file_reader, NULL, 0, ": ");
         read_bytes =
         file_reader__read_while_not(
@@ -758,11 +683,9 @@ void parse_config_file_unique_error_codes(
             " \"%s\"\n",
             memory_slice__memory(&config_file_memory_slice)
         );
-
         file_reader__read_while(config_file_reader, NULL, 0, "\r\n");
     } while (1);
 }
-
 static void parse_config_file_dependencies(
     struct stack* modules,
     struct module* self,
@@ -796,10 +719,8 @@ static void parse_config_file_dependencies(
         module_compiler__add_dependency(self, found_module);
     } while (1);
 }
-
 static const char* dispatch_by_application_type(const char* application_type) {
     const char* result = NULL;
-
     if (libc__strcmp(application_type, VALUE_APPLICATION_TYPE_CONSOLE) == 0) {
         static const char* app_lflag_console = "-mconsole";
         result = app_lflag_console;
@@ -810,10 +731,8 @@ static const char* dispatch_by_application_type(const char* application_type) {
         libc__printf("unknown application type\n");
         TEST_FRAMEWORK_ASSERT(false);
     }
-
     return result;
 }
-
 static void parse_config_file_application_type(
     struct module* self,
     struct file_reader* config_file_reader,
@@ -848,7 +767,6 @@ static void parse_config_file_application_type(
     }
     file_reader__read_while(config_file_reader, NULL, 0, "\r\n");
 }
-
 static void parse_config_file_test_dependencies(
     struct stack* modules,
     struct module* self,
@@ -881,7 +799,6 @@ static void parse_config_file_test_dependencies(
         module_compiler__add_test_dependency(self, found_module);
     } while (1);
 }
-
 static void def_file_add_error_codes_place_holder__create(
     struct module* self,
     struct linear_allocator* allocator,
@@ -897,7 +814,6 @@ static void def_file_add_error_codes_place_holder__create(
     static const u32 module_error_code_enum_start_len = ARRAY_SIZE(module_error_code_enum_start) - 1;
     static const u32 module_defs_h_len = ARRAY_SIZE(module_defs_h) - 1;
     static const u32 parent_module_name_defs_len = ARRAY_SIZE(parent_module_name_defs) - 1;
-
     struct file def_file;
     TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
     // todo: start filling in from the template
@@ -913,7 +829,6 @@ static void def_file_add_error_codes_place_holder__create(
         // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(999);
     }
-
     struct string_replacer def_file_replacer;
     ASSERT(
         string_replacer__create(
@@ -930,7 +845,6 @@ static void def_file_add_error_codes_place_holder__create(
         module_defs_h, module_defs_h_len,
         "%s_DEFS_H", module_name_capitalized
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -939,7 +853,6 @@ static void def_file_add_error_codes_place_holder__create(
         self->parent == NULL ? "\"%s\"" : "\"../%s_defs.h\"",
         self->parent == NULL ? "defs.h" : self->parent->basename
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -947,7 +860,6 @@ static void def_file_add_error_codes_place_holder__create(
         module_error_codes_enum, module_error_codes_enum_len,
         "%s", self->basename
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -955,19 +867,15 @@ static void def_file_add_error_codes_place_holder__create(
         module_error_code_enum_start, module_error_code_enum_start_len,
         "%s", module_name_capitalized
     );
-
     string_replacer__read_into_file(
         &def_file_replacer,
         &def_file,
         0
     );
     file__close(&def_file);
-
     string_replacer__destroy(&def_file_replacer);
-
     linear_allocator__pop(allocator, def_file_memory_slice);
 }
-
 static void def_file_add_error_codes_place_holder__create_platform_specific(
     struct module* self,
     struct linear_allocator* allocator,
@@ -985,7 +893,6 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
     static const u32 module_error_code_enum_start_len = ARRAY_SIZE(module_error_code_enum_start) - 1;
     static const u32 module_defs_h_len = ARRAY_SIZE(module_defs_h) - 1;
     static const u32 parent_module_name_defs_len = ARRAY_SIZE(parent_module_name_defs) - 1;
-
     struct file def_file;
     TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_CREATE));
     // todo: start filling in from the template
@@ -1001,7 +908,6 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(999);
     }
-
     struct string_replacer def_file_replacer;
     ASSERT(
         string_replacer__create(
@@ -1018,7 +924,6 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         module_defs_h, module_defs_h_len,
         "%s_%s_DEFS_H", module_name_capitalized, platform_specific_capitalized
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -1026,7 +931,6 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         parent_module_name_defs, parent_module_name_defs_len,
         "\"../../%s_defs.h\"", self->basename
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -1034,7 +938,6 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         module_error_codes_enum, module_error_codes_enum_len,
         "%s_%s", self->basename, platform_specific
     );
-
     number_of_what_replacements = 1;
     string_replacer__replace_word_f(
         &def_file_replacer,
@@ -1042,19 +945,15 @@ static void def_file_add_error_codes_place_holder__create_platform_specific(
         module_error_code_enum_start, module_error_code_enum_start_len,
         "%s_%s", platform_specific_capitalized, module_name_capitalized
     );
-
     string_replacer__read_into_file(
         &def_file_replacer,
         &def_file,
         0
     );
     file__close(&def_file);
-
     string_replacer__destroy(&def_file_replacer);
-
     linear_allocator__pop(allocator, def_file_memory_slice);
 }
-
 static void def_file_add_error_codes_place_holder__update(
     struct module* self,
     struct linear_allocator* allocator,
@@ -1064,14 +963,12 @@ static void def_file_add_error_codes_place_holder__update(
 ) {
     struct file def_file;
     TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-
     struct memory_slice def_file_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 def_file_size = file__read(&def_file, memory_slice__memory(&def_file_memory_slice), memory_slice__size(&def_file_memory_slice));
     if (def_file_size == memory_slice__size(&def_file_memory_slice)) {
         // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(999);
     }
-
     struct string_replacer def_file_string_replacer;
     ASSERT(
         string_replacer__create(
@@ -1091,7 +988,6 @@ static void def_file_add_error_codes_place_holder__update(
             file_reader_memory_slice
         )
     );
-
     struct memory_slice enum_error_code_memory_slice = linear_allocator__push(allocator, ENUM_ERROR_CODE_MAX_SIZE);
     u32 bytes_written = libc__snprintf(
         memory_slice__memory(&enum_error_code_memory_slice), memory_slice__size(&enum_error_code_memory_slice),
@@ -1102,7 +998,6 @@ static void def_file_add_error_codes_place_holder__update(
         // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
         error_code__exit(32476);
     }
-
     struct memory_slice def_file_aux_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 what_position;
     bool does_enum_error_codes_exit = file_reader__read_while_not_word(
@@ -1168,18 +1063,13 @@ static void def_file_add_error_codes_place_holder__update(
         0
     );
     file__close(&def_file);
-
     linear_allocator__pop(allocator, def_file_aux_memory_slice);
     linear_allocator__pop(allocator, enum_error_code_memory_slice);
-
     file_reader__destroy(&file_reader);
     linear_allocator__pop(allocator, file_reader_memory_slice);
-
     string_replacer__destroy(&def_file_string_replacer);
-
     linear_allocator__pop(allocator, def_file_memory_slice);
 }
-
 static void def_file_add_error_codes_place_holder__update_platform_specific(
     struct module* self,
     struct linear_allocator* allocator,
@@ -1191,14 +1081,12 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
 ) {
     struct file def_file;
     TEST_FRAMEWORK_ASSERT(file__open(&def_file, def_file_name_buffer, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN));
-
     struct memory_slice def_file_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 def_file_size = file__read(&def_file, memory_slice__memory(&def_file_memory_slice), memory_slice__size(&def_file_memory_slice));
     if (def_file_size == memory_slice__size(&def_file_memory_slice)) {
         // error_code__exit(DEF_FILE_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(999);
     }
-
     struct string_replacer def_file_string_replacer;
     ASSERT(
         string_replacer__create(
@@ -1218,7 +1106,6 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
             file_reader_memory_slice
         )
     );
-
     struct memory_slice enum_error_code_memory_slice = linear_allocator__push(allocator, ENUM_ERROR_CODE_MAX_SIZE);
     u32 bytes_written = libc__snprintf(
         memory_slice__memory(&enum_error_code_memory_slice), memory_slice__size(&enum_error_code_memory_slice),
@@ -1229,7 +1116,6 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
         // error_code__exit(BUFFER2_SIZE_TOO_SMALL);
         error_code__exit(32476);
     }
-
     struct memory_slice def_file_aux_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
     u32 what_position;
     bool does_enum_error_codes_exit = file_reader__read_while_not_word(
@@ -1294,18 +1180,13 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
         0
     );
     file__close(&def_file);
-
     linear_allocator__pop(allocator, def_file_aux_memory_slice);
     linear_allocator__pop(allocator, enum_error_code_memory_slice);
-
     file_reader__destroy(&file_reader);
     linear_allocator__pop(allocator, file_reader_memory_slice);
-
     string_replacer__destroy(&def_file_string_replacer);
-
     linear_allocator__pop(allocator, def_file_memory_slice);
 }
-
 static void parse_and_handle_config_file(
     struct stack* modules,
     struct linear_allocator* allocator,
@@ -1326,7 +1207,6 @@ static void parse_and_handle_config_file(
             file_reader_memory_slice
         )
     );
-
     struct memory_slice key_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice config_file_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice def_file_writer_memory = linear_allocator__push(allocator, KILOBYTES(1));
@@ -1343,7 +1223,6 @@ static void parse_and_handle_config_file(
         parsed_application_type == false
     ) {
         parse_key_from_file(&config_file_reader, key_memory_slice);
-
         if (libc__strcmp(memory_slice__memory(&key_memory_slice), KEY_UNIQUE_ERROR_CODES) == 0) {
             parse_config_file_unique_error_codes(
                 &config_file_reader,
@@ -1420,17 +1299,13 @@ static void parse_and_handle_config_file(
         }
     }
     file__close(&config_file);
-
     file_writer__destroy(&def_file_writer);
     linear_allocator__pop(allocator, def_file_writer_memory);
-
     linear_allocator__pop(allocator, config_file_memory_slice);
     linear_allocator__pop(allocator, key_memory_slice);
-
     file_reader__destroy(&config_file_reader);
     linear_allocator__pop(allocator, file_reader_memory_slice);
 }
-
 static void parse_and_handle_platform_specific_config_file(
     struct stack* modules,
     struct linear_allocator* allocator,
@@ -1451,7 +1326,6 @@ static void parse_and_handle_platform_specific_config_file(
             file_reader_memory_slice
         )
     );
-
     struct memory_slice key_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice config_file_memory_slice = linear_allocator__push(allocator, CONFIG_FILE_MAX_SIZE);
     struct memory_slice def_file_writer_memory = linear_allocator__push(allocator, KILOBYTES(1));
@@ -1463,7 +1337,6 @@ static void parse_and_handle_platform_specific_config_file(
         parsed_unique_error_codes == false
     ) {
         parse_key_from_file(&config_file_reader, key_memory_slice);
-
         if (libc__strcmp(memory_slice__memory(&key_memory_slice), KEY_UNIQUE_ERROR_CODES) == 0) {
             parse_config_file_unique_error_codes(
                 &config_file_reader,
@@ -1507,23 +1380,18 @@ static void parse_and_handle_platform_specific_config_file(
         }
     }
     file__close(&config_file);
-
     file_writer__destroy(&def_file_writer);
     linear_allocator__pop(allocator, def_file_writer_memory);
-
     linear_allocator__pop(allocator, config_file_memory_slice);
     linear_allocator__pop(allocator, key_memory_slice);
-
     file_reader__destroy(&config_file_reader);
     linear_allocator__pop(allocator, file_reader_memory_slice);
 }
-
 // static void parse_gmc_file(
 //     const char* gmc_file_path,
 //     struct file* error_files
 // ) {
 // }
-
 static void update_gmc_files(
     struct module* self,
     struct linear_allocator* allocator
@@ -1536,12 +1404,10 @@ static void update_gmc_files(
         "%s/%s.%s", self->dirprefix, self->basename, CONFIG_EXTENSION
     );
     // todo: parse out .gmc key/values
-
     if (libc__strcmp(self->basename, MODULES_PATH) == 0) {
         linear_allocator__pop(allocator, file_path_memory_slice);
         return ;
     }
-
     // PLATFORM SPECIFIC CONFIG FILES
     //  PLATFORM SPECIFIC FOLDER
     assert_create_dir(
@@ -1549,7 +1415,6 @@ static void update_gmc_files(
         "%s/%s",
         self->dirprefix, PLATFORM_SPECIFIC_FOLDER_NAME
     );
-
     //  WINDOWS
     assert_create_dir(
         file_path_memory_slice,
@@ -1564,7 +1429,6 @@ static void update_gmc_files(
         self->basename, PLATFORM_SPECIFIC_WINDOWS, CONFIG_EXTENSION
     );
     // todo: parse out .gmc key/values
-
     //  LINUX
     assert_create_dir(
         file_path_memory_slice,
@@ -1579,7 +1443,6 @@ static void update_gmc_files(
         self->basename, PLATFORM_SPECIFIC_LINUX, CONFIG_EXTENSION
     );
     // todo: parse out .gmc key/values
-
     //  MAC
     assert_create_dir(
         file_path_memory_slice,
@@ -1594,10 +1457,8 @@ static void update_gmc_files(
         self->basename, PLATFORM_SPECIFIC_MAC, CONFIG_EXTENSION
     );
     // todo: parse out .gmc key/values
-
     linear_allocator__pop(allocator, file_path_memory_slice);
 }
-
 void module_compiler__parse_config_file(
     struct stack* modules,
     struct module* self,
@@ -1609,11 +1470,9 @@ void module_compiler__parse_config_file(
         ++dbg;
     }
     update_gmc_files(self, allocator);
-
     // todo: parse these out from def_file_template_h
     static const char rest_of_the_error_codes[] = "${rest_of_the_error_codes}";
     static const u32 rest_of_the_error_codes_len = ARRAY_SIZE(rest_of_the_error_codes) - 1;
-
     char module_name_capitalized[64];
     if (
         (u32) libc__snprintf(
@@ -1626,7 +1485,6 @@ void module_compiler__parse_config_file(
         error_code__exit(990);
     }
     string__to_upper(module_name_capitalized);
-
     /*
         ----== NON-PLATFORM SPECIFIC ==----
             1 def file update
@@ -1643,7 +1501,6 @@ void module_compiler__parse_config_file(
         ) < memory_slice__size(&config_file_path_memory_slice)
     );
     TEST_FRAMEWORK_ASSERT(file__exists(memory_slice__memory(&config_file_path_memory_slice)));
-
     struct memory_slice def_file_path_memory_slice = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
     u32 bytes_written =
     libc__snprintf(
@@ -1655,7 +1512,6 @@ void module_compiler__parse_config_file(
         // error_code__exit(DEF_FILE_NAME_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(867);
     }
-
     // note: string_replacer doesn't support replacing replacements, so I do this in two write steps if the def_file doesn't exist
     // first, I replace the template, then write it out to the def file
     // second, read from the now existing def file and replace its contents
@@ -1693,7 +1549,6 @@ void module_compiler__parse_config_file(
             );
         }
     }
-
     u32 def_file_size = 0;
     struct memory_slice def_file_memory_slice;
     struct string_replacer def_file_string_replacer;
@@ -1716,7 +1571,6 @@ void module_compiler__parse_config_file(
             )
         );
     }
-
     struct memory_slice error_codes_memory_slice = linear_allocator__push(allocator, ERROR_CODE_LINE_AVERAGE_LENGTH * ERROR_CODES_MAX_NUMBER);
     parse_and_handle_config_file(
         modules,
@@ -1727,7 +1581,6 @@ void module_compiler__parse_config_file(
         module_name_capitalized,
         error_codes_memory_slice
     );
-
     if (should_update_def_file) {
         u32 number_of_what_replacements = 1;
         string_replacer__replace_word_f(
@@ -1744,30 +1597,24 @@ void module_compiler__parse_config_file(
             0
         );
         file__close(&def_file);
-
         linear_allocator__pop(allocator, error_codes_memory_slice);
-
         string_replacer__destroy(&def_file_string_replacer);
         
         linear_allocator__pop(allocator, def_file_memory_slice);
     } else {
         linear_allocator__pop(allocator, error_codes_memory_slice);
     }
-
-
     if (self->parent == NULL) {
         linear_allocator__pop(allocator, def_file_path_memory_slice);
         linear_allocator__pop(allocator, config_file_path_memory_slice);
         return ;
     }
-
     /*
         ----== PLATFORM SPECIFIC ==----
             1 def file update
             2 config file parsing
             3 adding dependencies
     */
-
     const char* platform_specific = PLATFORM_SPECIFIC_WINDOWS;
     const char* platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_WINDOWS;
 #if defined(WINDOWS)
@@ -1780,7 +1627,6 @@ void module_compiler__parse_config_file(
         platform_specific = PLATFORM_SPECIFIC_MAC;
         platform_specific_capitalized = PLATFORM_SPECIFIC_CAPITALIZED_MAC;
 #endif
-
     TEST_FRAMEWORK_ASSERT(
         (u32) libc__snprintf(
             memory_slice__memory(&config_file_path_memory_slice),
@@ -1791,7 +1637,6 @@ void module_compiler__parse_config_file(
         ) < memory_slice__size(&config_file_path_memory_slice)
     );
     TEST_FRAMEWORK_ASSERT(file__exists(memory_slice__memory(&config_file_path_memory_slice)));
-
     bytes_written = libc__snprintf(
         memory_slice__memory(&def_file_path_memory_slice),
         memory_slice__size(&def_file_path_memory_slice),
@@ -1802,7 +1647,6 @@ void module_compiler__parse_config_file(
         // error_code__exit(DEF_FILE_NAME_BUFFER_SIZE_TOO_SMALL);
         error_code__exit(867);
     }
-
     should_update_def_file = true;
     if (file__exists(memory_slice__memory(&def_file_path_memory_slice)) == false) {
         def_file_add_error_codes_place_holder__create_platform_specific(
@@ -1836,7 +1680,6 @@ void module_compiler__parse_config_file(
             );
         }
     }
-
     def_file_size = 0;
     if (should_update_def_file) {
         def_file_memory_slice = linear_allocator__push(allocator, DEF_FILE_MAX_SIZE);
@@ -1857,7 +1700,6 @@ void module_compiler__parse_config_file(
             )
         );
     }
-
     error_codes_memory_slice = linear_allocator__push(allocator, ERROR_CODE_LINE_AVERAGE_LENGTH * ERROR_CODES_MAX_NUMBER);
     parse_and_handle_platform_specific_config_file(
         modules,
@@ -1868,7 +1710,6 @@ void module_compiler__parse_config_file(
         module_name_capitalized,
         error_codes_memory_slice
     );
-
     if (should_update_def_file) {
         u32 number_of_what_replacements = 1;
         string_replacer__replace_word_f(
@@ -1885,21 +1726,16 @@ void module_compiler__parse_config_file(
             0
         );
         file__close(&def_file);
-
         linear_allocator__pop(allocator, error_codes_memory_slice);
-
         string_replacer__destroy(&def_file_string_replacer);
         
         linear_allocator__pop(allocator, def_file_memory_slice);
     } else {
         linear_allocator__pop(allocator, error_codes_memory_slice);
     }
-
     linear_allocator__pop(allocator, def_file_path_memory_slice);
     linear_allocator__pop(allocator, config_file_path_memory_slice);
-
 }
-
 static void update_platform_specific_directories(
     struct linear_allocator* allocator,
     const char* path
@@ -1942,7 +1778,6 @@ static void update_platform_specific_directories(
     );
     linear_allocator__pop(allocator, file_path_memory_slice);
 }
-
 static void ensure_test_file_template_exists(
     struct module* self,
     struct linear_allocator* allocator,
@@ -1951,7 +1786,6 @@ static void ensure_test_file_template_exists(
     if (self->parent == NULL) {
         return ;
     }
-
     char module_test_file_path[256];
     u32 bytes_written = libc__snprintf( 
         module_test_file_path,
@@ -1963,11 +1797,9 @@ static void ensure_test_file_template_exists(
         // error_code__exit(BUFFER_IS_TOO_SMALL_IN_SBPRINF_ERROR);
         error_code__exit(354553);
     };
-
     if (file__exists(module_test_file_path)) {
         return;
     }
-
     u32 max_number_of_replacements = 1;
     u32 average_number_of_replacement_size = MAX_FILE_PATH_SIZE + 16;
     struct string_replacer test_file_template_replacer;
@@ -1987,20 +1819,16 @@ static void ensure_test_file_template_exists(
         1, what, ARRAY_SIZE(what) - 1,
         "%s/%s.h", self->dirprefix + ARRAY_SIZE(modules_prefix) - 1, self->basename
     );
-
     struct file module_test_file;
     TEST_FRAMEWORK_ASSERT(file__open(&module_test_file, module_test_file_path, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
     string_replacer__read_into_file(&test_file_template_replacer, &module_test_file, 0);
     file__close(&module_test_file);
-
     string_replacer__destroy(&test_file_template_replacer);
 }
-
 struct is_module_path_context {
     struct stack* modules;
     struct linear_allocator* allocator;
 };
-
 // @returns true if path is a module
 // @note as a side effect:
 //  - adds the module to its parent
@@ -2009,7 +1837,6 @@ bool is_module_path(const char* path, void* user_data) {
     struct memory_slice parent_path_memory_slice = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
     struct memory_slice child_basename_memory_slice = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
     struct memory_slice parent_basename_memory_slice = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
-
     u32 path_len = libc__strlen(path);
     u32 basename_len;
     u32 directory_len;
@@ -2036,7 +1863,6 @@ bool is_module_path(const char* path, void* user_data) {
         //  - implementation folder
         return false;
     }
-
     update_platform_specific_directories(context->allocator, path);
     // create test folder
     // todo: merge these 2 (or 3) into one since we already know the prefix which is the test folder, no need to recreate them again and again
@@ -2062,7 +1888,6 @@ bool is_module_path(const char* path, void* user_data) {
             path, IMPLEMENTATION_FOLDER_NAME, PLATFORM_SPECIFIC_FOLDER_NAME
         );
     }
-
     u32 parent_basename_len;
     TEST_FRAMEWORK_ASSERT(
         file_path__decompose(
@@ -2071,33 +1896,26 @@ bool is_module_path(const char* path, void* user_data) {
             NULL, 0, NULL
         )
     );
-
     struct module* parent = module_compiler__find_module_by_name(context->modules, memory_slice__memory(&parent_basename_memory_slice));
     TEST_FRAMEWORK_ASSERT(parent != NULL);
     module_compiler__add_child(context->modules, parent, memory_slice__memory(&child_basename_memory_slice));
-
     linear_allocator__pop(context->allocator, parent_basename_memory_slice);
     linear_allocator__pop(context->allocator, child_basename_memory_slice);
     linear_allocator__pop(context->allocator, parent_path_memory_slice);
-
     return true;
 }
-
 void module_compiler__explore_children(
     struct stack* modules,
     struct linear_allocator* allocator,
     struct module* self
 ) {
     struct directory dir;
-
     struct is_module_path_context is_module_path_context;
     is_module_path_context.allocator = allocator;
     is_module_path_context.modules = modules;
-
     TEST_FRAMEWORK_ASSERT(directory__open(&dir, self->dirprefix) == true);
     directory__foreach_deep(self->dirprefix, &is_module_path, &is_module_path_context, FILE_TYPE_DIRECTORY);
 }
-
 static void module_compiler__write_dependency_into_buffer_and_increment(
     struct module* self,
     char** dependency_buffer,
@@ -2109,16 +1927,13 @@ static void module_compiler__write_dependency_into_buffer_and_increment(
         "%s ",
         self->basename
     );
-
     if (bytes_written >= *dependency_buffer_size) {
         // error_code__exit(DEPENDENCIES_BUFFER_TOO_SMALL)
         error_code__exit(2714);
     }
-
     *dependency_buffer += bytes_written;
     *dependency_buffer_size -= bytes_written;
 }
-
 static u32 module_compiler__get_dependencies(
     struct module* self,
     char** dependency_buffer,
@@ -2136,10 +1951,8 @@ static u32 module_compiler__get_dependencies(
             );
         }
     }
-
     return dependency_buffer_size;
 }
-
 static u32 module_compiler__get_test_dependencies(
     struct stack* modules,
     struct module* self,
@@ -2148,7 +1961,6 @@ static u32 module_compiler__get_test_dependencies(
 ) {
     module_compiler__write_dependency_into_buffer_and_increment(self, dependency_buffer, &dependency_buffer_size);
     dependency_buffer_size = module_compiler__get_dependencies(self, dependency_buffer, dependency_buffer_size);
-
     struct module* common_test_dependency = module_compiler__find_module_by_name(modules, TEST_FRAMEWORK_MODULE_NAME);
     if (common_test_dependency == NULL) {
         libc__printf("%s\n", self->basename);
@@ -2158,7 +1970,6 @@ static u32 module_compiler__get_test_dependencies(
     if (self == common_test_dependency) {
         added_common_test_dependency = true;
     }
-
     for (u32 dependency_index = 0; dependency_index < ARRAY_SIZE_MEMBER(struct module, test_dependencies); ++dependency_index) {
         struct module* test_dependency = self->test_dependencies[dependency_index];
         if (test_dependency != NULL && test_dependency->transient_flag_for_processing == 0) {
@@ -2176,15 +1987,12 @@ static u32 module_compiler__get_test_dependencies(
             );
         }
     }
-
     if (added_common_test_dependency == false) {
         module_compiler__write_dependency_into_buffer_and_increment(common_test_dependency, dependency_buffer, &dependency_buffer_size);
         dependency_buffer_size = module_compiler__get_dependencies(common_test_dependency, dependency_buffer, dependency_buffer_size);
     }
-
     return dependency_buffer_size;
 }
-
 void module_compiler__embed_dependencies_into_makefile(
     struct stack* modules,
     struct linear_allocator* allocator
@@ -2204,17 +2012,13 @@ void module_compiler__embed_dependencies_into_makefile(
         error_code__exit(43825);
     }
     file__close(&modules_makefile_template_file);
-
     struct memory_slice makefile_path_memory_slice = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
-
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* cur_module = (struct module*) stack__at(modules, module_index);
-
         struct memory_slice dependencies_memory_slice = linear_allocator__push(allocator, ARRAY_SIZE(cur_module->basename) * (stack__capacity(modules) >> 1));
         char* cur_dependency_buffer = memory_slice__memory(&dependencies_memory_slice);
         module_compiler__clear_transient_flags(modules);
         u32 dependencies_buffer_size_left = module_compiler__get_dependencies(cur_module, &cur_dependency_buffer, memory_slice__size(&dependencies_memory_slice));
-
         static const char module_dependency_replace_what[] = "$(MODULE_LIBDEP_MODULES)";
         static const char module_test_dependency_replace_what[] = "$(MODULE_TEST_DEPENDS)";
         static const char module_name_replace_what[] = "$(MODULE_NAME)";
@@ -2223,7 +2027,6 @@ void module_compiler__embed_dependencies_into_makefile(
         static const u32 module_test_dependency_replace_what_len = ARRAY_SIZE(module_test_dependency_replace_what) - 1;
         static const u32 module_name_replace_what_len = ARRAY_SIZE(module_name_replace_what) - 1;
         static const u32 module_lflags_specific_replace_what_len = ARRAY_SIZE(module_lflags_specific_replace_what) - 1;
-
         static const u32 max_number_of_module_name_occurances = 128;
         static const u32 max_number_of_occurances_aux = 16;
         static const u32 average_replacement_size = 32;
@@ -2245,7 +2048,6 @@ void module_compiler__embed_dependencies_into_makefile(
             memory_slice__memory(&dependencies_memory_slice),
             memory_slice__size(&dependencies_memory_slice) - dependencies_buffer_size_left
         );
-
         module_compiler__clear_transient_flags(modules);
         cur_dependency_buffer = memory_slice__memory(&dependencies_memory_slice);
         dependencies_buffer_size_left = module_compiler__get_test_dependencies(modules, cur_module, &cur_dependency_buffer, memory_slice__size(&dependencies_memory_slice));
@@ -2258,7 +2060,6 @@ void module_compiler__embed_dependencies_into_makefile(
             memory_slice__memory(&dependencies_memory_slice),
             memory_slice__size(&dependencies_memory_slice) - dependencies_buffer_size_left
         );
-
         number_of_what_replacements = (u32) -1;
         string_replacer__replace_word(
             &modules_makefile_template_replacer,
@@ -2268,7 +2069,6 @@ void module_compiler__embed_dependencies_into_makefile(
             cur_module->basename,
             libc__strlen(cur_module->basename)
         );
-
         number_of_what_replacements = 1;
         u32 new_makefile_size = string_replacer__replace_word(
             &modules_makefile_template_replacer,
@@ -2278,7 +2078,6 @@ void module_compiler__embed_dependencies_into_makefile(
             cur_module->application_type,
             libc__strlen(cur_module->application_type)
         );
-
         u32 written_bytes = libc__snprintf(
             memory_slice__memory(&makefile_path_memory_slice),
             memory_slice__size(&makefile_path_memory_slice),
@@ -2288,7 +2087,6 @@ void module_compiler__embed_dependencies_into_makefile(
         TEST_FRAMEWORK_ASSERT(written_bytes < memory_slice__size(&makefile_path_memory_slice));
         static const char modules_dir_path[] = "modules";
         const u32 modules_dir_path_size = ARRAY_SIZE(modules_dir_path) - 1;
-
         struct string_replacer string_replacer_aux;
         ASSERT(string_replacer__create(
             &string_replacer_aux,
@@ -2326,18 +2124,15 @@ void module_compiler__embed_dependencies_into_makefile(
                 0
             ) == new_makefile_size
         );
-
         linear_allocator__pop(allocator, file_path_memory);
         string_replacer__destroy(&string_replacer_aux);
         string_replacer__destroy(&modules_makefile_template_replacer);
         linear_allocator__pop(allocator, dependencies_memory_slice);
         file__close(&makefile);
     }
-
     linear_allocator__pop(allocator, makefile_path_memory_slice);
     linear_allocator__pop(allocator, modules_makefile_template_memory_slice);
 }
-
 void module_compiler__ensure_test_file_templates_exist(
     struct stack* modules,
     struct linear_allocator* allocator
@@ -2349,15 +2144,12 @@ void module_compiler__ensure_test_file_templates_exist(
     file__close(&test_file_template);
     TEST_FRAMEWORK_ASSERT(read_bytes < memory_slice__size(&test_file_template_memory_slice));
     ((char*) memory_slice__memory(&test_file_template_memory_slice))[read_bytes] = '\0';
-
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* module = stack__at(modules, module_index);
         if (libc__strcmp(module->basename, TEST_FRAMEWORK_MODULE_NAME) == 0) {
             continue;
         }
-
         ensure_test_file_template_exists(module, allocator, test_file_template_memory_slice);
     }
-
     linear_allocator__pop(allocator, test_file_template_memory_slice);
 }

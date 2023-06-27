@@ -5,6 +5,11 @@
 
 enum 8086_windows_error_code {
     WINDOWS_8086_ERROR_CODE_START,
+};
+
+
+enum 8086_windows_error_code {
+    WINDOWS_8086_ERROR_CODE_START,
 
 };
 
