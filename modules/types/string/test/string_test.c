@@ -62,7 +62,7 @@ static void test_v(
         test_params.n = n;
         test_params.set = set;
         test_params.return_last_occurance = return_last_occurance;
-        libc__printf("%s\n", expected);
+        // libc__printf("%s\n", expected);
         test_fn(
             expected,
             fn_to_apply_on_str_buffer,
@@ -80,16 +80,16 @@ char* test_to_upper(struct test_string_params* params) {
 }
 
 char* test_search_n(struct test_string_params* params) {
-    return string__search_n(params->str, params->str_len, params->set, params->n, params->return_last_occurance);
+    return string__search_n(params->str, params->set, params->n, params->return_last_occurance);
 }
 char* test_rsearch_n(struct test_string_params* params) {
     return string__rsearch_n(params->str, params->str_len, params->set, params->n, params->return_last_occurance);
 }
 char* test_search_while(struct test_string_params* params) {
-    return string__search_while(params->str, params->str_len, params->set, params->n);
+    return string__search_while(params->str, params->set, params->n);
 }
 char* test_search_while_not(struct test_string_params* params) {
-    return string__search_while_not(params->str, params->str_len, params->set, params->n);
+    return string__search_while_not(params->str, params->set, params->n);
 }
 char* test_rsearch_while(struct test_string_params* params) {
     return string__rsearch_while(params->str, params->str_len, params->set, params->n);
@@ -305,6 +305,8 @@ int main() {
         TERMINATING_PTR
     );
 
+    libc__free(str_buffer);
+
     const char* str = "lajos";
     const char* prefix = "laf";
     TEST_FRAMEWORK_ASSERT(string__starts_with(str, prefix) == NULL);
@@ -315,7 +317,27 @@ int main() {
     const char* prefix3 = "";
     TEST_FRAMEWORK_ASSERT(string__starts_with(str, prefix3) == str + 0 && *(str + 0) == 'l');
 
-    libc__free(str_buffer);
+    const char* haystack = "aaasndiu32apple8yfdsbllsbd";
+    u32 haystack_len = libc__strlen(haystack);
+    const char* needle = "apple";
+    u32 needle_len = libc__strlen(needle);
+    char* after_needle = string__search(
+        haystack,
+        needle, needle_len
+    );
+    TEST_FRAMEWORK_ASSERT(libc__strcmp(after_needle, "8yfdsbllsbd") == 0);
+
+    after_needle = string__search(
+        haystack,
+        haystack, haystack_len
+    );
+    TEST_FRAMEWORK_ASSERT(libc__strcmp(after_needle, "") == 0);
+
+    after_needle = string__search(
+        haystack,
+        "", 0
+    );
+    TEST_FRAMEWORK_ASSERT(libc__strcmp(after_needle, haystack) == 0);
 
     return 0;
 }

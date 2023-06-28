@@ -53,6 +53,10 @@
 // todo: put this into file module
 #define MAX_FILE_PATH_SIZE 256
 #define MAX_CMD_LINE_SIZE 1024
+u32 module_compiler__get_error_code(void) {
+    static u32 error_code = 1;
+    return error_code++;
+}
 static void assert_create_dir(
     struct memory_slice memory_slice,
     const char* directory_path_f,
@@ -295,15 +299,12 @@ void module_compiler__print_branch(
         0
     );
 }
-u32 module_compiler__get_error_code(void) {
-    static u32 error_code = 1;
-    return error_code++;
-}
 void module_compiler__preprocess_file(
     struct stack* modules,
     const char* file_path,
     struct memory_slice preprocessed_file_path,
-    struct linear_allocator* allocator
+    struct linear_allocator* allocator,
+    struct file* error_codes_file
 ) {
     struct memory_slice file_path_basename = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
     TEST_FRAMEWORK_ASSERT(file_path__decompose(
@@ -330,40 +331,67 @@ void module_compiler__preprocess_file(
     struct memory_slice line_buffer = linear_allocator__push(allocator, max_line_length);
     struct file_reader reader;
     TEST_FRAMEWORK_ASSERT(file_reader__create(&reader, &source_file, reader_internal_buffer));
-    // import file::reader -> // #include ""
-#include "modules/libc/libc.h"
-    // import math
-#include "modules/graphics/graphics.h"
-    const char* import_token_key = "    // import ";
-    u32 read_bytes;
+    // #import file::reader -> // #include ""
+    // #import libc
+    // #import math
+    // #import graphics
+    /*
+        error_code__exit(59);
+        evaluate(error_code__exit(60))
+    */
+    const char token_key_import[] = "#import ";
+    const char token_key_error_message[] = "#fatal_error ";
+    u32 line_len;
     while (
-        (read_bytes = file_reader__read_while_not(
+        (line_len = file_reader__read_while_not(
             &reader,
             memory_slice__memory(&line_buffer), memory_slice__size(&line_buffer),
             "\r\n"
         )) > 0
     ) {
-        TEST_FRAMEWORK_ASSERT(read_bytes < memory_slice__size(&line_buffer));
-        ((char*)memory_slice__memory(&line_buffer))[read_bytes] = '\0';
-        char* import_token_value = string__starts_with(memory_slice__memory(&line_buffer), import_token_key);
-        if (import_token_value) {
-            struct memory_slice module_path = linear_allocator__push(allocator, MAX_FILE_PATH_SIZE);
-            TEST_FRAMEWORK_ASSERT((u64) libc__snprintf(
-                memory_slice__memory(&module_path), memory_slice__size(&module_path),
-                "%s", import_token_value
-            ) < memory_slice__size(&module_path));
-            struct module* found_module = module_compiler__find_module_by_name(modules, memory_slice__memory(&module_path));
+        TEST_FRAMEWORK_ASSERT(line_len < memory_slice__size(&line_buffer));
+        ((char*)memory_slice__memory(&line_buffer))[line_len] = '\0';
+        bool line_was_written = false;
+        // todo: change this operation to one that can match multiple strings at the same time
+        char* token_value_import = string__starts_with(memory_slice__memory(&line_buffer), token_key_import);
+        char* token_value_error_message = string__search(
+            memory_slice__memory(&line_buffer),
+            token_key_error_message, ARRAY_SIZE(token_key_error_message) - 1
+        );
+        if (token_value_import) {
+            struct module* found_module = module_compiler__find_module_by_name(modules, token_value_import);
             if (found_module) {
                 file_writer__write_format(
                     &writer, &preprocessed_file,
                     "#include \"%s/%s.h\"\n",
                     found_module->dirprefix, found_module->basename
                 );
-            } else {
-                file_writer__write_format(&writer, &preprocessed_file, "%s\n", memory_slice__memory(&line_buffer));
+                line_was_written = true;
             }
-            linear_allocator__pop(allocator, module_path);
-        } else {
+        } else if (token_value_error_message) {
+            // todo: skip whitespaces
+            if (*token_value_error_message == '\"') {
+                char* enclosing_comment = string__search_n(token_value_error_message + 1, "\"", 1, false);
+                if (enclosing_comment) {
+                    u32 unique_error_code = module_compiler__get_error_code();
+                    file_writer__write_format(
+                        &writer, error_codes_file,
+                        "%u REMOVE_ME %.*s\n",
+                        unique_error_code,
+                        enclosing_comment + 1 - token_value_error_message, token_value_error_message
+                    );
+                    file_writer__write_format(
+                        &writer, &preprocessed_file,
+                        "%.*serror_code__exit(%u)%s\n",
+                        (u32) (token_value_error_message - (char*) memory_slice__memory(&line_buffer)) - (ARRAY_SIZE(token_key_error_message) - 1), memory_slice__memory(&line_buffer),
+                        unique_error_code,
+                        enclosing_comment + 1
+                    );
+                    line_was_written = true;
+                }
+            }
+        }
+        if (line_was_written == false) {
             file_writer__write_format(&writer, &preprocessed_file, "%s\n", memory_slice__memory(&line_buffer));
         }
         file_reader__read_while(&reader, NULL, 0, "\r\n");
@@ -381,6 +409,7 @@ struct module_compiler__compile_file_context {
     struct module* module;
     struct linear_allocator* allocator;
     struct process compilation_processes[128];
+    struct file error_codes_file;
     u32 compilation_processes_size;
 };
 bool module_compiler__compile_file(const char* file_path, void* user_data) {
@@ -404,7 +433,7 @@ bool module_compiler__compile_file(const char* file_path, void* user_data) {
             if (preprocessed_extensions_index == c_extension_index) {
                 // preprocess
                 struct memory_slice preprocessed_file_path = linear_allocator__push(context->allocator, MAX_FILE_PATH_SIZE);
-                module_compiler__preprocess_file(context->modules, file_path, preprocessed_file_path, context->allocator);
+                module_compiler__preprocess_file(context->modules, file_path, preprocessed_file_path, context->allocator, &context->error_codes_file);
                 // todo: remove when preprocessing is done
                 libc__strncpy(memory_slice__memory(&preprocessed_file_path), file_path, memory_slice__size(&preprocessed_file_path));
                 // compilation
@@ -549,6 +578,7 @@ void module_compiler__compile_all(
     struct module_compiler__compile_file_context context;
     context.modules = modules;
     context.allocator = allocator;
+    TEST_FRAMEWORK_ASSERT(file__open(&context.error_codes_file, ERROR_CODES_FILE_NAME, FILE_ACCESS_MODE_WRITE, FILE_CREATION_MODE_CREATE));
     context.compilation_processes_size = 0;
     for (u32 module_index = 0; module_index < stack__size(modules); ++module_index) {
         struct module* module = stack__at(modules, module_index);
@@ -562,6 +592,7 @@ void module_compiler__compile_all(
         // todo: log error
     }
     context.compilation_processes_size = 0;
+    file__close(&context.error_codes_file);
 }
 struct module* module_compiler__find_module_by_name(
     struct stack* modules,

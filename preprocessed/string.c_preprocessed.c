@@ -8,9 +8,9 @@ void string__to_upper(char* str) {
         ++str;
     }
 }
-char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, bool return_last_occurance) {
+char* string__search_n(const char* str, const char* set, u32 n, bool return_last_occurance) {
     char* result = NULL;
-    if (str_len == 0 || n == 0 || *set == '\0') {
+    if (n == 0 || *set == '\0') {
         return result;
     }
     // note: one bit for every byte representation
@@ -20,7 +20,7 @@ char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, boo
         boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
     }
     while (
-        str_len-- > 0 &&
+        *str != '\0' &&
         n > 0
     ) {
         char c = *str;
@@ -36,9 +36,9 @@ char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, boo
     }
     return result;
 }
-char* string__search_while(const char* str, u32 str_len, const char* set, u32 max) {
+char* string__search_while(const char* str, const char* set, u32 max) {
     char* result = (char*) str;
-    if (str_len == 0 || *set == '\0') {
+    if (*set == '\0') {
         return result;
     }
     // note: one bit for every byte representation
@@ -48,7 +48,7 @@ char* string__search_while(const char* str, u32 str_len, const char* set, u32 ma
         boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
     }
     while (
-        str_len-- > 0 &&
+        *str != '\0' &&
         (boolean_set[*str >> 5] & (0b1 << (*str & 0b11111))) > 0 &&
         max-- > 0
     ) {
@@ -57,9 +57,9 @@ char* string__search_while(const char* str, u32 str_len, const char* set, u32 ma
     }
     return result;
 }
-char* string__search_while_not(const char* str, u32 str_len, const char* set, u32 max) {
+char* string__search_while_not(const char* str, const char* set, u32 max) {
     char* result = (char*) str;
-    if (str_len == 0 || max == 0 || *set == '\0') {
+    if (max == 0 || *set == '\0') {
         return result;
     }
     // note: one bit for every byte representation
@@ -69,7 +69,7 @@ char* string__search_while_not(const char* str, u32 str_len, const char* set, u3
         boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
     }
     while (
-        str_len-- > 0 &&
+        *str != '\0' &&
         (boolean_set[*str >> 5] & (0b1 << (*str & 0b11111))) == 0 &&
         max-- > 0
     ) {
@@ -162,4 +162,37 @@ char* string__starts_with(const char* str, const char* prefix) {
         return NULL;
     }
     return (char*) str;
+}
+char* string__search(
+    const char* str,
+    const char* what, u32 what_len
+) {
+    if (what_len == 0) {
+        return (char*) str;
+    }
+    u64 hash_value = hash__sum_n(what, what_len);
+    u32 rolling_hash_value = 0;
+    u32 str_index = 0;
+    while (
+        str[str_index] != '\0'
+    ) {
+        rolling_hash_value += str[str_index];
+        if (str_index + 1 >= what_len) {
+            if (str_index >= what_len) {
+                rolling_hash_value -= str[str_index - what_len];
+            }
+            if (
+                rolling_hash_value == hash_value &&
+                libc__strncmp(
+                    str + str_index + 1 - what_len,
+                    what,
+                    what_len
+                ) == 0
+            ) {
+                return (char*) str + str_index + 1;
+            }
+        }
+        ++str_index;
+    }
+    return NULL;
 }
