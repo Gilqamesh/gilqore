@@ -12,10 +12,10 @@ void string__to_upper(char* str) {
     }
 }
 
-char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, bool return_last_occurance) {
+char* string__search_n(const char* str, const char* set, u32 n, bool return_last_occurance) {
     char* result = NULL;
 
-    if (str_len == 0 || n == 0 || *set == '\0') {
+    if (n == 0 || *set == '\0') {
         return result;
     }
 
@@ -46,10 +46,10 @@ char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, boo
     return result;
 }
 
-char* string__search_while(const char* str, u32 str_len, const char* set, u32 max) {
+char* string__search_while(const char* str, const char* set, u32 max) {
     char* result = (char*) str;
 
-    if (str_len == 0 || *set == '\0') {
+    if (*set == '\0') {
         return result;
     }
 
@@ -73,10 +73,10 @@ char* string__search_while(const char* str, u32 str_len, const char* set, u32 ma
     return result;
 }
 
-char* string__search_while_not(const char* str, u32 str_len, const char* set, u32 max) {
+char* string__search_while_not(const char* str, const char* set, u32 max) {
     char* result = (char*) str;
 
-    if (str_len == 0 || max == 0 || *set == '\0') {
+    if (max == 0 || *set == '\0') {
         return result;
     }
 

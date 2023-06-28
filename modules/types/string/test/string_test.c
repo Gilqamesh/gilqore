@@ -80,16 +80,16 @@ char* test_to_upper(struct test_string_params* params) {
 }
 
 char* test_search_n(struct test_string_params* params) {
-    return string__search_n(params->str, params->str_len, params->set, params->n, params->return_last_occurance);
+    return string__search_n(params->str, params->set, params->n, params->return_last_occurance);
 }
 char* test_rsearch_n(struct test_string_params* params) {
     return string__rsearch_n(params->str, params->str_len, params->set, params->n, params->return_last_occurance);
 }
 char* test_search_while(struct test_string_params* params) {
-    return string__search_while(params->str, params->str_len, params->set, params->n);
+    return string__search_while(params->str, params->set, params->n);
 }
 char* test_search_while_not(struct test_string_params* params) {
-    return string__search_while_not(params->str, params->str_len, params->set, params->n);
+    return string__search_while_not(params->str, params->set, params->n);
 }
 char* test_rsearch_while(struct test_string_params* params) {
     return string__rsearch_while(params->str, params->str_len, params->set, params->n);
