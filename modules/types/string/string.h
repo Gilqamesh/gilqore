@@ -24,4 +24,10 @@ PUBLIC_API char* string__rsearch_while_not(const char* str, u32 str_len, const c
 // @returns position in 'str' after the matched prefix or NULL if there wasn't a match
 PUBLIC_API char* string__starts_with(const char* str, const char* prefix);
 
+// @returns position in 'str' after the matched 'what' string or NULL if there wasn't a match
+PUBLIC_API char* string__search(
+    const char* str, u32 str_len,
+    const char* what, u32 what_len
+);
+
 #endif // STRING_H
