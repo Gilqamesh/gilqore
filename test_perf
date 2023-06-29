@@ -21,25 +21,7 @@ Cy taken to write out: 105.16M
 
 Avg Cy tokenize: 134.955M
 
-After jump tables using test_file:
-1.
-File size: 7.06MB
-Cy taken to tokenize: 286.52M
-Cy taken to write out: 96.38M
-
-2.
-File size: 7.06MB
-Cy taken to tokenize: 178.53M
-Cy taken to write out: 98.97M
-
-3.
-File size: 7.06MB
-Cy taken to tokenize: 200.61M
-Cy taken to write out: 88.99M
-
-4.
-File size: 7.06MB
-Cy taken to tokenize: 160.58M
-Cy taken to write out: 210.09M
-
-Avg Cy tokenize: 206.56M
+Remove internal buffer for tokenizer:
+File size: 7.28MB
+Cy taken to tokenize without dispatch table: 63.44M
+Cy taken to write out: 43.94M

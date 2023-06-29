@@ -6,67 +6,8 @@
 #define MAX_TOKENS 1000
 #define MAX_TOKEN_LENGTH 100
 
-struct token {
-    char* start;
-    int len;
-};
-
-struct tokenizer {
-    struct token* tokens;
-    char* buffer;
-    int buffer_fill;
-    int buffer_size;
-    int tokens_fill;
-    int tokens_size;
-};
-
-bool tokenizer__create(struct tokenizer* self, int buffer_size, int max_number_of_tokens) {
-    self->tokens = malloc(max_number_of_tokens * sizeof(*self->tokens));
-    self->buffer = malloc(buffer_size);
-    self->buffer_fill = 0;
-    self->buffer_size = buffer_size;
-    self->tokens_fill = 0;
-    self->tokens_size = max_number_of_tokens;
-
-    return true;
-}
-
-void tokenizer__destroy(struct tokenizer* self) {
-    free(self->buffer);
-    free(self->tokens);
-}
-
-bool tokenizer__add(struct tokenizer* self, struct token token) {
-    if (self->tokens_fill == self->tokens_size) {
-        printf("self->tokens_fill == self->tokens_size");
-        exit(1);
-    }
-
-    int fill_increment = token.len + 1;
-    if (self->buffer_size < self->buffer_fill + fill_increment) {
-        printf("self->buffer_size < self->buffer_fill + fill_increment");
-        exit(1);
-    }
-
-    char* dest = self->buffer + self->buffer_fill;
-    memcpy(dest, token.start, token.len);
-    dest[token.len] = '\0';
-    self->buffer_fill += fill_increment;
-
-    self->tokens[self->tokens_fill].start = dest;
-    self->tokens[self->tokens_fill].len = token.len;
-    ++self->tokens_fill;
-
-    return true;
-}
-
-void tokenizer__print_tokens(struct tokenizer* self) {
-    for (int i = 0; i < self->tokens_fill; ++i) {
-        printf("%s\n", self->tokens[i].start);
-    }
-}
-
-enum tokenizer_comment_state {
+enum token_type {
+    UNKNOWN,
     CODE,
     ONESLASH,
     LINECOMMENT,
@@ -75,169 +16,67 @@ enum tokenizer_comment_state {
     INQUOTE,
     ESCAPE,
 
-    TOKENIZER_COMMENT_STATE_SIZE
+    COMMENT
 };
 
-enum tokenizer_comment_state tokenizer_comment_state__code(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    (void) tokenizer;
-    (void) token;
+struct token {
+    const char* end; // excluding
+    unsigned int len;
+    enum token_type type;
+};
 
-    if (c == '/') {
-        return ONESLASH;
-    } else if (c == '"') {
-        return INQUOTE;
-    } else {
-        return CODE;
-    }
+struct tokenizer {
+    struct token* tokens;
+    unsigned int tokens_fill;
+    unsigned int tokens_size;
+};
+
+bool tokenizer__create(struct tokenizer* self, unsigned int max_number_of_tokens) {
+    self->tokens = malloc(max_number_of_tokens * sizeof(*self->tokens));
+    self->tokens_fill = 0;
+    self->tokens_size = max_number_of_tokens;
+
+    return true;
 }
 
-enum tokenizer_comment_state tokenizer_comment_state__oneslash(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    (void) tokenizer;
-    (void) token;
-
-    if (c == '/') {
-        return LINECOMMENT;
-    } else if (c == '*') {
-        return BLOCKCOMMENT;
-    } else {
-        return CODE;
-    }
+void tokenizer__destroy(struct tokenizer* self) {
+    free(self->tokens);
 }
 
-enum tokenizer_comment_state tokenizer_comment_state__linecomment(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    if (c == '\n') {
-        token->start[token->len] = '\0';
-        tokenizer__add(tokenizer, *token);
-        token->len = 0;
-        return CODE;
-    }
-
-    token->start[token->len++] = c;
-    return LINECOMMENT;
+void tokenizer__clear(struct tokenizer* self) {
+    self->tokens_fill = 0;
 }
 
-enum tokenizer_comment_state tokenizer_comment_state__blockcomment(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    (void) tokenizer;
-
-    if (c == '*') {
-        return BLOCKSTAR;
-    } else {
-        token->start[token->len++] = c;
-        return BLOCKCOMMENT;
+bool tokenizer__add(struct tokenizer* self, struct token* token) {
+    if (self->tokens_fill == self->tokens_size) {
+        printf("self->tokens_fill == self->tokens_size");
+        exit(1);
     }
+
+    self->tokens[self->tokens_fill].end = token->end;
+    self->tokens[self->tokens_fill].len = token->len;
+    self->tokens[self->tokens_fill].type = token->type;
+    ++self->tokens_fill;
+
+    return true;
 }
 
-enum tokenizer_comment_state tokenizer_comment_state__blockstar(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    if (c == '/') {
-        token->start[token->len] = '\0';
-        tokenizer__add(tokenizer, *token);
-        token->len = 0;
-        return CODE;
-    } else {
-        token->start[token->len++] = '*';
-        token->start[token->len++] = c;
-        return BLOCKCOMMENT;
-    }
-}
-
-enum tokenizer_comment_state tokenizer_comment_state__inquote(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    (void) tokenizer;
-    (void) token;
-
-    if (c == '"') {
-        return CODE;
-    } else if (c == '\\') {
-        return ESCAPE;
-    } else {
-        return INQUOTE;
-    }
-}
-
-enum tokenizer_comment_state tokenizer_comment_state__escape(
-    struct tokenizer* tokenizer,
-    struct token* token,
-    char c
-) {
-    (void) tokenizer;
-    (void) token;
-
-    if (c == '"') {
-        return INQUOTE;
-    } else {
-        return INQUOTE;
-    }
-}
-
-void tokenizer__tokenize_comments2(struct tokenizer* self, const char* str) {
-    struct token token;
-    token.start = (char*)malloc(MAX_TOKEN_LENGTH);
-    token.len = 0;
-
-    static enum tokenizer_comment_state (*dispatch_state[TOKENIZER_COMMENT_STATE_SIZE])(
-        struct tokenizer* tokenizer,
-        struct token* token,
-        char c
-    ) = {
-        &tokenizer_comment_state__code,
-        &tokenizer_comment_state__oneslash,
-        &tokenizer_comment_state__linecomment,
-        &tokenizer_comment_state__blockcomment,
-        &tokenizer_comment_state__blockstar,
-        &tokenizer_comment_state__inquote,
-        &tokenizer_comment_state__escape
-    };
-
-    enum tokenizer_comment_state state = CODE;
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (state > sizeof(dispatch_state)/sizeof(dispatch_state[0])) {
-            exit(2);
+void tokenizer__print_tokens(struct tokenizer* self) {
+    for (unsigned int i = 0; i < self->tokens_fill; ++i) {
+        if (self->tokens[i].type != COMMENT) {
+            printf("Unknown token: ");
         }
-        state = dispatch_state[state](self, &token, str[i]);
+        printf("[%.*s]\n", self->tokens[i].len, self->tokens[i].end - self->tokens[i].len);
     }
-
-    free(token.start);
 }
 
 void tokenizer__tokenize_comments(struct tokenizer* self, const char* str) {
-    enum {
-        CODE,
-        ONESLASH,
-        LINECOMMENT,
-        BLOCKCOMMENT,
-        BLOCKSTAR,
-        INQUOTE,
-        ESCAPE
-    } state = CODE;
-
     struct token token;
-    token.start = (char*)malloc(MAX_TOKEN_LENGTH);
     token.len = 0;
 
-    for (int i = 0; str[i] != '\0'; i++) {
+    enum token_type state = CODE;
+    const char* cur_str = str;
+    for (int i = 0; str[i] != '\0'; ++i, ++cur_str) {
         char c = str[i];
 
         switch (state) {
@@ -259,30 +98,34 @@ void tokenizer__tokenize_comments(struct tokenizer* self, const char* str) {
                 break;
             case LINECOMMENT:
                 if (c == '\n') {
-                    token.start[token.len] = '\0';
-                    tokenizer__add(self, token);
+                    token.type = COMMENT;
+                    token.end = cur_str;
+                    tokenizer__add(self, &token);
                     token.len = 0;
                     state = CODE;
                 } else {
-                    token.start[token.len++] = c;
+                    ++token.len;
                 }
                 break;
             case BLOCKCOMMENT:
                 if (c == '*') {
                     state = BLOCKSTAR;
                 } else {
-                    token.start[token.len++] = c;
+                    ++token.len;
                 }
                 break;
             case BLOCKSTAR:
                 if (c == '/') {
-                    token.start[token.len] = '\0';
-                    tokenizer__add(self, token);
+                    token.type = COMMENT;
+                    token.end = cur_str - 1;
+                    tokenizer__add(self, &token);
                     token.len = 0;
                     state = CODE;
                 } else {
-                    token.start[token.len++] = '*';
-                    token.start[token.len++] = c;
+                    token.len++;
+                    token.len++;
+                    // token.start[token.len++] = '*';
+                    // token.start[token.len++] = c;
                     state = BLOCKCOMMENT;
                 }
                 break;
@@ -300,10 +143,10 @@ void tokenizer__tokenize_comments(struct tokenizer* self, const char* str) {
                     state = INQUOTE;
                 }
                 break;
+            default: {
+            }
         }
     }
-
-    free(token.start);
 }
 
 void tokenizer__tokenize_commas(struct tokenizer* self, const char* str) {
@@ -312,21 +155,23 @@ void tokenizer__tokenize_commas(struct tokenizer* self, const char* str) {
     } state = COMMA;
 
     struct token token;
-    token.start = (char*)malloc(MAX_TOKEN_LENGTH);
+    token.end = NULL;
     token.len = 0;
+    token.type = UNKNOWN;
 
-    for (int i = 0; str[i] != '\0'; i++) {
+    const char* cur_str = str;
+    for (int i = 0; str[i] != '\0'; ++i, ++cur_str) {
         char c = str[i];
 
         switch (state) {
             case TEXT: {
                 if (c == ',') {
-                    token.start[token.len] = '\0';
-                    tokenizer__add(self, token);
+                    token.end = cur_str;
+                    tokenizer__add(self, &token);
                     token.len = 0;
                     state = COMMA;
                 } else {
-                    token.start[token.len++] = c;
+                    ++token.len;
                     state = TEXT;
                 }
             } break ;
@@ -334,7 +179,7 @@ void tokenizer__tokenize_commas(struct tokenizer* self, const char* str) {
                 if (c == ',' || c == ' ' || c == '\t' || c == '\n') {
                     state = COMMA;
                 } else {
-                    token.start[token.len++] = c;
+                    ++token.len;
                     state = TEXT;
                 }
             } break ;
@@ -342,11 +187,9 @@ void tokenizer__tokenize_commas(struct tokenizer* self, const char* str) {
     }
 
     if (state == TEXT) {
-        token.start[token.len] = '\0';
-        tokenizer__add(self, token);
+        token.end = cur_str;
+        tokenizer__add(self, &token);
     }
-
-    free(token.start);
 }
 
 #include <intrin.h>
@@ -354,6 +197,9 @@ void tokenizer__tokenize_commas(struct tokenizer* self, const char* str) {
 #define KILO(x) (x * (1 << 10))
 #define MEGA(x) (x * (1 << 20))
 
+// todo: tokenize both halves of the file at the same time
+//   start from the middle, then the tokenizer can either be in the middle of a token or not
+//   somehow we have to find a place where it isn't, but if all whitespaces are considered non-tokens, then just skip all whitespaces
 int main() {
     FILE* text_file = fopen("test_file", "r");
     if (text_file == NULL) {
@@ -377,18 +223,19 @@ int main() {
     printf("File size: %.2lfMB\n", text_buffer_len / 1000000.0);
 
     struct tokenizer comments_tokenizer;
-    if (tokenizer__create(&comments_tokenizer, text_buffer_len + 1, KILO(256)) == false) {
+    if (tokenizer__create(&comments_tokenizer, KILO(256)) == false) {
         exit(4);
     }
 
+    tokenizer__clear(&comments_tokenizer);
     unsigned long long time_start = __rdtsc();
-    tokenizer__tokenize_comments2(&comments_tokenizer, text_buffer);
+    tokenizer__tokenize_comments(&comments_tokenizer, text_buffer);
     unsigned long long time_end = __rdtsc();
     printf("Cy taken to tokenize: %.2lfM\n", (time_end - time_start) / (1000000.0));
 
     time_start = __rdtsc();
-    for (int i = 0; i < comments_tokenizer.tokens_fill; ++i) {
-        fwrite(comments_tokenizer.tokens[i].start, sizeof(char), comments_tokenizer.tokens[i].len, out_file);
+    for (unsigned int i = 0; i < comments_tokenizer.tokens_fill; ++i) {
+        fwrite(comments_tokenizer.tokens[i].end - comments_tokenizer.tokens[i].len, sizeof(char), comments_tokenizer.tokens[i].len, out_file);
         fwrite("\n", sizeof(char), 1, out_file);
     }
     time_end = __rdtsc();
@@ -396,8 +243,8 @@ int main() {
 
     fclose(out_file);
 
-    // printf("Comments:\n");
-    // tokenizer__print_tokens(&comments_tokenizer);
+    printf("Comments:\n");
+    tokenizer__print_tokens(&comments_tokenizer);
 
     // printf("---\n");
     // const char* list = "one, two,\n"
@@ -410,6 +257,8 @@ int main() {
 
     // printf("Commas:\n");
     // tokenizer__print_tokens(&commas_tokenizer);
+
+    free(text_buffer);
 
     return 0;
 }

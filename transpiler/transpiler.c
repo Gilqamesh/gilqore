@@ -47,6 +47,18 @@ void transpile(
             if (token_value_import) {
                 found_matching_token = true;
 
+                /*
+                struct module* found_module = module_compiler__find_module_by_name(modules, token_value_import);
+                if (found_module) {
+                    file_writer__write_format(
+                        &writer, &preprocessed_file,
+                        "#include \"%s/%s.h\"\n",
+                        found_module->dirprefix, found_module->basename
+                    );
+                    line_was_written = true;
+                }
+                */
+
                 line_was_written = true;
             }
         }
@@ -62,6 +74,15 @@ void transpile(
                 );
                 if (enclosing_quotation_mark) {
                     u32 unique_error_code = get_unique_error_code();
+
+                    /*
+                    file_writer__write_format(
+                        &writer, error_codes_file,
+                        "%u REMOVE_ME %.*s\n",
+                        unique_error_code,
+                        enclosing_quotation_mark + 1 - token_value_error_message, token_value_error_message
+                    );
+                    */
                     file_write_format(
                         out_file, file_write_format_memory,
                         "%.*serror_code__exit(%u)%.*s\n",
