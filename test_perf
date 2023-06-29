@@ -1,0 +1,45 @@
+Before jump tables using test_file:
+1.
+File size: 7.06MB
+Cy taken to tokenize: 135.48M
+Cy taken to write out: 94.50M
+
+2.
+File size: 7.06MB
+Cy taken to tokenize: 131.58M
+Cy taken to write out: 94.63M
+
+3.
+File size: 7.06MB
+Cy taken to tokenize: 120.31M
+Cy taken to write out: 97.78M
+
+4.
+File size: 7.06MB
+Cy taken to tokenize: 152.45M
+Cy taken to write out: 105.16M
+
+Avg Cy tokenize: 134.955M
+
+After jump tables using test_file:
+1.
+File size: 7.06MB
+Cy taken to tokenize: 286.52M
+Cy taken to write out: 96.38M
+
+2.
+File size: 7.06MB
+Cy taken to tokenize: 178.53M
+Cy taken to write out: 98.97M
+
+3.
+File size: 7.06MB
+Cy taken to tokenize: 200.61M
+Cy taken to write out: 88.99M
+
+4.
+File size: 7.06MB
+Cy taken to tokenize: 160.58M
+Cy taken to write out: 210.09M
+
+Avg Cy tokenize: 206.56M
