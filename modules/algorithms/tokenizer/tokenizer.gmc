@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
 module_dependencies: memory
-test_dependencies:
+test_dependencies: file libc memory
 application_type: CONSOLE

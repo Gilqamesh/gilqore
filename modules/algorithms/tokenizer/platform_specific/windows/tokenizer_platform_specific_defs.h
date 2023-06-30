@@ -5,6 +5,11 @@
 
 enum tokenizer_windows_error_code {
     WINDOWS_TOKENIZER_ERROR_CODE_START,
+};
+
+
+enum tokenizer_windows_error_code {
+    WINDOWS_TOKENIZER_ERROR_CODE_START,
 
 };
 

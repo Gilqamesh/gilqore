@@ -5,7 +5,6 @@
 
 enum tokenizer_error_code {
     TOKENIZER_ERROR_CODE_START,
-
 };
 
 #endif
