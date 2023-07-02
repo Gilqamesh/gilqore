@@ -1,4 +1,4 @@
 unique_error_codes: [
 ]
-module_dependencies:
+module_dependencies: file_reader compare
 application_type: CONSOLE

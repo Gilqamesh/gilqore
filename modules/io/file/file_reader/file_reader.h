@@ -7,22 +7,23 @@ struct file;
 struct memory_slice;
 
 # include "data_structures/circular_buffer/circular_buffer.h"
+# include "io/file/file.h"
 
 struct file_reader {
     struct circular_buffer circular_buffer;
-    struct file* file;
+    struct file file;
     bool eof_reached;
 };
 
 PUBLIC_API bool file_reader__create(
     struct file_reader* self,
-    struct file* file,
+    struct file file,
     struct memory_slice internal_buffer
 );
 PUBLIC_API void file_reader__destroy(struct file_reader* self);
 
 // @brief clear internal state and replace the file to read from
-PUBLIC_API void file_reader__clear(struct file_reader* self, struct file* file);
+PUBLIC_API void file_reader__clear(struct file_reader* self, struct file file);
 
 // @returns the top most byte without advancing the file stream
 PUBLIC_API char file_reader__peek(struct file_reader* self);

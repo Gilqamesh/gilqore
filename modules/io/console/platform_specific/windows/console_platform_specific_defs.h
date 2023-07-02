@@ -5,6 +5,16 @@
 
 enum console_windows_error_code {
     WINDOWS_CONSOLE_ERROR_CODE_START,
+};
+
+
+enum console_windows_error_code {
+    WINDOWS_CONSOLE_ERROR_CODE_START,
+};
+
+
+enum console_windows_error_code {
+    WINDOWS_CONSOLE_ERROR_CODE_START,
 
 };
 

@@ -1,0 +1,31 @@
+Inspired by: https://craftinginterpreters.com/
+
+The parts of a language (https://craftinginterpreters.com/a-map-of-the-territory.html):
+    - Scanning: tokenizer / lexical analysis (lexer)
+    - Parsing: building abstract syntax tree (ast)
+    - Static analysis: scope, type
+    - Intermediate representations (IR)
+    - Optimizations
+    - Code generation (either for a real instruction set or virtual)
+
+    Each stage in the pipeline organizes the data that makes the next stage simpler to implement
+    Frontend of the compiler is specific to the source language was written in
+    Backend of the compiler is concerned with the final architecture where the program will run
+    Middleend of the compiler may be stored in some intermediate representation that isn't tightly tied to either source or destination forms, acts as an interface between them, allowing to implement multiple languages, where each source language has a froentend that produces the IR, and one backend for each architecture
+        Control-flow graph (CFG): among many others it allows to determine basic blocks of the flow (as well as optimizations which collapses basic blocks causing edges to be removed, thus possibly disconnecting the graph), unreachable code
+        Static single assignment (SSA): versions variables and allows for optimizations such as: conversion from runtime to compile time, branch prediction based on range-checking values, register allocation
+        Continuation-passing style: control is passed in the forms of a continuation function, can eliminate function stack, but for this the whole program needs to be written in CPS-style
+        Three-address code: breaks down expressions into instructions that have 3 (or sometimes less) operands, this aids the implementation of code-improving transformations and translate more easily to assembly language
+
+Lot of optimization possibilities within the compiler, a few are:
+    constant folding, propagation: replacing parts of the code that always evaluates to the same exact value, substituting known constants into variables
+    common subexpression elimination (CSE): search for identical instances of expressions and analyse whether or not it is worthwhile to replace them with a single variable holding the computed value
+    loop-invariant code motion: move code outside a loop that doesn't affect the semantics of the program
+    induction variable: a variable that gets increased or decreased by a fixed amount on every iteration of a loop or is a linear function of another induction variable
+    strength reduction: replace expensive operations with equivalent but less expensive operations (for example by looking for expressions involving a loop-invariant and an induction variable)
+    global value numbering (GVN): based on SSA and used alongside of CSE usually by assigning a value umber to variables and expressions, the same value number is assigned to those which are probably equivalent, which then allows for remapping and transforming to an equivalent code
+    scalar replacements of aggregates (SRA): replaces the access to object fields with local variables, effectively removing the need for allocating the object
+    dead code elimination
+    loop unrolling
+
+

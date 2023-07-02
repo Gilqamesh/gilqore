@@ -1005,7 +1005,7 @@ static void def_file_add_error_codes_place_holder__update(
     TEST_FRAMEWORK_ASSERT(
         file_reader__create(
             &file_reader,
-            &def_file,
+            def_file,
             file_reader_memory_slice
         )
     );
@@ -1056,7 +1056,7 @@ static void def_file_add_error_codes_place_holder__update(
             error_code__exit(32476);
         }
         TEST_FRAMEWORK_ASSERT(file__seek(&def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-        file_reader__clear(&file_reader, &def_file);
+        file_reader__clear(&file_reader, def_file);
         TEST_FRAMEWORK_ASSERT(
             file_reader__read_while_not_word(
                 &file_reader,
@@ -1132,7 +1132,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
     TEST_FRAMEWORK_ASSERT(
         file_reader__create(
             &file_reader,
-            &def_file,
+            def_file,
             file_reader_memory_slice
         )
     );
@@ -1182,7 +1182,7 @@ static void def_file_add_error_codes_place_holder__update_platform_specific(
             error_code__exit(32476);
         }
         TEST_FRAMEWORK_ASSERT(file__seek(&def_file, 0, FILE_SEEK_TYPE_BEGIN) == 0);
-        file_reader__clear(&file_reader, &def_file);
+        file_reader__clear(&file_reader, def_file);
         TEST_FRAMEWORK_ASSERT(
             file_reader__read_while_not_word(
                 &file_reader,
@@ -1240,7 +1240,7 @@ static void parse_and_handle_config_file(
     TEST_FRAMEWORK_ASSERT(
         file_reader__create(
             &config_file_reader,
-            &config_file,
+            config_file,
             file_reader_memory_slice
         )
     );
@@ -1365,7 +1365,7 @@ static void parse_and_handle_platform_specific_config_file(
     TEST_FRAMEWORK_ASSERT(
         file_reader__create(
             &config_file_reader,
-            &config_file,
+            config_file,
             file_reader_memory_slice
         )
     );

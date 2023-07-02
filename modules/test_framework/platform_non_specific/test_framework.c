@@ -34,7 +34,7 @@ void test_framework__translate_error_code(u32 error_code, char* buffer, u32 buff
     TEST_FRAMEWORK_ASSERT(
         file_reader__create(
             &reader,
-            &error_codes_file,
+            error_codes_file,
             memory_slice__create(buffer, buffer_size)
         )
     );

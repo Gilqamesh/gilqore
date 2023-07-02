@@ -10,7 +10,7 @@
 
 bool file_reader__create(
     struct file_reader* self,
-    struct file* file,
+    struct file file,
     struct memory_slice internal_buffer
 ) {
     self->file = file;
@@ -27,11 +27,10 @@ bool file_reader__create(
 }
 
 void file_reader__destroy(struct file_reader* self) {
-    self->file = NULL;
     circular_buffer__destroy(&self->circular_buffer);
 }
 
-void file_reader__clear(struct file_reader* self, struct file* file) {
+void file_reader__clear(struct file_reader* self, struct file file) {
     circular_buffer__clear(&self->circular_buffer);
     self->file = file;
     self->eof_reached = false;
@@ -47,13 +46,13 @@ static void file_reader__ensure_fill(struct file_reader* self) {
         u32 till_buffer_end = (u32)((char*) end - (char*) head);
         u32 circular_buffer_total_size = circular_buffer__size_item(&self->circular_buffer) * circular_buffer__size_total(&self->circular_buffer);
         u32 bytes_to_read = min__u32(circular_buffer_total_size, till_buffer_end);
-        u32 bytes_read = file__read(self->file, head, bytes_to_read);
+        u32 bytes_read = file__read(&self->file, head, bytes_to_read);
         circular_buffer__advance_head(&self->circular_buffer, bytes_read);
         if (bytes_read < bytes_to_read) {
             self->eof_reached = true;
         } else if (bytes_read < circular_buffer_total_size) {
             bytes_to_read = circular_buffer_total_size - bytes_read;
-            bytes_read = file__read(self->file, head, bytes_to_read);
+            bytes_read = file__read(&self->file, head, bytes_to_read);
             circular_buffer__advance_head(&self->circular_buffer, bytes_read);
             if (bytes_read < bytes_to_read) {
                 self->eof_reached = true;
