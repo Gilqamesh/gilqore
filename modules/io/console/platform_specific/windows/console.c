@@ -155,15 +155,16 @@ u32 console__write_error(console_t self, const char* format, ...) {
 }
 
 u32 console__read_line(console_t self, char* buffer, u32 buffer_size) {
-    if (buffer_size == 0) {
+    if (buffer_size < 2) {
         return 0;
     }
 
     if (self->in_handle != INVALID_HANDLE_VALUE) {
         // set eof reached to false in case it was true to read new bytes from the input
         self->input_reader.eof_reached = false;
-        u32 bytes_read = file_reader__read_while_not(&self->input_reader, buffer, buffer_size - 1, "\r\n");
-        buffer[bytes_read] = '\0';
+        u32 bytes_read = file_reader__read_while_not(&self->input_reader, buffer, buffer_size - 2, "\r\n");
+        buffer[bytes_read] = '\n';
+        buffer[bytes_read + 1] = '\0';
         // skip one newline
         (void) file_reader__read_while_not(&self->input_reader, NULL, 0 , "\n");
         (void) file_reader__read_while(&self->input_reader, NULL, 0 , "\n");
