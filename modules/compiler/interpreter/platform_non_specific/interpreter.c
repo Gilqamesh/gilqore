@@ -65,12 +65,14 @@ bool interpreter__run_file(const char* path) {
 }
 
 void interpreter__run_prompt() {
-    console_t console = console__init_module(0, false);
+    console_t console = console__init_module(KILOBYTES(1), false);
     bool prompt_is_running = true;
     char line_buffer[KILOBYTES(1)];
     while (prompt_is_running) {
-        libc__printf("> ");
+        console__write(console, "> ");
+        // libc__printf("> ");
         u32 read_line_length = console__read_line(console, line_buffer, ARRAY_SIZE(line_buffer));
+        line_buffer[read_line_length] = '\n';
         if (read_line_length == 0) {
             prompt_is_running = false;
         } else {

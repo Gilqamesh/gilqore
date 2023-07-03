@@ -13,9 +13,10 @@ int main() {
     bytes_written = console__write(console, "yoo\n");
     bytes_written = console__write(console, "");
     char buffer[CONSOLE_BUFFER_SIZE << 1];
-    buffer[ARRAY_SIZE(buffer) - 1] = '\0';
     libc__memset(buffer, (s32)'a', ARRAY_SIZE(buffer));
+    buffer[ARRAY_SIZE(buffer) - 1] = '\0';
     bytes_written = console__write(console, buffer);
+    bytes_written = console__write(console, "\n");
     (void) bytes_written;
 
     char bufferasd[123];

@@ -2,8 +2,7 @@
 
 #include "common/error_code.h"
 #include "libc/libc.h"
-#include "io/file/file_reader/file_reader.h"
-#include "gil_math/compare/compare.h"
+#include "io/file/file.h"
 
 #include "windows.h"
 
@@ -14,9 +13,6 @@ struct console {
 
     char   *buffer;
     u32    buffer_size;
-
-    struct memory_slice input_reader_memory;
-    struct file_reader input_reader;
 };
 
 console_t console__init_module(u32 max_message_length, bool attach_to_parent) {
@@ -25,6 +21,7 @@ console_t console__init_module(u32 max_message_length, bool attach_to_parent) {
         return NULL;
     }
 
+    libc__memset(self, 0, sizeof(*self));
     self->err_handle  = INVALID_HANDLE_VALUE;
     self->in_handle  = INVALID_HANDLE_VALUE;
     self->out_handle  = INVALID_HANDLE_VALUE;
@@ -33,6 +30,7 @@ console_t console__init_module(u32 max_message_length, bool attach_to_parent) {
         if (AttachConsole(ATTACH_PARENT_PROCESS) == FALSE) {
             // todo: diagnostics, GetLastError()
             // error_code__exit(CONSOLE_ERROR_CODE_ATTACH_CONSOLE);
+            console__deinit_module(self);
             libc__printf("AttachConsole GetLastError() returned %d\n", GetLastError());
             error_code__exit(32465);
         }
@@ -41,6 +39,7 @@ console_t console__init_module(u32 max_message_length, bool attach_to_parent) {
         if (console_window_handle == NULL && AllocConsole() == FALSE) {
             // todo: diagnostics, GetLastError()
             // error_code__exit(ALLOC_CONSOLE_FAILED);
+            console__deinit_module(self);
             libc__printf("AllocConsole GetLastError() returned %d\n", GetLastError());
             error_code__exit(32466);
         }
@@ -48,48 +47,53 @@ console_t console__init_module(u32 max_message_length, bool attach_to_parent) {
 
     if ((self->err_handle = GetStdHandle(STD_ERROR_HANDLE)) == INVALID_HANDLE_VALUE) {
         // todo: diagnostics, GetLastError()
+        console__deinit_module(self);
         error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
+    }
+    if (SetConsoleMode(
+        self->err_handle,
+        ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT 
+    ) == FALSE) {
+        console__deinit_module(self);
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(SET_CONSOLE_MODE_FAILED);
+        error_code__exit(98484);
     }
     if ((self->in_handle = GetStdHandle(STD_INPUT_HANDLE)) == INVALID_HANDLE_VALUE) {
         // todo: diagnostics, GetLastError()
+        console__deinit_module(self);
         error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
     }
+
+    if (SetConsoleMode(
+        self->in_handle,
+        ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_INSERT_MODE
+    ) == FALSE) {
+        console__deinit_module(self);
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(SET_CONSOLE_MODE_FAILED);
+        error_code__exit(98484);
+    }
+
     if ((self->out_handle = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE) {
         // todo: diagnostics, GetLastError()
+        console__deinit_module(self);
         error_code__exit(CONSOLE_ERROR_CODE_GET_STD_HANDLE);
+    }
+    if (SetConsoleMode(
+        self->out_handle,
+        ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT 
+    ) == FALSE) {
+        console__deinit_module(self);
+        // todo: diagnostics, GetLastError()
+        // error_code__exit(SET_CONSOLE_MODE_FAILED);
+        error_code__exit(98484);
     }
 
     self->buffer_size = max_message_length + 1;
     self->buffer = (char*) libc__malloc(self->buffer_size);
     if (self->buffer == NULL) {
-        libc__free(self);
-        return NULL;
-    }
-
-    const u32 input_reader_memory_size = KILOBYTES(1);
-    self->input_reader_memory = memory_slice__create(
-        libc__malloc(input_reader_memory_size),
-        input_reader_memory_size
-    );
-    if (memory_slice__memory(&self->input_reader_memory) == NULL) {
-        libc__free(self->buffer);
-        libc__free(self);
-        return NULL;
-    }
-    // note: treat the console handle as a file handle
-    struct file input_file = {
-        .handle = self->in_handle
-    };
-    if (
-        file_reader__create(
-            &self->input_reader,
-            input_file,
-            self->input_reader_memory
-        ) == false
-    ) {
-        libc__free(memory_slice__memory(&self->input_reader_memory));
-        libc__free(self->buffer);
-        libc__free(self);
+        console__deinit_module(self);
         return NULL;
     }
 
@@ -106,27 +110,24 @@ void console__deinit_module(console_t self) {
     if (self->buffer) {
         libc__free(self->buffer);
     }
-    libc__free(memory_slice__memory(&self->input_reader_memory));
-    file_reader__destroy(&self->input_reader);
     libc__free(self);
 }
 
 static DWORD console_write_impl(console_t self, const char* format, HANDLE console_handle, va_list ap) {
-    DWORD bytes_written;
+    u32 bytes_written = 0;
     if (console_handle != INVALID_HANDLE_VALUE) {
-        s32 number_of_characters_written = libc__vsnprintf(self->buffer, self->buffer_size, format, ap);
-        if (number_of_characters_written < 0) {
-            // error_code__exit(CONSOLE_ERROR_CODE_VSNPRINTF);
-        }
-        if (self->buffer_size <= (u32) number_of_characters_written) {
+        u32 number_of_characters_written = (u32) libc__vsnprintf(self->buffer, self->buffer_size, format, ap);
+        if (self->buffer_size <= number_of_characters_written) {
+            ASSERT(self->buffer_size > 0);
+            number_of_characters_written = self->buffer_size - 1;
             // todo(david): diagnostic, truncated message
         }
+        ASSERT(self->buffer[number_of_characters_written] == '\0');
 
-        if (WriteConsoleA(console_handle, self->buffer, (DWORD)libc__strnlen(self->buffer, self->buffer_size), &bytes_written, NULL) == FALSE) {
-            // error_code__exit(WRITE_CONSOLE_A);
-            // TODO(david): diagnostic, GetLastError()
-            error_code__exit(354463);
-        }
+        struct file out_file = {
+            .handle = console_handle
+        };
+        bytes_written = file__write(&out_file, self->buffer, number_of_characters_written);
     }
 
     return bytes_written;
@@ -156,21 +157,25 @@ u32 console__write_error(console_t self, const char* format, ...) {
 
 u32 console__read_line(console_t self, char* buffer, u32 buffer_size) {
     if (buffer_size < 2) {
+        if (buffer_size == 1) {
+            buffer[0] = '\0';
+        }
         return 0;
     }
 
+    u32 bytes_read = 0;
     if (self->in_handle != INVALID_HANDLE_VALUE) {
-        // set eof reached to false in case it was true to read new bytes from the input
-        self->input_reader.eof_reached = false;
-        u32 bytes_read = file_reader__read_while_not(&self->input_reader, buffer, buffer_size - 2, "\r\n");
-        buffer[bytes_read] = '\n';
-        buffer[bytes_read + 1] = '\0';
-        // skip one newline
-        (void) file_reader__read_while_not(&self->input_reader, NULL, 0 , "\n");
-        (void) file_reader__read_while(&self->input_reader, NULL, 0 , "\n");
-
-        return bytes_read > 0 ? bytes_read - 1 : 0;
+        struct file input_file = {
+            .handle = self->in_handle
+        };
+        bytes_read = file__read(&input_file, buffer, buffer_size);
+        if (buffer[bytes_read - 2] == '\r') {
+            bytes_read -= 2;
+        } else {
+            --bytes_read;
+        }
+        buffer[bytes_read] = '\0';
     }
 
-    return 0;
+    return bytes_read;
 }

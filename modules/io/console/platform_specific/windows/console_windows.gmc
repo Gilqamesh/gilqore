@@ -1,4 +1,4 @@
 unique_error_codes: [
 ]
-module_dependencies: file_reader compare
+module_dependencies: file libc
 application_type: CONSOLE

@@ -1,4 +1,4 @@
-#include "algorithms/tokenizer/tokenizer.h"
+#include "compiler/tokenizer/tokenizer.h"
 
 #include "memory/memory.h"
 
