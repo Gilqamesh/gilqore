@@ -22,7 +22,7 @@ void test_tokenizer__comments(struct tokenizer* tokenizer) {
     TEST_FRAMEWORK_ASSERT(tokenizer__tokenize_comments(tokenizer, text));
 
     for (u32 token_index = 0; token_index < tokenizer__fill(tokenizer); ++token_index) {
-        libc__printf("Token: [%.*s]\n", tokenizer->tokens[token_index].len, tokenizer->tokens[token_index].end - tokenizer->tokens[token_index].len);
+        libc__printf("Token: [%.*s]\n", tokenizer->tokens[token_index].len, tokenizer->tokens[token_index].lexeme);
     }
 }
 

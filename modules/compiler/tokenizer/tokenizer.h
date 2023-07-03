@@ -4,18 +4,31 @@
 # include "tokenizer_defs.h"
 
 struct token {
-    const char* end;
-    u32 len;
-    u32 type;
+    const char* lexeme; // not null-terminated
+    u32 lexeme_len : 32;
+    u32 type : 8;
+    u32 line : 24;
 };
+
+typedef const char* (*token__type_name_fn)(struct token* token);
+const char* token__type_name_comment(struct token* token);
+const char* token__type_name_c(struct token* token);
+const char* token__type_name_lox(struct token* token);
 
 struct tokenizer {
     struct token* tokens;
     u32 tokens_fill;
     u32 tokens_size;
+    bool had_error;
 };
 
 struct memory_slice;
+
+typedef bool (*tokenizer__tokenize_fn)(struct tokenizer* tokenizer, const char* source);
+#define TOKENIZER_FN_DECLARE(NAME) bool NAME(struct tokenizer* tokenizer, const char* source)
+PUBLIC_API TOKENIZER_FN_DECLARE(tokenizer__tokenize_comments);
+PUBLIC_API TOKENIZER_FN_DECLARE(tokenizer__tokenize_c_source_code);
+PUBLIC_API TOKENIZER_FN_DECLARE(tokenizer__tokenize_lox);
 
 PUBLIC_API bool tokenizer__create(
     struct tokenizer* self,
@@ -23,15 +36,43 @@ PUBLIC_API bool tokenizer__create(
 );
 PUBLIC_API void tokenizer__destroy(struct tokenizer* self);
 
-u32 tokenizer__fill(struct tokenizer* self);
-u32 tokenizer__size(struct tokenizer* self);
-void tokenizer__clear(struct tokenizer* self);
+PUBLIC_API void tokenizer__clear_error(struct tokenizer* self);
+PUBLIC_API bool tokenizer__had_error(struct tokenizer* self);
+PUBLIC_API u32 tokenizer__fill(struct tokenizer* self);
+PUBLIC_API u32 tokenizer__size(struct tokenizer* self);
+PUBLIC_API void tokenizer__clear(struct tokenizer* self);
 
 // Comments tokenizer to parse C-like comments
 enum comment_token_type {
     COMMENT_TOKEN_TYPE_TOKEN
 };
-PUBLIC_API bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str);
+
+// lox tokenizer
+enum lox_token_type {
+    LOX_TOKEN_COMMENT,
+
+    // Single-character tokens.
+    LOX_TOKEN_LEFT_PAREN, LOX_TOKEN_RIGHT_PAREN, LOX_TOKEN_LEFT_BRACE, LOX_TOKEN_RIGHT_BRACE,
+    LOX_TOKEN_COMMA, LOX_TOKEN_DOT, LOX_TOKEN_MINUS, LOX_TOKEN_PLUS,
+    LOX_TOKEN_SEMICOLON, LOX_TOKEN_SLASH, LOX_TOKEN_STAR,
+
+    // One or two character tokens.
+    LOX_TOKEN_BANG, LOX_TOKEN_BANG_EQUAL,
+    LOX_TOKEN_EQUAL, LOX_TOKEN_EQUAL_EQUAL,
+    LOX_TOKEN_GREATER, LOX_TOKEN_GREATER_EQUAL,
+    LOX_TOKEN_LESS, LOX_TOKEN_LESS_EQUAL,
+
+    // Literals.
+    LOX_TOKEN_IDENTIFIER, LOX_TOKEN_STRING, LOX_TOKEN_NUMBER,
+
+    // Keywords.
+    LOX_TOKEN_AND, LOX_TOKEN_CLASS, LOX_TOKEN_ELSE, LOX_TOKEN_FALSE,
+    LOX_TOKEN_FUN, LOX_TOKEN_FOR, LOX_TOKEN_IF, LOX_TOKEN_NIL, LOX_TOKEN_OR,
+    LOX_TOKEN_PRINT, LOX_TOKEN_RETURN, LOX_TOKEN_SUPER, LOX_TOKEN_THIS,
+    LOX_TOKEN_TRUE, LOX_TOKEN_VAR, LOX_TOKEN_WHILE,
+
+    LOX_TOKEN_EOF
+};
 
 // C-file tokenizer
 enum c_token_type {
@@ -149,6 +190,5 @@ enum c_token_type {
     C_TOKEN_TYPE_PREPROCESSOR_ERROR, //#error <text>
     C_TOKEN_TYPE_PREPROCESSOR_LINE, //#line <text>
 };
-PUBLIC_API bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* str);
 
 #endif // TOKENIZER_H

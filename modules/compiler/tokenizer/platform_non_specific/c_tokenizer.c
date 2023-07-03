@@ -3,8 +3,7 @@
 #include "tokenizer_platform_non_specific.h"
 
 enum c_tokenizer_state {
-    TOKEN_TYPE_UNKNOWN,
-    UNIDENTIFIED,
+    TEXT,
     SLASH,
     LINECOMMENT,
     BLOCKCOMMENT,
@@ -20,27 +19,19 @@ static inline bool is_whitespace(char c) {
 }
 
 bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* str) {
-    struct token token;
-    token.end = NULL;
-    token.len = 0;
-    token.type = TOKEN_TYPE_UNKNOWN;
-
-    enum c_tokenizer_state state = UNIDENTIFIED;
+    enum c_tokenizer_state state = TEXT;
     const char* cur_str = str;
+    u32 cur_token_len = 0;
+    u32 cur_line = 0;
     for (int i = 0; str[i] != '\0'; ++i, ++cur_str) {
         char c = str[i];
 
         switch (state) {
-            case UNIDENTIFIED: {
-                if (is_whitespace(c)) {
-                    state = WHITESPACE;
-                } else if (c == '/') {
+            case TEXT: {
+                if (c == '/') {
                     state = SLASH;
                 } else if (c == '"') {
                     state = INQUOTE;
-                } else if (c == '(') {
-                    token.type = COMMENT_TOKEN_TYPE_TOKEN;
-                    state = UNIDENTIFIED;
                 }
             } break ;
             case SLASH: {
@@ -49,45 +40,52 @@ bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* 
                 } else if (c == '*') {
                     state = BLOCKCOMMENT;
                 } else {
-                    state = UNIDENTIFIED;
+                    state = TEXT;
                 }
             } break ;
             case LINECOMMENT: {
                 if (c == '\n') {
-                    token.type = COMMENT_TOKEN_TYPE_TOKEN;
-                    token.end = cur_str;
-                    tokenizer__add(tokenizer, token);
-                    token.len = 0;
-                    state = UNIDENTIFIED;
+                    tokenizer__add(
+                        tokenizer,
+                        cur_str - cur_token_len,
+                        cur_token_len,
+                        COMMENT_TOKEN_TYPE_TOKEN,
+                        cur_line
+                    );
+                    cur_token_len = 0;
+                    ++cur_line;
+                    state = TEXT;
                 } else {
-                    ++token.len;
+                    ++cur_token_len;
                 }
             } break ;
             case BLOCKCOMMENT: {
                 if (c == '*') {
                     state = BLOCKSTAR;
                 } else {
-                    ++token.len;
+                    ++cur_token_len;
                 }
             } break ;
             case BLOCKSTAR: {
                 if (c == '/') {
-                    token.type = COMMENT_TOKEN_TYPE_TOKEN;
-                    token.end = cur_str - 1;
-                    tokenizer__add(tokenizer, token);
-                    token.len = 0;
-                    state = UNIDENTIFIED;
+                    tokenizer__add(
+                        tokenizer,
+                        cur_str - 1 - cur_token_len,
+                        cur_token_len,
+                        COMMENT_TOKEN_TYPE_TOKEN,
+                        cur_line
+                    );
+                    cur_token_len = 0;
+                    state = TEXT;
                 } else {
-                    token.len++;
-                    token.len++;
-                    // token.start[token.len++] = '*';
-                    // token.start[token.len++] = c;
+                    ++cur_token_len;
+                    ++cur_token_len;
                     state = BLOCKCOMMENT;
                 }
             } break ;
             case INQUOTE: {
                 if (c == '"') {
-                    state = UNIDENTIFIED;
+                    state = TEXT;
                 } else if (c == '\\') {
                     state = ESCAPE;
                 }

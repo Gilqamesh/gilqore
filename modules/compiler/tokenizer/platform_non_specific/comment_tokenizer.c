@@ -3,7 +3,6 @@
 #include "tokenizer_platform_non_specific.h"
 
 enum comment_tokenizer_state {
-    TOKEN_TYPE_UNKNOWN,
     TEXT,
     SLASH,
     LINECOMMENT,
@@ -14,13 +13,10 @@ enum comment_tokenizer_state {
 };
 
 bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str) {
-    struct token token;
-    token.end = NULL;
-    token.len = 0;
-    token.type = TOKEN_TYPE_UNKNOWN;
-
     enum comment_tokenizer_state state = TEXT;
     const char* cur_str = str;
+    u32 cur_token_len = 0;
+    u32 cur_line = 0;
     for (int i = 0; str[i] != '\0'; ++i, ++cur_str) {
         char c = str[i];
 
@@ -43,34 +39,41 @@ bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str) 
             } break ;
             case LINECOMMENT: {
                 if (c == '\n') {
-                    token.type = COMMENT_TOKEN_TYPE_TOKEN;
-                    token.end = cur_str;
-                    tokenizer__add(tokenizer, token);
-                    token.len = 0;
+                    tokenizer__add(
+                        tokenizer,
+                        cur_str - cur_token_len,
+                        cur_token_len,
+                        COMMENT_TOKEN_TYPE_TOKEN,
+                        cur_line
+                    );
+                    cur_token_len = 0;
+                    ++cur_line;
                     state = TEXT;
                 } else {
-                    ++token.len;
+                    ++cur_token_len;
                 }
             } break ;
             case BLOCKCOMMENT: {
                 if (c == '*') {
                     state = BLOCKSTAR;
                 } else {
-                    ++token.len;
+                    ++cur_token_len;
                 }
             } break ;
             case BLOCKSTAR: {
                 if (c == '/') {
-                    token.type = COMMENT_TOKEN_TYPE_TOKEN;
-                    token.end = cur_str - 1;
-                    tokenizer__add(tokenizer, token);
-                    token.len = 0;
+                    tokenizer__add(
+                        tokenizer,
+                        cur_str - 1 - cur_token_len,
+                        cur_token_len,
+                        COMMENT_TOKEN_TYPE_TOKEN,
+                        cur_line
+                    );
+                    cur_token_len = 0;
                     state = TEXT;
                 } else {
-                    token.len++;
-                    token.len++;
-                    // token.start[token.len++] = '*';
-                    // token.start[token.len++] = c;
+                    ++cur_token_len;
+                    ++cur_token_len;
                     state = BLOCKCOMMENT;
                 }
             } break ;
