@@ -35,6 +35,5 @@ bool tokenize_state__is_finished(struct tokenize_state* self);
 
 char tokenize_state__step_forward(struct tokenize_state* self);
 char tokenize_state__step_forward_if(struct tokenize_state* self, bool condition);
-char tokenize_state__step_backward(struct tokenize_state* self);
 
 #endif // LOX_TOKENIZE_STATE_H
