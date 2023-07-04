@@ -5,6 +5,11 @@
 
 enum comment_tokenizer_windows_error_code {
     WINDOWS_COMMENT_TOKENIZER_ERROR_CODE_START,
+};
+
+
+enum comment_tokenizer_windows_error_code {
+    WINDOWS_COMMENT_TOKENIZER_ERROR_CODE_START,
 
 };
 

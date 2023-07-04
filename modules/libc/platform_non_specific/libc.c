@@ -244,7 +244,15 @@ bool libc__isspace(char c) {
 }
 
 bool libc__isdigit(char c) {
-    return isdigit(c);
+    return '0' <= c && c <= '9';
+}
+
+bool libc__isalpha(char c) {
+    return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
+}
+
+bool libc__isalnum(char c) {
+    return libc__isalpha(c) || libc__isdigit(c);
 }
 
 s64 libc__atoi(const char* str, u32 radix) {
@@ -293,4 +301,3 @@ void libc__qsort(
 ) {
     qsort(base, n_of_items, size_of_item, compare_fn);
 }
-

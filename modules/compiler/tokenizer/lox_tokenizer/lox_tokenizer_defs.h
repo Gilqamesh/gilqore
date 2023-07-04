@@ -5,7 +5,6 @@
 
 enum lox_tokenizer_error_code {
     LOX_TOKENIZER_ERROR_CODE_START,
-
 };
 
 #endif

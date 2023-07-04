@@ -4,8 +4,7 @@
 #include "lox_tokenize_state.h"
 
 bool tokenizer__tokenize_lox(struct tokenizer* self, const char* str) {
-    struct tokenize_state tokenize_state = {
-        .original_str = str,
+    struct lox_tokenize_state lox_tokenize_state = {
         .cur_str = str,
         .state = STATE_TEXT,
         .token_len = 0,
@@ -13,8 +12,17 @@ bool tokenizer__tokenize_lox(struct tokenizer* self, const char* str) {
         .tokenizer = self
     };
 
-    while (tokenize_state__is_finished(&tokenize_state) == false) {
-        tokenize_state__process_token(&tokenize_state);
+    while (lox_tokenize_state__is_finished(&lox_tokenize_state) == false) {
+        lox_tokenize_state__process_token(&lox_tokenize_state);
+    }
+
+    if (lox_tokenize_state.state != STATE_TEXT) {
+        tokenizer__error(
+            self,
+            lox_tokenize_state.line,
+            "Unterminated %s.",
+            lox_tokenize_state__state_name(lox_tokenize_state.state)
+        );
     }
 
     return true;

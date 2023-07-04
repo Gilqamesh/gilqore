@@ -43,7 +43,7 @@ bool interpreter__create(
 void interpreter__destroy(struct interpreter* self) {
     tokenizer__destroy(&self->tokenizer);
 }
-
+#include <intrin.h>
 static bool run_source(
     struct interpreter* self,
     const char* source,
@@ -51,7 +51,7 @@ static bool run_source(
 ) {
     (void) source_length;
 
-if (self->tokenizer.had_error == true) {
+    if (self->tokenizer.had_error == true) {
         // error_code__exit(HAD_ERROR_IS_TRUE_IN_RUN_SOURCE);
         error_code__exit(342554);
     }
@@ -59,7 +59,10 @@ if (self->tokenizer.had_error == true) {
     struct tokenizer* tokenizer = &self->tokenizer;
 
     tokenizer__clear(tokenizer);
+    u64 time_start = __rdtsc();
     self->tokenizer_tokenize_fn(tokenizer, source);
+    u64 time_end = __rdtsc();
+    libc__printf("Tokenizer Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
     for (u32 token_index = 0; token_index < tokenizer->tokens_fill; ++token_index) {
         libc__printf(
             "[%.*s], type: %s\n",

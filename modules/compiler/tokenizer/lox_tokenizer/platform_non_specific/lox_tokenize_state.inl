@@ -1,5 +1,5 @@
-INLINE static void tokenize_state__dispatch_text(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
+INLINE static void lox_tokenize_state__dispatch_text(struct lox_tokenize_state* self) {
+    char c = lox_tokenize_state__advance(self);
 
     switch (c) {
         case '/': {
@@ -9,124 +9,216 @@ INLINE static void tokenize_state__dispatch_text(struct tokenize_state* self) {
             self->state = STATE_INQUOTE;
         } break ;
         case '(': {
-            tokenize_state__add_token(self, LOX_TOKEN_LEFT_PAREN);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_LEFT_PAREN);
         } break ;
         case ')': {
-            tokenize_state__add_token(self, LOX_TOKEN_RIGHT_PAREN);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_RIGHT_PAREN);
         } break ;
         case '{': {
-            tokenize_state__add_token(self, LOX_TOKEN_LEFT_BRACE);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_LEFT_BRACE);
         } break ;
         case '}': {
-            tokenize_state__add_token(self, LOX_TOKEN_RIGHT_BRACE);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_RIGHT_BRACE);
         } break ;
         case ',': {
-            tokenize_state__add_token(self, LOX_TOKEN_COMMA);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_COMMA);
         } break ;
         case '.': {
-            tokenize_state__add_token(self, LOX_TOKEN_DOT);
+            self->state = STATE_DOT;
         } break ;
         case '-': {
-            tokenize_state__add_token(self, LOX_TOKEN_MINUS);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_MINUS);
         } break ;
         case '+': {
-            tokenize_state__add_token(self, LOX_TOKEN_PLUS);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_PLUS);
         } break ;
         case ';': {
-            tokenize_state__add_token(self, LOX_TOKEN_COMMA);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_COMMA);
         } break ;
         case '*': {
-            tokenize_state__add_token(self, LOX_TOKEN_STAR);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_STAR);
+        } break ;
+        case '!': {
+            self->state = STATE_EXCLAM;
+        } break ;
+        case '=': {
+            self->state = STATE_EQUAL;
+        } break ;
+        case '<': {
+            self->state = STATE_LESS_THAN;
+        } break ;
+        case '>': {
+            self->state = STATE_GREATER_THAN;
+        } break ;
+        case ' ':
+        case '\t':
+        case '\r': {
+            self->token_len = 0;
         } break ;
         case '\n': {
             self->token_len = 0;
             ++self->line;
         } break ;
-        case '!': {
-            self->state = STATE_EXCLAM;
-        } break ;
         default: {
-            tokenizer__error(self->tokenizer, self->line, "Unexpected character: '%c'.", c);
+            if (libc__isdigit(c)) {
+                self->state = STATE_NUMBER;
+            } else if (libc__isalpha(c) || c == '_') {
+                self->state = STATE_IDENTIFIER;
+            } else {
+                self->token_len = 0;
+                tokenizer__error(self->tokenizer, self->line, "Unexpected character: '%c'.", c);
+            }
         }
     }
 }
 
-INLINE static void tokenize_state__dispatch_slash(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
-
-    if (c == '/') {
+INLINE static void lox_tokenize_state__dispatch_slash(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, '/')) {
+        self->token_len = 0;
         self->state = STATE_LINECOMMENT;
-    } else if (c == '*') {
+    } else if (lox_tokenize_state__advance_if(self, '*')) {
+        self->token_len = 0;
         self->state = STATE_BLOCKCOMMENT;
     } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_SLASH);
         self->state = STATE_TEXT;
     }
 }
 
-INLINE static void tokenize_state__dispatch_linecomment(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
-
-    if (c == '\n') {
-        tokenize_state__add_token(self, LOX_TOKEN_COMMENT);
+INLINE static void lox_tokenize_state__dispatch_linecomment(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__peek(self) == '\n') {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_COMMENT);
         ++self->line;
         self->state = STATE_TEXT;
+        lox_tokenize_state__advance(self);
+        self->token_len = 0;
     } else {
-        ++self->token_len;
+        lox_tokenize_state__advance(self);
     }
 }
 
-INLINE static void tokenize_state__dispatch_blockcomment(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
+INLINE static void lox_tokenize_state__dispatch_blockcomment(struct lox_tokenize_state* self) {
+    char c = lox_tokenize_state__advance(self);
 
     if (c == '*') {
         self->state = STATE_BLOCKSTAR;
-    } else {
-        ++self->token_len;
     }
 }
 
-INLINE static void tokenize_state__dispatch_blockstart(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
+INLINE static void lox_tokenize_state__dispatch_blockstar(struct lox_tokenize_state* self) {
 
-    if (c == '/') {
-        tokenize_state__add_token(self, LOX_TOKEN_COMMENT);
+    if (lox_tokenize_state__peek(self) == '/') {
+        // note: remove * char
+        lox_tokenize_state__reverse(self);
+        lox_tokenize_state__add_token(self, LOX_TOKEN_COMMENT);
+        lox_tokenize_state__advance(self);
+
+        lox_tokenize_state__advance(self);
+        self->token_len = 0;
         self->state = STATE_TEXT;
     } else {
-        ++self->token_len;
-        ++self->token_len;
         self->state = STATE_BLOCKCOMMENT;
     }
 }
 
-INLINE static void tokenize_state__dispatch_inquote(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
+INLINE static void lox_tokenize_state__dispatch_inquote(struct lox_tokenize_state* self) {
+    char c = lox_tokenize_state__advance(self);
 
     if (c == '"') {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_STRING);
         self->state = STATE_TEXT;
     } else if (c == '\\') {
         self->state = STATE_ESCAPE;
+    } else if (c == '\n') {
+        // note: allow multiline comments
+        ++self->line;
     }
 }
 
-INLINE static void tokenize_state__dispatch_escape(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
+INLINE static void lox_tokenize_state__dispatch_escape(struct lox_tokenize_state* self) {
+    char c = lox_tokenize_state__advance(self);
+    (void) c;
 
-    if (c == '"') {
-        self->state = STATE_INQUOTE;
-    } else {
-        self->state = STATE_INQUOTE;
-    }
+    self->state = STATE_INQUOTE;
 }
 
-INLINE static void tokenize_state__dispatch_exclam(struct tokenize_state* self) {
-    char c = tokenize_state__step_forward(self);
-
-    if (c == '=') {
-        tokenize_state__step_backward(self);
-        tokenize_state__add_token(self, LOX_TOKEN_EXCLAM_EQUAL);
+INLINE static void lox_tokenize_state__dispatch_exclam(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, '=')) {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_EXCLAM_EQUAL);
     } else {
-        tokenize_state__add_token(self, LOX_TOKEN_EXCLAM);
+        lox_tokenize_state__add_token(self, LOX_TOKEN_EXCLAM);
     }
 
     self->state = STATE_TEXT;
+}
+
+INLINE static void lox_tokenize_state__dispatch_equal(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, '=')) {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_EQUAL_EQUAL);
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_EQUAL);
+    }
+
+    self->state = STATE_TEXT;
+}
+
+INLINE static void lox_tokenize_state__dispatch_less_than(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, '=')) {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_LESS_EQUAL);
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_LESS);
+    }
+
+    self->state = STATE_TEXT;
+}
+
+INLINE static void lox_tokenize_state__dispatch_greater_than(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, '=')) {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_GREATER_EQUAL);
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_GREATER);
+    }
+
+    self->state = STATE_TEXT;
+}
+
+INLINE static void lox_tokenize_state__dispatch_dot(struct lox_tokenize_state* self) {
+    if (libc__isdigit(lox_tokenize_state__peek(self))) {
+        lox_tokenize_state__advance(self);
+        self->state = STATE_NUMBER;
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_DOT);
+        self->state = STATE_TEXT;
+    }
+}
+
+INLINE static void lox_tokenize_state__dispatch_number(struct lox_tokenize_state* self) {
+    if (libc__isdigit(lox_tokenize_state__peek(self))) {
+        lox_tokenize_state__advance(self);
+    } else if (lox_tokenize_state__advance_if(self, '.')) {
+        self->state = STATE_NUMBER_DECIMAL;
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_NUMBER);
+        self->state = STATE_TEXT;
+    }
+}
+
+INLINE static void lox_tokenize_state__dispatch_number_decimal(struct lox_tokenize_state* self) {
+    if (libc__isdigit(lox_tokenize_state__peek(self))) {
+        lox_tokenize_state__advance(self);
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_NUMBER);
+        self->state = STATE_TEXT;
+    }
+}
+
+INLINE static void lox_tokenize_state__dispatch_identifier(struct lox_tokenize_state* self) {
+    char c = lox_tokenize_state__peek(self);
+
+    if (libc__isalnum(c) || c == '_') {
+        lox_tokenize_state__advance(self);
+    } else {
+        lox_tokenize_state__add_token(self, lox_tokenize_state__get_identifier_type(self));
+        self->state = STATE_TEXT;
+    }
 }

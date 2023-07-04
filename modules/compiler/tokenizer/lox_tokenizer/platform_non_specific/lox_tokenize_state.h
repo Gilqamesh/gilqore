@@ -14,12 +14,18 @@ enum lox_tokenizer_state {
     STATE_BLOCKSTAR,
     STATE_INQUOTE,
     STATE_ESCAPE,
+    STATE_EQUAL,
+    STATE_LESS_THAN,
+    STATE_GREATER_THAN,
+    STATE_DOT,
+    STATE_NUMBER,
+    STATE_NUMBER_DECIMAL,
+    STATE_IDENTIFIER,
 
     STATE_EXCLAM
 };
 
-struct tokenize_state {
-    const char* original_str;
+struct lox_tokenize_state {
     const char* cur_str;
     enum lox_tokenizer_state state;
     u32 token_len;
@@ -28,12 +34,17 @@ struct tokenize_state {
     struct tokenizer* tokenizer;
 };
 
-void tokenize_state__add_token(struct tokenize_state* self, enum lox_token_type token_type);
+void lox_tokenize_state__add_token(struct lox_tokenize_state* self, enum lox_token_type token_type);
+enum lox_token_type lox_tokenize_state__get_identifier_type(struct lox_tokenize_state* self);
 
-void tokenize_state__process_token(struct tokenize_state* self);
-bool tokenize_state__is_finished(struct tokenize_state* self);
+void lox_tokenize_state__process_token(struct lox_tokenize_state* self);
+bool lox_tokenize_state__is_finished(struct lox_tokenize_state* self);
 
-char tokenize_state__step_forward(struct tokenize_state* self);
-char tokenize_state__step_forward_if(struct tokenize_state* self, bool condition);
+char lox_tokenize_state__peek(struct lox_tokenize_state* self);
+char lox_tokenize_state__advance(struct lox_tokenize_state* self);
+bool lox_tokenize_state__advance_if(struct lox_tokenize_state* self, char c);
+char lox_tokenize_state__reverse(struct lox_tokenize_state* self);
+
+const char* lox_tokenize_state__state_name(enum lox_tokenizer_state state);
 
 #endif // LOX_TOKENIZE_STATE_H

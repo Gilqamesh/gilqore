@@ -5,6 +5,11 @@
 
 enum lox_tokenizer_windows_error_code {
     WINDOWS_LOX_TOKENIZER_ERROR_CODE_START,
+};
+
+
+enum lox_tokenizer_windows_error_code {
+    WINDOWS_LOX_TOKENIZER_ERROR_CODE_START,
 
 };
 
