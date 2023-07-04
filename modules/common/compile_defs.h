@@ -64,4 +64,8 @@
 #  define TEST_FRAMEWORK_SHOULD_PRINT
 # endif
 
+# ifndef INLINE
+#  define INLINE inline
+# endif
+
 #endif

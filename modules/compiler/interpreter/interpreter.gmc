@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: libc file console memory tokenizer
+module_dependencies: libc file console memory tokenizer lox_tokenizer c_tokenizer comment_tokenizer
 test_dependencies:
 application_type: CONSOLE

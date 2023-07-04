@@ -4,6 +4,9 @@
 #include "io/file/file.h"
 #include "io/console/console.h"
 #include "compiler/tokenizer/tokenizer.h"
+#include "compiler/tokenizer/c_tokenizer/c_tokenizer.h"
+#include "compiler/tokenizer/lox_tokenizer/lox_tokenizer.h"
+#include "compiler/tokenizer/comment_tokenizer/comment_tokenizer.h"
 #include "memory/memory.h"
 
 bool interpreter__create(
@@ -48,7 +51,7 @@ static bool run_source(
 ) {
     (void) source_length;
 
-if (tokenizer__had_error(&self->tokenizer) == true) {
+if (self->tokenizer.had_error == true) {
         // error_code__exit(HAD_ERROR_IS_TRUE_IN_RUN_SOURCE);
         error_code__exit(342554);
     }
@@ -106,7 +109,7 @@ void interpreter__run_prompt(struct interpreter* self) {
             prompt_is_running = false;
         } else {
             prompt_is_running |= run_source(self, line_buffer, read_line_length);
-            tokenizer__clear_error(&self->tokenizer);
+            self->tokenizer.had_error = false;
         }
     }
 

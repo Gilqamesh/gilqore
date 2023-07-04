@@ -1,25 +1,20 @@
 #include "compiler/tokenizer/tokenizer.h"
+#include "compiler/tokenizer/comment_tokenizer/comment_tokenizer.h"
 
-#include "tokenizer_platform_non_specific.h"
+// #include "tokenizer_platform_non_specific.h"
 
-enum c_tokenizer_state {
+enum comment_tokenizer_state {
     TEXT,
     SLASH,
     LINECOMMENT,
     BLOCKCOMMENT,
     BLOCKSTAR,
     INQUOTE,
-    ESCAPE,
-
-    WHITESPACE
+    ESCAPE
 };
 
-static inline bool is_whitespace(char c) {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
-}
-
-bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* str) {
-    enum c_tokenizer_state state = TEXT;
+bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str) {
+    enum comment_tokenizer_state state = TEXT;
     const char* cur_str = str;
     u32 cur_token_len = 0;
     u32 cur_line = 0;
@@ -103,4 +98,11 @@ bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* 
     }
 
     return true;
+}
+
+const char* token__type_name_comment(struct token* token) {
+    switch (token->type) {
+        case COMMENT_TOKEN_TYPE_TOKEN: return "comment";
+        default: return "unknown";
+    }
 }
