@@ -33,7 +33,7 @@ INLINE static void lox_tokenize_state__dispatch_text(struct lox_tokenize_state* 
             lox_tokenize_state__add_token(self, LOX_TOKEN_PLUS);
         } break ;
         case ';': {
-            lox_tokenize_state__add_token(self, LOX_TOKEN_COMMA);
+            lox_tokenize_state__add_token(self, LOX_TOKEN_SEMICOLON);
         } break ;
         case '*': {
             lox_tokenize_state__add_token(self, LOX_TOKEN_STAR);
@@ -49,6 +49,12 @@ INLINE static void lox_tokenize_state__dispatch_text(struct lox_tokenize_state* 
         } break ;
         case '>': {
             self->state = STATE_GREATER_THAN;
+        } break ;
+        case '?': {
+            lox_tokenize_state__add_token(self, LOX_TOKEN_QUESTION_MARK);
+        } break ;
+        case ':': {
+            self->state = STATE_COLON;
         } break ;
         case ' ':
         case '\t':
@@ -86,7 +92,8 @@ INLINE static void lox_tokenize_state__dispatch_slash(struct lox_tokenize_state*
 }
 
 INLINE static void lox_tokenize_state__dispatch_linecomment(struct lox_tokenize_state* self) {
-    if (lox_tokenize_state__peek(self) == '\n') {
+    char c = lox_tokenize_state__peek(self);
+    if (c == '\n') {
         lox_tokenize_state__add_token(self, LOX_TOKEN_COMMENT);
         ++self->line;
         self->state = STATE_TEXT;
@@ -221,4 +228,13 @@ INLINE static void lox_tokenize_state__dispatch_identifier(struct lox_tokenize_s
         lox_tokenize_state__add_token(self, lox_tokenize_state__get_identifier_type(self));
         self->state = STATE_TEXT;
     }
+}
+
+INLINE static void lox_tokenize_state__dispatch_colon(struct lox_tokenize_state* self) {
+    if (lox_tokenize_state__advance_if(self, ':')) {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_COLON_COLON);
+    } else {
+        lox_tokenize_state__add_token(self, LOX_TOKEN_COLON);
+    }
+    self->state = STATE_TEXT;
 }

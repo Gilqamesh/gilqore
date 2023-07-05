@@ -1,10 +1,13 @@
 #ifndef COMPILE_DEFS_H
 # define COMPILE_DEFS_H
 
+// compiler used
 # ifdef __TINYC__
 #  define COMPILER_TCC
 # elif defined(_MSC_VER)
 #  define COMPILER_MSVC
+# elif defined(__GNUC__)
+#  define COMPILER_GCC
 # endif
 
 # if defined (_WIN32) || defined (__CYGWIN__)
@@ -52,7 +55,7 @@
 #  error "platform not supported, need to defined either WINDOWS, LINUX or MAC"
 # endif
 
-# if defined(__GNUC__)
+# if defined(COMPILER_GCC)
 #  define UNREACHABLE_CODE __builtin_unreachable(); ASSERT(false && "unreachable code")
 # endif
 
@@ -66,6 +69,15 @@
 
 # ifndef INLINE
 #  define INLINE inline
+# endif
+
+# if defined(COMPILER_GCC)
+#  define packed_struct(x) struct __attribute__((packed, aligned(x)))
+# elif defined(COMPILER_MSVC)
+#  error "test if this works"
+#  define packed_struct(x) struct __pragma(pack(push, x))
+# else
+#  define packed_struct(x) struct
 # endif
 
 #endif

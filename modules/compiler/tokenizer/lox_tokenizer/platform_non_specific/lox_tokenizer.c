@@ -3,7 +3,7 @@
 
 #include "lox_tokenize_state.h"
 
-bool tokenizer__tokenize_lox(struct tokenizer* self, const char* str) {
+bool lox_tokenizer__tokenize(struct tokenizer* self, const char* str) {
     struct lox_tokenize_state lox_tokenize_state = {
         .cur_str = str,
         .state = STATE_TEXT,
@@ -15,6 +15,8 @@ bool tokenizer__tokenize_lox(struct tokenizer* self, const char* str) {
     while (lox_tokenize_state__is_finished(&lox_tokenize_state) == false) {
         lox_tokenize_state__process_token(&lox_tokenize_state);
     }
+
+    lox_tokenize_state__add_token(&lox_tokenize_state, LOX_TOKEN_EOF);
 
     if (lox_tokenize_state.state != STATE_TEXT) {
         tokenizer__error(
@@ -28,7 +30,7 @@ bool tokenizer__tokenize_lox(struct tokenizer* self, const char* str) {
     return true;
 }
 
-const char* token__type_name_lox(struct token* token) {
+const char* lox_token__type_name(struct tokenizer_token* token) {
     switch (token->type) {
         case LOX_TOKEN_COMMENT: return "comment";
         case LOX_TOKEN_LEFT_PAREN: return "left paren";
@@ -42,6 +44,9 @@ const char* token__type_name_lox(struct token* token) {
         case LOX_TOKEN_SEMICOLON: return "semicolon";
         case LOX_TOKEN_SLASH: return "slash";
         case LOX_TOKEN_STAR: return "star";
+        case LOX_TOKEN_QUESTION_MARK: return "?";
+        case LOX_TOKEN_COLON: return ":";
+        case LOX_TOKEN_COLON_COLON: return "::";
         case LOX_TOKEN_EXCLAM: return "exclam";
         case LOX_TOKEN_EXCLAM_EQUAL: return "exclam equal";
         case LOX_TOKEN_EQUAL: return "equal";

@@ -1,8 +1,6 @@
 #ifndef LOX_TOKENIZE_STATE_H
 # define LOX_TOKENIZE_STATE_H
 
-# include "lox_tokenizer_platform_non_specific_defs.h"
-
 # include "compiler/tokenizer/lox_tokenizer/lox_tokenizer.h"
 
 enum lox_tokenizer_state {
@@ -21,6 +19,7 @@ enum lox_tokenizer_state {
     STATE_NUMBER,
     STATE_NUMBER_DECIMAL,
     STATE_IDENTIFIER,
+    STATE_COLON,
 
     STATE_EXCLAM
 };

@@ -4,10 +4,10 @@
 # include "c_tokenizer_defs.h"
 
 struct tokenizer;
-struct token;
+struct tokenizer_token;
 
 PUBLIC_API bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* source);
-PUBLIC_API const char* token__type_name_c(struct token* token);
+PUBLIC_API const char* token__type_name_c(struct tokenizer_token* token);
 
 // C-file tokenizer
 enum c_token_type {

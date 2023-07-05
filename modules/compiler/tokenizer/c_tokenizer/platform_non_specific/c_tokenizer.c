@@ -106,7 +106,7 @@ bool tokenizer__tokenize_c_source_code(struct tokenizer* tokenizer, const char* 
     return true;
 }
 
-const char* token__type_name_c(struct token* token) {
+const char* token__type_name_c(struct tokenizer_token* token) {
     (void) token;
     return "";
 }

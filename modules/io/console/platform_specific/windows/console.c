@@ -169,9 +169,9 @@ u32 console__read_line(console_t self, char* buffer, u32 buffer_size) {
             .handle = self->in_handle
         };
         bytes_read = file__read(&input_file, buffer, buffer_size);
-        if (buffer[bytes_read - 2] == '\r') {
+        if (bytes_read > 1 && buffer[bytes_read - 2] == '\r') {
             bytes_read -= 2;
-        } else {
+        } else if (bytes_read == 1) {
             --bytes_read;
         }
         buffer[bytes_read] = '\0';

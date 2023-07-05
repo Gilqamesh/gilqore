@@ -100,7 +100,7 @@ bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str) 
     return true;
 }
 
-const char* token__type_name_comment(struct token* token) {
+const char* token__type_name_comment(struct tokenizer_token* token) {
     switch (token->type) {
         case COMMENT_TOKEN_TYPE_TOKEN: return "comment";
         default: return "unknown";

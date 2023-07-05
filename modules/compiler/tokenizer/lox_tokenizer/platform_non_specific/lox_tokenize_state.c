@@ -138,6 +138,9 @@ void lox_tokenize_state__process_token(struct lox_tokenize_state* self) {
         case STATE_IDENTIFIER: {
             lox_tokenize_state__dispatch_identifier(self);
         } break ;
+        case STATE_COLON: {
+            lox_tokenize_state__dispatch_colon(self);
+        } break ;
         default: {
         }
     }

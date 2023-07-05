@@ -4,6 +4,7 @@
 # include "interpreter_defs.h"
 
 # include "compiler/tokenizer/tokenizer.h"
+# include "compiler/parser/parser.h"
 
 struct memory_slice;
 
@@ -17,6 +18,10 @@ struct interpreter {
     struct tokenizer tokenizer;
     tokenizer__tokenize_fn tokenizer_tokenize_fn;
     token__type_name_fn token_type_name_fn;
+
+    struct parser parser;
+    parser__parser_fn parser_fn;
+    parser__convert_to_string_fn parser_convert_to_string_fn;
 };
 
 PUBLIC_API bool interpreter__create(

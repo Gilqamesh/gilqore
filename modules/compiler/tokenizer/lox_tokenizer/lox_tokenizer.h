@@ -4,10 +4,10 @@
 # include "lox_tokenizer_defs.h"
 
 struct tokenizer;
-struct token;
+struct tokenizer_token;
 
-PUBLIC_API bool tokenizer__tokenize_lox(struct tokenizer* tokenizer, const char* source);
-PUBLIC_API const char* token__type_name_lox(struct token* token);
+PUBLIC_API bool lox_tokenizer__tokenize(struct tokenizer* tokenizer, const char* source);
+PUBLIC_API const char* lox_token__type_name(struct tokenizer_token* token);
 
 // lox tokenizer
 enum lox_token_type {
@@ -17,6 +17,7 @@ enum lox_token_type {
     LOX_TOKEN_LEFT_PAREN, LOX_TOKEN_RIGHT_PAREN, LOX_TOKEN_LEFT_BRACE, LOX_TOKEN_RIGHT_BRACE,
     LOX_TOKEN_COMMA, LOX_TOKEN_DOT, LOX_TOKEN_MINUS, LOX_TOKEN_PLUS,
     LOX_TOKEN_SEMICOLON, LOX_TOKEN_SLASH, LOX_TOKEN_STAR,
+    LOX_TOKEN_QUESTION_MARK, LOX_TOKEN_COLON, LOX_TOKEN_COLON_COLON,
 
     // One or two character tokens.
     LOX_TOKEN_EXCLAM, LOX_TOKEN_EXCLAM_EQUAL,
