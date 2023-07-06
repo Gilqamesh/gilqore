@@ -12,9 +12,11 @@ struct interpreter_context {
 
 static bool interpreter_context__create(struct interpreter_context* context) {
     const u32 interpreter_memory_size = MEGABYTES(16);
-    context->interpreter_memory.size = interpreter_memory_size;
-    context->interpreter_memory.memory = libc__malloc(interpreter_memory_size);
-    if (context->interpreter_memory.memory == NULL) {
+    context->interpreter_memory = memory_slice__create(
+        libc__malloc(interpreter_memory_size),
+        interpreter_memory_size
+    );
+    if (memory_slice__memory(&context->interpreter_memory) == NULL) {
         return false;
     }
     TEST_FRAMEWORK_ASSERT(

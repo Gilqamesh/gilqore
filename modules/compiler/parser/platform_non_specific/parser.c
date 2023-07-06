@@ -5,7 +5,9 @@
 #include "libc/libc.h"
 
 bool parser__create(struct parser* parser, struct memory_slice internal_buffer) {
-    parser->parser_expression_table = internal_buffer;
+    parser->internal_buffer = internal_buffer;
+    parser->had_error = false;
+    parser->had_runtime_error = false;
 
     return true;
 }
@@ -36,4 +38,17 @@ void parser__verror(
     self->had_error = true;
     u32 token_line = token ? token->line : 0;
     tokenizer__verror(tokenizer, token_line, message, ap);
+}
+
+void parser__runtime_error(struct parser* self, const char* format, ...) {
+    self->had_runtime_error = true;
+    va_list ap;
+
+    libc__printf("Runtime error: ");
+
+    va_start(ap, format);
+    libc__vprintf(format, ap);
+    va_end(ap);
+
+    libc__printf("\n");
 }

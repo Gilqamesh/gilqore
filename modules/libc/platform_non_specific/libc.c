@@ -293,6 +293,61 @@ void libc__itoa(s64 n, char* buffer, u32 buffer_size)
 	}
 }
 
+r64 libc__strtod(const char* str) {
+    return libc__strntod(str, U32_MAX);
+}
+
+r64 libc__strntod(const char* str, u32 str_len) {
+    r64 result_integral_part = 0.0;
+    r64 result_decimal_part  = 0.0;
+    bool is_negative = *str == '-';
+
+    u32 index = is_negative ? 1 : 0;
+    char c = str[index];
+    while (
+        index < str_len &&
+        c != '\0' &&
+        c != '.' &&
+        libc__isdigit(c)
+    ) {
+        r64 cur_digit = c - '0';
+        if (result_integral_part - cur_digit / 10.0 > R64_MAX / 10.0) {
+            break ;
+        }
+        result_integral_part *= 10.0;
+        result_integral_part += cur_digit;
+
+        c = str[++index];
+    }
+
+    if (c == '.') {
+        c = str[++index];
+        r64 cur_divisor = 10.0;
+        while (
+            index < str_len &&
+            c != '\0' &&
+            c != '.' &&
+            libc__isdigit(c)
+        ) {
+            r64 cur_digit = c - '0';
+            if (cur_digit < R64_MIN * cur_divisor) {
+                break ;
+            }
+            result_decimal_part += cur_digit / cur_divisor;
+
+            if (cur_divisor > R64_MAX / 10) {
+                break ;
+            }
+            cur_divisor *= 10;
+            c = str[++index];
+        }
+    }
+
+    r64 result = result_integral_part + result_decimal_part;
+
+    return is_negative ? -result : result;
+}
+
 void libc__qsort(
     void* base,
     u32 n_of_items,

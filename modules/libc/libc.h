@@ -58,6 +58,9 @@ PUBLIC_API bool libc__isalnum(char c);
 PUBLIC_API s64 libc__atoi(const char* str, u32 radix);
 PUBLIC_API void libc__itoa(s64 n, char* buffer, u32 buffer_size);
 
+PUBLIC_API r64 libc__strtod(const char* str);
+PUBLIC_API r64 libc__strntod(const char* str, u32 str_len);
+
 PUBLIC_API void libc__qsort(
     void* base,
     u32 n_of_items,

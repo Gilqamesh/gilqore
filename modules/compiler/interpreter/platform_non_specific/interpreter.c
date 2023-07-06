@@ -18,20 +18,31 @@ bool interpreter__create(
 ) {
     switch (type) {
         case INTERPRETER_TYPE_COMMENT: {
-            self->tokenizer_tokenize_fn = &tokenizer__tokenize_comments;
-            self->token_type_name_fn = &token__type_name_comment;
-            self->parser_fn = NULL;
+            self->tokenizer_fn = &tokenizer__tokenize_comments;
+            self->convert_token_to_string_fn = &token__type_name_comment;
+
+            self->token_parser_fn = NULL;
+            self->convert_expr_to_string_fn = NULL;
+
+            self->interpret_expr_fn = NULL;
         } break ;
         case INTERPRETER_TYPE_C: {
-            self->tokenizer_tokenize_fn = &tokenizer__tokenize_c_source_code;
-            self->token_type_name_fn = &token__type_name_c;
-            self->parser_fn = NULL;
+            self->tokenizer_fn = &tokenizer__tokenize_c_source_code;
+            self->convert_token_to_string_fn = &token__type_name_c;
+
+            self->token_parser_fn = NULL;
+            self->convert_expr_to_string_fn = NULL;
+
+            self->interpret_expr_fn = NULL;
         } break ;
         case INTERPRETER_TYPE_LOX: {
-            self->tokenizer_tokenize_fn = &lox_tokenizer__tokenize;
-            self->token_type_name_fn = &lox_token__type_name;
-            self->parser_fn = &lox_parser__parse_tokens;
-            self->parser_convert_to_string_fn = &lox_parser__convert_to_string;
+            self->tokenizer_fn = &lox_tokenizer__tokenize;
+            self->convert_token_to_string_fn = &lox_token__type_name;
+
+            self->token_parser_fn = &lox_parser__parse_tokens;
+            self->convert_expr_to_string_fn = &lox_parser__convert_to_string;
+
+            self->interpret_expr_fn = &lox_parser__interpret_expr_fn;
         } break ;
         default: {
             // error_code__exit(UNKNOWN_INTERPRETER_TYPE);
@@ -78,6 +89,19 @@ void interpreter__destroy(struct interpreter* self) {
     tokenizer__destroy(&self->tokenizer);
 }
 
+void interpreter__print_tokens(struct interpreter* self) {
+    struct tokenizer* tokenizer = &self->tokenizer;
+    for (u32 token_index = 0; token_index < tokenizer->tokens_fill; ++token_index) {
+        struct tokenizer_token* token = &tokenizer->tokens[token_index];
+        libc__printf(
+            "[%.*s], n: %u, type: %s\n",
+            token->lexeme_len, token->lexeme,
+            tokenizer__occurance_counter(&self->tokenizer, token),
+            self->convert_token_to_string_fn(token)
+        );
+    }
+}
+
 #include <intrin.h>
 static bool run_source(
     struct interpreter* self,
@@ -86,7 +110,11 @@ static bool run_source(
 ) {
     (void) source_length;
 
-    if (self->tokenizer.had_error == true || self->parser.had_error == true) {
+    if (
+        self->tokenizer.had_error == true ||
+        self->parser.had_error == true ||
+        self->parser.had_runtime_error == true
+    ) {
         // error_code__exit(HAD_ERROR_IS_TRUE_IN_RUN_SOURCE);
         error_code__exit(342554);
     }
@@ -95,21 +123,13 @@ static bool run_source(
 
     tokenizer__clear(tokenizer);
     u64 time_start = __rdtsc();
-    self->tokenizer_tokenize_fn(tokenizer, source);
+    self->tokenizer_fn(tokenizer, source);
     u64 time_end = __rdtsc();
     libc__printf("Tokenizer Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
-    for (u32 token_index = 0; token_index < tokenizer->tokens_fill; ++token_index) {
-        struct tokenizer_token* token = &tokenizer->tokens[token_index];
-        libc__printf(
-            "[%.*s], n: %u, type: %s\n",
-            token->lexeme_len, token->lexeme,
-            tokenizer__occurance_counter(&self->tokenizer, token),
-            self->token_type_name_fn(token)
-        );
-    }
+    // interpreter__print_tokens(self);
 
     time_start = __rdtsc();
-    struct parser_expression* parsed_expression = self->parser_fn(&self->parser, &self->tokenizer);
+    struct parser_expression* parsed_expression = self->token_parser_fn(&self->parser, &self->tokenizer);
     time_end = __rdtsc();
     libc__printf("Parser Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
 
@@ -119,12 +139,20 @@ static bool run_source(
     } else {
         u32 parsed_expression_memory_size = KILOBYTES(1);
         void* parsed_expression_memory = libc__malloc(parsed_expression_memory_size);
-        char* parsed_expression_str = lox_parser__convert_to_string(
+        lox_parser__convert_to_string(
             parsed_expression,
             memory_slice__create(parsed_expression_memory, parsed_expression_memory_size)
         );
-        libc__printf("Parsed expression: %s\n", parsed_expression_str);
+        libc__printf("Parsed expression: %s\n", (char*) parsed_expression_memory);
         libc__free(parsed_expression_memory);
+
+        lox_parser__print_expressions_table_stats(&self->parser);
+
+        if (self->parser.had_runtime_error == false) {
+            self->interpret_expr_fn(&self->parser, parsed_expression);
+            
+            lox_parser__print_literal_table_stats(&self->parser);
+        }
     }
 
     return true;
@@ -170,6 +198,7 @@ void interpreter__run_prompt(struct interpreter* self) {
             prompt_is_running |= run_source(self, line_buffer, read_line_length);
             self->tokenizer.had_error = false;
             self->parser.had_error = false;
+            self->parser.had_runtime_error = false;
         }
     }
 

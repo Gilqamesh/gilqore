@@ -14,7 +14,6 @@ PUBLIC_API r64 r64__integral_part(r64 r);
 PUBLIC_API r32 r32__fractional_part(r32 r);
 PUBLIC_API r64 r64__fractional_part(r64 r);
 
-
 // @returns number of digits in n + 1 if negative
 PUBLIC_API u32 s64__len(s64 n);
 

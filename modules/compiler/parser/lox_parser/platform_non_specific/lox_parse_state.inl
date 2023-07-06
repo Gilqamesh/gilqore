@@ -13,22 +13,22 @@ struct parser_expression* lox_parse_state__expression(struct lox_parse_state* se
 }
 
 struct parser_expression* lox_parse_state__comma(struct lox_parse_state* self) {
-    struct parser_expression* left_expr = lox_parse_state__ternary(self);
-    if (left_expr == NULL) {
+    struct parser_expression* ternary_expr = lox_parse_state__ternary(self);
+    if (ternary_expr == NULL) {
         return NULL;
     }
 
     while (lox_parse_state__peek(self) == LOX_TOKEN_COMMA) {
         struct tokenizer_token* op = lox_parse_state__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_expr = lox_parse_state__expression(self);
-        if (right_expr == NULL) {
+        struct parser_expression* expression = lox_parse_state__expression(self);
+        if (expression == NULL) {
             return NULL;
         }
-        left_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_expr, op, right_expr);
+        ternary_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, ternary_expr, op, expression);
     }
 
-    return left_expr;
+    return ternary_expr;
 }
 
 struct parser_expression* lox_parse_state__ternary(struct lox_parse_state* self) {
@@ -204,6 +204,70 @@ struct parser_expression* lox_parse_state__primary(struct lox_parse_state* self)
             } else {
                 return (struct parser_expression*) lox_parser__get_expr__grouping(self->parser, expr);
             }
+        } break ;
+        case LOX_TOKEN_COMMA: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect ternary before comma ',' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_QUESTION_MARK: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect equality before ternary '?' binary operator.");
+            // todo: discard right-hand operand with the same precedence
+            // discard expression
+            // discard : operator if exists
+            // discard expression
+            return NULL;
+        } break ;
+        case LOX_TOKEN_COLON: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect 'equality ? expression' before ternary semicolon ':' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_EXCLAM_EQUAL: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect comparison expression before '!=' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_EQUAL_EQUAL: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect comparison expression before '==' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_GREATER: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '>' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_GREATER_EQUAL: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '>=' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_LESS: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '<' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_LESS_EQUAL: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '<=' binary operator.");
+            return NULL;
+        } break ;
+        case LOX_TOKEN_PLUS: {
+            struct tokenizer_token* op = lox_parse_state__advance(self);
+            ASSERT(op != NULL);
+            parser__error(self->parser, self->tokenizer, op, "Expect factor expression before '+' binary operator.");
+            return NULL;
         } break ;
         default: {
             return NULL;

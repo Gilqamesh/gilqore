@@ -14,14 +14,20 @@ enum interpreter_type {
     INTERPRETER_TYPE_LOX
 };
 
+// @brief interprets an expression
+// @note implement this function for every parser (todo: for every interpreter)
+typedef void (*interpreter__interpret_expr_fn)(struct parser* self, struct parser_expression* expr);
+
 struct interpreter {
     struct tokenizer tokenizer;
-    tokenizer__tokenize_fn tokenizer_tokenize_fn;
-    token__type_name_fn token_type_name_fn;
+    tokenizer__tokenizer_fn tokenizer_fn;
+    token__convert_token_to_string_fn convert_token_to_string_fn;
 
     struct parser parser;
-    parser__parser_fn parser_fn;
-    parser__convert_to_string_fn parser_convert_to_string_fn;
+    parser__token_parser_fn token_parser_fn;
+    parser__convert_expr_to_string_fn convert_expr_to_string_fn;
+
+    interpreter__interpret_expr_fn interpret_expr_fn;
 };
 
 PUBLIC_API bool interpreter__create(
@@ -33,5 +39,7 @@ PUBLIC_API void interpreter__destroy(struct interpreter* self);
 
 PUBLIC_API bool interpreter__run_file(struct interpreter* self, const char* path);
 PUBLIC_API void interpreter__run_prompt(struct interpreter* self);
+
+void interpreter__print_tokens(struct interpreter* self);
 
 #endif // INTERPRETER_H

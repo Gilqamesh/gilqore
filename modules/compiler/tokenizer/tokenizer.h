@@ -32,11 +32,11 @@ struct memory_slice;
 
 // @brief returns the name of the token
 // @note implement this function for every tokenizer
-typedef const char* (*token__type_name_fn)(struct tokenizer_token* token);
+typedef const char* (*token__convert_token_to_string_fn)(struct tokenizer_token* token);
 
 // @brief parses source and stores the tokens from it
 // @note implement this function for every tokenizer
-typedef bool (*tokenizer__tokenize_fn)(struct tokenizer* tokenizer, const char* source);
+typedef bool (*tokenizer__tokenizer_fn)(struct tokenizer* tokenizer, const char* source);
 
 PUBLIC_API bool tokenizer__create(
     struct tokenizer* self,

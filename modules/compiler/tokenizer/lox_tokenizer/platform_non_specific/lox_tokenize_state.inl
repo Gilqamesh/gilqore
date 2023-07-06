@@ -6,6 +6,8 @@ INLINE static void lox_tokenize_state__dispatch_text(struct lox_tokenize_state* 
             self->state = STATE_SLASH;
         } break ;
         case '"': {
+            // note: remove '"' from the beginning of the string token
+            self->token_len = 0;
             self->state = STATE_INQUOTE;
         } break ;
         case '(': {
@@ -132,7 +134,11 @@ INLINE static void lox_tokenize_state__dispatch_inquote(struct lox_tokenize_stat
     char c = lox_tokenize_state__advance(self);
 
     if (c == '"') {
+        // note: remove '"'
+        lox_tokenize_state__reverse(self);
         lox_tokenize_state__add_token(self, LOX_TOKEN_STRING);
+        lox_tokenize_state__advance(self);
+
         self->state = STATE_TEXT;
     } else if (c == '\\') {
         self->state = STATE_ESCAPE;
