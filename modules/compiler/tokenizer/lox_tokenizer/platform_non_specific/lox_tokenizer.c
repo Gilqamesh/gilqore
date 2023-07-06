@@ -30,8 +30,8 @@ bool lox_tokenizer__tokenize(struct tokenizer* self, const char* str) {
     return true;
 }
 
-const char* lox_token__type_name(struct tokenizer_token* token) {
-    switch (token->type) {
+const char* lox_token__type_name(u8 token_type) {
+    switch (token_type) {
         case LOX_TOKEN_COMMENT: return "comment";
         case LOX_TOKEN_LEFT_PAREN: return "left paren";
         case LOX_TOKEN_RIGHT_PAREN: return "right parent";

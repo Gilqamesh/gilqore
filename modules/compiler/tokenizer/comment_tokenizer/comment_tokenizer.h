@@ -7,7 +7,7 @@ struct tokenizer;
 struct tokenizer_token;
 
 PUBLIC_API bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* source);
-PUBLIC_API const char* token__type_name_comment(struct tokenizer_token* token);
+PUBLIC_API const char* token__type_name_comment(u8 token_type);
 
 enum comment_token_type {
     COMMENT_TOKEN_TYPE_TOKEN

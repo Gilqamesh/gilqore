@@ -100,8 +100,8 @@ bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* str) 
     return true;
 }
 
-const char* token__type_name_comment(struct tokenizer_token* token) {
-    switch (token->type) {
+const char* token__type_name_comment(u8 token_type) {
+    switch (token_type) {
         case COMMENT_TOKEN_TYPE_TOKEN: return "comment";
         default: return "unknown";
     }

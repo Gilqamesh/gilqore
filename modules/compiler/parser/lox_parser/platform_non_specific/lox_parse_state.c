@@ -18,6 +18,7 @@ struct tokenizer_token* lox_parse_state__advance(struct lox_parse_state* self) {
         return NULL;
     }
 
+    ++self->parser->token_index;
     return &self->tokenizer->tokens[self->token_index++];
 }
 

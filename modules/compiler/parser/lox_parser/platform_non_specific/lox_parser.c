@@ -12,10 +12,34 @@ static struct memory_slice lox_parser_expr_evalute__op_binary(struct parser_expr
 static struct memory_slice lox_parser_expr_evalute__grouping(struct parser_expression* expr, struct memory_slice buffer);
 static struct memory_slice lox_parser_expr_evalute__literal(struct parser_expression* expr, struct memory_slice buffer);
 
+const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type expr_type) {
+    switch (expr_type) {
+        case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: return "unary";
+        case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: return "binary";
+        case LOX_PARSER_EXPRESSION_TYPE_GROUPING: return "grouping";
+        case LOX_PARSER_EXPRESSION_TYPE_LITERAL: return "literal";
+        default: {
+            ASSERT(false);
+            return NULL;
+        }
+    }
+}
+
+const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type) {
+    switch (type) {
+        case LOX_PARSER_STATEMENT_TYPE_PRINT: return "print";
+        case LOX_PARSER_STATEMENT_TYPE_EXPRESSION: return "expression";
+        default: {
+            ASSERT(false);
+            return NULL;
+        }
+    }
+}
+
 static struct lox_expressions_table* lox_parser__get_expressions_table(struct parser* self) {
     char* memory = memory_slice__memory(&self->internal_buffer);
     u64 memory_size = memory_slice__size(&self->internal_buffer);
-    u64 table_size = memory_size / 2;
+    u64 table_size = memory_size / 3;
     if (memory_size < sizeof(struct lox_expressions_table)) {
         error_code__exit(12321);
     }
@@ -29,12 +53,26 @@ static struct lox_expressions_table* lox_parser__get_expressions_table(struct pa
 static struct lox_literal_table* lox_parser__get_literal_table(struct parser* self) {
     char* memory = memory_slice__memory(&self->internal_buffer);
     u64 memory_size = memory_slice__size(&self->internal_buffer);
-    u64 table_size = memory_size / 2;
+    u64 table_size = memory_size / 3;
     if (memory_size < sizeof(struct lox_literal_table)) {
         error_code__exit(12321);
     }
 
     struct lox_literal_table* table = (struct lox_literal_table*) (memory + table_size);
+    table->table_memory_size = table_size;
+
+    return table;
+}
+
+static struct lox_statements_table* lox_parser__get_statements_table(struct parser* self) {
+    char* memory = memory_slice__memory(&self->internal_buffer);
+    u64 memory_size = memory_slice__size(&self->internal_buffer);
+    u64 table_size = memory_size / 3;
+    if (memory_size < sizeof(struct lox_statements_table)) {
+        error_code__exit(12321);
+    }
+
+    struct lox_statements_table* table = (struct lox_statements_table*) (memory + 2 * table_size);
     table->table_memory_size = table_size;
 
     return table;
@@ -110,21 +148,41 @@ static bool lox_parser_clear_tables(struct parser* self, struct tokenizer* token
         memory_offset += literals_subtable_memory_size;
     }
 
+    // statements table
+    {
+        struct lox_statements_table* statements_table = lox_parser__get_statements_table(self);
+        u64 expression_table_size = statements_table->table_memory_size;
+        u64 memory_offset = sizeof(*statements_table);
+        ASSERT(expression_table_size >= memory_offset);
+        expression_table_size -= memory_offset;
+        u64 expression_subtable_memory_size = expression_table_size / 4;
+
+        statements_table->print_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->print_statements_arr_fill = 0;
+        statements_table->print_statements_arr_size = expression_subtable_memory_size / sizeof(*statements_table->print_statements_arr);
+        memory_offset += expression_subtable_memory_size;
+
+        statements_table->expression_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->expression_statements_arr_fill = 0;
+        statements_table->expression_statements_arr_size = expression_subtable_memory_size / sizeof(*statements_table->expression_statements_arr);
+        memory_offset += expression_subtable_memory_size;
+    }
+
     return true;
 }
 
 #include "lox_parse_state.inl"
 
-struct parser_expression* lox_parser__parse_tokens(struct parser* self, struct tokenizer* tokenizer) {
+struct parser_statement* lox_parser__parse_tokens(struct parser* self, struct tokenizer* tokenizer) {
     if (lox_parser_clear_tables(self, tokenizer) == false) {
         return NULL;
     }
     struct lox_parse_state parse_state = {
         .parser = self,
         .tokenizer = tokenizer,
-        .token_index = 0
+        .token_index = self->token_index
     };
-    return lox_parse_state__expression(&parse_state);
+    return lox_parse_state__statement(&parse_state);
 }
 
 void lox_parser__print_expressions_table_stats(struct parser* self) {
@@ -527,7 +585,7 @@ static struct lox_literal_base* lox_parser__interpret_unary(struct parser* self,
                     self,
                     "Expect operand to be '%s' for operator: '%s', but it was of type '%s'.",
                     lox_parser__literal_type_to_str(LOX_LITERAL_TYPE_NUMBER),
-                    lox_token__type_name(unary_expr->op),
+                    lox_token__type_name(unary_expr->op->type),
                     lox_parser__literal_type_to_str(literal_base->type)
                 );
                 return NULL;
@@ -547,12 +605,7 @@ static struct lox_literal_base* lox_parser__interpret_unary(struct parser* self,
     }
 }
 
-void lox_parser__interpret_expr_fn(struct parser* self, struct parser_expression* expr) {
-    struct lox_literal_base* literal = lox_parser__interpret_expression(self, expr);
-    if (literal == NULL) {
-        return ;
-    }
-
+static void lox_parser__literal_base_print(struct lox_literal_base* literal) {
     switch (literal->type) {
         case LOX_LITERAL_TYPE_OBJECT: {
             libc__printf("(object)\n");
@@ -577,6 +630,76 @@ void lox_parser__interpret_expr_fn(struct parser* self, struct parser_expression
     }
 }
 
+void lox_parser__evaluate_expr_fn(struct parser* self, struct parser_expression* expr) {
+    struct lox_literal_base* literal = lox_parser__interpret_expression(self, expr);
+    if (literal == NULL) {
+        return ;
+    }
+
+    lox_parser__literal_base_print(literal);
+}
+
+void lox_parser__evaluate_statement_fn(struct parser* self, struct parser_statement* statement) {
+    switch (statement->type) {
+        case LOX_PARSER_STATEMENT_TYPE_PRINT: {
+            struct lox_parser_statement_print* print_statement = (struct lox_parser_statement_print*) statement;
+            struct lox_literal_base* literal_base = lox_parser__interpret_expression(self, print_statement->expr);
+            lox_parser__literal_base_print(literal_base);
+            // lox_parser__evaluate_expr_fn(self, print_statement->expr);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_EXPRESSION: {
+            struct lox_parser_statement_expression* expression_statement = (struct lox_parser_statement_expression*) statement;
+            struct lox_literal_base* literal_base = lox_parser__interpret_expression(self, expression_statement->expr);
+            (void) literal_base;
+        } break ;
+        default: ASSERT(false);
+    }
+}
+
+void lox_parser__print_statements_table_stats(struct parser* self) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    libc__printf(
+        "  --=== Statements table ===--\n"
+        "  print statements allocated: %u, total: %u\n"
+        "  expression statements allocated: %u, total: %u\n"
+        "  ----------------------------\n",
+        table->print_statements_arr_fill, table->print_statements_arr_size,
+        table->expression_statements_arr_fill, table->expression_statements_arr_size
+    );
+}
+
+struct lox_parser_statement_print* lox_parser__get_statement_print(
+    struct parser* self,
+    struct parser_expression* expr
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->print_statements_arr_fill == table->print_statements_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_print* result = &table->print_statements_arr[table->print_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_PRINT;
+    result->expr = expr;
+
+    return result;
+}
+
+struct lox_parser_statement_expression* lox_parser__get_statement_expression(
+    struct parser* self,
+    struct parser_expression* expr
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->expression_statements_arr_fill == table->expression_statements_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_expression* result = &table->expression_statements_arr[table->expression_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_EXPRESSION;
+    result->expr = expr;
+
+    return result;
+}
+
 static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self, struct parser_expression* expr) {
     struct lox_parser_expr_op_binary* binary_expr = (struct lox_parser_expr_op_binary*) expr;
     if (binary_expr->evaluated_literal != NULL) {
@@ -594,7 +717,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                     self,
                     "Expect both operands to be '%s' for operand: '%s', but operands were of type '%s' and '%s'",
                     lox_parser__literal_type_to_str(LOX_LITERAL_TYPE_NUMBER),
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type), lox_parser__literal_type_to_str(right_literal_base->type)
                 );
                 return NULL;
@@ -611,7 +734,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                     self,
                     "Expect both operands to be '%s' for operand: '%s', but operands were of type '%s' and '%s'",
                     lox_parser__literal_type_to_str(LOX_LITERAL_TYPE_NUMBER),
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type), lox_parser__literal_type_to_str(right_literal_base->type)
                 );
                 return NULL;
@@ -637,7 +760,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                     self,
                     "Expect both operands to be '%s' for operand: '%s', but operands were of type '%s' and '%s'",
                     lox_parser__literal_type_to_str(LOX_LITERAL_TYPE_NUMBER),
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type), lox_parser__literal_type_to_str(right_literal_base->type)
                 );
                 return NULL;
@@ -701,7 +824,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                 parser__runtime_error(
                     self,
                     "Binary operator '%s' is not implemented between operands '%s' and '%s'.",
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type),
                     lox_parser__literal_type_to_str(right_literal_base->type)
                 );
@@ -725,7 +848,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                 parser__runtime_error(
                     self,
                     "Binary operator '%s' is not implemented between operands '%s' and '%s'.",
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type),
                     lox_parser__literal_type_to_str(right_literal_base->type)
                 );
@@ -749,7 +872,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                 parser__runtime_error(
                     self,
                     "Binary operator '%s' is not implemented between operands '%s' and '%s'.",
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type),
                     lox_parser__literal_type_to_str(right_literal_base->type)
                 );
@@ -773,7 +896,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                 parser__runtime_error(
                     self,
                     "Binary operator '%s' is not implemented between operands '%s' and '%s'.",
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type),
                     lox_parser__literal_type_to_str(right_literal_base->type)
                 );
@@ -797,7 +920,7 @@ static struct lox_literal_base* lox_parser__interpret_binary(struct parser* self
                 parser__runtime_error(
                     self,
                     "Binary operator '%s' is not implemented between operands '%s' and '%s'.",
-                    lox_token__type_name(binary_expr->op),
+                    lox_token__type_name(binary_expr->op->type),
                     lox_parser__literal_type_to_str(left_literal_base->type),
                     lox_parser__literal_type_to_str(right_literal_base->type)
                 );

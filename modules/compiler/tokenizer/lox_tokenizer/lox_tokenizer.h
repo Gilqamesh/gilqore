@@ -7,7 +7,7 @@ struct tokenizer;
 struct tokenizer_token;
 
 PUBLIC_API bool lox_tokenizer__tokenize(struct tokenizer* tokenizer, const char* source);
-PUBLIC_API const char* lox_token__type_name(struct tokenizer_token* token);
+PUBLIC_API const char* lox_token__type_name(u8 token_type);
 
 // lox tokenizer
 enum lox_token_type {

@@ -32,7 +32,7 @@ struct memory_slice;
 
 // @brief returns the name of the token
 // @note implement this function for every tokenizer
-typedef const char* (*token__convert_token_to_string_fn)(struct tokenizer_token* token);
+typedef const char* (*token__convert_token_to_string_fn)(u8 token_type);
 
 // @brief parses source and stores the tokens from it
 // @note implement this function for every tokenizer

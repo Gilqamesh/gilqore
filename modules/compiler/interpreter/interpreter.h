@@ -10,13 +10,8 @@ struct memory_slice;
 
 enum interpreter_type {
     INTERPRETER_TYPE_COMMENT,
-    INTERPRETER_TYPE_C,
     INTERPRETER_TYPE_LOX
 };
-
-// @brief interprets an expression
-// @note implement this function for every parser (todo: for every interpreter)
-typedef void (*interpreter__interpret_expr_fn)(struct parser* self, struct parser_expression* expr);
 
 struct interpreter {
     struct tokenizer tokenizer;
@@ -27,7 +22,8 @@ struct interpreter {
     parser__token_parser_fn token_parser_fn;
     parser__convert_expr_to_string_fn convert_expr_to_string_fn;
 
-    interpreter__interpret_expr_fn interpret_expr_fn;
+    parser__evaluate_expr_fn evaluate_expr_fn;
+    parser__evaluate_statement_fn evaluate_statement_fn;
 };
 
 PUBLIC_API bool interpreter__create(

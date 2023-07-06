@@ -8,6 +8,7 @@ bool parser__create(struct parser* parser, struct memory_slice internal_buffer) 
     parser->internal_buffer = internal_buffer;
     parser->had_error = false;
     parser->had_runtime_error = false;
+    parser->token_index = 0;
 
     return true;
 }

@@ -1,3 +1,6 @@
+struct parser_statement* lox_parse_state__statement(struct lox_parse_state* self);
+struct parser_statement* lox_parse_state__expr_statement(struct lox_parse_state* self);
+struct parser_statement* lox_parse_state__print_statement(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__expression(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__comma(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__ternary(struct lox_parse_state* self);
@@ -7,6 +10,59 @@ struct parser_expression* lox_parse_state__term(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__factor(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__unary(struct lox_parse_state* self);
 struct parser_expression* lox_parse_state__primary(struct lox_parse_state* self);
+
+struct parser_statement* lox_parse_state__statement(struct lox_parse_state* self) {
+    if (lox_parse_state__is_finished(self)) {
+        return NULL;
+    }
+
+    struct tokenizer_token* print_token = lox_parse_state__advance_if(self, LOX_TOKEN_PRINT);
+    if (print_token != NULL) {
+        return lox_parse_state__print_statement(self);
+    }
+
+    return lox_parse_state__expr_statement(self);
+}
+
+struct parser_statement* lox_parse_state__expr_statement(struct lox_parse_state* self) {
+    struct parser_expression* expression = lox_parse_state__expression(self);
+    if (expression == NULL) {
+        return NULL;
+    }
+
+    struct tokenizer_token* semicolon_token = lox_parse_state__advance_if(self, LOX_TOKEN_SEMICOLON);
+    if (semicolon_token == NULL) {
+        parser__error(
+            self->parser,
+            self->tokenizer,
+            semicolon_token,
+            "Expect ';' after '%s' expression.", lox_parser__expression_type_to_str(expression->type)
+        );
+        return NULL;
+    }
+
+    return (struct parser_statement*) lox_parser__get_statement_expression(self->parser, expression);
+}
+
+struct parser_statement* lox_parse_state__print_statement(struct lox_parse_state* self) {
+    struct parser_expression* expression = lox_parse_state__expression(self);
+    if (expression == NULL) {
+        return NULL;
+    }
+
+    struct tokenizer_token* semicolon_token = lox_parse_state__advance_if(self, LOX_TOKEN_SEMICOLON);
+    if (semicolon_token == NULL) {
+        parser__error(
+            self->parser,
+            self->tokenizer,
+            semicolon_token,
+            "Expect ';' after '%s' operator.", lox_token__type_name(LOX_TOKEN_PRINT)
+        );
+        return NULL;
+    }
+
+    return (struct parser_statement*) lox_parser__get_statement_print(self->parser, expression);
+}
 
 struct parser_expression* lox_parse_state__expression(struct lox_parse_state* self) {
     return lox_parse_state__comma(self);
