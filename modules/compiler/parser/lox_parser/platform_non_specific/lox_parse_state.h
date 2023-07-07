@@ -5,14 +5,9 @@
 
 struct parser;
 
-// enum lox_parser_state {
-// };
-
 struct lox_parse_state {
     struct parser* parser;
     struct tokenizer* tokenizer;
-    u32 token_index;
-    // enum lox_parser_state state;
 };
 
 bool lox_parse_state__is_finished(struct lox_parse_state* self);
@@ -30,7 +25,5 @@ struct tokenizer_token* lox_parse_state__get_previous(struct lox_parse_state* se
 void lox_parse_state__advance_till_next_statement(struct lox_parse_state* self);
 
 void lox_parse_state__reached_end_error(struct lox_parse_state* self, const char* format, ...);
-
-// struct tokenizer_token* lox_parse_state__reverse(struct lox_parse_state* self);
 
 #endif // LOX_PARSE_STATE_H

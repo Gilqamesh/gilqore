@@ -6,11 +6,11 @@
 #include "libc/libc.h"
 
 bool lox_parse_state__is_finished(struct lox_parse_state* self) {
-    return self->tokenizer->tokens[self->token_index].type == LOX_TOKEN_EOF;
+    return self->tokenizer->tokens[self->parser->token_index].type == LOX_TOKEN_EOF;
 }
 
 enum lox_token_type lox_parse_state__peek(struct lox_parse_state* self) {
-    return self->tokenizer->tokens[self->token_index].type;
+    return self->tokenizer->tokens[self->parser->token_index].type;
 }
 
 struct tokenizer_token* lox_parse_state__advance(struct lox_parse_state* self) {
@@ -18,8 +18,7 @@ struct tokenizer_token* lox_parse_state__advance(struct lox_parse_state* self) {
         return NULL;
     }
 
-    ++self->parser->token_index;
-    return &self->tokenizer->tokens[self->token_index++];
+    return &self->tokenizer->tokens[self->parser->token_index++];
 }
 
 struct tokenizer_token* lox_parse_state__advance_if(struct lox_parse_state* self, enum lox_token_type token_type) {
@@ -50,11 +49,11 @@ struct tokenizer_token* lox_parse_state__advance_err(
 }
 
 struct tokenizer_token* lox_parse_state__get_previous(struct lox_parse_state* self) {
-    if (self->token_index == 0) {
+    if (self->parser->token_index == 0) {
         return NULL;
     }
 
-    return &self->tokenizer->tokens[self->token_index - 1];
+    return &self->tokenizer->tokens[self->parser->token_index - 1];
 }
 
 void lox_parse_state__advance_till_next_statement(struct lox_parse_state* self) {

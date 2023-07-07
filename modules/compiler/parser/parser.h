@@ -24,7 +24,6 @@ struct parser_expression {
     u8 type;
 };
 
-// todo: replace lox_literal_base with this
 struct parser_literal {
     u8 type;
 };

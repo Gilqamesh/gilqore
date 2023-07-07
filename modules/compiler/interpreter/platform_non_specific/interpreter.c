@@ -127,7 +127,7 @@ static bool run_source(
         parsed_statement = self->token_parser_fn(&self->parser, &self->tokenizer);
         time_end = __rdtsc();
         libc__printf("Statement parse Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
-        if (parsed_statement) {
+        if (parsed_statement != NULL) {
             self->evaluate_statement_fn(&self->parser, parsed_statement);
         }
     } while (parsed_statement != NULL);
