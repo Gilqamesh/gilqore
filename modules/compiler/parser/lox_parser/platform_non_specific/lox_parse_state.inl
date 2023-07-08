@@ -1,332 +1,416 @@
-struct parser_statement* lox_parse_state__statement(struct lox_parse_state* self);
-struct parser_statement* lox_parse_state__expr_statement(struct lox_parse_state* self);
-struct parser_statement* lox_parse_state__print_statement(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__expression(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__comma(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__ternary(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__equality(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__comparison(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__term(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__factor(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__unary(struct lox_parse_state* self);
-struct parser_expression* lox_parse_state__primary(struct lox_parse_state* self);
+struct parser_statement* lox_parser__declaration(struct parser* self);
+struct parser_statement* lox_parser__var_declaration(struct parser* self);
+struct parser_statement* lox_parser__statement(struct parser* self);
+struct parser_statement* lox_parser__expr_statement(struct parser* self);
+struct parser_statement* lox_parser__print_statement(struct parser* self);
+struct parser_expression* lox_parser__expression(struct parser* self);
+struct parser_expression* lox_parser__comma(struct parser* self);
+struct parser_expression* lox_parser__assignment(struct parser* self);
+struct parser_expression* lox_parser__ternary(struct parser* self);
+struct parser_expression* lox_parser__equality(struct parser* self);
+struct parser_expression* lox_parser__comparison(struct parser* self);
+struct parser_expression* lox_parser__term(struct parser* self);
+struct parser_expression* lox_parser__factor(struct parser* self);
+struct parser_expression* lox_parser__unary(struct parser* self);
+struct parser_expression* lox_parser__primary(struct parser* self);
+struct parser_expression* lox_parser__error(struct parser* self);
 
-struct parser_statement* lox_parse_state__statement(struct lox_parse_state* self) {
-    if (lox_parse_state__is_finished(self)) {
+struct parser_statement* lox_parser__declaration(struct parser* self) {
+    struct tokenizer_token* var_token = lox_parser__advance_if(self, LOX_TOKEN_VAR);
+    if (var_token) {
+        return lox_parser__var_declaration(self);
+    }
+
+    return lox_parser__statement(self);
+}
+
+struct parser_statement* lox_parser__var_declaration(struct parser* self) {
+    struct tokenizer_token* var_token = lox_parser__advance_err(
+        self,
+        LOX_TOKEN_IDENTIFIER,
+        "Expect variable name"
+    );
+
+    if (var_token == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* print_token = lox_parse_state__advance_if(self, LOX_TOKEN_PRINT);
-    if (print_token != NULL) {
-        return lox_parse_state__print_statement(self);
+    struct parser_expression* var_initializer = NULL;
+
+    if (lox_parser__advance_if(self, LOX_TOKEN_EQUAL) != NULL) {
+        var_initializer = lox_parser__expression(self);
+        if (var_initializer == NULL) {
+            return NULL;
+        }
+        if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
+            parser__syntax_error(
+                self,
+                "Expect ';' after '%s'.", lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_VAR_DECL)
+            );
+            return NULL;
+        }
+    } else {
+        if (
+            lox_parser__advance_err(
+                self,
+                LOX_TOKEN_SEMICOLON,
+                "Expect ';' or variable initializer expression after '%.*s' '%s'.",
+                var_token->lexeme_len, var_token->lexeme, lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_VAR_DECL)
+            ) == NULL
+        ) {
+            return NULL;
+        }
     }
 
-    return lox_parse_state__expr_statement(self);
+    struct lox_parser_expr_var* var_value = lox_parser__set_expr__var(self, var_token, var_initializer);
+
+    return (struct parser_statement*) lox_parser__get_statement_var_decl(self, (struct parser_expression*) var_value);
 }
 
-struct parser_statement* lox_parse_state__expr_statement(struct lox_parse_state* self) {
-    struct parser_expression* expression = lox_parse_state__expression(self);
+struct parser_statement* lox_parser__statement(struct parser* self) {
+    struct tokenizer_token* print_token = lox_parser__advance_if(self, LOX_TOKEN_PRINT);
+    if (print_token != NULL) {
+        return lox_parser__print_statement(self);
+    }
+
+    return lox_parser__expr_statement(self);
+}
+
+struct parser_statement* lox_parser__expr_statement(struct parser* self) {
+    struct parser_expression* expression = lox_parser__expression(self);
     if (expression == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* semicolon_token = lox_parse_state__advance_if(self, LOX_TOKEN_SEMICOLON);
-    if (semicolon_token == NULL) {
-        parser__error(
-            self->parser,
-            self->tokenizer,
-            semicolon_token,
+    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
+        parser__syntax_error(
+            self,
             "Expect ';' after '%s' expression.", lox_parser__expression_type_to_str(expression->type)
         );
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_expression(self->parser, expression);
+    return (struct parser_statement*) lox_parser__get_statement_expression(self, expression);
 }
 
-struct parser_statement* lox_parse_state__print_statement(struct lox_parse_state* self) {
-    struct parser_expression* expression = lox_parse_state__expression(self);
+struct parser_statement* lox_parser__print_statement(struct parser* self) {
+    struct parser_expression* expression = lox_parser__expression(self);
     if (expression == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* semicolon_token = lox_parse_state__advance_if(self, LOX_TOKEN_SEMICOLON);
-    if (semicolon_token == NULL) {
-        parser__error(
-            self->parser,
-            self->tokenizer,
-            semicolon_token,
+    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
+        parser__syntax_error(
+            self,
             "Expect ';' after '%s' operator.", lox_token__type_name(LOX_TOKEN_PRINT)
         );
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_print(self->parser, expression);
+    return (struct parser_statement*) lox_parser__get_statement_print(self, expression);
 }
 
-struct parser_expression* lox_parse_state__expression(struct lox_parse_state* self) {
-    return lox_parse_state__comma(self);
+struct parser_expression* lox_parser__expression(struct parser* self) {
+    return lox_parser__comma(self);
 }
 
-struct parser_expression* lox_parse_state__comma(struct lox_parse_state* self) {
-    struct parser_expression* ternary_expr = lox_parse_state__ternary(self);
-    if (ternary_expr == NULL) {
+struct parser_expression* lox_parser__comma(struct parser* self) {
+    struct parser_expression* assignment_expr = lox_parser__assignment(self);
+    if (assignment_expr == NULL) {
         return NULL;
     }
 
-    while (lox_parse_state__peek(self) == LOX_TOKEN_COMMA) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+    while (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* expression = lox_parse_state__expression(self);
+        struct parser_expression* expression = lox_parser__expression(self);
         if (expression == NULL) {
             return NULL;
         }
-        ternary_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, ternary_expr, op, expression);
+        assignment_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, assignment_expr, op, expression);
     }
 
-    return ternary_expr;
+    return assignment_expr;
 }
 
-struct parser_expression* lox_parse_state__ternary(struct lox_parse_state* self) {
-    struct parser_expression* equality_expr = lox_parse_state__equality(self);
+struct parser_expression* lox_parser__assignment(struct parser* self) {
+    struct parser_expression* left_expr = lox_parser__ternary(self);
+    if (left_expr == NULL) {
+        return NULL;
+    }
+
+    struct tokenizer_token* equal_token = lox_parser__advance_if(self, LOX_TOKEN_EQUAL);
+    if (equal_token != NULL) {
+        struct parser_expression* right_expr = lox_parser__assignment(self);
+
+        if (left_expr->type == LOX_PARSER_EXPRESSION_TYPE_VAR) {
+            struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) left_expr;
+            left_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, equal_token, right_expr);
+            var_expr->value = right_expr;
+        } else {
+            parser__syntax_error(
+                self,
+                "Expression '%s' is not lvalue expression.",
+                lox_parser__expression_type_to_str(left_expr->type)
+            );
+            // return NULL;
+        }
+    }
+
+    return left_expr;
+}
+
+struct parser_expression* lox_parser__ternary(struct parser* self) {
+    struct parser_expression* equality_expr = lox_parser__equality(self);
     if (equality_expr == NULL) {
         return NULL;
     }
 
-    while (lox_parse_state__peek(self) == LOX_TOKEN_QUESTION_MARK) {
-        struct tokenizer_token* question_mark_op = lox_parse_state__advance(self);
+    while (lox_parser__peek(self) == LOX_TOKEN_QUESTION_MARK) {
+        struct tokenizer_token* question_mark_op = lox_parser__advance(self);
         ASSERT(question_mark_op != NULL);
-        struct parser_expression* left_expr = lox_parse_state__expression(self);
+        struct parser_expression* left_expr = lox_parser__expression(self);
         if (left_expr == NULL) {
             return NULL;
         }
-        struct tokenizer_token* colon_op = lox_parse_state__advance_err(self, LOX_TOKEN_COLON, "Expect ':' in ternary expression.");
+        struct tokenizer_token* colon_op = lox_parser__advance_err(self, LOX_TOKEN_COLON, "Expect ':' in ternary expression.");
         if (colon_op == NULL) {
-            // lox_parse_state__advance_till_next_statement(self);
             return NULL;
         }
-        struct parser_expression* right_expr = lox_parse_state__expression(self);
+        struct parser_expression* right_expr = lox_parser__expression(self);
         if (right_expr == NULL) {
             return NULL;
         }
         equality_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(
-            self->parser,
+            self,
             equality_expr,
             question_mark_op,
-            (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_expr, colon_op, right_expr)
+            (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, colon_op, right_expr)
         );
     }
 
     return equality_expr;
 }
 
-struct parser_expression* lox_parse_state__equality(struct lox_parse_state* self) {
-    struct parser_expression* left_comp = lox_parse_state__comparison(self);
+struct parser_expression* lox_parser__equality(struct parser* self) {
+    struct parser_expression* left_comp = lox_parser__comparison(self);
     if (left_comp == NULL) {
         return NULL;
     }
 
     while (
-        lox_parse_state__peek(self) == LOX_TOKEN_EXCLAM_EQUAL ||
-        lox_parse_state__peek(self) == LOX_TOKEN_EQUAL_EQUAL
+        lox_parser__peek(self) == LOX_TOKEN_EXCLAM_EQUAL ||
+        lox_parser__peek(self) == LOX_TOKEN_EQUAL_EQUAL
     ) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_comp = lox_parse_state__comparison(self);
+        struct parser_expression* right_comp = lox_parser__comparison(self);
         if (right_comp == NULL) {
             return NULL;
         }
-        left_comp = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_comp, op, right_comp);
+        left_comp = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_comp, op, right_comp);
     }
 
     return left_comp;
 }
 
-struct parser_expression* lox_parse_state__comparison(struct lox_parse_state* self) {
-    struct parser_expression* left_term = lox_parse_state__term(self);
+struct parser_expression* lox_parser__comparison(struct parser* self) {
+    struct parser_expression* left_term = lox_parser__term(self);
     if (left_term == NULL) {
         return NULL;
     }
 
     while (
-        lox_parse_state__peek(self) == LOX_TOKEN_GREATER ||
-        lox_parse_state__peek(self) == LOX_TOKEN_GREATER_EQUAL ||
-        lox_parse_state__peek(self) == LOX_TOKEN_LESS ||
-        lox_parse_state__peek(self) == LOX_TOKEN_LESS_EQUAL
+        lox_parser__peek(self) == LOX_TOKEN_GREATER ||
+        lox_parser__peek(self) == LOX_TOKEN_GREATER_EQUAL ||
+        lox_parser__peek(self) == LOX_TOKEN_LESS ||
+        lox_parser__peek(self) == LOX_TOKEN_LESS_EQUAL
     ) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_term = lox_parse_state__term(self);
+        struct parser_expression* right_term = lox_parser__term(self);
         if (right_term == NULL) {
             return NULL;
         }
-        left_term = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_term, op, right_term);
+        left_term = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_term, op, right_term);
     }
 
     return left_term;
 }
 
-struct parser_expression* lox_parse_state__term(struct lox_parse_state* self) {
-    struct parser_expression* left_factor = lox_parse_state__factor(self);
+struct parser_expression* lox_parser__term(struct parser* self) {
+    struct parser_expression* left_factor = lox_parser__factor(self);
     if (left_factor == NULL) {
         return NULL;
     }
 
     while (
-        lox_parse_state__peek(self) == LOX_TOKEN_MINUS ||
-        lox_parse_state__peek(self) == LOX_TOKEN_PLUS
+        lox_parser__peek(self) == LOX_TOKEN_MINUS ||
+        lox_parser__peek(self) == LOX_TOKEN_PLUS
     ) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_factor = lox_parse_state__factor(self);
+        struct parser_expression* right_factor = lox_parser__factor(self);
         if (right_factor == NULL) {
             return NULL;
         }
-        left_factor = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_factor, op, right_factor);
+        left_factor = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_factor, op, right_factor);
     }
 
     return left_factor;
 }
 
-struct parser_expression* lox_parse_state__factor(struct lox_parse_state* self) {
-    struct parser_expression* left_unary = lox_parse_state__unary(self);
+struct parser_expression* lox_parser__factor(struct parser* self) {
+    struct parser_expression* left_unary = lox_parser__unary(self);
     if (left_unary == NULL) {
         return NULL;
     }
 
     while (
-        lox_parse_state__peek(self) == LOX_TOKEN_SLASH ||
-        lox_parse_state__peek(self) == LOX_TOKEN_STAR
+        lox_parser__peek(self) == LOX_TOKEN_SLASH ||
+        lox_parser__peek(self) == LOX_TOKEN_STAR
     ) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_unary = lox_parse_state__unary(self);
+        struct parser_expression* right_unary = lox_parser__unary(self);
         if (right_unary == NULL) {
             return NULL;
         }
-        left_unary = (struct parser_expression*) lox_parser__get_expr__op_binary(self->parser, left_unary, op, right_unary);
+        left_unary = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_unary, op, right_unary);
     }
 
     return left_unary;
 }
 
-struct parser_expression* lox_parse_state__unary(struct lox_parse_state* self) {
-    if (lox_parse_state__peek(self) == LOX_TOKEN_EOF) {
-        lox_parse_state__reached_end_error(self, "Expected unary expression.");
+struct parser_expression* lox_parser__unary(struct parser* self) {
+    if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
+        parser__syntax_error(self, "Expect unary expression.");
         return NULL;
     }
 
     if (
-        lox_parse_state__peek(self) == LOX_TOKEN_EXCLAM ||
-        lox_parse_state__peek(self) == LOX_TOKEN_MINUS
+        lox_parser__peek(self) == LOX_TOKEN_EXCLAM ||
+        lox_parser__peek(self) == LOX_TOKEN_MINUS
     ) {
-        struct tokenizer_token* op = lox_parse_state__advance(self);
+        struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* expr = lox_parse_state__unary(self);
+        struct parser_expression* expr = lox_parser__unary(self);
         if (expr == NULL) {
             return NULL;
         }
-        return (struct parser_expression*) lox_parser__get_expr__op_unary(self->parser, op, expr);
+        return (struct parser_expression*) lox_parser__get_expr__op_unary(self, op, expr);
     }
 
-    return lox_parse_state__primary(self);
+    return lox_parser__primary(self);
 }
 
-struct parser_expression* lox_parse_state__primary(struct lox_parse_state* self) {
-    if (lox_parse_state__peek(self) == LOX_TOKEN_EOF) {
-        lox_parse_state__reached_end_error(self, "Expected primary expression.");
+struct parser_expression* lox_parser__primary(struct parser* self) {
+    if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
+        parser__syntax_error(self, "Expect primary expression.");
         return NULL;
     }
 
-    switch (lox_parse_state__peek(self)) {
+    switch (lox_parser__peek(self)) {
         case LOX_TOKEN_NUMBER:
         case LOX_TOKEN_STRING:
         case LOX_TOKEN_TRUE:
         case LOX_TOKEN_FALSE:
         case LOX_TOKEN_NIL: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
+            struct tokenizer_token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
-            return (struct parser_expression*) lox_parser__get_expr__literal(self->parser, op);
+            return (struct parser_expression*) lox_parser__get_expr__literal(self, op);
         } break ;
         case LOX_TOKEN_LEFT_PAREN: {
-            ASSERT(lox_parse_state__advance(self) != NULL);
-            struct parser_expression* expr = lox_parse_state__expression(self);
+            ASSERT(lox_parser__advance(self) != NULL);
+            struct parser_expression* expr = lox_parser__expression(self);
             if (expr == NULL) {
                 return NULL;
             }
-            if (lox_parse_state__advance_err(self, LOX_TOKEN_RIGHT_PAREN, "Expect ')' after expression.") == NULL) {
-                // lox_parse_state__advance_till_next_statement(self);
+            if (lox_parser__advance_err(self, LOX_TOKEN_RIGHT_PAREN, "Expect ')' after expression.") == NULL) {
                 return NULL;
             } else {
-                return (struct parser_expression*) lox_parser__get_expr__grouping(self->parser, expr);
+                return (struct parser_expression*) lox_parser__get_expr__grouping(self, expr);
             }
         } break ;
-        case LOX_TOKEN_COMMA: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect ternary before comma ',' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_QUESTION_MARK: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect equality before ternary '?' binary operator.");
-            // todo: discard right-hand operand with the same precedence
-            // discard expression
-            // discard : operator if exists
-            // discard expression
-            return NULL;
-        } break ;
-        case LOX_TOKEN_COLON: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect 'equality ? expression' before ternary semicolon ':' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_EXCLAM_EQUAL: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect comparison expression before '!=' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_EQUAL_EQUAL: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect comparison expression before '==' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_GREATER: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '>' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_GREATER_EQUAL: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '>=' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_LESS: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '<' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_LESS_EQUAL: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect term expression before '<=' binary operator.");
-            return NULL;
-        } break ;
-        case LOX_TOKEN_PLUS: {
-            struct tokenizer_token* op = lox_parse_state__advance(self);
-            ASSERT(op != NULL);
-            parser__error(self->parser, self->tokenizer, op, "Expect factor expression before '+' binary operator.");
-            return NULL;
+        case LOX_TOKEN_IDENTIFIER: {
+            struct tokenizer_token* var_name = lox_parser__advance(self);
+            ASSERT(var_name != NULL);
+            return (struct parser_expression*) lox_parser__get_expr__var(self, var_name);
         } break ;
         default: {
-            return NULL;
+            return lox_parser__error(self);
         }
     }
+}
+
+struct parser_expression* lox_parser__error(struct parser* self) {
+    if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
+        parser__syntax_error(self, "Expect primary token.");
+        return NULL;
+    }
+
+    switch (lox_parser__peek(self)) {
+        case LOX_TOKEN_COMMA: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect ternary before comma ',' binary operator.");
+        } break ;
+        case LOX_TOKEN_QUESTION_MARK: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect equality before ternary '?' binary operator.");
+        } break ;
+        case LOX_TOKEN_COLON: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect 'equality ? expression' before ternary semicolon ':' binary operator.");
+        } break ;
+        case LOX_TOKEN_EXCLAM_EQUAL: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect comparison expression before '!=' binary operator.");
+        } break ;
+        case LOX_TOKEN_EQUAL_EQUAL: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect comparison expression before '==' binary operator.");
+        } break ;
+        case LOX_TOKEN_GREATER: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect term expression before '>' binary operator.");
+        } break ;
+        case LOX_TOKEN_GREATER_EQUAL: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect term expression before '>=' binary operator.");
+        } break ;
+        case LOX_TOKEN_LESS: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect term expression before '<' binary operator.");
+        } break ;
+        case LOX_TOKEN_LESS_EQUAL: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect term expression before '<=' binary operator.");
+        } break ;
+        case LOX_TOKEN_PLUS: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect factor expression before '+' binary operator.");
+        } break ;
+        case LOX_TOKEN_EQUAL: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Expect lvalue expression before '=' binary operator.");
+        } break ;
+        default: {
+            struct tokenizer_token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            parser__syntax_error(self, "Unknown token.");
+        } break ;
+    }
+
+    return NULL;
 }

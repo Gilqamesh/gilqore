@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: libc parser basic_types
+module_dependencies: libc parser basic_types hash
 test_dependencies: libc
 application_type: CONSOLE

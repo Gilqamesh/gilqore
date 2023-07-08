@@ -13,13 +13,18 @@ operator       -> "==" | "!=" | "<" | "<=" | ">" | ">="
 
 Precedence and Associativity:
 
-program         -> statement* EOF ;
-statement       -> expr_statement
-                 | print_statement ;
-expr_statement  -> expression ";" ;
+program         -> declaration* EOF;
+declaration     -> var_decl
+                 | statement ;
+var_decl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
+statement       -> expr_stmt
+                 | print_stmt ;
+expr_stmt       -> expression ";" ;
 print_statement -> "print" expression ";" ;
 expression      -> comma ;
-comma           -> ternary ( "," expression)* ;
+comma           -> assignment ( "," expression)* ;
+assignment      -> IDENTIFIER "=" assignment
+                 | ternary ;
 ternary         -> equality ( "?" expression ":" expression )* ;
 equality        -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison      -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -28,7 +33,8 @@ factor          -> unary ( ( "/" | "*" ) unary )* ;
 unary           -> ( "!" | "-" ) unary
                  | primary ;
 primary         -> NUMBER | STRING | "true" | "false" | "nil"
-                 | "(" expression ")" 
+                 | "(" expression ")"
+                 | IDENTIFIER
                  | error ;
 error           -> "," | "?" | ":" | "!=" | "==" | ">" | ">=" |
                  | "<" | "<=" | "+"

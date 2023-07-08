@@ -5,25 +5,23 @@
 
 struct parser;
 
-struct lox_parse_state {
-    struct parser* parser;
-    struct tokenizer* tokenizer;
-};
+bool lox_parser__is_finished(struct parser* self);
 
-bool lox_parse_state__is_finished(struct lox_parse_state* self);
+struct lox_expressions_table* lox_parser__get_expressions_table(struct parser* self);
+struct lox_literal_table* lox_parser__get_literal_table(struct parser* self);
+struct lox_statements_table* lox_parser__get_statements_table(struct parser* self);
+bool lox_parser_clear_tables(struct parser* self);
 
-enum lox_token_type lox_parse_state__peek(struct lox_parse_state* self);
-struct tokenizer_token* lox_parse_state__advance(struct lox_parse_state* self);
-struct tokenizer_token* lox_parse_state__advance_if(struct lox_parse_state* self, enum lox_token_type token_type);
-struct tokenizer_token* lox_parse_state__advance_err(
-    struct lox_parse_state* self,
+enum lox_token_type lox_parser__peek(struct parser* self);
+struct tokenizer_token* lox_parser__advance(struct parser* self);
+struct tokenizer_token* lox_parser__advance_if(struct parser* self, enum lox_token_type token_type);
+struct tokenizer_token* lox_parser__advance_err(
+    struct parser* self,
     enum lox_token_type token_type,
     const char* format, ...
 );
-struct tokenizer_token* lox_parse_state__get_previous(struct lox_parse_state* self);
+struct tokenizer_token* lox_parser__get_previous(struct parser* self);
 
-void lox_parse_state__advance_till_next_statement(struct lox_parse_state* self);
-
-void lox_parse_state__reached_end_error(struct lox_parse_state* self, const char* format, ...);
+void lox_parser__advance_till_next_statement(struct parser* self);
 
 #endif // LOX_PARSE_STATE_H

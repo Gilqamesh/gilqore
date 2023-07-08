@@ -6,21 +6,26 @@
 # include "compiler/parser/parser.h"
 
 struct tokenizer_token;
-struct parser_literal;
 
-PUBLIC_API struct parser_statement* lox_parser__parse_tokens(struct parser* self, struct tokenizer* tokenizer);
+PUBLIC_API bool lox_parser__clear(struct parser* self);
 
-PUBLIC_API struct memory_slice lox_parser__convert_to_string(struct parser_expression* expr, struct memory_slice buffer);
+PUBLIC_API struct parser_statement* lox_parser__parse_statement(struct parser* self);
 
-PUBLIC_API void lox_parser__evaluate_expr_fn(struct parser* self, struct parser_expression* expr);
+PUBLIC_API void lox_parser__evaluate_statement(struct parser* self, struct parser_statement* statement);
 
-PUBLIC_API void lox_parser__evaluate_statement_fn(struct parser* self, struct parser_statement* statement);
+PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
+
+PUBLIC_API struct memory_slice lox_parser__convert_expr_to_string(struct parser_expression* expr, struct memory_slice buffer);
+
+PUBLIC_API void lox_parser__interpret_expr(struct parser* self, struct parser_expression* expr);
+
 
 // STATEMENTS TYPES, METHODS AND TABLE START
 
 enum lox_parser_statement_type {
     LOX_PARSER_STATEMENT_TYPE_PRINT,
-    LOX_PARSER_STATEMENT_TYPE_EXPRESSION
+    LOX_PARSER_STATEMENT_TYPE_EXPRESSION,
+    LOX_PARSER_STATEMENT_TYPE_VAR_DECL
 };
 
 const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type);
@@ -35,6 +40,11 @@ packed_struct(1) lox_parser_statement_expression {
     struct parser_expression* expr;
 };
 
+packed_struct(1) lox_parser_statement_var_decl {
+    struct parser_statement base;
+    struct parser_expression* var_expr;
+};
+
 struct lox_statements_table {
     struct lox_parser_statement_print* print_statements_arr;
     u32 print_statements_arr_fill;
@@ -43,6 +53,10 @@ struct lox_statements_table {
     struct lox_parser_statement_expression* expression_statements_arr;
     u32 expression_statements_arr_fill;
     u32 expression_statements_arr_size;
+
+    struct lox_parser_statement_var_decl* var_decl_statements_arr;
+    u32 var_decl_statements_arr_fill;
+    u32 var_decl_statements_arr_size;
 
     u64 table_memory_size;
 };
@@ -59,6 +73,11 @@ struct lox_parser_statement_expression* lox_parser__get_statement_expression(
     struct parser_expression* expr
 );
 
+struct lox_parser_statement_var_decl* lox_parser__get_statement_var_decl(
+    struct parser* self,
+    struct parser_expression* var_expr
+);
+
 // STATEMENTS TYPES, METHODS AND TABLE END
 
 // EXPRESSION TYPES, METHODS AND TABLE START
@@ -67,7 +86,8 @@ enum lox_parser_expression_type {
     LOX_PARSER_EXPRESSION_TYPE_OP_UNARY,
     LOX_PARSER_EXPRESSION_TYPE_OP_BINARY,
     LOX_PARSER_EXPRESSION_TYPE_GROUPING,
-    LOX_PARSER_EXPRESSION_TYPE_LITERAL
+    LOX_PARSER_EXPRESSION_TYPE_LITERAL,
+    LOX_PARSER_EXPRESSION_TYPE_VAR
 };
 
 const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type expr_type);
@@ -107,6 +127,14 @@ packed_struct(1) lox_parser_expr_literal {
     struct parser_literal* literal;
 };
 
+packed_struct(1) lox_parser_expr_var {
+    struct parser_expression base;
+    struct tokenizer_token* name;
+    struct parser_expression* value;
+
+    struct parser_literal* evaluated_literal;
+};
+
 struct lox_expressions_table {
     struct lox_parser_expr_op_unary* op_unary_arr;
     u32 op_unary_arr_fill;
@@ -123,6 +151,10 @@ struct lox_expressions_table {
     struct lox_parser_expr_literal* literal_arr;
     u32 literal_arr_fill;
     u32 literal_arr_size;
+
+    struct lox_parser_expr_var* var_expressions_arr;
+    u32 var_expressions_arr_fill;
+    u32 var_expressions_arr_size;
 
     u64 table_memory_size;
 };
@@ -152,6 +184,14 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
     struct tokenizer_token* value
 );
 
+struct lox_parser_expr_var* lox_parser__get_expr__var(struct parser* self, struct tokenizer_token* var_name);
+
+struct lox_parser_expr_var* lox_parser__set_expr__var(
+    struct parser* self,
+    struct tokenizer_token* var_name,
+    struct parser_expression* var_value
+);
+
 // EXPRESSION TYPES, METHODS AND TABLE END
 
 // LITERAL TYPES, METHODS AND TABLE START
@@ -166,26 +206,26 @@ enum lox_literal_type {
 
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type);
 
-struct lox_literal_object {
+packed_struct(1) lox_literal_object {
     struct parser_literal base;
     struct memory_slice data;
 };
 
-struct lox_literal_nil {
+packed_struct(1) lox_literal_nil {
     struct parser_literal base;
 };
 
-struct lox_literal_boolean {
+packed_struct(1) lox_literal_boolean {
     struct parser_literal base;
     bool data;
 };
 
-struct lox_literal_number {
+packed_struct(1) lox_literal_number {
     struct parser_literal base;
     r64 data;
 };
 
-struct lox_literal_string {
+packed_struct(1) lox_literal_string {
     struct parser_literal base;
     char* data;
 };
@@ -216,7 +256,7 @@ struct lox_literal_table {
 
 void lox_parser__print_literal_table_stats(struct parser* self);
 
-struct parser_literal* lox_parser__interpret_expression(struct parser* self, struct parser_expression* expr);
+struct parser_literal* lox_parser__evaluate_expression(struct parser* self, struct parser_expression* expr);
 
 struct lox_literal_object* lox_parser__get_literal__object(
     struct parser* self,

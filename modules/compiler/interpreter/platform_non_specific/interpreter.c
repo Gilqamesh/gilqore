@@ -20,21 +20,21 @@ bool interpreter__create(
             self->tokenizer_fn = &tokenizer__tokenize_comments;
             self->convert_token_to_string_fn = &token__type_name_comment;
 
-            self->token_parser_fn = NULL;
-            self->convert_expr_to_string_fn = NULL;
-
-            self->evaluate_expr_fn = NULL;
-            self->evaluate_statement_fn = NULL;
+            self->parser_clear = NULL;
+            self->parser_parse_statement = NULL;
+            self->parser_evaluate_statement = NULL;
+            self->parser_is_finished_parsing = NULL;
+            self->parser_convert_expr_to_string = NULL;
         } break ;
         case INTERPRETER_TYPE_LOX: {
             self->tokenizer_fn = &lox_tokenizer__tokenize;
             self->convert_token_to_string_fn = &lox_token__type_name;
 
-            self->token_parser_fn = &lox_parser__parse_tokens;
-            self->convert_expr_to_string_fn = &lox_parser__convert_to_string;
-
-            self->evaluate_expr_fn = &lox_parser__evaluate_expr_fn;
-            self->evaluate_statement_fn = &lox_parser__evaluate_statement_fn;
+            self->parser_clear = &lox_parser__clear;
+            self->parser_parse_statement = &lox_parser__parse_statement;
+            self->parser_evaluate_statement = &lox_parser__evaluate_statement;
+            self->parser_is_finished_parsing = &lox_parser__is_finished_parsing;
+            self->parser_convert_expr_to_string = &lox_parser__convert_expr_to_string;
         } break ;
         default: {
             // error_code__exit(UNKNOWN_INTERPRETER_TYPE);
@@ -68,7 +68,7 @@ bool interpreter__create(
     };
     cur_memory = (char*) cur_memory + parser_memory_size;
 
-    if (parser__create(&self->parser, parser_memory) == false) {
+    if (parser__create(&self->parser, &self->tokenizer, parser_memory) == false) {
         tokenizer__destroy(&self->tokenizer);
         return false;
     }
@@ -104,7 +104,7 @@ static bool run_source(
 
     if (
         self->tokenizer.had_error == true ||
-        self->parser.had_error == true ||
+        self->parser.had_syntax_error == true ||
         self->parser.had_runtime_error == true
     ) {
         // error_code__exit(HAD_ERROR_IS_TRUE_IN_RUN_SOURCE);
@@ -114,27 +114,28 @@ static bool run_source(
     struct tokenizer* tokenizer = &self->tokenizer;
 
     tokenizer__clear(tokenizer);
-    u64 time_start = __rdtsc();
+    // u64 time_start = __rdtsc();
     self->tokenizer_fn(tokenizer, source);
-    u64 time_end = __rdtsc();
-    libc__printf("Tokenizer Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
+    // u64 time_end = __rdtsc();
+    // libc__printf("Tokenizer Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
     // interpreter__print_tokens(self);
 
+    struct parser* parser = &self->parser;
+    self->parser_clear(parser);
     struct parser_statement* parsed_statement = NULL;
-    self->parser.token_index = 0;
+    // time_start = __rdtsc();
     do {
-        time_start = __rdtsc();
-        parsed_statement = self->token_parser_fn(&self->parser, &self->tokenizer);
-        time_end = __rdtsc();
-        libc__printf("Statement parse Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
+        parsed_statement = self->parser_parse_statement(parser);
         if (parsed_statement != NULL) {
-            self->evaluate_statement_fn(&self->parser, parsed_statement);
+            self->parser_evaluate_statement(parser, parsed_statement);
         }
-    } while (parsed_statement != NULL);
+    } while (self->parser_is_finished_parsing(parser) == false);
+    // time_end = __rdtsc();
+    // libc__printf("Statement parse and evaluate Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
 
-    lox_parser__print_expressions_table_stats(&self->parser);
-    lox_parser__print_literal_table_stats(&self->parser);
-    lox_parser__print_statements_table_stats(&self->parser);
+    // lox_parser__print_expressions_table_stats(parser);
+    // lox_parser__print_literal_table_stats(parser);
+    // lox_parser__print_statements_table_stats(parser);
 
     return true;
 }
@@ -177,8 +178,9 @@ void interpreter__run_prompt(struct interpreter* self) {
             prompt_is_running = false;
         } else {
             prompt_is_running |= run_source(self, line_buffer, read_line_length);
+            // todo: clear these at the appropriate places
             self->tokenizer.had_error = false;
-            self->parser.had_error = false;
+            self->parser.had_syntax_error = false;
             self->parser.had_runtime_error = false;
         }
     }

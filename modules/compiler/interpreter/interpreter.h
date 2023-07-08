@@ -19,11 +19,11 @@ struct interpreter {
     token__convert_token_to_string_fn convert_token_to_string_fn;
 
     struct parser parser;
-    parser__token_parser_fn token_parser_fn;
-    parser__convert_expr_to_string_fn convert_expr_to_string_fn;
-
-    parser__evaluate_expr_fn evaluate_expr_fn;
-    parser__evaluate_statement_fn evaluate_statement_fn;
+    parser__clear parser_clear;
+    parser__parse_statement parser_parse_statement;
+    parser__evaluate_statement parser_evaluate_statement;
+    parser__is_finished_parsing parser_is_finished_parsing;
+    parser__convert_expr_to_string parser_convert_expr_to_string;
 };
 
 PUBLIC_API bool interpreter__create(
