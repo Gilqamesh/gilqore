@@ -3,6 +3,7 @@ struct parser_statement* lox_parser__var_declaration(struct parser* self);
 struct parser_statement* lox_parser__statement(struct parser* self);
 struct parser_statement* lox_parser__expr_statement(struct parser* self);
 struct parser_statement* lox_parser__print_statement(struct parser* self);
+struct lox_parser_statement_node* lox_parser__block_statement(struct parser* self);
 struct parser_expression* lox_parser__expression(struct parser* self);
 struct parser_expression* lox_parser__comma(struct parser* self);
 struct parser_expression* lox_parser__assignment(struct parser* self);
@@ -62,15 +63,27 @@ struct parser_statement* lox_parser__var_declaration(struct parser* self) {
         }
     }
 
-    struct lox_parser_expr_var* var_value = lox_parser__set_expr__var(self, var_token, var_initializer);
+    struct lox_parser_expr_var* var_value = lox_parser__set_expr__var(
+        self,
+        lox_parser__get_current_env(self),
+        var_token, var_initializer
+    );
 
     return (struct parser_statement*) lox_parser__get_statement_var_decl(self, (struct parser_expression*) var_value);
 }
 
 struct parser_statement* lox_parser__statement(struct parser* self) {
-    struct tokenizer_token* print_token = lox_parser__advance_if(self, LOX_TOKEN_PRINT);
-    if (print_token != NULL) {
+    if (lox_parser__advance_if(self, LOX_TOKEN_PRINT) != NULL) {
         return lox_parser__print_statement(self);
+    }
+
+    if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
+        struct lox_parser_statement_node* statement_list = lox_parser__block_statement(self);
+        if (statement_list == NULL) {
+            // todo: free statement_list
+            return NULL;
+        }
+        return (struct parser_statement*) lox_parser__get_statement_block(self, statement_list);
     }
 
     return lox_parser__expr_statement(self);
@@ -110,6 +123,33 @@ struct parser_statement* lox_parser__print_statement(struct parser* self) {
     return (struct parser_statement*) lox_parser__get_statement_print(self, expression);
 }
 
+struct lox_parser_statement_node* lox_parser__block_statement(struct parser* self) {
+    struct lox_parser_statement_node* cur = NULL;
+    struct lox_parser_statement_node* result = cur;
+    while (
+        lox_parser__peek(self) != LOX_TOKEN_RIGHT_BRACE &&
+        lox_parser__is_finished_parsing(self) == false
+    ) {
+        struct parser_statement* statement = lox_parser__declaration(self);
+        if (statement == NULL) {
+            // todo: free result list
+            return NULL;
+        }
+        cur = lox_parser__get_statement_node(self, statement);
+        if (result == NULL) {
+            result = cur;
+        }
+        cur = cur->next;
+    }
+
+    if (lox_parser__advance_err(self, LOX_TOKEN_RIGHT_BRACE, "Expect '}' after block.") == NULL) {
+        // free result list
+        return NULL;
+    }
+
+    return result;
+}
+
 struct parser_expression* lox_parser__expression(struct parser* self) {
     return lox_parser__comma(self);
 }
@@ -142,11 +182,18 @@ struct parser_expression* lox_parser__assignment(struct parser* self) {
     struct tokenizer_token* equal_token = lox_parser__advance_if(self, LOX_TOKEN_EQUAL);
     if (equal_token != NULL) {
         struct parser_expression* right_expr = lox_parser__assignment(self);
+        if (right_expr == NULL) {
+            return NULL;
+        }
 
         if (left_expr->type == LOX_PARSER_EXPRESSION_TYPE_VAR) {
             struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) left_expr;
             left_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, equal_token, right_expr);
-            var_expr->value = right_expr;
+            lox_parser__set_expr__var(
+                self,
+                lox_parser__get_current_env(self),
+                var_expr->name, right_expr
+            );
         } else {
             parser__syntax_error(
                 self,
@@ -335,7 +382,10 @@ struct parser_expression* lox_parser__primary(struct parser* self) {
         case LOX_TOKEN_IDENTIFIER: {
             struct tokenizer_token* var_name = lox_parser__advance(self);
             ASSERT(var_name != NULL);
-            return (struct parser_expression*) lox_parser__get_expr__var(self, var_name);
+            return (struct parser_expression*) lox_parser__get_expr__var(
+                lox_parser__get_current_env(self),
+                var_name
+            );
         } break ;
         default: {
             return lox_parser__error(self);

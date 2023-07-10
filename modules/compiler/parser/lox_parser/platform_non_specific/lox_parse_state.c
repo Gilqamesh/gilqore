@@ -52,6 +52,46 @@ struct lox_statements_table* lox_parser__get_statements_table(struct parser* sel
     return table;
 }
 
+struct lox_var_environment* lox_parser__get_current_env(struct parser* self) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    ASSERT(table->var_environment_stack_fill > 0);
+    u32 env_index = table->var_environment_stack_fill - 1;
+    return (struct lox_var_environment*)(
+        (char*) table->var_environment_stack + env_index * table->var_environment_memory_size
+    );
+}
+
+struct lox_var_environment* lox_var_environment__push(struct parser* self) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    if (table->var_environment_stack_fill == table->var_environment_stack_size) {
+        error_code__exit(123324);
+    }
+
+    struct lox_var_environment* result = (struct lox_var_environment*)(
+        (char*) table->var_environment_stack + table->var_environment_stack_fill * table->var_environment_memory_size
+    );
+    if (table->var_environment_stack_fill == 0) {
+        result->enclosing_env = NULL;
+    } else {
+        result->enclosing_env = lox_parser__get_current_env(self);
+    }
+    ++table->var_environment_stack_fill;
+
+    result->var_expressions_arr = (void*) ((char*) result + sizeof(*result));
+    result->var_expressions_arr_fill = 0;
+    result->var_expressions_arr_size = (table->var_environment_memory_size - sizeof(*result)) / sizeof(*result->var_expressions_arr);
+    libc__memset(result->var_expressions_arr, 0, result->var_expressions_arr_size * sizeof(*result->var_expressions_arr));
+
+    return result;
+}
+
+void lox_var_environment__pop(struct parser* self) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    ASSERT(table->var_environment_stack_fill > 0);
+    --table->var_environment_stack_fill;
+}
+
 bool lox_parser_clear_tables(struct parser* self) {
     // todo: need data from the tokenizer on how much tokens it has for each token type
     // todo: determine the kinds of expressions we have
@@ -85,10 +125,12 @@ bool lox_parser_clear_tables(struct parser* self) {
         expression_table->literal_arr_size = expression_subtable_memory_size / sizeof(*expression_table->literal_arr);
         memory_offset += expression_subtable_memory_size;
 
-        expression_table->var_expressions_arr = (void*) ((char*) expression_table + memory_offset);
-        expression_table->var_expressions_arr_fill = 0;
-        expression_table->var_expressions_arr_size = expression_subtable_memory_size / sizeof(*expression_table->var_expressions_arr);
-        libc__memset(expression_table->var_expressions_arr, 0, expression_table->var_expressions_arr_size);
+        u32 number_of_environments = 64;
+        expression_table->var_environment_stack = (void*) ((char*) expression_table + memory_offset);
+        expression_table->var_environment_memory_size = expression_subtable_memory_size / number_of_environments;
+        expression_table->var_environment_stack_fill = 0;
+        expression_table->var_environment_stack_size = number_of_environments;
+        lox_var_environment__push(self);
         memory_offset += expression_subtable_memory_size;
     }
 
@@ -134,7 +176,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*statements_table);
         ASSERT(statements_table_size >= memory_offset);
         statements_table_size -= memory_offset;
-        u64 statements_subtable_memory_size = statements_table_size / 3;
+        u64 statements_subtable_memory_size = statements_table_size / 5;
 
         statements_table->print_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->print_statements_arr_fill = 0;
@@ -149,6 +191,16 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->var_decl_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->var_decl_statements_arr_fill = 0;
         statements_table->var_decl_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->var_decl_statements_arr);
+        memory_offset += statements_subtable_memory_size;
+        
+        statements_table->lox_parser_statement_node_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->lox_parser_statement_node_arr_fill = 0;
+        statements_table->lox_parser_statement_node_arr_size = statements_subtable_memory_size / sizeof(*statements_table->lox_parser_statement_node_arr);
+        memory_offset += statements_subtable_memory_size;
+        
+        statements_table->block_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->block_statements_arr_fill = 0;
+        statements_table->block_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->block_statements_arr);
         memory_offset += statements_subtable_memory_size;
     }
 
@@ -176,18 +228,8 @@ struct tokenizer_token* lox_parser__advance_err(
     enum lox_token_type token_type,
     const char* format, ...
 ) {
-    if (lox_parser__is_finished(self) == true) {
-        va_list ap;
-
-        va_start(ap, format);
-        parser__syntax_verror(self, format, ap);
-        va_end(ap);
-
-        return NULL;
-    }
-
     struct tokenizer_token* token = lox_parser__advance(self);
-    if (token->type != token_type) {
+    if (token == NULL || token->type != token_type) {
         va_list ap;
 
         va_start(ap, format);

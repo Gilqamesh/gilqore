@@ -18,9 +18,11 @@ declaration     -> var_decl
                  | statement ;
 var_decl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
 statement       -> expr_stmt
-                 | print_stmt ;
+                 | print_stmt
+                 | block ;
 expr_stmt       -> expression ";" ;
 print_statement -> "print" expression ";" ;
+block           -> "{" declaration* "}" ;
 expression      -> comma ;
 comma           -> assignment ( "," expression)* ;
 assignment      -> IDENTIFIER "=" assignment

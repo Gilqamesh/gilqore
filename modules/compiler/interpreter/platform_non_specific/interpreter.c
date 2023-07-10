@@ -133,9 +133,9 @@ static bool run_source(
     // time_end = __rdtsc();
     // libc__printf("Statement parse and evaluate Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
 
-    // lox_parser__print_expressions_table_stats(parser);
-    // lox_parser__print_literal_table_stats(parser);
-    // lox_parser__print_statements_table_stats(parser);
+    lox_parser__print_expressions_table_stats(parser);
+    lox_parser__print_literal_table_stats(parser);
+    lox_parser__print_statements_table_stats(parser);
 
     return true;
 }
