@@ -922,45 +922,49 @@ struct lox_parser_expr_var* lox_parser__get_expr__var(
     struct parser* self,
     struct tokenizer_token* var_name
 ) {
-    struct lox_var_environment* env = lox_parser__get_environment(self);
-    u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
+    struct lox_var_environment* enclosing_env = lox_parser__get_environment(self);
+    u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % enclosing_env->var_expressions_arr_size;
 
-    while (env != NULL) {
-        if (env->var_expressions_arr_fill == 0) {
-            return NULL;
-        }
-
-        for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
-            struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-            if (
-                cur_var->name != NULL &&
-                cur_var->name->lexeme_len == var_name->lexeme_len &&
-                libc__strncmp(
-                    cur_var->name->lexeme,
-                    var_name->lexeme,
-                    var_name->lexeme_len
-                ) == 0
-            ) {
-                return cur_var;
+    while (enclosing_env != NULL) {
+        struct lox_var_environment* env = enclosing_env;
+        while (env != NULL) {
+            if (env->var_expressions_arr_fill == 0) {
+                return NULL;
             }
-        }
 
-        for (u32 var_index = 0; var_index < var_hash; ++var_index) {
-            struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-            if (
-                cur_var->name != NULL &&
-                cur_var->name->lexeme_len == var_name->lexeme_len &&
-                libc__strncmp(
-                    cur_var->name->lexeme,
-                    var_name->lexeme,
-                    var_name->lexeme_len
-                ) == 0
-            ) {
-                return cur_var;
+            for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
+                struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
+                if (
+                    cur_var->name != NULL &&
+                    cur_var->name->lexeme_len == var_name->lexeme_len &&
+                    libc__strncmp(
+                        cur_var->name->lexeme,
+                        var_name->lexeme,
+                        var_name->lexeme_len
+                    ) == 0
+                ) {
+                    return cur_var;
+                }
             }
-        }
 
-        env = env->next;
+            for (u32 var_index = 0; var_index < var_hash; ++var_index) {
+                struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
+                if (
+                    cur_var->name != NULL &&
+                    cur_var->name->lexeme_len == var_name->lexeme_len &&
+                    libc__strncmp(
+                        cur_var->name->lexeme,
+                        var_name->lexeme,
+                        var_name->lexeme_len
+                    ) == 0
+                ) {
+                    return cur_var;
+                }
+            }
+
+            env = env->next;
+        }
+        enclosing_env = enclosing_env->parent;
     }
 
     return NULL;
