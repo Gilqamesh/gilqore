@@ -63,11 +63,7 @@ struct parser_statement* lox_parser__var_declaration(struct parser* self) {
         }
     }
 
-    struct lox_parser_expr_var* var_value = lox_parser__set_expr__var(
-        self,
-        lox_parser__get_current_env(self),
-        var_token, var_initializer
-    );
+    struct lox_parser_expr_var* var_value = lox_parser__set_expr__var(self, var_token, var_initializer);
 
     return (struct parser_statement*) lox_parser__get_statement_var_decl(self, (struct parser_expression*) var_value);
 }
@@ -78,6 +74,7 @@ struct parser_statement* lox_parser__statement(struct parser* self) {
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
+        ++self->env_id;
         struct lox_parser_statement_node* statement_list = lox_parser__block_statement(self);
         if (statement_list == NULL) {
             // todo: free statement_list
@@ -189,11 +186,7 @@ struct parser_expression* lox_parser__assignment(struct parser* self) {
         if (left_expr->type == LOX_PARSER_EXPRESSION_TYPE_VAR) {
             struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) left_expr;
             left_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, equal_token, right_expr);
-            lox_parser__set_expr__var(
-                self,
-                lox_parser__get_current_env(self),
-                var_expr->name, right_expr
-            );
+            lox_parser__set_expr__var(self, var_expr->name, right_expr);
         } else {
             parser__syntax_error(
                 self,
@@ -382,10 +375,7 @@ struct parser_expression* lox_parser__primary(struct parser* self) {
         case LOX_TOKEN_IDENTIFIER: {
             struct tokenizer_token* var_name = lox_parser__advance(self);
             ASSERT(var_name != NULL);
-            return (struct parser_expression*) lox_parser__get_expr__var(
-                lox_parser__get_current_env(self),
-                var_name
-            );
+            return (struct parser_expression*) lox_parser__get_expr__var(self, var_name);
         } break ;
         default: {
             return lox_parser__error(self);

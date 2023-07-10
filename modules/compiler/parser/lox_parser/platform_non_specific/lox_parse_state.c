@@ -52,44 +52,54 @@ struct lox_statements_table* lox_parser__get_statements_table(struct parser* sel
     return table;
 }
 
-struct lox_var_environment* lox_parser__get_current_env(struct parser* self) {
+static struct lox_var_environment* lox_parser__get_environment_internal(struct parser* self, u32 env_id) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-    ASSERT(table->var_environment_stack_fill > 0);
-    u32 env_index = table->var_environment_stack_fill - 1;
-    return (struct lox_var_environment*)(
-        (char*) table->var_environment_stack + env_index * table->var_environment_memory_size
-    );
+    ASSERT(env_id < table->var_env_arr_size);
+    struct lox_var_environment* result = (struct lox_var_environment*) ((char*) table->var_env_arr + env_id * table->var_environment_memory_size);
+    result->var_expressions_arr_size = (table->var_environment_memory_size - sizeof(*result)) / sizeof(*result->var_expressions_arr);
+    return result;
+}
+
+struct lox_var_environment* lox_parser__get_environment(struct parser* self) {
+    return lox_parser__get_environment_internal(self, self->env_id);
+}
+
+struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->var_env_pool_free_list != NULL) {
+        struct lox_var_environment* result = table->var_env_pool_free_list;
+        libc__memset(result, 0, table->var_environment_memory_size);
+        table->var_env_pool_free_list = table->var_env_pool_free_list->next;
+        return result;
+    }
+    if (table->var_env_pool_arr_fill == table->var_env_pool_arr_size) {
+        error_code__exit(324234);
+    }
+    struct lox_var_environment* result = (struct lox_var_environment*) ((char*) table->var_env_pool_arr + table->var_env_pool_arr_fill * table->var_environment_memory_size);
+    libc__memset(result, 0, table->var_environment_memory_size);
+    result->var_expressions_arr_size = (table->var_environment_memory_size - sizeof(*result)) / sizeof(*result->var_expressions_arr);
+    return result;
+}
+
+void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    struct lox_var_environment* cur = env->next;
+    while (cur != NULL) {
+        struct lox_var_environment* next = cur->next;
+        cur->next = table->var_env_pool_free_list;
+        table->var_env_pool_free_list = cur;
+        cur = next;
+    }
 }
 
 struct lox_var_environment* lox_var_environment__push(struct parser* self) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-
-    if (table->var_environment_stack_fill == table->var_environment_stack_size) {
-        error_code__exit(123324);
-    }
-
-    struct lox_var_environment* result = (struct lox_var_environment*)(
-        (char*) table->var_environment_stack + table->var_environment_stack_fill * table->var_environment_memory_size
-    );
-    if (table->var_environment_stack_fill == 0) {
-        result->enclosing_env = NULL;
-    } else {
-        result->enclosing_env = lox_parser__get_current_env(self);
-    }
-    ++table->var_environment_stack_fill;
-
-    result->var_expressions_arr = (void*) ((char*) result + sizeof(*result));
-    result->var_expressions_arr_fill = 0;
-    result->var_expressions_arr_size = (table->var_environment_memory_size - sizeof(*result)) / sizeof(*result->var_expressions_arr);
-    libc__memset(result->var_expressions_arr, 0, result->var_expressions_arr_size * sizeof(*result->var_expressions_arr));
-
-    return result;
-}
-
-void lox_var_environment__pop(struct parser* self) {
-    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-    ASSERT(table->var_environment_stack_fill > 0);
-    --table->var_environment_stack_fill;
+    // assumption: env is already cleared here by pop or first initialization
+    struct lox_var_environment* env = lox_parser__get_environment_internal(self, self->env_id);
+    env->var_expressions_arr = (void*) ((char*) env + sizeof(*env));
+    ASSERT(sizeof(*env) < table->var_environment_memory_size);
+    env->var_expressions_arr_size = (table->var_environment_memory_size - sizeof(*env)) / sizeof(*env->var_expressions_arr);
+    return env;
 }
 
 bool lox_parser_clear_tables(struct parser* self) {
@@ -103,7 +113,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*expression_table);
         ASSERT(expression_table_size >= memory_offset);
         expression_table_size -= memory_offset;
-        u64 expression_subtable_memory_size = expression_table_size / 5;
+        u64 expression_subtable_memory_size = expression_table_size / 7;
 
         expression_table->op_unary_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->op_unary_arr_fill = 0;
@@ -126,11 +136,17 @@ bool lox_parser_clear_tables(struct parser* self) {
         memory_offset += expression_subtable_memory_size;
 
         u32 number_of_environments = 64;
-        expression_table->var_environment_stack = (void*) ((char*) expression_table + memory_offset);
+        expression_table->var_env_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->var_environment_memory_size = expression_subtable_memory_size / number_of_environments;
-        expression_table->var_environment_stack_fill = 0;
-        expression_table->var_environment_stack_size = number_of_environments;
-        lox_var_environment__push(self);
+        expression_table->var_env_arr_size = number_of_environments;
+        libc__memset(expression_table->var_env_arr, 0, expression_subtable_memory_size);
+        memory_offset += expression_subtable_memory_size;
+
+        u32 number_of_env_pools = 128;
+        expression_table->var_env_pool_free_list = NULL;
+        expression_table->var_env_pool_arr = (void*) ((char*) expression_table + memory_offset);
+        expression_table->var_env_pool_arr_size = number_of_env_pools;
+        libc__memset(expression_table->var_env_pool_arr, 0, expression_subtable_memory_size);
         memory_offset += expression_subtable_memory_size;
     }
 

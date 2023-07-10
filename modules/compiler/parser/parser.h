@@ -12,6 +12,8 @@ struct parser {
     struct tokenizer* tokenizer;
     u32 token_index;
 
+    u32 env_id;
+
     bool had_syntax_error;
 
     bool had_runtime_error;

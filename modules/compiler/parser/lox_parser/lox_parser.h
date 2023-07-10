@@ -160,6 +160,7 @@ packed_struct(1) lox_parser_expr_literal {
 
 packed_struct(1) lox_parser_expr_var {
     struct parser_expression base;
+    u16 env_index;
     struct tokenizer_token* name;
     struct parser_expression* value;
 
@@ -168,10 +169,11 @@ packed_struct(1) lox_parser_expr_var {
 
 struct lox_var_environment {
     struct lox_parser_expr_var* var_expressions_arr;
+    struct lox_var_environment* parent;
+    struct lox_var_environment* next;
+
     u32 var_expressions_arr_fill;
     u32 var_expressions_arr_size;
-
-    struct lox_var_environment* enclosing_env;
 };
 
 struct lox_expressions_table {
@@ -191,10 +193,18 @@ struct lox_expressions_table {
     u32 literal_arr_fill;
     u32 literal_arr_size;
 
-    struct lox_var_environment* var_environment_stack;
+    // ENVIRONMENT START
     u32 var_environment_memory_size; // size of one env
-    u32 var_environment_stack_fill;
-    u32 var_environment_stack_size;
+    struct lox_var_environment* var_env_arr;
+    u32 var_env_arr_fill;
+    u32 var_env_arr_size;
+
+    struct lox_var_environment* var_env_pool_free_list;
+    struct lox_var_environment* var_env_pool_arr;
+    u32 var_env_pool_arr_fill;
+    u32 var_env_pool_arr_size;
+
+    // ENVIRONMENT END
 
     u64 table_memory_size;
 };
@@ -234,20 +244,18 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
 );
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr);
 
-struct lox_var_environment* lox_parser__get_current_env(struct parser* self);
+struct lox_var_environment* lox_parser__get_environment(struct parser* self);
 struct lox_var_environment* lox_var_environment__push(struct parser* self);
-void lox_var_environment__pop(struct parser* self);
+
+struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self);
+void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env);
+
 struct lox_parser_expr_var* lox_parser__get_expr__var(
-    struct lox_var_environment* env,
+    struct parser* self,
     struct tokenizer_token* var_name
-);
-void lox_parser__delete_expr__var(
-    struct lox_var_environment* env,
-    struct lox_parser_expr_var* var_expr
 );
 struct lox_parser_expr_var* lox_parser__set_expr__var(
     struct parser* self,
-    struct lox_var_environment* env,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
 );

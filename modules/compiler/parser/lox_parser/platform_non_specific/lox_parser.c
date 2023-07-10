@@ -17,6 +17,7 @@ bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
     self->had_runtime_error = false;
     self->token_index = 0;
+    self->env_id = 0;
     if (lox_parser_clear_tables(self) == false) {
         return false;
     }
@@ -97,10 +98,14 @@ void lox_parser__delete_from_expressions_table(
                 lox_parser__delete_from_expressions_table(self, env, var_expr->value);
             }
             // todo: delete var_expr->evaluated_literal;
-            lox_parser__delete_expr__var(env, var_expr);
+            // lox_parser__delete_expr__var(env, var_expr);
         } break ;
         default: ASSERT(false);
     }
+}
+
+void lox_parser__print_environment_stats(struct parser* self) {
+    (void) self;
 }
 
 void lox_parser__print_expressions_table_stats(struct parser* self) {
@@ -111,14 +116,13 @@ void lox_parser__print_expressions_table_stats(struct parser* self) {
         "  binary expressions allocated: %u, total: %u\n"
         "  grouping expressions allocated: %u, total: %u\n"
         "  literal expressions allocated: %u, total: %u\n"
-        "  global environment variable expressions allocated: %u, total: %u\n"
         "  -----------------------------\n",
         table->op_unary_arr_fill, table->op_unary_arr_size,
         table->op_binary_arr_fill, table->op_binary_arr_size,
         table->grouping_arr_fill, table->grouping_arr_size,
-        table->literal_arr_fill, table->literal_arr_size,
-        table->var_environment_stack->var_expressions_arr_fill, table->var_environment_stack->var_expressions_arr_size
+        table->literal_arr_fill, table->literal_arr_size
     );
+    lox_parser__print_environment_stats(self);
 }
 
 struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
@@ -766,7 +770,7 @@ void lox_parser__interpret_expr(struct parser* self, struct parser_expression* e
     lox_parser__literal_base_print(literal);
 }
 
-void lox_parser__evaluate_statement(struct parser* self, struct parser_statement* statement) {
+static void lox_parser__evaluate_statement_internal(struct parser* self, struct parser_statement* statement) {
     switch (statement->type) {
         case LOX_PARSER_STATEMENT_TYPE_PRINT: {
             struct lox_parser_statement_print* print_statement = (struct lox_parser_statement_print*) statement;
@@ -788,15 +792,14 @@ void lox_parser__evaluate_statement(struct parser* self, struct parser_statement
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_BLOCK: {
             struct lox_parser_statement_block* block_statement = (struct lox_parser_statement_block*) statement;
-            struct lox_var_environment* new_env = lox_var_environment__push(self);
-            (void) new_env;
-
+            ++self->env_id;
             struct lox_parser_statement_node* cur_node = block_statement->statement_list;
             while (cur_node != NULL) {
-                lox_parser__evaluate_statement(self, cur_node->statement);
+                lox_parser__evaluate_statement_internal(self, cur_node->statement);
                 cur_node = cur_node->next;
             }
-            lox_var_environment__pop(self);
+            ASSERT(self->env_id > 0 && "parser may not be synced properly in case a parser error occured");
+            --self->env_id;
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_NODE: {
             struct lox_parser_statement_node* node_statement = (struct lox_parser_statement_node*) statement;
@@ -805,6 +808,11 @@ void lox_parser__evaluate_statement(struct parser* self, struct parser_statement
         }
         default: ASSERT(false);
     }
+}
+
+void lox_parser__evaluate_statement(struct parser* self, struct parser_statement* statement) {
+    self->env_id = 0;
+    lox_parser__evaluate_statement_internal(self, statement);
 }
 
 bool lox_parser__is_finished_parsing(struct parser* self) {
@@ -911,38 +919,48 @@ struct lox_parser_statement_block* lox_parser__get_statement_block(
 }
 
 struct lox_parser_expr_var* lox_parser__get_expr__var(
-    struct lox_var_environment* env,
+    struct parser* self,
     struct tokenizer_token* var_name
 ) {
+    struct lox_var_environment* env = lox_parser__get_environment(self);
     u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
-    for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
-        struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-        if (
-            cur_var->name != NULL &&
-            cur_var->name->lexeme_len == var_name->lexeme_len &&
-            libc__strncmp(
-                cur_var->name->lexeme,
-                var_name->lexeme,
-                var_name->lexeme_len
-            ) == 0
-        ) {
-            return cur_var;
-        }
-    }
 
-    for (u32 var_index = 0; var_index < var_hash; ++var_index) {
-        struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-        if (
-            cur_var->name != NULL &&
-            cur_var->name->lexeme_len == var_name->lexeme_len &&
-            libc__strncmp(
-                cur_var->name->lexeme,
-                var_name->lexeme,
-                var_name->lexeme_len
-            ) == 0
-        ) {
-            return cur_var;
+    while (env != NULL) {
+        if (env->var_expressions_arr_fill == 0) {
+            return NULL;
         }
+
+        for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
+            struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
+            if (
+                cur_var->name != NULL &&
+                cur_var->name->lexeme_len == var_name->lexeme_len &&
+                libc__strncmp(
+                    cur_var->name->lexeme,
+                    var_name->lexeme,
+                    var_name->lexeme_len
+                ) == 0
+            ) {
+                return cur_var;
+            }
+        }
+
+        for (u32 var_index = 0; var_index < var_hash; ++var_index) {
+            struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
+            if (
+                cur_var->name != NULL &&
+                cur_var->name->lexeme_len == var_name->lexeme_len &&
+                libc__strncmp(
+                    cur_var->name->lexeme,
+                    var_name->lexeme,
+                    var_name->lexeme_len
+                ) == 0
+            ) {
+                return cur_var;
+            }
+        }
+
+        env = env->next;
     }
 
     return NULL;
@@ -950,10 +968,20 @@ struct lox_parser_expr_var* lox_parser__get_expr__var(
 
 struct lox_parser_expr_var* lox_parser__set_expr__var(
     struct parser* self,
-    struct lox_var_environment* env,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
 ) {
+    struct lox_var_environment* env = lox_parser__get_environment(self);
+    while (
+        env != NULL &&
+        env->var_expressions_arr_fill == env->var_expressions_arr_size
+    ) {
+        env = env->next;
+    }
+    if (env == NULL) {
+        env = lox_var_environment__get_from_pool(self);
+    }
+
     u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
     for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
         struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
@@ -975,7 +1003,7 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             ) == 0
         ) {
             // delete previous declaration
-            lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
+            // lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
             // note: allow redeclaring/redefining variables
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
@@ -1008,11 +1036,11 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             ) == 0
         ) {
             // delete previous declaration
-            lox_parser__delete_from_expressions_table(
-                self,
-                env,
-                (struct parser_expression*) cur_var
-            );
+            // lox_parser__delete_from_expressions_table(
+            //     self,
+            //     env,
+            //     (struct parser_expression*) cur_var
+            // );
             // note: allow redeclaring/redefining variables
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
@@ -1028,17 +1056,6 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
     // var declaration arr is full
     error_code__exit(12434);
     return NULL;
-}
-
-void lox_parser__delete_expr__var(
-    struct lox_var_environment* env,
-    struct lox_parser_expr_var* var_expr
-) {
-    ASSERT(env->var_expressions_arr_fill != 0);
-    --env->var_expressions_arr_fill;
-
-    struct lox_parser_expr_var* env_var = lox_parser__get_expr__var(env, var_expr->name);
-    env_var->name = NULL;
 }
 
 static struct parser_literal* lox_parser__evaluate_binary(struct parser* self, struct parser_expression* expr) {
@@ -1370,19 +1387,7 @@ struct parser_literal* lox_parser__evaluate_variable(struct parser* self, struct
         return var_expr->evaluated_literal;
     }
 
-    struct lox_var_environment* cur_env = lox_parser__get_current_env(self);
-    struct lox_parser_expr_var* env_var = lox_parser__get_expr__var(cur_env, var_expr->name);
-    if (env_var == NULL) {
-        cur_env = cur_env->enclosing_env;
-        while (cur_env != NULL) {
-            env_var = lox_parser__get_expr__var(cur_env, var_expr->name);
-            if (env_var != NULL) {
-                break ;
-            }
-
-            cur_env = cur_env->enclosing_env;
-        }
-    }
+    struct lox_parser_expr_var* env_var = lox_parser__get_expr__var(self, var_expr->name);
 
     if (env_var == NULL) {
         // note: if it was syntax error, we wouldn't be able to reference variables without forward declaration,
@@ -1395,13 +1400,8 @@ struct parser_literal* lox_parser__evaluate_variable(struct parser* self, struct
     }
 
     if (env_var->value == NULL) {
-        struct lox_parser_expr_literal* env_var_literal = lox_parser__get_expr__literal(self, env_var->name);
-        lox_parser__set_expr__var(
-            self,
-            cur_env,
-            env_var_literal->value,
-            (struct parser_expression*) env_var_literal
-        );
+        parser__runtime_error(self, "Variable '%.*s' uninitialized", env_var->name->lexeme_len, env_var->name->lexeme);
+        return NULL;
     }
 
     struct parser_literal* evaluated_literal = lox_parser__evaluate_expression(self, env_var->value);
