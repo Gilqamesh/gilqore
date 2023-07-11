@@ -71,9 +71,4 @@ PUBLIC_API void parser__syntax_verror(
     const char* message, va_list ap
 );
 
-PUBLIC_API void parser__runtime_error(
-    struct parser* self,
-    const char* format, ...
-);
-
 #endif // PARSER_H

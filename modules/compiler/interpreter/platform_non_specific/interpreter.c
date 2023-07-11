@@ -10,6 +10,8 @@
 
 #include "compiler/parser/lox_parser/lox_parser.h"
 
+#include "compiler/interpreter/lox_interpreter/lox_interpreter.h"
+
 bool interpreter__create(
     struct interpreter* self,
     enum interpreter_type type,
@@ -186,4 +188,20 @@ void interpreter__run_prompt(struct interpreter* self) {
     }
 
     console__deinit_module(console);
+}
+
+void interpreter__runtime_error(
+    struct interpreter* self,
+    const char* format, ...
+) {
+    self->had_runtime_error = true;
+    va_list ap;
+
+    libc__printf("Runtime error: ");
+
+    va_start(ap, format);
+    libc__vprintf(format, ap);
+    va_end(ap);
+
+    libc__printf("\n");
 }

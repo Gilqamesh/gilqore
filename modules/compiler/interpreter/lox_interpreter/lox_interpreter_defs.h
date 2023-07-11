@@ -5,7 +5,6 @@
 
 enum lox_interpreter_error_code {
     LOX_INTERPRETER_ERROR_CODE_START,
-
 };
 
 #endif

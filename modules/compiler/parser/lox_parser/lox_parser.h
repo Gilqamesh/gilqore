@@ -11,14 +11,9 @@ PUBLIC_API bool lox_parser__clear(struct parser* self);
 
 PUBLIC_API struct parser_statement* lox_parser__parse_statement(struct parser* self);
 
-PUBLIC_API void lox_parser__evaluate_statement(struct parser* self, struct parser_statement* statement);
-
 PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
 
 PUBLIC_API struct memory_slice lox_parser__convert_expr_to_string(struct parser_expression* expr, struct memory_slice buffer);
-
-PUBLIC_API void lox_parser__interpret_expr(struct parser* self, struct parser_expression* expr);
-
 
 // STATEMENTS TYPES, METHODS AND TABLE START
 
