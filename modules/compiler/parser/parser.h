@@ -48,10 +48,6 @@ typedef bool (*parser__clear)(struct parser* self);
 // @note implement this function for every parser
 typedef struct parser_statement* (*parser__parse_statement)(struct parser* self);
 
-// @brief evaluates a statement
-// @note implement this function for every parser
-typedef void (*parser__evaluate_statement)(struct parser* self, struct parser_statement* statement);
-
 // @returns true if parsed all tokens
 // @note implement this function for every parser
 typedef bool (*parser__is_finished_parsing)(struct parser* self);

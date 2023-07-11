@@ -811,7 +811,7 @@ static void lox_parser__evaluate_statement_internal(struct parser* self, struct 
 }
 
 void lox_parser__evaluate_statement(struct parser* self, struct parser_statement* statement) {
-    self->env_id = 0;
+    self->env_id = 1;
     lox_parser__evaluate_statement_internal(self, statement);
 }
 

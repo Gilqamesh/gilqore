@@ -74,7 +74,7 @@ struct parser_statement* lox_parser__statement(struct parser* self) {
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
-        ++self->env_id;
+        lox_parser__push_environment(self);
         struct lox_parser_statement_node* statement_list = lox_parser__block_statement(self);
         if (statement_list == NULL) {
             // todo: free statement_list

@@ -245,7 +245,7 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr);
 
 struct lox_var_environment* lox_parser__get_environment(struct parser* self);
-struct lox_var_environment* lox_var_environment__push(struct parser* self);
+struct lox_var_environment* lox_parser__push_environment(struct parser* self);
 
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self);
 void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env);
