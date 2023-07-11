@@ -464,7 +464,7 @@ struct parser_expression* lox_parser__error(struct parser* self) {
         default: {
             struct tokenizer_token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
-            parser__syntax_error(self, "Unknown token.");
+            parser__syntax_error(self, "Unknown token '%.*s'.", op->lexeme_len, op->lexeme);
         } break ;
     }
 

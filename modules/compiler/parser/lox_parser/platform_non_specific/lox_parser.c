@@ -843,7 +843,7 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
             cur_var->value = var_value;
-            cur_var->evaluated_literal = NULL;
+            // cur_var->evaluated_literal = NULL;
 
             ++env->var_expressions_arr_fill;
 
@@ -880,7 +880,7 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
             cur_var->value = var_value;
-            cur_var->evaluated_literal = NULL;
+            // cur_var->evaluated_literal = NULL;
 
             ++env->var_expressions_arr_fill;
 
