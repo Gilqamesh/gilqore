@@ -5,6 +5,11 @@
 
 enum lox_interpreter_windows_error_code {
     WINDOWS_LOX_INTERPRETER_ERROR_CODE_START,
+};
+
+
+enum lox_interpreter_windows_error_code {
+    WINDOWS_LOX_INTERPRETER_ERROR_CODE_START,
 
 };
 

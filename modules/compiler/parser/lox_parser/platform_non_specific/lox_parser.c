@@ -17,10 +17,13 @@ bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
     self->had_runtime_error = false;
     self->token_index = 0;
-    self->env_id = 0;
+    self->env_parse_id = 0;
+    self->env_stack_ids_fill = 0;
     if (lox_parser_clear_tables(self) == false) {
         return false;
     }
+    // global env
+    lox_parser__push_environment(self);
 
     return true;
 }
@@ -53,13 +56,17 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
 
 #include "lox_parse_state.inl"
 
-struct parser_statement* lox_parser__parse_statement(struct parser* self) {
-    struct parser_statement* statement = lox_parser__declaration(self);
-    if (statement == NULL) {
+struct parser_program lox_parser__parse_program(struct parser* self) {
+    struct parser_program program;
+
+    program.starting_env_parse_id = self->env_parse_id;
+    program.starting_env_stack_ids_fill = self->env_stack_ids_fill;
+    program.statement = lox_parser__declaration(self);
+    if (program.statement == NULL) {
         lox_parser__advance_till_next_statement(self);
     }
 
-    return statement;
+    return program;
 }
 
 void lox_parser__delete_from_expressions_table(
@@ -752,11 +759,10 @@ struct lox_parser_expr_var* lox_parser__get_expr__var(
 
     while (enclosing_env != NULL) {
         struct lox_var_environment* env = enclosing_env;
-        while (env != NULL) {
-            if (env->var_expressions_arr_fill == 0) {
-                return NULL;
-            }
-
+        while (
+            env != NULL &&
+            env->var_expressions_arr_fill > 0
+        ) {
             for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
                 struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
                 if (

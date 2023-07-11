@@ -17,7 +17,7 @@ struct interpreter;
 
 // @brief evaluates a statement
 // @note implement this function for every interpreter
-typedef void (*interpreter__interpret_statement)(struct interpreter* self, struct parser_statement* statement);
+typedef void (*interpreter__interpret_program)(struct interpreter* self, struct parser_program program);
 
 struct interpreter {
     struct tokenizer tokenizer;
@@ -26,13 +26,12 @@ struct interpreter {
 
     struct parser parser;
     parser__clear parser_clear;
-    parser__parse_statement parser_parse_statement;
+    parser__parse_program parser_parse_program;
     parser__is_finished_parsing parser_is_finished_parsing;
     parser__convert_expr_to_string parser_convert_expr_to_string;
 
-    u32 env_id;
     bool had_runtime_error;
-    interpreter__interpret_statement interpreter_evaluate_statement;
+    interpreter__interpret_program interpreter_evaluate_program;
 };
 
 PUBLIC_API bool interpreter__create(

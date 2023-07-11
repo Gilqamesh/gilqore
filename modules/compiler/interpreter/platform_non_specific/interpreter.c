@@ -23,20 +23,22 @@ bool interpreter__create(
             self->convert_token_to_string_fn = &token__type_name_comment;
 
             self->parser_clear = NULL;
-            self->parser_parse_statement = NULL;
-            self->parser_evaluate_statement = NULL;
+            self->parser_parse_program = NULL;
             self->parser_is_finished_parsing = NULL;
             self->parser_convert_expr_to_string = NULL;
+
+            self->interpreter_evaluate_program = NULL;
         } break ;
         case INTERPRETER_TYPE_LOX: {
             self->tokenizer_fn = &lox_tokenizer__tokenize;
             self->convert_token_to_string_fn = &lox_token__type_name;
 
             self->parser_clear = &lox_parser__clear;
-            self->parser_parse_statement = &lox_parser__parse_statement;
-            self->parser_evaluate_statement = &lox_parser__evaluate_statement;
+            self->parser_parse_program = &lox_parser__parse_program;
             self->parser_is_finished_parsing = &lox_parser__is_finished_parsing;
             self->parser_convert_expr_to_string = &lox_parser__convert_expr_to_string;
+
+            self->interpreter_evaluate_program = &lox_interpreter__interpret_program;
         } break ;
         default: {
             // error_code__exit(UNKNOWN_INTERPRETER_TYPE);
@@ -123,13 +125,12 @@ static bool run_source(
     // interpreter__print_tokens(self);
 
     struct parser* parser = &self->parser;
-    self->parser_clear(parser);
-    struct parser_statement* parsed_statement = NULL;
     // time_start = __rdtsc();
+    self->parser_clear(parser);
     do {
-        parsed_statement = self->parser_parse_statement(parser);
-        if (parsed_statement != NULL) {
-            self->parser_evaluate_statement(parser, parsed_statement);
+        struct parser_program program = self->parser_parse_program(parser);
+        if (parser__is_program_valid(program) == true) {
+            self->interpreter_evaluate_program(self, program);
         }
     } while (self->parser_is_finished_parsing(parser) == false);
     // time_end = __rdtsc();

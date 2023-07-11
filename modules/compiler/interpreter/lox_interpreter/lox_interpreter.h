@@ -5,6 +5,6 @@
 
 # include "compiler/interpreter/interpreter.h"
 
-PUBLIC_API void lox_interpreter__interpret_statement(struct interpreter* self, struct parser_statement* statement);
+PUBLIC_API void lox_interpreter__interpret_program(struct interpreter* self, struct parser_program program);
 
 #endif // LOX_INTERPRETER_H

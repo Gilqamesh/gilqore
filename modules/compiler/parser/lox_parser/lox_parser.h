@@ -9,7 +9,7 @@ struct tokenizer_token;
 
 PUBLIC_API bool lox_parser__clear(struct parser* self);
 
-PUBLIC_API struct parser_statement* lox_parser__parse_statement(struct parser* self);
+PUBLIC_API struct parser_program lox_parser__parse_program(struct parser* self);
 
 PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
 
@@ -164,6 +164,7 @@ packed_struct(1) lox_parser_expr_var {
 
 struct lox_var_environment {
     struct lox_parser_expr_var* var_expressions_arr;
+    // todo: remove, we can infer this from the current env_id
     struct lox_var_environment* parent;
     struct lox_var_environment* next;
 
@@ -238,6 +239,9 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
     struct tokenizer_token* value
 );
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr);
+
+void lox_parser__increment_environment(struct parser* self);
+void lox_parser__decrement_environment(struct parser* self);
 
 struct lox_var_environment* lox_parser__get_environment(struct parser* self);
 struct lox_var_environment* lox_parser__push_environment(struct parser* self);
@@ -317,8 +321,6 @@ struct lox_literal_table {
 };
 
 void lox_parser__print_literal_table_stats(struct parser* self);
-
-struct parser_literal* lox_parser__evaluate_expression(struct parser* self, struct parser_expression* expr);
 
 struct lox_literal_object* lox_parser__get_literal__object(
     struct parser* self,

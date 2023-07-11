@@ -74,7 +74,6 @@ struct parser_statement* lox_parser__statement(struct parser* self) {
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
-        lox_parser__push_environment(self);
         struct lox_parser_statement_node* statement_list = lox_parser__block_statement(self);
         if (statement_list == NULL) {
             // todo: free statement_list
@@ -123,6 +122,9 @@ struct parser_statement* lox_parser__print_statement(struct parser* self) {
 struct lox_parser_statement_node* lox_parser__block_statement(struct parser* self) {
     struct lox_parser_statement_node* cur = NULL;
     struct lox_parser_statement_node* result = cur;
+
+    lox_parser__push_environment(self);
+
     while (
         lox_parser__peek(self) != LOX_TOKEN_RIGHT_BRACE &&
         lox_parser__is_finished_parsing(self) == false
@@ -132,17 +134,22 @@ struct lox_parser_statement_node* lox_parser__block_statement(struct parser* sel
             // todo: free result list
             return NULL;
         }
-        cur = lox_parser__get_statement_node(self, statement);
-        if (result == NULL) {
+        if (cur == NULL) {
+            cur = lox_parser__get_statement_node(self, statement);
             result = cur;
+        } else {
+            cur->next = lox_parser__get_statement_node(self, statement);
+            cur = cur->next;
         }
-        cur = cur->next;
     }
 
     if (lox_parser__advance_err(self, LOX_TOKEN_RIGHT_BRACE, "Expect '}' after block.") == NULL) {
-        // free result list
+        // todo: free result list
+        // todo: synchronize
         return NULL;
     }
+    
+    lox_parser__decrement_environment(self);
 
     return result;
 }
@@ -375,7 +382,16 @@ struct parser_expression* lox_parser__primary(struct parser* self) {
         case LOX_TOKEN_IDENTIFIER: {
             struct tokenizer_token* var_name = lox_parser__advance(self);
             ASSERT(var_name != NULL);
-            return (struct parser_expression*) lox_parser__get_expr__var(self, var_name);
+            struct lox_parser_expr_var* var_expr = lox_parser__get_expr__var(self, var_name);
+            if (var_expr == NULL) {
+                parser__syntax_error(
+                    self,
+                    "Undefined variable '%.*s'.",
+                    var_name->lexeme_len, var_name->lexeme
+                );
+            }
+
+            return (struct parser_expression*) var_expr; 
         } break ;
         default: {
             return lox_parser__error(self);
