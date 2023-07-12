@@ -17,8 +17,6 @@ bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
     self->had_runtime_error = false;
     self->token_index = 0;
-    self->env_parse_id = 0;
-    self->env_stack_ids_fill = 0;
     if (lox_parser_clear_tables(self) == false) {
         return false;
     }
@@ -801,7 +799,7 @@ struct lox_parser_expr_var* lox_parser__get_expr__var(
     return NULL;
 }
 
-struct lox_parser_expr_var* lox_parser__set_expr__var(
+struct lox_parser_expr_var* lox_parser__defined_expr_var(
     struct parser* self,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
@@ -843,7 +841,8 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
             cur_var->value = var_value;
-            // cur_var->evaluated_literal = NULL;
+            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
+            // and in other situations the equal binary operator should evaluate and replace the value properly
 
             ++env->var_expressions_arr_fill;
 
@@ -871,15 +870,13 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
             ) == 0
         ) {
             // delete previous declaration
-            // lox_parser__delete_from_expressions_table(
-            //     self,
-            //     env,
-            //     (struct parser_expression*) cur_var
-            // );
+            // lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
             // note: allow redeclaring/redefining variables
             cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
             cur_var->name = var_name;
             cur_var->value = var_value;
+            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
+            // and in other situations the equal binary operator should evaluate and replace the value properly
             // cur_var->evaluated_literal = NULL;
 
             ++env->var_expressions_arr_fill;
@@ -891,6 +888,27 @@ struct lox_parser_expr_var* lox_parser__set_expr__var(
     // var declaration arr is full
     error_code__exit(12434);
     return NULL;
+}
+
+struct lox_parser_expr_var* lox_parser__set_expr__var(
+    struct parser* self,
+    struct tokenizer_token* var_name,
+    struct parser_expression* var_value
+) {
+    struct lox_parser_expr_var* expr_var = lox_parser__get_expr__var(self, var_name);
+    if (expr_var == NULL) {
+        return NULL;
+    }
+
+    // todo: delete previous declaration
+    //   lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
+    // note: allow redeclaring/redefining variables
+    // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
+    // and in other situations the equal binary operator should evaluate and replace the value properly
+    expr_var->name = var_name;
+    expr_var->value = var_value;
+
+    return expr_var;
 }
 
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type) {

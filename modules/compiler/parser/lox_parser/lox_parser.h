@@ -169,6 +169,8 @@ struct lox_var_environment {
     struct lox_var_environment* next;
 
     u32 var_expressions_arr_fill;
+
+    // todo: remove, we can infer this from table
     u32 var_expressions_arr_size;
 };
 
@@ -252,6 +254,11 @@ void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_enviro
 struct lox_parser_expr_var* lox_parser__get_expr__var(
     struct parser* self,
     struct tokenizer_token* var_name
+);
+struct lox_parser_expr_var* lox_parser__defined_expr_var(
+    struct parser* self,
+    struct tokenizer_token* var_name,
+    struct parser_expression* var_value
 );
 struct lox_parser_expr_var* lox_parser__set_expr__var(
     struct parser* self,

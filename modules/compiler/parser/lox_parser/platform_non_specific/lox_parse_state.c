@@ -164,6 +164,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         memory_offset += expression_subtable_memory_size;
 
         u32 number_of_environments = 64;
+        self->env_parse_id = 0;
         self->env_stack_ids_fill = 0;
         self->env_stack_ids_size = number_of_environments;
         self->env_stack_ids = (void*) ((char*) expression_table + memory_offset);
