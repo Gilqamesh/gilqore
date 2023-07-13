@@ -18,20 +18,27 @@ declaration     -> var_decl
                  | statement ;
 var_decl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
 statement       -> expr_stmt
+                 | if_stmt
                  | print_stmt
+                 | while_stmt
                  | block ;
 expr_stmt       -> expression ";" ;
-print_statement -> "print" expression ";" ;
+if_stmt         -> "if" "(" expression ")" statement
+                    ( "else" statement )? ;
+print_stmt      -> "print" expression ";" ;
+while_stmt      -> "while" "(" expression ")" statement ;
 block           -> "{" declaration* "}" ;
 expression      -> comma ;
 comma           -> assignment ( "," expression)* ;
-assignment      -> IDENTIFIER "=" assignment
-                 | ternary ;
-ternary         -> equality ( "?" expression ":" expression )* ;
+assignment      -> ternary
+                 | IDENTIFIER "=" assignment ;
+ternary         -> logical_or ( "?" expression ":" expression )* ;
+logical_or      -> logical_and ( "or" logical_and )* ;
+logical_and     -> equality ( "and" equality )* ;
 equality        -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison      -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term            -> factor ( ( "-" | "+" ) factor )* ;
-factor          -> unary ( ( "/" | "*" ) unary )* ;
+factor          -> unary ( ( "/" | "*" | "%" ) unary )* ;
 unary           -> ( "!" | "-" ) unary
                  | primary ;
 primary         -> NUMBER | STRING | "true" | "false" | "nil"

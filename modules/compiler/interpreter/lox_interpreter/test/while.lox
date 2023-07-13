@@ -1,0 +1,10 @@
+var collatz_start = 10000000000000;
+
+while (collatz_start != 1) {
+    print collatz_start;
+    if (collatz_start % 2 == 0) {
+        collatz_start = collatz_start / 2;
+    } else {
+        collatz_start = 3 * collatz_start + 1;
+    }
+}

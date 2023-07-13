@@ -80,7 +80,7 @@ struct lox_var_environment* lox_parser__push_environment(struct parser* self) {
     struct lox_var_environment* result = (struct lox_var_environment*) ((char*) table->var_env_arr + self->env_parse_id * table->var_environment_memory_size);
     lox_parser__clear_environment(self, result);
     if (self->env_stack_ids_fill > 0) {
-        result->parent = lox_parser__get_environment_by_internal(self, self->env_stack_ids[self->env_stack_ids_fill]);
+        result->parent = lox_parser__get_environment_by_internal(self, self->env_stack_ids[self->env_stack_ids_fill - 1]);
     }
 
     lox_parser__increment_environment(self);
@@ -141,7 +141,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*expression_table);
         ASSERT(expression_table_size >= memory_offset);
         expression_table_size -= memory_offset;
-        u64 expression_subtable_memory_size = expression_table_size / 7;
+        u64 expression_subtable_memory_size = expression_table_size / 8;
 
         expression_table->op_unary_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->op_unary_arr_fill = 0;
@@ -161,6 +161,11 @@ bool lox_parser_clear_tables(struct parser* self) {
         expression_table->literal_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->literal_arr_fill = 0;
         expression_table->literal_arr_size = expression_subtable_memory_size / sizeof(*expression_table->literal_arr);
+        memory_offset += expression_subtable_memory_size;
+
+        expression_table->logical_arr = (void*) ((char*) expression_table + memory_offset);
+        expression_table->logical_arr_fill = 0;
+        expression_table->logical_arr_size = expression_subtable_memory_size / sizeof(*expression_table->logical_arr);
         memory_offset += expression_subtable_memory_size;
 
         u32 number_of_environments = 64;
@@ -225,7 +230,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*statements_table);
         ASSERT(statements_table_size >= memory_offset);
         statements_table_size -= memory_offset;
-        u64 statements_subtable_memory_size = statements_table_size / 5;
+        u64 statements_subtable_memory_size = statements_table_size / 7;
 
         statements_table->print_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->print_statements_arr_fill = 0;
@@ -250,6 +255,16 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->block_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->block_statements_arr_fill = 0;
         statements_table->block_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->block_statements_arr);
+        memory_offset += statements_subtable_memory_size;
+
+        statements_table->if_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->if_statements_arr_fill = 0;
+        statements_table->if_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->if_statements_arr);
+        memory_offset += statements_subtable_memory_size;
+
+        statements_table->while_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->while_statements_arr_fill = 0;
+        statements_table->while_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->while_statements_arr);
         memory_offset += statements_subtable_memory_size;
     }
 

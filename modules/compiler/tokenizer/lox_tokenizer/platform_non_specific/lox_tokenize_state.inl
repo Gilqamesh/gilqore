@@ -55,6 +55,9 @@ INLINE static void lox_tokenize_state__dispatch_text(struct lox_tokenize_state* 
         case '?': {
             lox_tokenize_state__add_token(self, LOX_TOKEN_QUESTION_MARK);
         } break ;
+        case '%': {
+            lox_tokenize_state__add_token(self, LOX_TOKEN_PERCENTAGE);
+        } break ;
         case ':': {
             self->state = STATE_COLON;
         } break ;

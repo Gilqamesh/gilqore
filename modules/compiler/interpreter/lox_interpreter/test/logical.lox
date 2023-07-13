@@ -1,0 +1,4 @@
+print "yo" or 5;
+print nil or 5;
+print "yo" and 5;
+print nil and 5;

@@ -33,6 +33,7 @@ const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type e
         case LOX_PARSER_EXPRESSION_TYPE_GROUPING: return "grouping";
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: return "literal";
         case LOX_PARSER_EXPRESSION_TYPE_VAR: return "variable";
+        case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: return "logical";
         default: {
             ASSERT(false);
             return NULL;
@@ -45,6 +46,10 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
         case LOX_PARSER_STATEMENT_TYPE_PRINT: return "print";
         case LOX_PARSER_STATEMENT_TYPE_EXPRESSION: return "expression";
         case LOX_PARSER_STATEMENT_TYPE_VAR_DECL: return "variable declaration";
+        case LOX_PARSER_STATEMENT_TYPE_NODE: return "node";
+        case LOX_PARSER_STATEMENT_TYPE_BLOCK: return "block";
+        case LOX_PARSER_STATEMENT_TYPE_IF: return "if";
+        case LOX_PARSER_STATEMENT_TYPE_WHILE: return "while";
         default: {
             ASSERT(false);
             return NULL;
@@ -382,6 +387,32 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
 
     error_code__exit(324342);
     return NULL;
+}
+
+struct lox_parser_expr_logical* lox_parser__get_expr__logical(
+    struct parser* self,
+    struct parser_expression* left,
+    struct tokenizer_token* op,
+    struct parser_expression* right
+) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->logical_arr_fill == table->logical_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_expr_logical* result = &table->logical_arr[table->logical_arr_fill++];
+    result->base.type = LOX_PARSER_EXPRESSION_TYPE_LOGICAL;
+    result->left = left;
+    result->op = op;
+    result->right = right;
+    result->evaluated_literal = NULL;
+
+    return result;
+}
+
+void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr) {
+    (void) self;
+    (void) logical_expr;
 }
 
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr) {
@@ -748,6 +779,44 @@ struct lox_parser_statement_block* lox_parser__get_statement_block(
     return result;
 }
 
+struct lox_parser_statement_if* lox_parser__get_statement_if(
+    struct parser* self,
+    struct parser_expression* condition,
+    struct parser_statement* then_branch,
+    struct parser_statement* else_branch
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->if_statements_arr_fill == table->if_statements_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_if* result = &table->if_statements_arr[table->if_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_IF;
+    result->condition = condition;
+    result->then_branch = then_branch;
+    result->else_branch = else_branch;
+
+    return result;
+}
+
+struct lox_parser_statement_while* lox_parser__get_statement_while(
+    struct parser* self,
+    struct parser_expression* condition,
+    struct parser_statement* statement
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->while_statements_arr_fill == table->while_statements_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_while* result = &table->while_statements_arr[table->while_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_WHILE;
+    result->condition = condition;
+    result->statement = statement;
+
+    return result;
+}
+
 struct lox_parser_expr_var* lox_parser__get_expr__var(
     struct parser* self,
     struct tokenizer_token* var_name
@@ -799,7 +868,7 @@ struct lox_parser_expr_var* lox_parser__get_expr__var(
     return NULL;
 }
 
-struct lox_parser_expr_var* lox_parser__defined_expr_var(
+struct lox_parser_expr_var* lox_parser__define_expr_var(
     struct parser* self,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
