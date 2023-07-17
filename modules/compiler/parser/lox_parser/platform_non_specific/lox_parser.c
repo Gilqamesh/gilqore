@@ -50,6 +50,8 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
         case LOX_PARSER_STATEMENT_TYPE_BLOCK: return "block";
         case LOX_PARSER_STATEMENT_TYPE_IF: return "if";
         case LOX_PARSER_STATEMENT_TYPE_WHILE: return "while";
+        case LOX_PARSER_STATEMENT_TYPE_BREAK: return "break";
+        case LOX_PARSER_STATEMENT_TYPE_CONTINUE: return "continue";
         default: {
             ASSERT(false);
             return NULL;
@@ -831,6 +833,22 @@ struct lox_parser_statement_while* lox_parser__get_statement_while(
     result->statement = statement;
 
     return result;
+}
+
+struct lox_parser_statement_while* lox_parser__get_statement_break(
+    struct parser* self
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+
+    return table->break_statement;
+}
+
+struct lox_parser_statement_while* lox_parser__get_statement_continue(
+    struct parser* self
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+
+    return table->continue_statement;
 }
 
 struct lox_parser_expr_var* lox_parser__get_expr__var(

@@ -24,7 +24,9 @@ enum lox_parser_statement_type {
     LOX_PARSER_STATEMENT_TYPE_NODE,
     LOX_PARSER_STATEMENT_TYPE_BLOCK,
     LOX_PARSER_STATEMENT_TYPE_IF,
-    LOX_PARSER_STATEMENT_TYPE_WHILE
+    LOX_PARSER_STATEMENT_TYPE_WHILE,
+    LOX_PARSER_STATEMENT_TYPE_BREAK,
+    LOX_PARSER_STATEMENT_TYPE_CONTINUE
 };
 
 const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type);
@@ -68,6 +70,14 @@ packed_struct(1) lox_parser_statement_while {
     struct parser_statement* statement;
 };
 
+packed_struct(1) lox_parser_statement_break {
+    struct parser_statement base;
+};
+
+packed_struct(1) lox_parser_statement_continue {
+    struct parser_statement base;
+};
+
 struct lox_statements_table {
     struct lox_parser_statement_print* print_statements_arr;
     u32 print_statements_arr_fill;
@@ -96,6 +106,10 @@ struct lox_statements_table {
     struct lox_parser_statement_while* while_statements_arr;
     u32 while_statements_arr_fill;
     u32 while_statements_arr_size;
+
+    struct lox_parser_statement_break* break_statement;
+    
+    struct lox_parser_statement_continue* continue_statement;
 
     u64 table_memory_size;
 };
@@ -137,6 +151,14 @@ struct lox_parser_statement_while* lox_parser__get_statement_while(
     struct parser* self,
     struct parser_expression* condition,
     struct parser_statement* statement
+);
+
+struct lox_parser_statement_while* lox_parser__get_statement_break(
+    struct parser* self
+);
+
+struct lox_parser_statement_while* lox_parser__get_statement_continue(
+    struct parser* self
 );
 
 // STATEMENTS TYPES, METHODS AND TABLE END

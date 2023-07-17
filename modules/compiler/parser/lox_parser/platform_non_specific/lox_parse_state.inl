@@ -5,6 +5,7 @@ struct parser_statement* lox_parser__expr_statement(struct parser* self);
 struct parser_statement* lox_parser__for_statement(struct parser* self);
 struct parser_statement* lox_parser__if_statement(struct parser* self);
 struct parser_statement* lox_parser__while_statement(struct parser* self);
+struct parser_statement* lox_parser__iteration_statement(struct parser* self);
 struct parser_statement* lox_parser__print_statement(struct parser* self);
 struct lox_parser_statement_node* lox_parser__block_statement(struct parser* self);
 struct parser_expression* lox_parser__expression(struct parser* self);
@@ -167,7 +168,7 @@ struct parser_statement* lox_parser__for_statement(struct parser* self) {
         }
     }
 
-    struct parser_statement* loop_body = lox_parser__statement(self);
+    struct parser_statement* loop_body = lox_parser__iteration_statement(self);
     if (loop_body == NULL) {
         return NULL;
     }
@@ -287,12 +288,33 @@ struct parser_statement* lox_parser__while_statement(struct parser* self) {
         return NULL;
     }
 
-    struct parser_statement* while_body = lox_parser__statement(self);
+    struct parser_statement* while_body = lox_parser__iteration_statement(self);
     if (while_body == NULL) {
         return NULL;
     }
 
     return (struct parser_statement*) lox_parser__get_statement_while(self, condition, while_body);
+}
+
+struct parser_statement* lox_parser__iteration_statement(struct parser* self) {
+    struct parser_statement* result = NULL;
+    if (lox_parser__advance_if(self, LOX_TOKEN_BREAK) != NULL) {
+        result = (struct parser_statement*) lox_parser__get_statement_break(self);
+    } else if (lox_parser__advance_if(self, LOX_TOKEN_CONTINUE) != NULL) {
+        result = (struct parser_statement*) lox_parser__get_statement_continue(self);
+    } else {
+        return lox_parser__statement(self);
+    }
+
+    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
+        parser__syntax_error(
+            self,
+            "Expect ';' after '%s' statement.", lox_parser__statement_type_to_str(result->type)
+        );
+        return NULL;
+    }
+
+    return result;
 }
 
 struct parser_statement* lox_parser__print_statement(struct parser* self) {

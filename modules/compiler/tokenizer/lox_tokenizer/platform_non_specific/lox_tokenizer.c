@@ -76,6 +76,8 @@ const char* lox_token__type_name(u8 token_type) {
         case LOX_TOKEN_WHILE: return "while";
         case LOX_TOKEN_EOF: return "eof";
         case LOX_TOKEN_PERCENTAGE: return "percentage";
+        case LOX_TOKEN_BREAK: return "break";
+        case LOX_TOKEN_CONTINUE: return "continue";
         default: return "unknown";
     }
 }

@@ -569,6 +569,18 @@ static struct parser_literal* lox_interpreter__interpret_expression(struct inter
     }
 }
 
+static void lox_interpreter__iteration_statement(struct interpreter* self, struct parser_statement* statement) {
+    switch (statement->type) {
+        case LOX_PARSER_STATEMENT_TYPE_BREAK: {
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
+        } break ;
+        default: {
+            lox_interpreter__interpret_statement(self, statement);
+        } break ;
+    }
+}
+
 static void lox_interpreter__interpret_statement(struct interpreter* self, struct parser_statement* statement) {
     switch (statement->type) {
         case LOX_PARSER_STATEMENT_TYPE_PRINT: {
@@ -619,6 +631,12 @@ static void lox_interpreter__interpret_statement(struct interpreter* self, struc
             while (lox_parser__literal_is_truthy(lox_interpreter__interpret_expression(self, while_statement->condition))) {
                 lox_interpreter__interpret_statement(self, while_statement->statement);
             }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_BREAK: {
+            struct lox_parser_statement_break* break_statement = (struct lox_parser_statement_break*) statement;
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
+            struct lox_parser_statement_continue* continue_statement = (struct lox_parser_statement_continue*) statement;
         } break ;
         default: ASSERT(false);
     }
