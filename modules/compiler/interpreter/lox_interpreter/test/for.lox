@@ -1,0 +1,11 @@
+var collatz_end = 1;
+for (
+    var collatz_start = 1000;
+    collatz_start != collatz_end;
+    collatz_start % 2 == 0 ?
+        collatz_start = collatz_start / 2 :
+        collatz_start = 3 * collatz_start + 1
+) {
+    print collatz_start;
+}
+

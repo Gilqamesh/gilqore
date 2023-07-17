@@ -349,10 +349,7 @@ void lox_parser__delete_expr__grouping(struct parser* self, struct lox_parser_ex
     error_code__exit(324342);
 }
 
-struct lox_parser_expr_literal* lox_parser__get_expr__literal(
-    struct parser* self,
-    struct tokenizer_token* value
-) {
+struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* self, struct tokenizer_token* value) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->literal_arr_fill == table->literal_arr_size) {
         error_code__exit(21437);
@@ -387,6 +384,45 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(
 
     error_code__exit(324342);
     return NULL;
+}
+
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_true(struct parser* self) {
+    static const char true_lexeme[] = "true";
+    static struct tokenizer_token true_token = {
+        .lexeme = true_lexeme,
+        .lexeme_len = ARRAY_SIZE(true_lexeme) - 1,
+        .type = LOX_TOKEN_TRUE,
+        .line = -1
+    };
+    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &true_token);
+    result->literal = (struct parser_literal*) lox_parser__get_literal__boolean(self, true);
+    return result;
+}
+
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_false(struct parser* self) {
+    static const char false_lexeme[] = "false";
+    static struct tokenizer_token false_token = {
+        .lexeme = false_lexeme,
+        .lexeme_len = ARRAY_SIZE(false_lexeme) - 1,
+        .type = LOX_TOKEN_FALSE,
+        .line = -1
+    };
+    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &false_token);
+    result->literal = (struct parser_literal*) lox_parser__get_literal__boolean(self, false);
+    return result;
+}
+
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_nil(struct parser* self) {
+    static const char nil_lexeme[] = "true";
+    static struct tokenizer_token nil_token = {
+        .lexeme = nil_lexeme,
+        .lexeme_len = ARRAY_SIZE(nil_lexeme) - 1,
+        .type = LOX_TOKEN_NIL,
+        .line = -1
+    };
+    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &nil_token);
+    result->literal = (struct parser_literal*) lox_parser__get_literal__nil(self);
+    return result;
 }
 
 struct lox_parser_expr_logical* lox_parser__get_expr__logical(
@@ -458,34 +494,14 @@ struct lox_literal_object* lox_parser__get_literal__object(
     return result;
 }
 
-struct lox_literal_nil* lox_parser__get_literal__nil(
-    struct parser* self
-) {
+struct lox_literal_nil* lox_parser__get_literal__nil(struct parser* self) {
     struct lox_literal_table* table = lox_parser__get_literal_table(self);
-    if (table->nil_arr_fill == table->nil_arr_size) {
-        error_code__exit(234782);
-    }
-
-    struct lox_literal_nil* result = &table->nil_arr[table->nil_arr_fill++];
-    result->base.type = LOX_LITERAL_TYPE_NIL;
-
-    return result;
+    return table->nil_literal;
 }
 
-struct lox_literal_boolean* lox_parser__get_literal__boolean(
-    struct parser* self,
-    bool value
-) {
+struct lox_literal_boolean* lox_parser__get_literal__boolean(struct parser* self, bool value) {
     struct lox_literal_table* table = lox_parser__get_literal_table(self);
-    if (table->boolean_arr_fill == table->boolean_arr_size) {
-        error_code__exit(234782);
-    }
-
-    struct lox_literal_boolean* result = &table->boolean_arr[table->boolean_arr_fill++];
-    result->base.type = LOX_LITERAL_TYPE_BOOLEAN;
-    result->data = value;
-
-    return result;
+    return value == true ? table->boolean_literal_true : table->boolean_literal_false;
 }
 
 struct lox_literal_number* lox_parser__get_literal__number(
@@ -912,6 +928,7 @@ struct lox_parser_expr_var* lox_parser__define_expr_var(
             cur_var->value = var_value;
             // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
             // and in other situations the equal binary operator should evaluate and replace the value properly
+            cur_var->evaluated_literal = NULL;
 
             ++env->var_expressions_arr_fill;
 
@@ -946,7 +963,7 @@ struct lox_parser_expr_var* lox_parser__define_expr_var(
             cur_var->value = var_value;
             // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
             // and in other situations the equal binary operator should evaluate and replace the value properly
-            // cur_var->evaluated_literal = NULL;
+            cur_var->evaluated_literal = NULL;
 
             ++env->var_expressions_arr_fill;
 
@@ -999,14 +1016,10 @@ void lox_parser__print_literal_table_stats(struct parser* self) {
     libc__printf(
         "  --=== Literals table ===--\n"
         "  object literals allocated: %u, total: %u\n"
-        "  nil literals allocated: %u, total: %u\n"
-        "  boolean literals allocated: %u, total: %u\n"
         "  number literals allocated: %u, total: %u\n"
         "  string literals allocated: %u, total: %u\n"
         "  --------------------------\n",
         table->object_arr_fill, table->object_arr_size,
-        table->nil_arr_fill, table->nil_arr_size,
-        table->boolean_arr_fill, table->boolean_arr_size,
         table->number_arr_fill, table->number_arr_size,
         table->string_arr_fill, table->string_arr_size
     );

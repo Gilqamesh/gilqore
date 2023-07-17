@@ -121,7 +121,6 @@ struct lox_parser_statement_node* lox_parser__get_statement_node(
     struct parser* self,
     struct parser_statement* statement
 );
-
 struct lox_parser_statement_block* lox_parser__get_statement_block(
     struct parser* self,
     struct lox_parser_statement_node* statement_node
@@ -283,6 +282,9 @@ struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(struct parser* s
 void lox_parser__delete_expr__grouping(struct parser* self, struct lox_parser_expr_grouping* grouping_expr);
 
 struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* self, struct tokenizer_token* value);
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_true(struct parser* self);
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_false(struct parser* self);
+struct lox_parser_expr_literal* lox_parser__get_expr__literal_nil(struct parser* self);
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr);
 
 struct lox_parser_expr_logical* lox_parser__get_expr__logical(
@@ -354,13 +356,10 @@ struct lox_literal_table {
     u32 object_arr_fill;
     u32 object_arr_size;
 
-    struct lox_literal_nil* nil_arr;
-    u32 nil_arr_fill;
-    u32 nil_arr_size;
+    struct lox_literal_nil* nil_literal;
 
-    struct lox_literal_boolean* boolean_arr;
-    u32 boolean_arr_fill;
-    u32 boolean_arr_size;
+    struct lox_literal_boolean* boolean_literal_true;
+    struct lox_literal_boolean* boolean_literal_false;
 
     struct lox_literal_number* number_arr;
     u32 number_arr_fill;
@@ -375,29 +374,11 @@ struct lox_literal_table {
 
 void lox_parser__print_literal_table_stats(struct parser* self);
 
-struct lox_literal_object* lox_parser__get_literal__object(
-    struct parser* self,
-    struct memory_slice value
-);
-
-struct lox_literal_nil* lox_parser__get_literal__nil(
-    struct parser* self
-);
-
-struct lox_literal_boolean* lox_parser__get_literal__boolean(
-    struct parser* self,
-    bool value
-);
-
-struct lox_literal_number* lox_parser__get_literal__number(
-    struct parser* self,
-    r64 value
-);
-
-struct lox_literal_string* lox_parser__get_literal__string(
-    struct parser* self,
-    char* format, ...
-);
+struct lox_literal_object* lox_parser__get_literal__object(struct parser* self, struct memory_slice value);
+struct lox_literal_nil* lox_parser__get_literal__nil(struct parser* self);
+struct lox_literal_boolean* lox_parser__get_literal__boolean(struct parser* self, bool value);
+struct lox_literal_number* lox_parser__get_literal__number(struct parser* self, r64 value);
+struct lox_literal_string* lox_parser__get_literal__string(struct parser* self, char* format, ...);
 
 // LITERAL TYPES, METHODS AND TABLE START
 

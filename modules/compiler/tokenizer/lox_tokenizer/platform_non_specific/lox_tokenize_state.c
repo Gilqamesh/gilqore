@@ -47,7 +47,9 @@ enum lox_token_type lox_tokenize_state__get_identifier_type(struct lox_tokenize_
 
     static struct lox_identifier identifiers[] = {
         { "and", LOX_TOKEN_AND },
+        { "break", LOX_TOKEN_BREAK },
         { "class", LOX_TOKEN_CLASS },
+        { "continue", LOX_TOKEN_CONTINUE },
         { "else", LOX_TOKEN_ELSE },
         { "false", LOX_TOKEN_FALSE },
         { "fun", LOX_TOKEN_FUN },

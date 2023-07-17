@@ -202,15 +202,19 @@ bool lox_parser_clear_tables(struct parser* self) {
         literals_table->object_arr_size = literals_subtable_memory_size;
         memory_offset += literals_subtable_memory_size;
 
-        literals_table->nil_arr = (void*) ((char*) literals_table + memory_offset);
-        literals_table->nil_arr_fill = 0;
-        literals_table->nil_arr_size = literals_subtable_memory_size / sizeof(*literals_table->nil_arr);
-        memory_offset += literals_subtable_memory_size;
+        literals_table->nil_literal = (void*) ((char*) literals_table + memory_offset);
+        literals_table->nil_literal->base.type = LOX_LITERAL_TYPE_NIL;
+        memory_offset += sizeof(*literals_table->nil_literal);
 
-        literals_table->boolean_arr = (void*) ((char*) literals_table + memory_offset);
-        literals_table->boolean_arr_fill = 0;
-        literals_table->boolean_arr_size = literals_subtable_memory_size / sizeof(*literals_table->boolean_arr);
-        memory_offset += literals_subtable_memory_size;
+        literals_table->boolean_literal_true = (void*) ((char*) literals_table + memory_offset);
+        literals_table->boolean_literal_true->base.type = LOX_LITERAL_TYPE_BOOLEAN;
+        literals_table->boolean_literal_true->data = true;
+        memory_offset += sizeof(*literals_table->boolean_literal_true);
+
+        literals_table->boolean_literal_false = (void*) ((char*) literals_table + memory_offset);
+        literals_table->boolean_literal_false->base.type = LOX_LITERAL_TYPE_BOOLEAN;
+        literals_table->boolean_literal_false->data = false;
+        memory_offset += sizeof(*literals_table->boolean_literal_false);
 
         literals_table->number_arr = (void*) ((char*) literals_table + memory_offset);
         literals_table->number_arr_fill = 0;

@@ -104,11 +104,28 @@ static bool lox_parser__literal_is_equal(struct parser_literal* left, struct par
     }
 }
 
+static struct parser_literal* lox_interpreter__interpret_ternary(struct interpreter* self, struct parser_expression* expr) {
+    struct lox_parser_expr_op_binary* binary_expr = (struct lox_parser_expr_op_binary*) expr;
+
+    ASSERT(binary_expr->right->type == LOX_PARSER_EXPRESSION_TYPE_OP_BINARY);
+    struct parser_literal* predicate_literal_base = lox_interpreter__interpret_expression(self, binary_expr->left);
+    struct lox_parser_expr_op_binary* conditional_expr = (struct lox_parser_expr_op_binary*) binary_expr->right;
+    if (lox_parser__literal_is_truthy(predicate_literal_base)) {
+        return lox_interpreter__interpret_expression(self, conditional_expr->left);
+    } else {
+        return lox_interpreter__interpret_expression(self, conditional_expr->right);
+    }
+}
+
 static struct parser_literal* lox_interpreter__interpret_binary(struct interpreter* self, struct parser_expression* expr) {
     struct lox_parser_expr_op_binary* binary_expr = (struct lox_parser_expr_op_binary*) expr;
     // if (binary_expr->evaluated_literal != NULL) {
     //     return binary_expr->evaluated_literal;
     // }
+
+    if (binary_expr->op->type == LOX_TOKEN_QUESTION_MARK) {
+        return lox_interpreter__interpret_ternary(self, expr);
+    }
 
     // note: evaluate both before type checking with left to right associativity
     struct parser_literal* left_literal_base = lox_interpreter__interpret_expression(self, binary_expr->left);
@@ -379,22 +396,15 @@ static struct parser_literal* lox_interpreter__interpret_binary(struct interpret
             return binary_expr->evaluated_literal;
         } break ;
         case LOX_TOKEN_QUESTION_MARK: {
-            ASSERT(binary_expr->right->type == LOX_PARSER_EXPRESSION_TYPE_OP_BINARY);
-            struct parser_literal* predicate_literal_base = lox_interpreter__interpret_expression(self, binary_expr->left);
-            if (lox_parser__literal_is_truthy(predicate_literal_base)) {
-                struct lox_parser_expr_op_binary* conditional_expr = (struct lox_parser_expr_op_binary*) binary_expr->right;
-                return lox_interpreter__interpret_expression(self, conditional_expr->left);
-            } else {
-                struct lox_parser_expr_op_binary* conditional_expr = (struct lox_parser_expr_op_binary*) binary_expr->right;
-                return lox_interpreter__interpret_expression(self, conditional_expr->right);
-            }
-            // evaluate condition
-            // return either left expr or right expr
+            // note: ternary is handled in a different code path
+            ASSERT(false);
+            return NULL;
         } break ;
         case LOX_TOKEN_COLON: {
-            // note: ternary will select and evaluate either left or right of this binary expr
+            // note: ternary (passed from the parses as question mark token) will select and evaluate either left or right of this binary expr
+            ASSERT(false);
             return NULL;
-        }
+        } break ;
         case LOX_TOKEN_EQUAL: {
             ASSERT(binary_expr->left->type == LOX_PARSER_EXPRESSION_TYPE_VAR);
             struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) binary_expr->left;
