@@ -153,11 +153,11 @@ struct lox_parser_statement_while* lox_parser__get_statement_while(
     struct parser_statement* statement
 );
 
-struct lox_parser_statement_while* lox_parser__get_statement_break(
+struct lox_parser_statement_break* lox_parser__get_statement_break(
     struct parser* self
 );
 
-struct lox_parser_statement_while* lox_parser__get_statement_continue(
+struct lox_parser_statement_continue* lox_parser__get_statement_continue(
     struct parser* self
 );
 

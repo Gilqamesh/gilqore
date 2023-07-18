@@ -835,7 +835,7 @@ struct lox_parser_statement_while* lox_parser__get_statement_while(
     return result;
 }
 
-struct lox_parser_statement_while* lox_parser__get_statement_break(
+struct lox_parser_statement_break* lox_parser__get_statement_break(
     struct parser* self
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
@@ -843,7 +843,7 @@ struct lox_parser_statement_while* lox_parser__get_statement_break(
     return table->break_statement;
 }
 
-struct lox_parser_statement_while* lox_parser__get_statement_continue(
+struct lox_parser_statement_continue* lox_parser__get_statement_continue(
     struct parser* self
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);

@@ -569,19 +569,15 @@ static struct parser_literal* lox_interpreter__interpret_expression(struct inter
     }
 }
 
-static void lox_interpreter__iteration_statement(struct interpreter* self, struct parser_statement* statement) {
-    switch (statement->type) {
-        case LOX_PARSER_STATEMENT_TYPE_BREAK: {
-        } break ;
-        case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
-        } break ;
-        default: {
-            lox_interpreter__interpret_statement(self, statement);
-        } break ;
-    }
-}
+enum statement_return_type {
+    STATEMENT_RETURN_TYPE_CONTINUE,
+    STATEMENT_RETURN_TYPE_BREAK,
+    STATEMENT_RETURN_TYPE_NORMAL
+};
 
-static void lox_interpreter__interpret_statement(struct interpreter* self, struct parser_statement* statement) {
+static enum statement_return_type lox_interpreter__interpret_statement(struct interpreter* self, struct parser_statement* statement) {
+    enum statement_return_type result = STATEMENT_RETURN_TYPE_NORMAL;
+
     switch (statement->type) {
         case LOX_PARSER_STATEMENT_TYPE_PRINT: {
             struct lox_parser_statement_print* print_statement = (struct lox_parser_statement_print*) statement;
@@ -607,7 +603,14 @@ static void lox_interpreter__interpret_statement(struct interpreter* self, struc
             lox_parser__increment_environment(&self->parser);
             struct lox_parser_statement_node* cur_node = block_statement->statement_list;
             while (cur_node != NULL) {
-                lox_interpreter__interpret_statement(self, cur_node->statement);
+                enum statement_return_type return_type = lox_interpreter__interpret_statement(self, cur_node->statement);
+                if (return_type == STATEMENT_RETURN_TYPE_CONTINUE) {
+                    result = STATEMENT_RETURN_TYPE_CONTINUE;
+                    break ;
+                } else if (return_type == STATEMENT_RETURN_TYPE_BREAK) {
+                    result = STATEMENT_RETURN_TYPE_BREAK;
+                    break ;
+                }
                 cur_node = cur_node->next;
             }
             lox_parser__decrement_environment(&self->parser);
@@ -629,17 +632,22 @@ static void lox_interpreter__interpret_statement(struct interpreter* self, struc
         case LOX_PARSER_STATEMENT_TYPE_WHILE: {
             struct lox_parser_statement_while* while_statement = (struct lox_parser_statement_while*) statement;
             while (lox_parser__literal_is_truthy(lox_interpreter__interpret_expression(self, while_statement->condition))) {
-                lox_interpreter__interpret_statement(self, while_statement->statement);
+                enum statement_return_type ret_type = lox_interpreter__interpret_statement(self, while_statement->statement);
+                if (ret_type == STATEMENT_RETURN_TYPE_BREAK) {
+                    break ;
+                }
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_BREAK: {
-            struct lox_parser_statement_break* break_statement = (struct lox_parser_statement_break*) statement;
+            result = STATEMENT_RETURN_TYPE_BREAK;
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
-            struct lox_parser_statement_continue* continue_statement = (struct lox_parser_statement_continue*) statement;
+            result = STATEMENT_RETURN_TYPE_CONTINUE;
         } break ;
         default: ASSERT(false);
     }
+
+    return result;
 }
 
 void lox_interpreter__interpret_program(struct interpreter* self, struct parser_program program) {
