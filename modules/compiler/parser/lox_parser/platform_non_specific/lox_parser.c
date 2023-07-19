@@ -13,6 +13,28 @@ static struct memory_slice lox_parser_expr_evalute__op_binary(struct parser_expr
 static struct memory_slice lox_parser_expr_evalute__grouping(struct parser_expression* expr, struct memory_slice buffer);
 static struct memory_slice lox_parser_expr_evalute__literal(struct parser_expression* expr, struct memory_slice buffer);
 
+static void lox_parser__init_global_env(struct parser* self) {
+    lox_parser__push_environment(self);
+
+    {
+        static const char native_clock[] = "clock";
+        static struct tokenizer_token native_clock_token = {
+            .lexeme = native_clock,
+            .lexeme_len = ARRAY_SIZE(native_clock) - 1,
+            .type = LOX_TOKEN_IDENTIFIER,
+            .line = -1
+        };
+        struct lox_parser_expr_call* native_clock_expr_call = lox_parser__get_expr__call(
+            self,
+
+        )
+        lox_parser__define_expr_var(
+            self,
+            &native_clock_token
+        );
+    }
+}
+
 bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
     self->had_runtime_error = false;
@@ -20,8 +42,7 @@ bool lox_parser__clear(struct parser* self) {
     if (lox_parser_clear_tables(self) == false) {
         return false;
     }
-    // global env
-    lox_parser__push_environment(self);
+    lox_parser__init_global_env(self);
 
     return true;
 }
@@ -520,6 +541,7 @@ void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_exp
 
 struct lox_literal_object* lox_parser__get_literal__object(
     struct parser* self,
+    struct object_header header,
     struct memory_slice value
 ) {
     struct lox_literal_table* table = lox_parser__get_literal_table(self);
@@ -529,6 +551,7 @@ struct lox_literal_object* lox_parser__get_literal__object(
 
     struct lox_literal_object* result = &table->object_arr[table->object_arr_fill++];
     result->base.type = LOX_LITERAL_TYPE_OBJECT;
+    result->header = header;
     result->data = value;
 
     return result;

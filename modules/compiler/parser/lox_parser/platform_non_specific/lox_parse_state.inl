@@ -636,7 +636,7 @@ static struct parser_expression* lox_parser__parse_arguments(struct parser* self
     struct lox_parser_expr_node** cur = &args;
 
     u32 number_of_arguments = 0;
-    if (lox_parser__peek(self) == LOX_TOKEN_RIGHT_PAREN) {
+    if (lox_parser__peek(self) != LOX_TOKEN_RIGHT_PAREN) {
         do {
             struct parser_expression* expr = lox_parser__expression(self);
             if (expr == NULL) {

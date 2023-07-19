@@ -437,7 +437,11 @@ struct lox_literal_table {
 
 void lox_parser__print_literal_table_stats(struct parser* self);
 
-struct lox_literal_object* lox_parser__get_literal__object(struct parser* self, struct memory_slice value);
+struct lox_literal_object* lox_parser__get_literal__object(
+    struct parser* self,
+    struct object_header header,
+    struct memory_slice value
+);
 struct lox_literal_nil* lox_parser__get_literal__nil(struct parser* self);
 struct lox_literal_boolean* lox_parser__get_literal__boolean(struct parser* self, bool value);
 struct lox_literal_number* lox_parser__get_literal__number(struct parser* self, r64 value);
