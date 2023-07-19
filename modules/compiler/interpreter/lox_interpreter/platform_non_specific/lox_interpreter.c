@@ -554,6 +554,33 @@ static struct parser_literal* lox_interpreter__interpret_logical(struct interpre
     return lox_interpreter__interpret_expression(self, logical_expr->right);
 }
 
+static struct parser_literal* lox_interpreter__interpret_call(struct interpreter* self, struct parser_expression* expr) {
+    struct lox_parser_expr_call* call_expr = (struct lox_parser_expr_call*) expr;
+
+    struct lox_literal_object* callee = (struct lox_literal_object*) lox_interpreter__interpret_expression(self, call_expr->callee);
+    if (callee == NULL) {
+        return NULL;
+    }
+
+    if (callee->header.call == NULL) {
+        interpreter__runtime_error(self, "Can only call functions and classes.");
+        return NULL;
+    }
+
+    u32 arity = 0;
+    struct lox_parser_expr_node* cur = call_expr->arguments;
+    while (cur != NULL) {
+        ++arity;
+        cur = cur->next;
+    }
+    if (callee->header.arity != arity) {
+        interpreter__runtime_error(self, "Expected %u arguments but got %u.", callee->header.arity, arity);
+        return NULL;
+    }
+
+    return callee->header.call(self, call_expr->arguments);
+}
+
 static struct parser_literal* lox_interpreter__interpret_expression(struct interpreter* self, struct parser_expression* expr) {
     switch (expr->type) {
         case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: return lox_interpreter__interpret_unary(self, expr);
@@ -562,6 +589,11 @@ static struct parser_literal* lox_interpreter__interpret_expression(struct inter
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: return lox_interpreter__interpret_literal(self, expr);
         case LOX_PARSER_EXPRESSION_TYPE_VAR: return lox_interpreter__interpret_variable(self, expr);
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: return lox_interpreter__interpret_logical(self, expr);
+        case LOX_PARSER_EXPRESSION_TYPE_NODE: {
+            ASSERT(false);
+            return NULL;
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_CALL: return lox_interpreter__interpret_call(self, expr);
         default: {
             ASSERT(false);
             return NULL;

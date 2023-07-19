@@ -72,12 +72,22 @@ typedef struct memory_slice (*parser__convert_expr_to_string)(struct parser_expr
 
 PUBLIC_API void parser__syntax_error(
     struct parser* self,
-    const char* message, ...
+    const char* format, ...
 );
 
 PUBLIC_API void parser__syntax_verror(
     struct parser* self,
-    const char* message, va_list ap
+    const char* format, va_list ap
+);
+
+PUBLIC_API void parser__warn_error(
+    struct parser* self,
+    const char* format, ...
+);
+
+PUBLIC_API void parser__warn_verror(
+    struct parser* self,
+    const char* format, va_list ap
 );
 
 #endif // PARSER_H

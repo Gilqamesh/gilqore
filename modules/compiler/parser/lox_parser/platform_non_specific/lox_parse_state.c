@@ -141,7 +141,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*expression_table);
         ASSERT(expression_table_size >= memory_offset);
         expression_table_size -= memory_offset;
-        u64 expression_subtable_memory_size = expression_table_size / 8;
+        u64 expression_subtable_memory_size = expression_table_size / 10;
 
         expression_table->op_unary_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->op_unary_arr_fill = 0;
@@ -166,6 +166,16 @@ bool lox_parser_clear_tables(struct parser* self) {
         expression_table->logical_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->logical_arr_fill = 0;
         expression_table->logical_arr_size = expression_subtable_memory_size / sizeof(*expression_table->logical_arr);
+        memory_offset += expression_subtable_memory_size;
+
+        expression_table->node_arr = (void*) ((char*) expression_table + memory_offset);
+        expression_table->node_arr_fill = 0;
+        expression_table->node_arr_size = expression_subtable_memory_size / sizeof(*expression_table->node_arr);
+        memory_offset += expression_subtable_memory_size;
+
+        expression_table->call_arr = (void*) ((char*) expression_table + memory_offset);
+        expression_table->call_arr_fill = 0;
+        expression_table->call_arr_size = expression_subtable_memory_size / sizeof(*expression_table->call_arr);
         memory_offset += expression_subtable_memory_size;
 
         u32 number_of_environments = 64;

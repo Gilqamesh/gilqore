@@ -1,0 +1,11 @@
+var a = 2;
+
+if (a) {
+    while (a) {
+        a = a - 1;
+        break ;
+        print a;
+    }
+    print a;
+}
+print a;

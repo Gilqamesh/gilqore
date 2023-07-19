@@ -53,3 +53,27 @@ void parser__syntax_verror(
     
     libc__printf("\n");
 }
+
+void parser__warn_error(
+    struct parser* self,
+    const char* format, ...
+) {
+    va_list ap;
+
+    va_start(ap, format);
+    parser__warn_verror(self, format, ap);
+    va_end(ap);
+}
+
+void parser__warn_verror(
+    struct parser* self,
+    const char* format, va_list ap
+) {
+    (void) self;
+    
+    libc__printf("Warning: ");
+
+    libc__vprintf(format, ap);
+
+    libc__printf("\n");
+}

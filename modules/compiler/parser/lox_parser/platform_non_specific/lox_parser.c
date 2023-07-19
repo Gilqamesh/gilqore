@@ -34,6 +34,7 @@ const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type e
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: return "literal";
         case LOX_PARSER_EXPRESSION_TYPE_VAR: return "variable";
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: return "logical";
+        case LOX_PARSER_EXPRESSION_TYPE_CALL: return "call";
         default: {
             ASSERT(false);
             return NULL;
@@ -451,6 +452,43 @@ struct lox_parser_expr_logical* lox_parser__get_expr__logical(
 void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr) {
     (void) self;
     (void) logical_expr;
+}
+
+struct lox_parser_expr_node* lox_parser__get_expr__node(
+    struct parser* self,
+    struct parser_expression* expr
+) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->node_arr_fill == table->node_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_expr_node* result = &table->node_arr[table->node_arr_fill++];
+    result->base.type = LOX_PARSER_EXPRESSION_TYPE_NODE;
+    result->expression = expr;
+    result->next = NULL;
+
+    return result;
+}
+
+struct lox_parser_expr_call* lox_parser__get_expr__call(
+    struct parser* self,
+    struct parser_expression* callee,
+    struct tokenizer_token* closing_paren,
+    struct lox_parser_expr_node* arguments
+) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->call_arr_fill == table->call_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_expr_call* result = &table->call_arr[table->call_arr_fill++];
+    result->base.type = LOX_PARSER_EXPRESSION_TYPE_CALL;
+    result->callee = callee;
+    result->closing_paren = closing_paren;
+    result->arguments = arguments;
+
+    return result;
 }
 
 void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr) {

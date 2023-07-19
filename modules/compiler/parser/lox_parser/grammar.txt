@@ -22,18 +22,17 @@ statement       -> expr_stmt
                  | if_stmt
                  | print_stmt
                  | while_stmt
+                 | break_stmt
+                 | continue_stmt
                  | block ;
 expr_stmt       -> expression ";" ;
 for_stmt        -> "for" "(" ( var_decl | expr_stmt | ";" )
                    expression? ";"
-                   expression? ")" iteration_stmt ;
+                   expression? ")" statement ;
 if_stmt         -> "if" "(" expression ")" statement
                     ( "else" statement )? ;
 print_stmt      -> "print" expression ";" ;
-while_stmt      -> "while" "(" expression ")" iteration_stmt ;
-iteration_stmt  -> statement
-                 | break_stmt
-                 | continue_stmt ;
+while_stmt      -> "while" "(" expression ")" statement ;
 break_stmt      -> "break" ";" ;
 continue_stmt   -> "continue" ";" ;
 block           -> "{" declaration* "}" ;
@@ -49,7 +48,9 @@ comparison      -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term            -> factor ( ( "-" | "+" ) factor )* ;
 factor          -> unary ( ( "/" | "*" | "%" ) unary )* ;
 unary           -> ( "!" | "-" ) unary
-                 | primary ;
+                 | call ;
+call            -> primary ( "(" arguments? ")" )* ;
+arguments       -> expression ( "," expression )* ;
 primary         -> NUMBER | STRING | "true" | "false" | "nil"
                  | "(" expression ")"
                  | IDENTIFIER

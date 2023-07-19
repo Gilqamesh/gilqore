@@ -6,6 +6,7 @@
 # include "compiler/parser/parser.h"
 
 struct tokenizer_token;
+struct interpreter;
 
 PUBLIC_API bool lox_parser__clear(struct parser* self);
 
@@ -171,7 +172,9 @@ enum lox_parser_expression_type {
     LOX_PARSER_EXPRESSION_TYPE_GROUPING,
     LOX_PARSER_EXPRESSION_TYPE_LITERAL,
     LOX_PARSER_EXPRESSION_TYPE_VAR,
-    LOX_PARSER_EXPRESSION_TYPE_LOGICAL
+    LOX_PARSER_EXPRESSION_TYPE_LOGICAL,
+    LOX_PARSER_EXPRESSION_TYPE_NODE,
+    LOX_PARSER_EXPRESSION_TYPE_CALL
 };
 
 const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type expr_type);
@@ -228,6 +231,19 @@ packed_struct(1) lox_parser_expr_logical {
     struct parser_literal* evaluated_literal;
 };
 
+struct lox_parser_expr_node {
+    struct parser_expression base;
+    struct parser_expression* expression;
+    struct lox_parser_expr_node* next;
+};
+
+packed_struct(1) lox_parser_expr_call {
+    struct parser_expression base;
+    struct parser_expression* callee;
+    struct tokenizer_token* closing_paren;
+    struct lox_parser_expr_node* arguments;
+};
+
 struct lox_var_environment {
     struct lox_parser_expr_var* var_expressions_arr;
     // todo: remove, we can infer this from the current env_id
@@ -260,6 +276,14 @@ struct lox_expressions_table {
     struct lox_parser_expr_logical* logical_arr;
     u32 logical_arr_fill;
     u32 logical_arr_size;
+
+    struct lox_parser_expr_node* node_arr;
+    u32 node_arr_fill;
+    u32 node_arr_size;
+
+    struct lox_parser_expr_call* call_arr;
+    u32 call_arr_fill;
+    u32 call_arr_size;
 
     // ENVIRONMENT START
     u32 var_environment_memory_size; // size of one env
@@ -317,6 +341,17 @@ struct lox_parser_expr_logical* lox_parser__get_expr__logical(
 );
 void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr);
 
+struct lox_parser_expr_node* lox_parser__get_expr__node(
+    struct parser* self,
+    struct parser_expression* expr
+);
+struct lox_parser_expr_call* lox_parser__get_expr__call(
+    struct parser* self,
+    struct parser_expression* callee,
+    struct tokenizer_token* closing_paren,
+    struct lox_parser_expr_node* arguments
+);
+
 void lox_parser__increment_environment(struct parser* self);
 void lox_parser__decrement_environment(struct parser* self);
 struct lox_var_environment* lox_parser__get_environment(struct parser* self);
@@ -349,8 +384,14 @@ enum lox_literal_type {
 
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type);
 
+struct object_header {
+    struct parser_literal* (*call)(struct interpreter*, struct lox_parser_expr_node*);
+    u32 arity;
+};
+
 packed_struct(1) lox_literal_object {
     struct parser_literal base;
+    struct object_header header;
     struct memory_slice data;
 };
 

@@ -20,6 +20,7 @@ struct parser_expression* lox_parser__comparison(struct parser* self);
 struct parser_expression* lox_parser__term(struct parser* self);
 struct parser_expression* lox_parser__factor(struct parser* self);
 struct parser_expression* lox_parser__unary(struct parser* self);
+struct parser_expression* lox_parser__call(struct parser* self);
 struct parser_expression* lox_parser__primary(struct parser* self);
 struct parser_expression* lox_parser__error(struct parser* self);
 
@@ -92,10 +93,12 @@ struct parser_statement* lox_parser__statement(struct parser* self) {
         return lox_parser__print_statement(self);
     }
 
+    // todo: syntax error if not in an iteration statement
     if (lox_parser__advance_if(self, LOX_TOKEN_BREAK) != NULL) {
         return lox_parser__break_statement(self);
     }
 
+    // todo: syntax error if not in an iteration statement
     if (lox_parser__advance_if(self, LOX_TOKEN_CONTINUE) != NULL) {
         return lox_parser__continue_statement(self);
     }
@@ -625,7 +628,61 @@ struct parser_expression* lox_parser__unary(struct parser* self) {
         return (struct parser_expression*) lox_parser__get_expr__op_unary(self, op, expr);
     }
 
-    return lox_parser__primary(self);
+    return lox_parser__call(self);
+}
+
+static struct parser_expression* lox_parser__parse_arguments(struct parser* self, struct parser_expression* callee) {
+    struct lox_parser_expr_node* args = NULL;
+    struct lox_parser_expr_node** cur = &args;
+
+    u32 number_of_arguments = 0;
+    if (lox_parser__peek(self) == LOX_TOKEN_RIGHT_PAREN) {
+        do {
+            struct parser_expression* expr = lox_parser__expression(self);
+            if (expr == NULL) {
+                // todo: clean up args list
+                return NULL;
+            }
+            ++number_of_arguments;
+            if (number_of_arguments >= 255) {
+                parser__warn_error(
+                    self,
+                    "Cannot have more than 255 arguments."
+                );
+            }
+            *cur = lox_parser__get_expr__node(self, expr);
+            cur = &((*cur)->next);
+        } while (lox_parser__advance_if(self, LOX_TOKEN_COMMA) != NULL);
+    }
+
+    struct tokenizer_token* right_paren = lox_parser__advance_err(
+        self,
+        LOX_TOKEN_RIGHT_PAREN,
+        "Expect '%s' after arguments.",
+        lox_token__type_name(LOX_TOKEN_RIGHT_PAREN)
+    );
+    if (right_paren == NULL) {
+        return NULL;
+    }
+
+    return (struct parser_expression*) lox_parser__get_expr__call(self, callee, right_paren, args);
+}
+
+struct parser_expression* lox_parser__call(struct parser* self) {
+    struct parser_expression* primary_expr = lox_parser__primary(self);
+    if (primary_expr == NULL) {
+        return NULL;
+    }
+
+    while (true) {
+        if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN) != NULL) {
+            primary_expr = lox_parser__parse_arguments(self, primary_expr);
+        } else {
+            break ;
+        }
+    }
+
+    return primary_expr;
 }
 
 struct parser_expression* lox_parser__primary(struct parser* self) {
