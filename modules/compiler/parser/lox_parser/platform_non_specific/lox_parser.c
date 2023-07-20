@@ -26,11 +26,11 @@ static void lox_parser__init_global_env(struct parser* self) {
         };
         struct lox_parser_expr_call* native_clock_expr_call = lox_parser__get_expr__call(
             self,
-
-        )
+        );
         lox_parser__define_expr_var(
             self,
-            &native_clock_token
+            &native_clock_token,
+            native_clock_expr_call
         );
     }
 }

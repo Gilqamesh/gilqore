@@ -14,8 +14,10 @@ operator       -> "==" | "!=" | "<" | "<=" | ">" | ">="
 Precedence and Associativity:
 
 program         -> declaration* EOF;
-declaration     -> var_decl
+declaration     -> fun_decl
+                 | var_decl
                  | statement ;
+fun_decl        -> "fun" function ;
 var_decl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
 statement       -> expr_stmt
                  | for_stmt
@@ -25,6 +27,7 @@ statement       -> expr_stmt
                  | break_stmt
                  | continue_stmt
                  | block ;
+function        -> IDENTIFIER "(" parameters? ")" block ;
 expr_stmt       -> expression ";" ;
 for_stmt        -> "for" "(" ( var_decl | expr_stmt | ";" )
                    expression? ";"
@@ -36,6 +39,7 @@ while_stmt      -> "while" "(" expression ")" statement ;
 break_stmt      -> "break" ";" ;
 continue_stmt   -> "continue" ";" ;
 block           -> "{" declaration* "}" ;
+parameters      -> IDENTIFIER ( "," IDENTIFIER)* ;
 expression      -> comma ;
 comma           -> assignment ( "," expression)* ;
 assignment      -> ternary

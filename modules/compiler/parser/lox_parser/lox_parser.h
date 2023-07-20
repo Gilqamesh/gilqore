@@ -27,7 +27,8 @@ enum lox_parser_statement_type {
     LOX_PARSER_STATEMENT_TYPE_IF,
     LOX_PARSER_STATEMENT_TYPE_WHILE,
     LOX_PARSER_STATEMENT_TYPE_BREAK,
-    LOX_PARSER_STATEMENT_TYPE_CONTINUE
+    LOX_PARSER_STATEMENT_TYPE_CONTINUE,
+    LOX_PARSER_STATEMENT_TYPE_FUNCTION
 };
 
 const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type);
@@ -77,6 +78,12 @@ packed_struct(1) lox_parser_statement_break {
 
 packed_struct(1) lox_parser_statement_continue {
     struct parser_statement base;
+};
+
+packed_struct(1) lox_parser_statement_function {
+    struct parser_statement base;
+    struct tokenizer_token* name;
+    struct lox_parser_statement_block* body;
 };
 
 struct lox_statements_table {
