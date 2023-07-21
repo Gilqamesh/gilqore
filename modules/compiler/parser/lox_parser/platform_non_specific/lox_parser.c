@@ -844,7 +844,8 @@ struct lox_parser_statement_node* lox_parser__get_statement_node(
 
 struct lox_parser_statement_block* lox_parser__get_statement_block(
     struct parser* self,
-    struct lox_parser_statement_node* statement_node
+    struct lox_parser_statement_node* statement_list,
+    struct lox_var_environment* env
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->block_statements_arr_fill == table->block_statements_arr_size) {
@@ -853,7 +854,8 @@ struct lox_parser_statement_block* lox_parser__get_statement_block(
 
     struct lox_parser_statement_block* result = &table->block_statements_arr[table->block_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_BLOCK;
-    result->statement_list = statement_node;
+    result->statement_list = statement_list;
+    result->env = env;
 
     return result;
 }

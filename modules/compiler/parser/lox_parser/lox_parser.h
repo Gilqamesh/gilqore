@@ -57,6 +57,7 @@ packed_struct(1) lox_parser_statement_node {
 packed_struct(1) lox_parser_statement_block {
     struct parser_statement base;
     struct lox_parser_statement_node* statement_list;
+    struct lox_var_environment* env;
 };
 
 packed_struct(1) lox_parser_statement_if {
@@ -145,7 +146,8 @@ struct lox_parser_statement_node* lox_parser__get_statement_node(
 );
 struct lox_parser_statement_block* lox_parser__get_statement_block(
     struct parser* self,
-    struct lox_parser_statement_node* statement_node
+    struct lox_parser_statement_node* statement_list,
+    struct lox_var_environment* env
 );
 
 struct lox_parser_statement_if* lox_parser__get_statement_if(
