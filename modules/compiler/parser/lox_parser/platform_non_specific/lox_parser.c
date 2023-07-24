@@ -35,6 +35,12 @@ static void lox_parser__init_global_env(struct parser* self) {
     }
 }
 
+struct lox_var_environment* lox_parser__get_global_environment(struct parser* self) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    return &table->var_env_arr[0];
+}
+
 bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
     self->had_runtime_error = false;
@@ -82,19 +88,6 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
 }
 
 #include "lox_parse_state.inl"
-
-struct parser_program lox_parser__parse_program(struct parser* self) {
-    struct parser_program program;
-
-    program.starting_env_parse_id = self->env_parse_id;
-    program.starting_env_stack_ids_fill = self->env_stack_ids_fill;
-    program.statement = lox_parser__declaration(self);
-    if (program.statement == NULL) {
-        lox_parser__advance_till_next_statement(self);
-    }
-
-    return program;
-}
 
 void lox_parser__delete_from_expressions_table(
     struct parser* self,

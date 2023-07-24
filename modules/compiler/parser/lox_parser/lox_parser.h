@@ -10,7 +10,7 @@ struct interpreter;
 
 PUBLIC_API bool lox_parser__clear(struct parser* self);
 
-PUBLIC_API struct parser_program lox_parser__parse_program(struct parser* self);
+PUBLIC_API struct parser_statement* lox_parser__parse_statement(struct parser* self);
 
 PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
 
@@ -369,6 +369,7 @@ struct lox_var_environment* lox_parser__get_environment(struct parser* self);
 struct lox_var_environment* lox_parser__push_environment(struct parser* self);
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self);
 void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env);
+struct lox_var_environment* lox_parser__get_global_environment(struct parser* self);
 
 struct lox_parser_expr_var* lox_parser__get_expr__var(struct parser* self, struct tokenizer_token* var_name);
 struct lox_parser_expr_var* lox_parser__define_expr_var(

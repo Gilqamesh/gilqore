@@ -38,17 +38,6 @@ struct parser_statement {
     u8 type;
 };
 
-struct parser_environment;
-
-struct parser_program {
-    struct parser_statement* statement;
-    struct parser_environment* env;
-    u32 starting_env_parse_id;
-    u32 starting_env_stack_ids_fill;
-};
-
-PUBLIC_API bool parser__is_program_valid(struct parser_program program);
-
 PUBLIC_API bool parser__create(
     struct parser* self,
     struct tokenizer* tokenizer,
@@ -62,7 +51,7 @@ typedef bool (*parser__clear)(struct parser* self);
 // @brief parses tokens, stores the statements and expressions
 // @returns next statement or NULL if reached EOF
 // @note implement this function for every parser
-typedef struct parser_program (*parser__parse_program)(struct parser* self);
+typedef struct parser_statement* (*parser__parse_statement)(struct parser* self);
 
 // @returns true if parsed all tokens
 // @note implement this function for every parser

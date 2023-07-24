@@ -128,9 +128,9 @@ static bool run_source(
     // time_start = __rdtsc();
     self->parser_clear(parser);
     do {
-        struct parser_program program = self->parser_parse_program(parser);
-        if (parser__is_program_valid(program) == true) {
-            self->interpreter_evaluate_program(self, program);
+        struct parser_statement* statement = self->parser_parse_statement(parser);
+        if (statement != NULL) {
+            self->interpreter_evaluate_statement(self, statement);
         }
     } while (self->parser_is_finished_parsing(parser) == false);
     // time_end = __rdtsc();
