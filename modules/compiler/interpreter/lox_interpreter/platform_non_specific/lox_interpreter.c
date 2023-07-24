@@ -607,7 +607,11 @@ enum statement_return_type {
     STATEMENT_RETURN_TYPE_NORMAL
 };
 
-static enum statement_return_type lox_interpreter__interpret_statement(struct interpreter* self, struct parser_statement* statement) {
+static enum statement_return_type lox_interpreter__interpret_statement(
+    struct interpreter* self,
+    struct parser_statement* statement,
+    struct lox_var_environment* env
+) {
     enum statement_return_type result = STATEMENT_RETURN_TYPE_NORMAL;
 
     switch (statement->type) {
@@ -631,11 +635,11 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_BLOCK: {
             struct lox_parser_statement_block* block_statement = (struct lox_parser_statement_block*) statement;
-            // todo: later when blocks that can be revisited are introduced, this won't need to increment in that case
-            lox_parser__increment_environment(&self->parser);
+            // copy env in the block_statement and pass it with the interpret_statement function
+            struct lox_var_environment* copied_env = lox_parser__copy_environment(&self->parser, block_statement->env);
             struct lox_parser_statement_node* cur_node = block_statement->statement_list;
             while (cur_node != NULL) {
-                enum statement_return_type return_type = lox_interpreter__interpret_statement(self, cur_node->statement);
+                enum statement_return_type return_type = lox_interpreter__interpret_statement(self, cur_node->statement, copied_env);
                 if (return_type == STATEMENT_RETURN_TYPE_CONTINUE) {
                     result = STATEMENT_RETURN_TYPE_CONTINUE;
                     break ;
@@ -645,7 +649,8 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
                 }
                 cur_node = cur_node->next;
             }
-            lox_parser__decrement_environment(&self->parser);
+            // delete copied env
+            lox_parser__delete_environment(&self->parser, copied_env);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_NODE: {
             struct lox_parser_statement_node* node_statement = (struct lox_parser_statement_node*) statement;
@@ -656,15 +661,15 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             struct lox_parser_statement_if* if_statement = (struct lox_parser_statement_if*) statement;
             struct parser_literal* condition_expr = lox_interpreter__interpret_expression(self, if_statement->condition);
             if (lox_parser__literal_is_truthy(condition_expr)) {
-                lox_interpreter__interpret_statement(self, if_statement->then_branch);
+                lox_interpreter__interpret_statement(self, if_statement->then_branch, env);
             } else if (if_statement->else_branch) {
-                lox_interpreter__interpret_statement(self, if_statement->else_branch);
+                lox_interpreter__interpret_statement(self, if_statement->else_branch, env);
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_WHILE: {
             struct lox_parser_statement_while* while_statement = (struct lox_parser_statement_while*) statement;
             while (lox_parser__literal_is_truthy(lox_interpreter__interpret_expression(self, while_statement->condition))) {
-                enum statement_return_type ret_type = lox_interpreter__interpret_statement(self, while_statement->statement);
+                enum statement_return_type ret_type = lox_interpreter__interpret_statement(self, while_statement->statement, env);
                 if (ret_type == STATEMENT_RETURN_TYPE_BREAK) {
                     break ;
                 }
@@ -686,5 +691,5 @@ void lox_interpreter__interpret_program(struct interpreter* self, struct parser_
     struct parser* parser = &self->parser;
     parser->env_parse_id = program.starting_env_parse_id;
     parser->env_stack_ids_fill = program.starting_env_stack_ids_fill;
-    lox_interpreter__interpret_statement(self, program.statement);
+    lox_interpreter__interpret_statement(self, program.statement, program.env);
 }

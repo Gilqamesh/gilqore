@@ -363,6 +363,8 @@ struct lox_parser_expr_call* lox_parser__get_expr__call(
 
 void lox_parser__increment_environment(struct parser* self);
 void lox_parser__decrement_environment(struct parser* self);
+struct lox_var_environment* lox_parser__copy_environment(struct parser* self, struct lox_var_environment* env);
+void lox_parser__delete_environment(struct parser* self, struct lox_var_environment* env);
 struct lox_var_environment* lox_parser__get_environment(struct parser* self);
 struct lox_var_environment* lox_parser__push_environment(struct parser* self);
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self);

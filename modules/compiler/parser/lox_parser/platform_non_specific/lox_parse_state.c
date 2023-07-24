@@ -68,6 +68,57 @@ static struct lox_var_environment* lox_parser__get_environment_by_internal(struc
     return result;
 }
 
+static void lox_parser__copy_environment_internal(struct lox_var_environment* dest, struct lox_var_environment* src) {
+    dest->parent = NULL;
+    dest->var_expressions_arr_fill = src->var_expressions_arr_fill;
+    for (u32 var_index = 0; var_index < src->var_expressions_arr_size; ++var_index) {
+        struct lox_parser_expr_var* var_from = &src->var_expressions_arr[var_index];
+        struct lox_parser_expr_var* var_to = &dest->var_expressions_arr[var_index];
+
+        var_to->base = var_from->base;
+        var_to->name = var_from->name;
+        var_to->value = var_from->value;
+        var_to->evaluated_literal = NULL; // interpreter did not yet evaluate the copy
+    }
+}
+
+struct lox_var_environment* lox_parser__copy_environment(struct parser* self, struct lox_var_environment* env) {
+    if (env == NULL) {
+        return NULL;
+    }
+
+    struct lox_var_environment* result = lox_parser__push_environment(self);
+    lox_parser__copy_environment_internal(result, env);
+
+    struct lox_var_environment* cur_env = env->next;
+    struct lox_var_environment** cur_result = &result->next;
+    while (cur_env != NULL) {
+        *cur_result = lox_var_environment__get_from_pool(self);
+
+        lox_parser__copy_environment_internal(*cur_result, cur_env);
+
+        cur_env = cur_env->next;
+        cur_result = &(*cur_result)->next;
+    }
+
+    return result;
+}
+
+void lox_parser__delete_environment(struct parser* self, struct lox_var_environment* env) {
+    // inverse function of lox_parser__copy_environment
+    // todo: remove once push is reworked
+    
+    struct lox_var_environment* next = env->next;
+    lox_parser__decrement_environment(self);
+    env = next;
+
+    while (env != NULL) {
+        next = env->next;
+        lox_var_environment__put_to_pool(self, env);
+        env = next;
+    }
+}
+
 struct lox_var_environment* lox_parser__get_environment(struct parser* self) {
     ASSERT(self->env_stack_ids_fill < self->env_stack_ids_size);
     ASSERT(self->env_stack_ids_fill > 0);

@@ -109,6 +109,7 @@ struct parser_statement* lox_parser__statement(struct parser* self) {
             // todo: free statement_list
             return NULL;
         }
+        // lox_parser__push_environment // get unique env
         return (struct parser_statement*) lox_parser__get_statement_block(self, statement_list);
     }
 

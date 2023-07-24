@@ -38,8 +38,11 @@ struct parser_statement {
     u8 type;
 };
 
+struct parser_environment;
+
 struct parser_program {
     struct parser_statement* statement;
+    struct parser_environment* env;
     u32 starting_env_parse_id;
     u32 starting_env_stack_ids_fill;
 };
