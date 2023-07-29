@@ -615,7 +615,7 @@ static struct parser_literal* lox_interpreter__interpret_call(
     }
 
     u32 arity = 0;
-    struct lox_parser_expr_call_node* cur = call_expr->arguments;
+    struct lox_parser_expr_node* cur = call_expr->arguments;
     while (cur != NULL) {
         ++arity;
         cur = cur->next;
@@ -624,8 +624,16 @@ static struct parser_literal* lox_interpreter__interpret_call(
         char* buffer_end = lox_parser__expression_to_str(call_expr->callee, buffer, &buffer_size);
         *buffer_end++ = '\0';
         char* args = buffer_end;
-        lox_parser__expression_to_str((struct parser_expression*) call_expr->arguments, args, &buffer_size);
-        interpreter__runtime_error(self, "Expected %u arguments for '%s' but got %u: %s(s).", callee_obj->header.arity, args, arity, callee_obj->header.arity, buffer);
+        if (call_expr->arguments == NULL) {
+            *args = '\0';
+        } else {
+            lox_parser__expression_to_str((struct parser_expression*) call_expr->arguments, args, &buffer_size);
+        }
+        interpreter__runtime_error(
+            self,
+            "Expected %u arguments for '%s' but got %u: %s(%s).",
+            callee_obj->header.arity, buffer, arity, buffer, args
+        );
         return NULL;
     }
 
@@ -646,8 +654,14 @@ static struct parser_literal* lox_interpreter__interpret_expression(
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: return lox_interpreter__interpret_logical(self, env, expr);
         case LOX_PARSER_EXPRESSION_TYPE_NODE: {
             // should be handled in block statements
-            ASSERT(false);
-            return NULL;
+            // evaluate left then return evaluated right
+            struct lox_parser_expr_node* expr_node = (struct lox_parser_expr_node*) expr;
+            struct parser_literal* last_evaluated_literal = NULL;
+            while (expr_node) {
+                last_evaluated_literal = lox_interpreter__interpret_expression(self, env, expr_node->expression);
+                expr_node = expr_node->next;
+            }
+            return last_evaluated_literal;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_CALL: return lox_interpreter__interpret_call(self, env, expr);
         default: {

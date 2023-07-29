@@ -111,7 +111,13 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: {
             struct lox_parser_expr_literal* expr_literal = (struct lox_parser_expr_literal*) expr;
-            u32 bytes_written = libc__snprintf(buffer, *buffer_size, "%.*s", expr_literal->value->lexeme_len, expr_literal->value->lexeme);
+            u32 bytes_written = 0;
+            if (expr_literal->value->type == LOX_TOKEN_STRING) {
+                bytes_written = libc__snprintf(buffer, *buffer_size, "\"%.*s\"", expr_literal->value->lexeme_len, expr_literal->value->lexeme);
+            } else {
+                bytes_written = libc__snprintf(buffer, *buffer_size, "%.*s", expr_literal->value->lexeme_len, expr_literal->value->lexeme);
+            }
+
             if (bytes_written >= *buffer_size) {
                 *buffer_size = 0;
                 return buffer + *buffer_size;
@@ -144,13 +150,25 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer = lox_parser__expression_to_str(expr_logical->right, buffer, buffer_size);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_NODE: {
-            struct lox_parser_expr_call_node* expr_node = (struct lox_parser_expr_call_node*) expr;
+            struct lox_parser_expr_node* expr_node = (struct lox_parser_expr_node*) expr;
             while (expr_node) {
                 buffer = lox_parser__expression_to_str(expr_node->expression, buffer, buffer_size);
                 if (*buffer_size == 0) {
                     break ;
                 }
-                expr_node = expr_node->next;
+
+                struct lox_parser_expr_node* next_node = expr_node->next;
+                if (next_node != NULL) {
+                    u32 bytes_written = libc__snprintf(buffer, *buffer_size, ", ");
+                    if (bytes_written >= *buffer_size) {
+                        *buffer_size = 0;
+                        return buffer + *buffer_size;
+                    }
+                    *buffer_size -= bytes_written;
+                    buffer += bytes_written;
+                }
+
+                expr_node = next_node;
             }
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_CALL: {
@@ -316,9 +334,9 @@ struct parser_expression* lox_parser__copy_expression(
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_NODE: {
-            struct lox_parser_expr_call_node* result = NULL;
-            struct lox_parser_expr_call_node** presult = &result;
-            struct lox_parser_expr_call_node* expr_node = (struct lox_parser_expr_call_node*) expr;
+            struct lox_parser_expr_node* result = NULL;
+            struct lox_parser_expr_node** presult = &result;
+            struct lox_parser_expr_node* expr_node = (struct lox_parser_expr_node*) expr;
             while (expr_node) {
                 *presult = lox_parser__get_expr__node(
                     self,
@@ -336,7 +354,7 @@ struct parser_expression* lox_parser__copy_expression(
                 env,
                 lox_parser__copy_expression(self, env, expr_call->callee),
                 expr_call->closing_paren,
-                (struct lox_parser_expr_call_node*) lox_parser__copy_expression(self, env, (struct parser_expression*) expr_call->arguments)
+                (struct lox_parser_expr_node*) lox_parser__copy_expression(self, env, (struct parser_expression*) expr_call->arguments)
             );
         } break ;
         default: ASSERT(false);
@@ -659,7 +677,7 @@ void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_exp
     (void) logical_expr;
 }
 
-struct lox_parser_expr_call_node* lox_parser__get_expr__node(
+struct lox_parser_expr_node* lox_parser__get_expr__node(
     struct parser* self,
     struct parser_expression* expr
 ) {
@@ -668,7 +686,7 @@ struct lox_parser_expr_call_node* lox_parser__get_expr__node(
         error_code__exit(21437);
     }
 
-    struct lox_parser_expr_call_node* result = &table->node_arr[table->node_arr_fill++];
+    struct lox_parser_expr_node* result = &table->node_arr[table->node_arr_fill++];
     result->base.type = LOX_PARSER_EXPRESSION_TYPE_NODE;
     result->expression = expr;
     result->next = NULL;
@@ -681,7 +699,7 @@ struct lox_parser_expr_call* lox_parser__get_expr__call(
     struct lox_var_environment* env,
     struct parser_expression* callee,
     struct tokenizer_token* closing_paren,
-    struct lox_parser_expr_call_node* arguments
+    struct lox_parser_expr_node* arguments
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->call_arr_fill == table->call_arr_size) {

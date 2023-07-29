@@ -395,6 +395,8 @@ struct parser_expression* lox_parser__comma(struct parser* self, struct lox_var_
         return NULL;
     }
 
+    struct lox_parser_expr_node* result_node = lox_parser__get_expr__node(self, assignment_expr);
+    struct lox_parser_expr_node** presult_node = (struct lox_parser_expr_node**) &result_node->next;
     while (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
         struct tokenizer_token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
@@ -402,10 +404,11 @@ struct parser_expression* lox_parser__comma(struct parser* self, struct lox_var_
         if (expression == NULL) {
             return NULL;
         }
-        assignment_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, assignment_expr, op, expression);
+        *presult_node = lox_parser__get_expr__node(self, expression);
+        presult_node = (struct lox_parser_expr_node**) &(*presult_node)->next;
     }
 
-    return assignment_expr;
+    return (struct parser_expression*) result_node;
 }
 
 struct parser_expression* lox_parser__assignment(struct parser* self, struct lox_var_environment* env) {
@@ -637,27 +640,30 @@ static struct parser_expression* lox_parser__finish_call(
     struct lox_var_environment* env,
     struct parser_expression* callee
 ) {
-    struct lox_parser_expr_call_node* args = NULL;
-    struct lox_parser_expr_call_node** cur = &args;
+    struct lox_parser_expr_node* args = NULL;
 
-    u32 number_of_arguments = 0;
     if (lox_parser__peek(self) != LOX_TOKEN_RIGHT_PAREN) {
-        do {
-            struct parser_expression* expr = lox_parser__expression(self, env);
-            if (expr == NULL) {
-                // todo: clean up args list
-                return NULL;
+        struct parser_expression* expr = lox_parser__expression(self, env);
+        if (expr == NULL) {
+            // todo: clean up args list
+            return NULL;
+        }
+        u32 number_of_arguments = 1;
+        if (expr->type == LOX_PARSER_EXPRESSION_TYPE_NODE) {
+            struct lox_parser_expr_node* node = (struct lox_parser_expr_node*) expr;
+            args = node;
+            node = node->next;
+            while (node) {
+                ++number_of_arguments;
+                node = node->next;
             }
-            ++number_of_arguments;
-            if (number_of_arguments >= 255) {
-                parser__warn_error(
-                    self,
-                    "Cannot have more than 255 arguments."
-                );
-            }
-            *cur = lox_parser__get_expr__node(self, expr);
-            cur = &((*cur)->next);
-        } while (lox_parser__advance_if(self, LOX_TOKEN_COMMA) != NULL);
+        }
+        if (number_of_arguments >= 255) {
+            parser__warn_error(
+                self,
+                "Cannot have more than 255 arguments."
+            );
+        }
     }
 
     struct tokenizer_token* right_paren = lox_parser__advance_err(

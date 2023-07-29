@@ -249,10 +249,10 @@ packed_struct(1) lox_parser_expr_logical {
     struct parser_literal* evaluated_literal;
 };
 
-struct lox_parser_expr_call_node {
+struct lox_parser_expr_node {
     struct parser_expression base;
     struct parser_expression* expression;
-    struct lox_parser_expr_call_node* next;
+    struct lox_parser_expr_node* next;
 };
 
 packed_struct(1) lox_parser_expr_call {
@@ -260,7 +260,7 @@ packed_struct(1) lox_parser_expr_call {
     struct lox_var_environment* env;
     struct parser_expression* callee;
     struct tokenizer_token* closing_paren;
-    struct lox_parser_expr_call_node* arguments;
+    struct lox_parser_expr_node* arguments;
 };
 
 struct lox_var_environment {
@@ -296,7 +296,7 @@ struct lox_expressions_table {
     u32 logical_arr_fill;
     u32 logical_arr_size;
 
-    struct lox_parser_expr_call_node* node_arr;
+    struct lox_parser_expr_node* node_arr;
     u32 node_arr_fill;
     u32 node_arr_size;
 
@@ -369,7 +369,7 @@ struct lox_parser_expr_logical* lox_parser__get_expr__logical(
 );
 void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr);
 
-struct lox_parser_expr_call_node* lox_parser__get_expr__node(
+struct lox_parser_expr_node* lox_parser__get_expr__node(
     struct parser* self,
     struct parser_expression* expr
 );
@@ -378,7 +378,7 @@ struct lox_parser_expr_call* lox_parser__get_expr__call(
     struct lox_var_environment* env,
     struct parser_expression* callee,
     struct tokenizer_token* closing_paren,
-    struct lox_parser_expr_call_node* arguments
+    struct lox_parser_expr_node* arguments
 );
 
 struct lox_var_environment* lox_parser__copy_environment(struct parser* self, struct lox_var_environment* env);
