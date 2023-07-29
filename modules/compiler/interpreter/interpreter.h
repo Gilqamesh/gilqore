@@ -15,9 +15,13 @@ enum interpreter_type {
 
 struct interpreter;
 
-// @brief evaluates a statement
+// @brief evaluates the ast
 // @note implement this function for every interpreter
-typedef void (*interpreter__interpret_statement)(struct interpreter* self, struct parser_statement* statement);
+typedef void (*interpreter__interpret_ast)(struct interpreter* self, struct parser_ast ast);
+
+// @brief initializes itself
+// @note implement this function for every interpreter
+typedef bool (*interpreter__initialize)(struct interpreter* self, struct memory_slice internal_buffer);
 
 struct interpreter {
     struct tokenizer tokenizer;
@@ -26,12 +30,17 @@ struct interpreter {
 
     struct parser parser;
     parser__clear parser_clear;
-    parser__parse_statement parser_parse_statement;
+    parser__parse_ast parser_parse_ast;
+    parser__ast_is_valid parser_ast_is_valid;
     parser__is_finished_parsing parser_is_finished_parsing;
     parser__convert_expr_to_string parser_convert_expr_to_string;
 
+    struct memory_slice native_callables_memory;
+    u32 native_callables_fill;
+    u32 native_callables_size;
+
     bool had_runtime_error;
-    interpreter__interpret_statement interpreter_evaluate_statement;
+    interpreter__interpret_ast interpreter_interpret_ast;
 };
 
 PUBLIC_API bool interpreter__create(

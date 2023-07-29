@@ -4,10 +4,6 @@
 
 #include "libc/libc.h"
 
-bool parser__is_program_valid(struct parser_program program) {
-    return program.statement != NULL;
-}
-
 bool parser__create(
     struct parser* self,
     struct tokenizer* tokenizer,

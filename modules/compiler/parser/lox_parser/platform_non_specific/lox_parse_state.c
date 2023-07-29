@@ -68,8 +68,8 @@ static struct lox_var_environment* lox_parser__get_environment_by_internal(struc
     return result;
 }
 
-static void lox_parser__copy_environment_internal(struct lox_var_environment* dest, struct lox_var_environment* src) {
-    dest->parent = NULL;
+static void lox_parser__copy_environment_internal(struct parser* self, struct lox_var_environment* dest, struct lox_var_environment* src) {
+    dest->parent = src->parent;
     dest->var_expressions_arr_fill = src->var_expressions_arr_fill;
     for (u32 var_index = 0; var_index < src->var_expressions_arr_size; ++var_index) {
         struct lox_parser_expr_var* var_from = &src->var_expressions_arr[var_index];
@@ -77,7 +77,7 @@ static void lox_parser__copy_environment_internal(struct lox_var_environment* de
 
         var_to->base = var_from->base;
         var_to->name = var_from->name;
-        var_to->value = var_from->value;
+        var_to->value = lox_parser__copy_expression(self, dest, var_from->value);
         var_to->evaluated_literal = NULL; // interpreter did not yet evaluate the copy
     }
 }
@@ -87,17 +87,14 @@ struct lox_var_environment* lox_parser__copy_environment(struct parser* self, st
         return NULL;
     }
 
-    struct lox_var_environment* result = lox_parser__push_environment(self);
-    lox_parser__copy_environment_internal(result, env);
-
-    struct lox_var_environment* cur_env = env->next;
-    struct lox_var_environment** cur_result = &result->next;
-    while (cur_env != NULL) {
+    struct lox_var_environment* result = NULL;
+    struct lox_var_environment** cur_result = &result;
+    while (env != NULL) {
         *cur_result = lox_var_environment__get_from_pool(self);
 
-        lox_parser__copy_environment_internal(*cur_result, cur_env);
+        lox_parser__copy_environment_internal(self, *cur_result, env);
 
-        cur_env = cur_env->next;
+        env = env->next;
         cur_result = &(*cur_result)->next;
     }
 
@@ -106,17 +103,9 @@ struct lox_var_environment* lox_parser__copy_environment(struct parser* self, st
 
 void lox_parser__delete_environment(struct parser* self, struct lox_var_environment* env) {
     // inverse function of lox_parser__copy_environment
-    // todo: remove once push is reworked
     
-    struct lox_var_environment* next = env->next;
-    lox_parser__decrement_environment(self);
-    env = next;
-
-    while (env != NULL) {
-        next = env->next;
-        lox_var_environment__put_to_pool(self, env);
-        env = next;
-    }
+    // todo: do we have to delete anything from the env?
+    lox_var_environment__put_to_pool(self, env);
 }
 
 struct lox_var_environment* lox_parser__get_environment(struct parser* self) {
@@ -134,14 +123,11 @@ struct lox_var_environment* lox_parser__push_environment(struct parser* self) {
         result->parent = lox_parser__get_environment_by_internal(self, self->env_stack_ids[self->env_stack_ids_fill - 1]);
     }
 
-    lox_parser__increment_environment(self);
-    return result;
-}
-
-void lox_parser__increment_environment(struct parser* self) {
     ASSERT(self->env_stack_ids_fill < self->env_stack_ids_size);
     self->env_stack_ids[self->env_stack_ids_fill++] = self->env_parse_id;
     ++self->env_parse_id;
+
+    return result;
 }
 
 void lox_parser__decrement_environment(struct parser* self) {
@@ -151,6 +137,10 @@ void lox_parser__decrement_environment(struct parser* self) {
 
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->var_env_pool_arr_fill == table->var_env_pool_arr_size) {
+        error_code__exit(324234);
+    }
+    
     struct lox_var_environment* result = NULL;
     if (table->var_env_pool_free_list != NULL) {
         result = table->var_env_pool_free_list;
@@ -159,25 +149,26 @@ struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* se
     } else {
         result = (struct lox_var_environment*) ((char*) table->var_env_pool_arr + table->var_env_pool_arr_fill * table->var_environment_memory_size);
         lox_parser__clear_environment(self, result);
-        if (table->var_env_pool_arr_fill == table->var_env_pool_arr_size) {
-            error_code__exit(324234);
-        }
     }
     if (self->env_parse_id > 0) {
         result->parent = lox_parser__get_environment_by_internal(self, self->env_parse_id - 1);
     }
+
+    ++table->var_env_pool_arr_fill;
 
     return result;
 }
 
 void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-    struct lox_var_environment* cur = env->next;
-    while (cur != NULL) {
-        struct lox_var_environment* next = cur->next;
-        cur->next = table->var_env_pool_free_list;
-        table->var_env_pool_free_list = cur;
-        cur = next;
+    while (env != NULL) {
+        struct lox_var_environment* next = env->next;
+        env->next = table->var_env_pool_free_list;
+        table->var_env_pool_free_list = env;
+        env = next;
+
+        ASSERT(table->var_env_pool_arr_fill > 0);
+        --table->var_env_pool_arr_fill;
     }
 }
 

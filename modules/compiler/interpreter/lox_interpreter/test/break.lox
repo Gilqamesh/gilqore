@@ -3,6 +3,33 @@ var a = 2;
 if (a) {
     while (a) {
         a = a - 1;
+        while (a) {
+            print a;
+            break ;
+            print a;
+        }
+        a = a + 5;
+        print a;
+        break ;
+        print a;
+    }
+    print a;
+}
+print a;
+
+if (a) {
+    while (a) {
+        a = a - 1;
+        print a;
+        continue ;
+        print a;
+        while (a) {
+            print a;
+            break ;
+            print a;
+        }
+        a = a + 5;
+        print a;
         break ;
         print a;
     }

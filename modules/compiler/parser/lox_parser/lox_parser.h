@@ -10,7 +10,8 @@ struct interpreter;
 
 PUBLIC_API bool lox_parser__clear(struct parser* self);
 
-PUBLIC_API struct parser_statement* lox_parser__parse_statement(struct parser* self);
+PUBLIC_API struct parser_ast lox_parser__parse_ast(struct parser* self);
+PUBLIC_API bool lox_parser__ast_is_valid(struct parser_ast ast);
 
 PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
 
@@ -33,55 +34,54 @@ enum lox_parser_statement_type {
 
 const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type);
 
-packed_struct(1) lox_parser_statement_print {
+struct lox_parser_statement_print {
     struct parser_statement base;
     struct parser_expression* expr;
 };
 
-packed_struct(1) lox_parser_statement_expression {
+struct lox_parser_statement_expression {
     struct parser_statement base;
     struct parser_expression* expr;
 };
 
-packed_struct(1) lox_parser_statement_var_decl {
+struct lox_parser_statement_var_decl {
     struct parser_statement base;
     struct parser_expression* var_expr;
 };
 
-packed_struct(1) lox_parser_statement_node {
+struct lox_parser_statement_node {
     struct parser_statement base;
     struct parser_statement* statement;
     struct lox_parser_statement_node* next;
 };
 
-packed_struct(1) lox_parser_statement_block {
+struct lox_parser_statement_block {
     struct parser_statement base;
     struct lox_parser_statement_node* statement_list;
-    struct lox_var_environment* env;
 };
 
-packed_struct(1) lox_parser_statement_if {
+struct lox_parser_statement_if {
     struct parser_statement base;
     struct parser_expression* condition;
     struct parser_statement* then_branch;
     struct parser_statement* else_branch;
 };
 
-packed_struct(1) lox_parser_statement_while {
+struct lox_parser_statement_while {
     struct parser_statement base;
     struct parser_expression* condition;
     struct parser_statement* statement;
 };
 
-packed_struct(1) lox_parser_statement_break {
+struct lox_parser_statement_break {
     struct parser_statement base;
 };
 
-packed_struct(1) lox_parser_statement_continue {
+struct lox_parser_statement_continue {
     struct parser_statement base;
 };
 
-packed_struct(1) lox_parser_statement_function {
+struct lox_parser_statement_function {
     struct parser_statement base;
     struct tokenizer_token* name;
     struct lox_parser_statement_block* body;
@@ -125,33 +125,40 @@ struct lox_statements_table {
 
 void lox_parser__print_statements_table_stats(struct parser* self);
 
+struct lox_var_environment;
+
 struct lox_parser_statement_print* lox_parser__get_statement_print(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* expr
 );
 
 struct lox_parser_statement_expression* lox_parser__get_statement_expression(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* expr
 );
 
 struct lox_parser_statement_var_decl* lox_parser__get_statement_var_decl(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* var_expr
 );
 
 struct lox_parser_statement_node* lox_parser__get_statement_node(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_statement* statement
 );
 struct lox_parser_statement_block* lox_parser__get_statement_block(
     struct parser* self,
-    struct lox_parser_statement_node* statement_list,
-    struct lox_var_environment* env
+    struct lox_var_environment* env,
+    struct lox_parser_statement_node* statement_list
 );
 
 struct lox_parser_statement_if* lox_parser__get_statement_if(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* condition,
     struct parser_statement* then_branch,
     struct parser_statement* else_branch
@@ -159,6 +166,7 @@ struct lox_parser_statement_if* lox_parser__get_statement_if(
 
 struct lox_parser_statement_while* lox_parser__get_statement_while(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* condition,
     struct parser_statement* statement
 );
@@ -187,6 +195,7 @@ enum lox_parser_expression_type {
 };
 
 const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type expr_type);
+char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer, u32 *buffer_size);
 
 packed_struct(1) lox_parser_expr_op_unary {
     struct parser_expression base;
@@ -240,17 +249,18 @@ packed_struct(1) lox_parser_expr_logical {
     struct parser_literal* evaluated_literal;
 };
 
-struct lox_parser_expr_node {
+struct lox_parser_expr_call_node {
     struct parser_expression base;
     struct parser_expression* expression;
-    struct lox_parser_expr_node* next;
+    struct lox_parser_expr_call_node* next;
 };
 
 packed_struct(1) lox_parser_expr_call {
     struct parser_expression base;
+    struct lox_var_environment* env;
     struct parser_expression* callee;
     struct tokenizer_token* closing_paren;
-    struct lox_parser_expr_node* arguments;
+    struct lox_parser_expr_call_node* arguments;
 };
 
 struct lox_var_environment {
@@ -286,7 +296,7 @@ struct lox_expressions_table {
     u32 logical_arr_fill;
     u32 logical_arr_size;
 
-    struct lox_parser_expr_node* node_arr;
+    struct lox_parser_expr_call_node* node_arr;
     u32 node_arr_fill;
     u32 node_arr_size;
 
@@ -294,6 +304,7 @@ struct lox_expressions_table {
     u32 call_arr_fill;
     u32 call_arr_size;
 
+    // todo: move to its separate table
     // ENVIRONMENT START
     u32 var_environment_memory_size; // size of one env
     struct lox_var_environment* var_env_arr;
@@ -310,6 +321,8 @@ struct lox_expressions_table {
     u64 table_memory_size;
 };
 
+void lox_parser__print_environment_table_stats(struct parser* self);
+
 void lox_parser__delete_from_expressions_table(
     struct parser* self,
     struct lox_var_environment* env,
@@ -317,6 +330,12 @@ void lox_parser__delete_from_expressions_table(
 );
 
 void lox_parser__print_expressions_table_stats(struct parser* self);
+
+struct parser_expression* lox_parser__copy_expression(
+    struct parser* self,
+    struct lox_var_environment* env,
+    struct parser_expression* expr
+);
 
 struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
     struct parser* self,
@@ -350,35 +369,41 @@ struct lox_parser_expr_logical* lox_parser__get_expr__logical(
 );
 void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr);
 
-struct lox_parser_expr_node* lox_parser__get_expr__node(
+struct lox_parser_expr_call_node* lox_parser__get_expr__node(
     struct parser* self,
     struct parser_expression* expr
 );
 struct lox_parser_expr_call* lox_parser__get_expr__call(
     struct parser* self,
+    struct lox_var_environment* env,
     struct parser_expression* callee,
     struct tokenizer_token* closing_paren,
-    struct lox_parser_expr_node* arguments
+    struct lox_parser_expr_call_node* arguments
 );
 
-void lox_parser__increment_environment(struct parser* self);
-void lox_parser__decrement_environment(struct parser* self);
 struct lox_var_environment* lox_parser__copy_environment(struct parser* self, struct lox_var_environment* env);
 void lox_parser__delete_environment(struct parser* self, struct lox_var_environment* env);
 struct lox_var_environment* lox_parser__get_environment(struct parser* self);
 struct lox_var_environment* lox_parser__push_environment(struct parser* self);
+void lox_parser__decrement_environment(struct parser* self);
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self);
 void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_environment* env);
 struct lox_var_environment* lox_parser__get_global_environment(struct parser* self);
 
-struct lox_parser_expr_var* lox_parser__get_expr__var(struct parser* self, struct tokenizer_token* var_name);
+struct lox_parser_expr_var* lox_parser__get_expr__var(
+    struct parser* self,
+    struct lox_var_environment* env,
+    struct tokenizer_token* var_name
+);
 struct lox_parser_expr_var* lox_parser__define_expr_var(
     struct parser* self,
+    struct lox_var_environment* env,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
 );
 struct lox_parser_expr_var* lox_parser__set_expr__var(
     struct parser* self,
+    struct lox_var_environment* env,
     struct tokenizer_token* var_name,
     struct parser_expression* var_value
 );
@@ -397,7 +422,7 @@ enum lox_literal_type {
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type);
 
 struct object_header {
-    struct parser_literal* (*call)(struct interpreter*, struct lox_parser_expr_node*);
+    struct parser_literal* (*call)(struct interpreter*, struct lox_parser_expr_call*);
     u32 arity;
 };
 
@@ -459,6 +484,6 @@ struct lox_literal_boolean* lox_parser__get_literal__boolean(struct parser* self
 struct lox_literal_number* lox_parser__get_literal__number(struct parser* self, r64 value);
 struct lox_literal_string* lox_parser__get_literal__string(struct parser* self, char* format, ...);
 
-// LITERAL TYPES, METHODS AND TABLE START
+// LITERAL TYPES, METHODS AND TABLE END
 
 #endif // LOX_PARSER_H

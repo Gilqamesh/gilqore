@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: lox_parser lox_tokenizer libc basic_types
+module_dependencies: lox_parser lox_tokenizer libc basic_types time system
 test_dependencies:
 application_type: CONSOLE

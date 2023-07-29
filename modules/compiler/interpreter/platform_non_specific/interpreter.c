@@ -23,58 +23,22 @@ bool interpreter__create(
             self->convert_token_to_string_fn = &token__type_name_comment;
 
             self->parser_clear = NULL;
-            self->parser_parse_program = NULL;
+            self->parser_parse_ast = NULL;
+            self->parser_ast_is_valid = NULL;
             self->parser_is_finished_parsing = NULL;
             self->parser_convert_expr_to_string = NULL;
 
-            self->interpreter_evaluate_program = NULL;
+            self->interpreter_interpret_ast = NULL;
         } break ;
         case INTERPRETER_TYPE_LOX: {
-            self->tokenizer_fn = &lox_tokenizer__tokenize;
-            self->convert_token_to_string_fn = &lox_token__type_name;
-
-            self->parser_clear = &lox_parser__clear;
-            self->parser_parse_program = &lox_parser__parse_program;
-            self->parser_is_finished_parsing = &lox_parser__is_finished_parsing;
-            self->parser_convert_expr_to_string = &lox_parser__convert_expr_to_string;
-
-            self->interpreter_evaluate_program = &lox_interpreter__interpret_program;
+            if (lox_interpreter__initialize(self, internal_buffer) == false) {
+                return false;
+            }
         } break ;
         default: {
             // error_code__exit(UNKNOWN_INTERPRETER_TYPE);
             error_code__exit(4356);
         }
-    }
-
-    u64 total_memory_size = memory_slice__size(&internal_buffer);
-    void* total_memory = memory_slice__memory(&internal_buffer);
-    
-    u64 cur_memory_size = total_memory_size;
-    void* cur_memory = total_memory;
-
-    u64 tokenizer_memory_size = cur_memory_size / 2;
-    cur_memory_size -= tokenizer_memory_size;
-    struct memory_slice tokenizer_memory = {
-        .memory = cur_memory,
-        .size = tokenizer_memory_size
-    };
-    cur_memory = (char*) cur_memory + tokenizer_memory_size;
-
-    if (tokenizer__create(&self->tokenizer, tokenizer_memory) == false) {
-        return false;
-    }
-
-    u64 parser_memory_size = cur_memory_size;
-    cur_memory_size -= parser_memory_size;
-    struct memory_slice parser_memory = {
-        .memory = cur_memory,
-        .size = parser_memory_size
-    };
-    cur_memory = (char*) cur_memory + parser_memory_size;
-
-    if (parser__create(&self->parser, &self->tokenizer, parser_memory) == false) {
-        tokenizer__destroy(&self->tokenizer);
-        return false;
     }
 
     return true;
@@ -127,16 +91,18 @@ static bool run_source(
     struct parser* parser = &self->parser;
     // time_start = __rdtsc();
     self->parser_clear(parser);
+    lox_interpreter__init_native_callables(self);
     do {
-        struct parser_statement* statement = self->parser_parse_statement(parser);
-        if (statement != NULL) {
-            self->interpreter_evaluate_statement(self, statement);
+        struct parser_ast ast = self->parser_parse_ast(parser);
+        if (self->parser_ast_is_valid(ast)) {
+            self->interpreter_interpret_ast(self, ast);
         }
     } while (self->parser_is_finished_parsing(parser) == false);
     // time_end = __rdtsc();
     // libc__printf("Statement parse and evaluate Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
 
     lox_parser__print_expressions_table_stats(parser);
+    lox_parser__print_environment_table_stats(parser);
     lox_parser__print_literal_table_stats(parser);
     lox_parser__print_statements_table_stats(parser);
 

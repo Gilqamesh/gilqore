@@ -10,6 +10,7 @@ bool lox_parser__is_finished(struct parser* self);
 struct lox_expressions_table* lox_parser__get_expressions_table(struct parser* self);
 struct lox_literal_table* lox_parser__get_literal_table(struct parser* self);
 struct lox_statements_table* lox_parser__get_statements_table(struct parser* self);
+struct lox_native_table* lox_parser__get_native_table(struct parser* self);
 
 bool lox_parser_clear_tables(struct parser* self);
 

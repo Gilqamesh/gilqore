@@ -13,6 +13,12 @@ var c = "global c";
   print a;
   print b;
   print c;
+  {
+    var a = "inner a";
+    print a;
+    print b;
+    print c;
+  }
 }
 print a;
 print b;

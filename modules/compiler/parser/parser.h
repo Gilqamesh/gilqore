@@ -36,6 +36,11 @@ struct parser_literal {
 
 struct parser_statement {
     u8 type;
+    void* env;
+};
+
+struct parser_ast {
+    struct parser_statement* statement;
 };
 
 PUBLIC_API bool parser__create(
@@ -48,10 +53,11 @@ PUBLIC_API void parser__destroy(struct parser* self);
 // @note implement this function for every parser
 typedef bool (*parser__clear)(struct parser* self);
 
-// @brief parses tokens, stores the statements and expressions
-// @returns next statement or NULL if reached EOF
+// @brief parses the tokens received from the tokenizer
+// @returns next ast parsed or NULL if nothing more to parse
 // @note implement this function for every parser
-typedef struct parser_statement* (*parser__parse_statement)(struct parser* self);
+typedef struct parser_ast (*parser__parse_ast)(struct parser* self);
+typedef bool (*parser__ast_is_valid)(struct parser_ast ast);
 
 // @returns true if parsed all tokens
 // @note implement this function for every parser

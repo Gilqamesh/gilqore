@@ -3,6 +3,8 @@
 
 # include "time_defs.h"
 
+# include "memory/memory.h"
+
 struct time;
 
 # if defined(WINDOWS)
@@ -18,5 +20,6 @@ PUBLIC_API struct time time__get(void);
 
 // @returns <0, 0 or >0 if t1 is found, respectively, to be less than, equal to or be greater than t2
 PUBLIC_API s64 time__cmp(struct time t1, struct time t2);
+PUBLIC_API void time__to_str(struct time time, struct memory_slice memory_slice);
 
 #endif
