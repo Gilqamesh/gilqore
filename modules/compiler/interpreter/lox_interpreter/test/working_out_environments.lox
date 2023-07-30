@@ -1,0 +1,9 @@
+var a = 3;
+
+fun set_global_a(a) {
+    a = a;
+}
+
+for (var a = 0; a < 10; a = a + 1) {
+
+}

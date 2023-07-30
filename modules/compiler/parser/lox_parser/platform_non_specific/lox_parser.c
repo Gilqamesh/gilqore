@@ -354,7 +354,7 @@ struct parser_expression* lox_parser__copy_expression(
                 env,
                 lox_parser__copy_expression(self, env, expr_call->callee),
                 expr_call->closing_paren,
-                (struct lox_parser_expr_node*) lox_parser__copy_expression(self, env, (struct parser_expression*) expr_call->arguments)
+                (struct lox_parser_expr_node*) lox_parser__copy_expression(self, env, (struct parser_expression*) expr_call->parameters)
             );
         } break ;
         default: ASSERT(false);
@@ -699,7 +699,7 @@ struct lox_parser_expr_call* lox_parser__get_expr__call(
     struct lox_var_environment* env,
     struct parser_expression* callee,
     struct tokenizer_token* closing_paren,
-    struct lox_parser_expr_node* arguments
+    struct lox_parser_expr_node* parameters
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->call_arr_fill == table->call_arr_size) {
@@ -711,7 +711,7 @@ struct lox_parser_expr_call* lox_parser__get_expr__call(
     result->env = env;
     result->callee = callee;
     result->closing_paren = closing_paren;
-    result->arguments = arguments;
+    result->parameters = parameters;
 
     return result;
 }
@@ -972,12 +972,20 @@ void lox_parser__print_statements_table_stats(struct parser* self) {
         "  variable statements allocated: %u, total: %u\n"
         "  node statements allocated: %u, total: %u\n"
         "  block statements allocated: %u, total: %u\n"
+        "  if statements allocated: %u, total: %u\n"
+        "  while statements allocated: %u, total: %u\n"
+        "  fun_params statements allocated: %u, total: %u\n"
+        "  fun statements allocated: %u, total: %u\n"
         "  ----------------------------\n",
         table->print_statements_arr_fill, table->print_statements_arr_size,
         table->expression_statements_arr_fill, table->expression_statements_arr_size,
         table->var_decl_statements_arr_fill, table->var_decl_statements_arr_size,
         table->lox_parser_statement_node_arr_fill, table->lox_parser_statement_node_arr_size,
-        table->block_statements_arr_fill, table->block_statements_arr_size
+        table->block_statements_arr_fill, table->block_statements_arr_size,
+        table->if_statements_arr_fill, table->if_statements_arr_size,
+        table->while_statements_arr_fill, table->while_statements_arr_size,
+        table->fun_params_arr_fill, table->fun_params_arr_size,
+        table->fun_arr_fill, table->fun_arr_size
     );
 }
 
@@ -1072,6 +1080,24 @@ struct lox_parser_statement_block* lox_parser__get_statement_block(
     return result;
 }
 
+struct lox_parser_statement_fun_block* lox_parser__get_statement_fun_block(
+    struct parser* self,
+    struct lox_var_environment* env,
+    struct lox_parser_statement_node* statement_list
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->fun_block_statements_arr_fill == table->fun_block_statements_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_fun_block* result = &table->fun_block_statements_arr[table->fun_block_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_BLOCK;
+    result->base.env = env;
+    result->statement_list = statement_list;
+
+    return result;
+}
+
 struct lox_parser_statement_if* lox_parser__get_statement_if(
     struct parser* self,
     struct lox_var_environment* env,
@@ -1130,13 +1156,55 @@ struct lox_parser_statement_continue* lox_parser__get_statement_continue(
     return table->continue_statement;
 }
 
+struct lox_parser_statement_token_node* lox_parser__get_statement_fun_params_node (
+    struct parser* self,
+    struct lox_var_environment* env,
+    struct tokenizer_token* name
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->fun_params_arr_fill == table->fun_params_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_token_node* result = &table->fun_params_arr[table->fun_params_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE;
+    result->base.env = env;
+    result->name = name;
+    result->next = NULL;
+
+    return result;
+}
+
+struct lox_parser_statement_function* lox_parser__get_statement_fun(
+    struct parser* self,
+    struct lox_var_environment* env,
+    struct tokenizer_token* name,
+    struct lox_parser_statement_token_node* params,
+    struct lox_parser_statement_block* body
+) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->fun_arr_fill == table->fun_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_parser_statement_function* result = &table->fun_arr[table->fun_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN;
+    result->base.env = env;
+    result->name = name;
+    result->params = params;
+    result->body = body;
+
+    return result;
+}
+
 struct lox_parser_expr_var* lox_parser__get_expr__var(
     struct parser* self,
     struct lox_var_environment* env,
     struct tokenizer_token* var_name
 ) {
     (void) self;
-    
+
+    ASSERT(env != NULL);
     u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
 
     while (env != NULL) {

@@ -69,16 +69,21 @@ static struct lox_var_environment* lox_parser__get_environment_by_internal(struc
 }
 
 static void lox_parser__copy_environment_internal(struct parser* self, struct lox_var_environment* dest, struct lox_var_environment* src) {
+    if (src->var_expressions_arr_fill == 0) {
+        return ;
+    }
+
     dest->parent = src->parent;
     dest->var_expressions_arr_fill = src->var_expressions_arr_fill;
     for (u32 var_index = 0; var_index < src->var_expressions_arr_size; ++var_index) {
         struct lox_parser_expr_var* var_from = &src->var_expressions_arr[var_index];
-        struct lox_parser_expr_var* var_to = &dest->var_expressions_arr[var_index];
-
-        var_to->base = var_from->base;
-        var_to->name = var_from->name;
-        var_to->value = lox_parser__copy_expression(self, dest, var_from->value);
-        var_to->evaluated_literal = NULL; // interpreter did not yet evaluate the copy
+        if (var_from->name != NULL) {
+            struct lox_parser_expr_var* copied_var = lox_parser__define_expr_var(
+                self, dest, var_from->name,
+                lox_parser__copy_expression(self, dest, var_from->value)
+            );
+            copied_var->evaluated_literal = NULL; // interpreter did not yet evaluate the expression yet in its current environment
+        }
     }
 }
 
@@ -87,18 +92,60 @@ struct lox_var_environment* lox_parser__copy_environment(struct parser* self, st
         return NULL;
     }
 
-    struct lox_var_environment* result = NULL;
-    struct lox_var_environment** cur_result = &result;
-    while (env != NULL) {
-        *cur_result = lox_var_environment__get_from_pool(self);
+    // copy entire env again and again
+    // // 1. get env from the pool
+    // // 2. go over env, for each var that is not null, copy their expr and then define them for the copied env
+    // // lox_parser__define_expr_var
+    // struct lox_var_environment* result_env = NULL;
+    // struct lox_var_environment* prev_result = NULL;
+    // struct lox_var_environment** cur_result = &result_env;
+    // while (env != NULL) {
+    //     struct lox_var_environment* cur_env = env;
+    //     *cur_result = lox_var_environment__get_from_pool(self);
 
-        lox_parser__copy_environment_internal(self, *cur_result, env);
+    //     (*cur_result)->parent = NULL;
+    //     if (prev_result != NULL) {
+    //         prev_result->parent = *cur_result;
+    //     }
+    //     prev_result = *cur_result;
+
+    //     while (
+    //         cur_env != NULL &&
+    //         cur_env->var_expressions_arr_fill > 0
+    //     ) {
+    //         for (u32 var_index = 0; var_index < cur_env->var_expressions_arr_size; ++var_index) {
+    //             struct lox_parser_expr_var* var = &cur_env->var_expressions_arr[var_index];
+    //             if (var->name != NULL) {
+    //                 struct lox_parser_expr_var* copied_var = lox_parser__define_expr_var(
+    //                     self, *cur_result, var->name,
+    //                     lox_parser__copy_expression(self, *cur_result, var->value)
+    //                 );
+    //                 copied_var->evaluated_literal = NULL; // interpreter did not yet evaluate the expression yet in its current environment
+    //             }
+    //         }
+    //         cur_env = cur_env->next;
+    //     }
+    //     cur_result = &(*cur_result)->parent;
+    //     env = env->parent;
+    // }
+
+    struct lox_var_environment* parent = env->parent;
+    struct lox_var_environment* result_env = NULL;
+    struct lox_var_environment** cur_result_env = &result_env;
+    do {
+        *cur_result_env = lox_var_environment__get_from_pool(self);
+        (*cur_result_env)->parent = parent;
+
+        lox_parser__copy_environment_internal(self, *cur_result_env, env);
 
         env = env->next;
-        cur_result = &(*cur_result)->next;
-    }
+        cur_result_env = &(*cur_result_env)->next;
+    } while (
+        env != NULL &&
+        env->var_expressions_arr_fill > 0
+    );
 
-    return result;
+    return result_env;
 }
 
 void lox_parser__delete_environment(struct parser* self, struct lox_var_environment* env) {
@@ -106,6 +153,11 @@ void lox_parser__delete_environment(struct parser* self, struct lox_var_environm
     
     // todo: do we have to delete anything from the env?
     lox_var_environment__put_to_pool(self, env);
+    // while (env != NULL) {
+    //     struct lox_var_environment* parent = env->parent;
+    //     lox_var_environment__put_to_pool(self, env);
+    //     env = parent;
+    // }
 }
 
 struct lox_var_environment* lox_parser__get_environment(struct parser* self) {
@@ -137,24 +189,24 @@ void lox_parser__decrement_environment(struct parser* self) {
 
 struct lox_var_environment* lox_var_environment__get_from_pool(struct parser* self) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-    if (table->var_env_pool_arr_fill == table->var_env_pool_arr_size) {
-        error_code__exit(324234);
-    }
-    
+
     struct lox_var_environment* result = NULL;
     if (table->var_env_pool_free_list != NULL) {
         result = table->var_env_pool_free_list;
+        struct lox_var_environment* next_free = table->var_env_pool_free_list ? table->var_env_pool_free_list->next : NULL;
         lox_parser__clear_environment(self, result);
-        table->var_env_pool_free_list = table->var_env_pool_free_list->next;
+        table->var_env_pool_free_list = next_free;
     } else {
-        result = (struct lox_var_environment*) ((char*) table->var_env_pool_arr + table->var_env_pool_arr_fill * table->var_environment_memory_size);
+        if (table->var_env_pool_arr_fill == table->var_env_pool_arr_size) {
+            error_code__exit(324234);
+        }
+        result = (struct lox_var_environment*) ((char*) table->var_env_pool_arr + table->var_env_pool_arr_fill++ * table->var_environment_memory_size);
         lox_parser__clear_environment(self, result);
     }
+
     if (self->env_parse_id > 0) {
         result->parent = lox_parser__get_environment_by_internal(self, self->env_parse_id - 1);
     }
-
-    ++table->var_env_pool_arr_fill;
 
     return result;
 }
@@ -166,9 +218,6 @@ void lox_var_environment__put_to_pool(struct parser* self, struct lox_var_enviro
         env->next = table->var_env_pool_free_list;
         table->var_env_pool_free_list = env;
         env = next;
-
-        ASSERT(table->var_env_pool_arr_fill > 0);
-        --table->var_env_pool_arr_fill;
     }
 }
 
@@ -286,7 +335,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*statements_table);
         ASSERT(statements_table_size >= memory_offset);
         statements_table_size -= memory_offset;
-        u64 statements_subtable_memory_size = statements_table_size / 9;
+        u64 statements_subtable_memory_size = statements_table_size / 12;
 
         statements_table->print_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->print_statements_arr_fill = 0;
@@ -313,6 +362,11 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->block_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->block_statements_arr);
         memory_offset += statements_subtable_memory_size;
 
+        statements_table->fun_block_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->fun_block_statements_arr_fill = 0;
+        statements_table->fun_block_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->fun_block_statements_arr);
+        memory_offset += statements_subtable_memory_size;
+
         statements_table->if_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->if_statements_arr_fill = 0;
         statements_table->if_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->if_statements_arr);
@@ -330,6 +384,16 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->continue_statement = (void*) ((char*) statements_table + memory_offset);
         statements_table->continue_statement->base.type = LOX_PARSER_STATEMENT_TYPE_CONTINUE;
         memory_offset += statements_subtable_memory_size;
+
+        statements_table->fun_params_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->fun_params_arr_fill = 0;
+        statements_table->fun_params_arr_size = statements_subtable_memory_size / sizeof(*statements_table->fun_params_arr);
+        memory_offset += statements_subtable_memory_size;
+
+        statements_table->fun_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->fun_arr_fill = 0;
+        statements_table->fun_arr_size = statements_subtable_memory_size / sizeof(*statements_table->fun_arr);
+        memory_offset += statements_subtable_memory_size;
     }
 
     return true;
@@ -341,6 +405,7 @@ enum lox_token_type lox_parser__peek(struct parser* self) {
 
 struct tokenizer_token* lox_parser__advance(struct parser* self) {
     if (lox_parser__is_finished(self) == true) {
+        // report syntax err?
         return NULL;
     }
 

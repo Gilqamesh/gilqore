@@ -35,9 +35,9 @@ struct interpreter {
     parser__is_finished_parsing parser_is_finished_parsing;
     parser__convert_expr_to_string parser_convert_expr_to_string;
 
-    struct memory_slice native_callables_memory;
-    u32 native_callables_fill;
-    u32 native_callables_size;
+    struct tokenizer_token* callable_objects_memory;
+    u32 callable_objects_fill;
+    u32 callable_objects_size;
 
     bool had_runtime_error;
     interpreter__interpret_ast interpreter_interpret_ast;
