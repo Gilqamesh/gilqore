@@ -3,7 +3,7 @@
 #include "memory/memory.h"
 #include "libc/libc.h"
 
-u32 tokenizer__occurance_counter(struct tokenizer* self, struct tokenizer_token* token) {
+u32 tokenizer__occurance_counter(struct tokenizer* self, struct token* token) {
     ASSERT(token->type < self->tokens_metadata_size);
     return self->tokens_metadata[token->type].number_of_tokens;
 }
@@ -62,6 +62,15 @@ bool tokenizer__add(
     ++self->tokens_metadata[token_type].number_of_tokens;
 
     return true;
+}
+
+struct token* tokenizer__get(struct tokenizer* self) {
+    if (self->tokens_fill == self->tokens_size) {
+        // error_code__exit(CAPACITY_REACHED_IN_ADD);
+        error_code__exit(3492);
+    }
+
+    return &self->tokens[self->tokens_fill++];
 }
 
 void tokenizer__clear(struct tokenizer* self) {

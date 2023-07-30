@@ -12,13 +12,6 @@ struct parser {
     struct tokenizer* tokenizer;
     u32 token_index;
 
-    // every block gets a unique id
-    u32 env_parse_id;
-    // runtime env id, uninitialized
-    u32* env_stack_ids;
-    u32 env_stack_ids_fill;
-    u32 env_stack_ids_size;
-
     bool had_syntax_error;
 
     bool had_runtime_error;
@@ -26,21 +19,20 @@ struct parser {
     char runtime_error[256];
 };
 
-struct parser_expression {
+struct expr {
     u8 type;
 };
 
-struct parser_literal {
+struct literal {
     u8 type;
 };
 
-struct parser_statement {
+struct stmt {
     u8 type;
-    void* env;
 };
 
 struct parser_ast {
-    struct parser_statement* statement;
+    struct stmt* statement;
 };
 
 PUBLIC_API bool parser__create(
@@ -66,7 +58,7 @@ typedef bool (*parser__is_finished_parsing)(struct parser* self);
 // @brief stores the string representation of the expression in the buffer
 // @returns end memory after writing into the buffer
 // @note implement this function for every parser
-typedef struct memory_slice (*parser__convert_expr_to_string)(struct parser_expression* expr, struct memory_slice buffer);
+typedef struct memory_slice (*parser__convert_expr_to_string)(struct expr* expr, struct memory_slice buffer);
 
 PUBLIC_API void parser__syntax_error(
     struct parser* self,

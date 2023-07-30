@@ -1,10 +1,8 @@
 #include "time/time.h"
 #include "system/system.h"
 
-struct parser_literal* lox_interpreter__native_clock(struct interpreter* interpreter, struct lox_parser_expr_call* call) {
-    struct lox_parser_expr_node* parameters = call->parameters;
-    struct lox_var_environment* env = call->env;
-    (void) env;
+struct literal* lox_interpreter__native_clock(struct interpreter* interpreter, struct lox_expr_call* call) {
+    struct lox_expr_node* parameters = call->parameters;
 
     (void) interpreter;
     ASSERT(parameters == NULL);
@@ -16,9 +14,8 @@ struct parser_literal* lox_interpreter__native_clock(struct interpreter* interpr
     return NULL;
 }
 
-struct parser_literal* lox_interpreter__native_usleep(struct interpreter* interpreter, struct lox_parser_expr_call* call) {
-    struct lox_parser_expr_node* parameters = call->parameters;
-    struct lox_var_environment* env = call->env;
+struct literal* lox_interpreter__native_usleep(struct interpreter* interpreter, struct lox_expr_call* call) {
+    struct lox_expr_node* parameters = call->parameters;
 
     ASSERT(parameters != NULL);
     ASSERT(parameters->expression != NULL);
@@ -27,7 +24,7 @@ struct parser_literal* lox_interpreter__native_usleep(struct interpreter* interp
     char buffer[512];
     u32 buffer_size = ARRAY_SIZE(buffer);
 
-    struct parser_literal* literal = lox_interpreter__interpret_expression(interpreter, env, parameters->expression);
+    struct literal* literal = lox_interpreter__interpret_expression(interpreter, parameters->expression);
     if (literal == NULL) {
         return NULL;
     }
@@ -47,9 +44,8 @@ struct parser_literal* lox_interpreter__native_usleep(struct interpreter* interp
     return NULL;
 }
 
-struct parser_literal* lox_interpreter__native_sleep(struct interpreter* interpreter, struct lox_parser_expr_call* call) {
-    struct lox_parser_expr_node* parameters = call->parameters;
-    struct lox_var_environment* env = call->env;
+struct literal* lox_interpreter__native_sleep(struct interpreter* interpreter, struct lox_expr_call* call) {
+    struct lox_expr_node* parameters = call->parameters;
 
     ASSERT(parameters != NULL);
     ASSERT(parameters->expression != NULL);
@@ -58,7 +54,7 @@ struct parser_literal* lox_interpreter__native_sleep(struct interpreter* interpr
     char buffer[512];
     u32 buffer_size = ARRAY_SIZE(buffer);
 
-    struct parser_literal* literal = lox_interpreter__interpret_expression(interpreter, env, parameters->expression);
+    struct literal* literal = lox_interpreter__interpret_expression(interpreter, parameters->expression);
     if (literal == NULL) {
         return NULL;
     }

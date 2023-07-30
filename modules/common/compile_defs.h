@@ -74,10 +74,13 @@
 # if defined(COMPILER_GCC)
 #  define packed_struct(x) struct __attribute__((packed, aligned(x)))
 # elif defined(COMPILER_MSVC)
-#  error "test if this works"
+#  error "test to see if this works"
 #  define packed_struct(x) struct __pragma(pack(push, x))
 # else
 #  define packed_struct(x) struct
 # endif
+
+// todo: __attribute__((warn_unused_result))
+# define DISCARD_RETURN
 
 #endif

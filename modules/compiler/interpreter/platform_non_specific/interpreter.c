@@ -29,11 +29,11 @@ bool interpreter__create(
             self->parser_convert_expr_to_string = NULL;
 
             self->interpreter_interpret_ast = NULL;
+            self->interpreter_initialize = NULL;
+            self->interpreter_clear = NULL;
         } break ;
         case INTERPRETER_TYPE_LOX: {
-            if (lox_interpreter__initialize(self, internal_buffer) == false) {
-                return false;
-            }
+            self->interpreter_initialize = &lox_interpreter__initialize;
         } break ;
         default: {
             // error_code__exit(UNKNOWN_INTERPRETER_TYPE);
@@ -41,7 +41,7 @@ bool interpreter__create(
         }
     }
 
-    return true;
+    return self->interpreter_initialize(self, internal_buffer);
 }
 
 void interpreter__destroy(struct interpreter* self) {
@@ -52,7 +52,7 @@ void interpreter__destroy(struct interpreter* self) {
 void interpreter__print_tokens(struct interpreter* self) {
     struct tokenizer* tokenizer = &self->tokenizer;
     for (u32 token_index = 0; token_index < tokenizer->tokens_fill; ++token_index) {
-        struct tokenizer_token* token = &tokenizer->tokens[token_index];
+        struct token* token = &tokenizer->tokens[token_index];
         libc__printf(
             "[%.*s], n: %u, type: %s\n",
             token->lexeme_len, token->lexeme,
@@ -90,8 +90,14 @@ static bool run_source(
 
     struct parser* parser = &self->parser;
     // time_start = __rdtsc();
-    self->parser_clear(parser);
-    lox_interpreter__init_native_callables(self);
+    if (self->parser_clear(parser) == false) {
+        return false;
+    }
+
+    if (self->interpreter_clear(self) == false) {
+        return false;
+    }
+
     do {
         struct parser_ast ast = self->parser_parse_ast(parser);
         if (self->parser_ast_is_valid(ast)) {
@@ -102,7 +108,6 @@ static bool run_source(
     // libc__printf("Statement parse and evaluate Cy taken: %.2fk\n", (r64)(time_end - time_start) / 1000.0);
 
     lox_parser__print_expressions_table_stats(parser);
-    lox_parser__print_environment_table_stats(parser);
     lox_parser__print_literal_table_stats(parser);
     lox_parser__print_statements_table_stats(parser);
 

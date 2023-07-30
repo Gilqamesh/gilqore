@@ -2,6 +2,9 @@ fun print_var(a) {
     print a;
 }
 
-for (var a = 0; a < 10; a = a + 1) {
+var a = 3;
+while (a < 10) {
     print_var(a);
+    a = a + 1;
 }
+

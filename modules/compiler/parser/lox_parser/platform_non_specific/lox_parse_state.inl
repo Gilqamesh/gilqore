@@ -1,43 +1,42 @@
-struct parser_statement* lox_parser__declaration(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__fun_declaration(struct parser* self, struct lox_var_environment* env, const char* kind);
-struct parser_statement* lox_parser__var_declaration(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__expr_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__for_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__if_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__while_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__break_statement(struct parser* self);
-struct parser_statement* lox_parser__continue_statement(struct parser* self);
-struct parser_statement* lox_parser__print_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__block_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_statement* lox_parser__fun_block_statement(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__expression(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__comma(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__assignment(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__ternary(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__logical_or(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__logical_and(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__equality(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__comparison(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__term(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__factor(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__unary(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__call(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__primary(struct parser* self, struct lox_var_environment* env);
-struct parser_expression* lox_parser__error(struct parser* self);
+struct stmt* lox_parser__declaration(struct parser* self);
+struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind);
+struct stmt* lox_parser__var_declaration(struct parser* self);
+struct stmt* lox_parser__statement(struct parser* self);
+struct stmt* lox_parser__expr_statement(struct parser* self);
+struct stmt* lox_parser__for_statement(struct parser* self);
+struct stmt* lox_parser__if_statement(struct parser* self);
+struct stmt* lox_parser__while_statement(struct parser* self);
+struct stmt* lox_parser__break_statement(struct parser* self);
+struct stmt* lox_parser__continue_statement(struct parser* self);
+struct stmt* lox_parser__print_statement(struct parser* self);
+struct stmt* lox_parser__block_statement(struct parser* self);
+struct expr* lox_parser__expression(struct parser* self);
+struct expr* lox_parser__comma(struct parser* self);
+struct expr* lox_parser__assignment(struct parser* self);
+struct expr* lox_parser__ternary(struct parser* self);
+struct expr* lox_parser__logical_or(struct parser* self);
+struct expr* lox_parser__logical_and(struct parser* self);
+struct expr* lox_parser__equality(struct parser* self);
+struct expr* lox_parser__comparison(struct parser* self);
+struct expr* lox_parser__term(struct parser* self);
+struct expr* lox_parser__factor(struct parser* self);
+struct expr* lox_parser__unary(struct parser* self);
+struct expr* lox_parser__call(struct parser* self);
+struct expr* lox_parser__primary(struct parser* self);
+struct expr* lox_parser__error(struct parser* self);
 
-struct parser_statement* lox_parser__declaration(struct parser* self, struct lox_var_environment* env) {
+struct stmt* lox_parser__declaration(struct parser* self) {
     if (lox_parser__advance_if(self, LOX_TOKEN_VAR)) {
-        return lox_parser__var_declaration(self, env);
+        return lox_parser__var_declaration(self);
     } else if (lox_parser__advance_if(self, LOX_TOKEN_FUN)) {
-        return lox_parser__fun_declaration(self, env, "function");
+        return lox_parser__fun_declaration(self, "function");
     }
 
-    return lox_parser__statement(self, env);
+    return lox_parser__statement(self);
 }
 
-struct parser_statement* lox_parser__fun_declaration(struct parser* self, struct lox_var_environment* env, const char* kind) {
-    struct tokenizer_token* fn_name = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect '%s' name.", kind);
+struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) {
+    struct token* fn_name = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect '%s' name.", kind);
     if (fn_name == NULL) {
         return NULL;
     }
@@ -46,18 +45,15 @@ struct parser_statement* lox_parser__fun_declaration(struct parser* self, struct
         return NULL;
     }
 
-    // encapsulate the parameters for the duration of the function call, so they don't leak out to the environment that the function is declared in
-    struct lox_var_environment* wrapper_env = lox_parser__push_environment(self);
-
-    struct lox_parser_statement_token_node* params = NULL;
-    struct lox_parser_statement_token_node** pparams = &params;
+    struct lox_stmt_token_node* params = NULL;
+    struct lox_stmt_token_node** pparams = &params;
     if (lox_parser__peek(self) != LOX_TOKEN_RIGHT_PAREN) {
         u32 parameters_size = 0;
         do {
             if (parameters_size >= 255) {
                 parser__warn_error(self, "Cannot have more than %u arguments.", LOX_MAX_NUMBER_OF_FN_ARGUMENTS);
             }
-            struct tokenizer_token* parameter = lox_parser__advance(self);
+            struct token* parameter = lox_parser__advance(self);
             if (parameter == NULL) {
                 return NULL;
             }
@@ -69,9 +65,7 @@ struct parser_statement* lox_parser__fun_declaration(struct parser* self, struct
                 // todo: clean up params
                 return NULL;
             }
-            *pparams = lox_parser__get_statement_fun_params_node(self, env, parameter);
-            // the expression value will be bound to the parameter when the function is called
-            lox_parser__define_expr_var(self, wrapper_env, parameter, NULL);
+            *pparams = lox_parser__get_statement_fun_params_node(self, parameter);
             pparams = &(*pparams)->next;
         } while (lox_parser__advance_if(self, LOX_TOKEN_COMMA) != NULL);
     }
@@ -94,36 +88,26 @@ struct parser_statement* lox_parser__fun_declaration(struct parser* self, struct
         return NULL;
     }
 
-    struct parser_statement* fun_block_statement = lox_parser__fun_block_statement(self, wrapper_env);
+    struct stmt* fun_block_statement = lox_parser__block_statement(self);
     if (fun_block_statement == NULL) {
         // todo: clean up params
         return NULL;
     }
 
-    lox_parser__decrement_environment(self);
-
-    // struct lox_var_environment* block_env = (struct lox_var_environment*) fun_block_statement->env;
-    // if (params != NULL) {
-    //     block_env->parent = params->base.env;
-    // }
-
-    return (struct parser_statement*) lox_parser__get_statement_fun(
-        self, env,
-        fn_name, params, (struct lox_parser_statement_block*) fun_block_statement
-    );
+    return lox_parser__get_statement_fun(self, fn_name, params, (struct lox_stmt_block*) fun_block_statement);
 }
 
-struct parser_statement* lox_parser__var_declaration(struct parser* self, struct lox_var_environment* env) {
-    struct tokenizer_token* var_token = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect variable name.");
+struct stmt* lox_parser__var_declaration(struct parser* self) {
+    struct token* var_token = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect variable name.");
 
     if (var_token == NULL) {
         return NULL;
     }
 
-    struct parser_expression* var_initializer = NULL;
+    struct expr* var_initializer = NULL;
 
     if (lox_parser__advance_if(self, LOX_TOKEN_EQUAL) != NULL) {
-        var_initializer = lox_parser__expression(self, env);
+        var_initializer = lox_parser__expression(self);
         if (var_initializer == NULL) {
             return NULL;
         }
@@ -147,26 +131,24 @@ struct parser_statement* lox_parser__var_declaration(struct parser* self, struct
         }
     }
 
-    struct lox_parser_expr_var* var_value = lox_parser__define_expr_var(self, env, var_token, var_initializer);
-
-    return (struct parser_statement*) lox_parser__get_statement_var_decl(self, env, (struct parser_expression*) var_value);
+    return lox_parser__get_statement_var_decl(self, lox_parser__get_expr__var(self, var_token, var_initializer));
 }
 
-struct parser_statement* lox_parser__statement(struct parser* self, struct lox_var_environment* env) {
+struct stmt* lox_parser__statement(struct parser* self) {
     if (lox_parser__advance_if(self, LOX_TOKEN_IF) != NULL) {
-        return lox_parser__if_statement(self, env);
+        return lox_parser__if_statement(self);
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_FOR) != NULL) {
-        return lox_parser__for_statement(self, env);
+        return lox_parser__for_statement(self);
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_WHILE) != NULL) {
-        return lox_parser__while_statement(self, env);
+        return lox_parser__while_statement(self);
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_PRINT) != NULL) {
-        return lox_parser__print_statement(self, env);
+        return lox_parser__print_statement(self);
     }
 
     // todo: syntax error if not in an iteration statement
@@ -180,18 +162,18 @@ struct parser_statement* lox_parser__statement(struct parser* self, struct lox_v
     }
 
     if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
-        struct parser_statement* block_statement = lox_parser__block_statement(self, env);
+        struct stmt* block_statement = lox_parser__block_statement(self);
         if (block_statement == NULL) {
             return NULL;
         }
         return block_statement;
     }
 
-    return lox_parser__expr_statement(self, env);
+    return lox_parser__expr_statement(self);
 }
 
-struct parser_statement* lox_parser__expr_statement(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* expression = lox_parser__expression(self, env);
+struct stmt* lox_parser__expr_statement(struct parser* self) {
+    struct expr* expression = lox_parser__expression(self);
     if (expression == NULL) {
         return NULL;
     }
@@ -204,39 +186,35 @@ struct parser_statement* lox_parser__expr_statement(struct parser* self, struct 
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_expression(self, env, expression);
+    return (struct stmt*) lox_parser__get_statement_expression(self, expression);
 }
 
-struct parser_statement* lox_parser__for_statement(struct parser* self, struct lox_var_environment* env) {
-    struct tokenizer_token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
+struct stmt* lox_parser__for_statement(struct parser* self) {
+    struct token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
     if (left_param == NULL) {
         parser__syntax_error(self, "Expect '(' after 'for'.");
         return NULL;
     }
 
-    struct lox_var_environment* wrapper_env = lox_parser__push_environment(self);
-
-    struct parser_statement* initializer = NULL;
+    struct stmt* initializer = NULL;
     if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) != NULL) {
         initializer = NULL;
     } else if (lox_parser__advance_if(self, LOX_TOKEN_VAR) != NULL) {
         // todo: comma separated var declaration
-        initializer = lox_parser__var_declaration(self, env);
+        initializer = lox_parser__var_declaration(self);
         if (initializer == NULL) {
             return NULL;
         }
     } else {
-        initializer = lox_parser__expr_statement(self, env);
+        initializer = lox_parser__expr_statement(self);
         if (initializer == NULL) {
             return NULL;
         }
     }
 
-    struct lox_var_environment* loop_wrapper_env = lox_parser__push_environment(self);
-
-    struct parser_expression* condition = NULL;
+    struct expr* condition = NULL;
     if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
-        condition = lox_parser__expression(self, env);
+        condition = lox_parser__expression(self);
         if (lox_parser__advance_err(
             self,
             LOX_TOKEN_SEMICOLON,
@@ -246,9 +224,9 @@ struct parser_statement* lox_parser__for_statement(struct parser* self, struct l
         }
     }
 
-    struct parser_expression* increment = NULL;
+    struct expr* increment = NULL;
     if (lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN) == NULL) {
-        increment = lox_parser__expression(self, env);
+        increment = lox_parser__expression(self);
         if (lox_parser__advance_err(
             self,
             LOX_TOKEN_RIGHT_PAREN,
@@ -258,62 +236,49 @@ struct parser_statement* lox_parser__for_statement(struct parser* self, struct l
         }
     }
 
-    struct parser_statement* loop_body = lox_parser__statement(self, env);
+    struct stmt* loop_body = lox_parser__statement(self);
     if (loop_body == NULL) {
         return NULL;
     }
 
-    lox_parser__decrement_environment(self);
-    lox_parser__decrement_environment(self);
-
     // note: desugaring so that the backend can use its building blocks without supporting for loop evaluations
 
-    struct lox_parser_statement_node* loop_body_node = lox_parser__get_statement_node(self, loop_body->env, loop_body);
-    struct lox_parser_statement_node* initializer_node = NULL;
-    struct lox_parser_statement_node* increment_node = NULL;
+    struct lox_stmt_node* loop_body_node = lox_parser__get_statement_node(self, loop_body);
+    struct lox_stmt_node* initializer_node = NULL;
+    struct lox_stmt_node* increment_node = NULL;
 
     if (increment != NULL) {
-        increment_node = lox_parser__get_statement_node(
-            self,
-            loop_wrapper_env,
-            (struct parser_statement*) lox_parser__get_statement_expression(self, loop_wrapper_env, increment)
-        );
+        increment_node = lox_parser__get_statement_node(self, lox_parser__get_statement_expression(self, increment));
         // note: execute the body of the loop and then the increment
         loop_body_node->next = increment_node;
     }
 
     if (condition == NULL) {
-        condition = (struct parser_expression*) lox_parser__get_expr__literal_true(self);
+        condition = (struct expr*) lox_parser__get_expr__literal_true(self);
     }
 
-    struct parser_statement* while_loop_stmt = (struct parser_statement*) lox_parser__get_statement_while(
+    struct stmt* while_loop_stmt = lox_parser__get_statement_while(
         self,
-        loop_body->env,
         condition,
-        (struct parser_statement*) lox_parser__get_statement_block(
+        lox_parser__get_statement_block(
             self,
-            loop_body->env,
             loop_body_node
         )
     );
-    struct lox_parser_statement_node* whole_loop_stmt_node = lox_parser__get_statement_node(
-        self,
-        loop_body->env,
-        while_loop_stmt
-    );
+    struct lox_stmt_node* whole_loop_stmt_node = lox_parser__get_statement_node(self, while_loop_stmt);
 
     if (initializer != NULL) {
-        initializer_node = lox_parser__get_statement_node(self, wrapper_env, initializer);
+        initializer_node = lox_parser__get_statement_node(self, initializer);
         // note: execute the initializer clause of the loop and then the loop body
         initializer_node->next = whole_loop_stmt_node;
         whole_loop_stmt_node = initializer_node;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_block(self, wrapper_env, whole_loop_stmt_node);
+    return lox_parser__get_statement_block(self, whole_loop_stmt_node);
 }
 
-struct parser_statement* lox_parser__if_statement(struct parser* self, struct lox_var_environment* env) {
-    struct tokenizer_token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
+struct stmt* lox_parser__if_statement(struct parser* self) {
+    struct token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
     if (left_param == NULL) {
         parser__syntax_error(
             self,
@@ -323,12 +288,12 @@ struct parser_statement* lox_parser__if_statement(struct parser* self, struct lo
         return NULL;
     }
 
-    struct parser_expression* condition = lox_parser__expression(self, env);
+    struct expr* condition = lox_parser__expression(self);
     if (condition == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* right_param = lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN);
+    struct token* right_param = lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN);
     if (right_param == NULL) {
         parser__syntax_error(
             self,
@@ -338,24 +303,24 @@ struct parser_statement* lox_parser__if_statement(struct parser* self, struct lo
         return NULL;
     }
 
-    struct parser_statement* then_branch = lox_parser__statement(self, env);
+    struct stmt* then_branch = lox_parser__statement(self);
     if (then_branch == NULL) {
         return NULL;
     }
-    struct parser_statement* else_branch = NULL;
-    struct tokenizer_token* else_token = lox_parser__advance_if(self, LOX_TOKEN_ELSE);
+    struct stmt* else_branch = NULL;
+    struct token* else_token = lox_parser__advance_if(self, LOX_TOKEN_ELSE);
     if (else_token != NULL) {
-        else_branch = lox_parser__statement(self, env);
+        else_branch = lox_parser__statement(self);
         if (else_branch == NULL) {
             return NULL;
         }
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_if(self, env, condition, then_branch, else_branch);
+    return (struct stmt*) lox_parser__get_statement_if(self, condition, then_branch, else_branch);
 }
 
-struct parser_statement* lox_parser__while_statement(struct parser* self, struct lox_var_environment* env) {
-    struct tokenizer_token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
+struct stmt* lox_parser__while_statement(struct parser* self) {
+    struct token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
     if (left_param == NULL) {
         parser__syntax_error(
             self,
@@ -365,12 +330,12 @@ struct parser_statement* lox_parser__while_statement(struct parser* self, struct
         return NULL;
     }
 
-    struct parser_expression* condition = lox_parser__expression(self, env);
+    struct expr* condition = lox_parser__expression(self);
     if (condition == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* right_param = lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN);
+    struct token* right_param = lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN);
     if (right_param == NULL) {
         parser__syntax_error(
             self,
@@ -380,15 +345,15 @@ struct parser_statement* lox_parser__while_statement(struct parser* self, struct
         return NULL;
     }
 
-    struct parser_statement* while_body = lox_parser__statement(self, env);
+    struct stmt* while_body = lox_parser__statement(self);
     if (while_body == NULL) {
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_while(self, env, condition, while_body);
+    return (struct stmt*) lox_parser__get_statement_while(self, condition, while_body);
 }
 
-struct parser_statement* lox_parser__break_statement(struct parser* self) {
+struct stmt* lox_parser__break_statement(struct parser* self) {
     if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
         parser__syntax_error(
             self,
@@ -397,10 +362,10 @@ struct parser_statement* lox_parser__break_statement(struct parser* self) {
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_break(self);
+    return (struct stmt*) lox_parser__get_statement_break(self);
 }
 
-struct parser_statement* lox_parser__continue_statement(struct parser* self) {
+struct stmt* lox_parser__continue_statement(struct parser* self) {
     if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
         parser__syntax_error(
             self,
@@ -409,11 +374,11 @@ struct parser_statement* lox_parser__continue_statement(struct parser* self) {
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_continue(self);
+    return (struct stmt*) lox_parser__get_statement_continue(self);
 }
 
-struct parser_statement* lox_parser__print_statement(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* expression = lox_parser__expression(self, env);
+struct stmt* lox_parser__print_statement(struct parser* self) {
+    struct expr* expression = lox_parser__expression(self);
     if (expression == NULL) {
         return NULL;
     }
@@ -426,114 +391,78 @@ struct parser_statement* lox_parser__print_statement(struct parser* self, struct
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_print(self, env, expression);
+    return (struct stmt*) lox_parser__get_statement_print(self, expression);
 }
 
-struct lox_parser__block_statement_internal_result {
-    struct lox_var_environment* block_env;
-    struct lox_parser_statement_node* block_statement_node;
-};
-
-static struct lox_parser__block_statement_internal_result lox_parser__block_statement_internal(struct parser* self, struct lox_var_environment* env) {
-    struct lox_parser__block_statement_internal_result result = {
-        .block_env = NULL,
-        .block_statement_node = NULL
-    };
-
-    struct lox_parser_statement_node** pblock_statement_node = &result.block_statement_node;
-
-    result.block_env = lox_parser__push_environment(self);
-    result.block_env->parent = env;
+struct stmt* lox_parser__block_statement(struct parser* self) {
+    struct lox_stmt_node* block_statement_node = NULL;
+    struct lox_stmt_node** pblock_statement_node = &block_statement_node;
 
     while (
         lox_parser__peek(self) != LOX_TOKEN_RIGHT_BRACE &&  
         lox_parser__is_finished_parsing(self) == false
     ) {
-        struct parser_statement* statement = lox_parser__declaration(self, result.block_env);
+        struct stmt* statement = lox_parser__declaration(self);
         if (statement == NULL) {
             // todo: free block_statement_node list
-            result.block_env = NULL;
-            return result;
+            return NULL;
         }
-        *pblock_statement_node = lox_parser__get_statement_node(self, result.block_env, statement);
+        *pblock_statement_node = lox_parser__get_statement_node(self, statement);
         pblock_statement_node = &(*pblock_statement_node)->next;
     }
 
     if (lox_parser__advance_err(self, LOX_TOKEN_RIGHT_BRACE, "Expect '}' after block.") == NULL) {
         // todo: free block_statement_node list
-        // todo: undo result.block_env
         // todo: synchronize
-        result.block_env = NULL;
-        return result;
-    }
-
-    lox_parser__decrement_environment(self);
-
-    return result;
-}
-
-struct parser_statement* lox_parser__block_statement(struct parser* self, struct lox_var_environment* env) {
-    struct lox_parser__block_statement_internal_result result = lox_parser__block_statement_internal(self, env);
-    if (result.block_env == NULL) {
         return NULL;
     }
 
-    return (struct parser_statement*) lox_parser__get_statement_block(self, result.block_env, result.block_statement_node);
+    return (struct stmt*) lox_parser__get_statement_block(self, block_statement_node);
 }
 
-struct parser_statement* lox_parser__fun_block_statement(struct parser* self, struct lox_var_environment* env) {
-    struct lox_parser__block_statement_internal_result result = lox_parser__block_statement_internal(self, env);
-    if (result.block_env == NULL) {
-        return NULL;
-    }
-
-    return (struct parser_statement*) lox_parser__get_statement_fun_block(self, result.block_env, result.block_statement_node);
+struct expr* lox_parser__expression(struct parser* self) {
+    return lox_parser__comma(self);
 }
 
-struct parser_expression* lox_parser__expression(struct parser* self, struct lox_var_environment* env) {
-    return lox_parser__comma(self, env);
-}
-
-struct parser_expression* lox_parser__comma(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* assignment_expr = lox_parser__assignment(self, env);
+struct expr* lox_parser__comma(struct parser* self) {
+    struct expr* assignment_expr = lox_parser__assignment(self);
     if (assignment_expr == NULL) {
         return NULL;
     }
 
-    struct lox_parser_expr_node* result_node = lox_parser__get_expr__node(self, assignment_expr);
-    struct lox_parser_expr_node** presult_node = (struct lox_parser_expr_node**) &result_node->next;
+    struct lox_expr_node* result_node = lox_parser__get_expr__node(self, assignment_expr);
+    struct lox_expr_node** presult_node = (struct lox_expr_node**) &result_node->next;
     while (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* expression = lox_parser__expression(self, env);
+        struct expr* expression = lox_parser__expression(self);
         if (expression == NULL) {
             return NULL;
         }
         *presult_node = lox_parser__get_expr__node(self, expression);
-        presult_node = (struct lox_parser_expr_node**) &(*presult_node)->next;
+        presult_node = (struct lox_expr_node**) &(*presult_node)->next;
     }
 
-    return (struct parser_expression*) result_node;
+    return (struct expr*) result_node;
 }
 
-struct parser_expression* lox_parser__assignment(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_expr = lox_parser__ternary(self, env);
+struct expr* lox_parser__assignment(struct parser* self) {
+    struct expr* left_expr = lox_parser__ternary(self);
     if (left_expr == NULL) {
         return NULL;
     }
 
-    struct tokenizer_token* equal_token = lox_parser__advance_if(self, LOX_TOKEN_EQUAL);
+    struct token* equal_token = lox_parser__advance_if(self, LOX_TOKEN_EQUAL);
     if (equal_token != NULL) {
-        struct parser_expression* right_expr = lox_parser__assignment(self, env);
+        struct expr* right_expr = lox_parser__assignment(self);
         if (right_expr == NULL) {
             return NULL;
         }
 
         if (left_expr->type == LOX_PARSER_EXPRESSION_TYPE_VAR) {
-            struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) left_expr;
+            struct lox_expr_var* var_expr = (struct lox_expr_var*) left_expr;
             (void) var_expr;
-            left_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, equal_token, right_expr);
-            // ASSERT(lox_parser__set_expr__var(self, env, var_expr->name, right_expr) != NULL);
+            left_expr = (struct expr*) lox_parser__get_expr__op_binary(self, left_expr, equal_token, right_expr);
         } else {
             parser__syntax_error(
                 self,
@@ -547,88 +476,88 @@ struct parser_expression* lox_parser__assignment(struct parser* self, struct lox
     return left_expr;
 }
 
-struct parser_expression* lox_parser__ternary(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* conditional_expr = lox_parser__logical_or(self, env);
+struct expr* lox_parser__ternary(struct parser* self) {
+    struct expr* conditional_expr = lox_parser__logical_or(self);
     if (conditional_expr == NULL) {
         return NULL;
     }
 
     while (lox_parser__peek(self) == LOX_TOKEN_QUESTION_MARK) {
-        struct tokenizer_token* question_mark_op = lox_parser__advance(self);
+        struct token* question_mark_op = lox_parser__advance(self);
         ASSERT(question_mark_op != NULL);
-        struct parser_expression* left_expr = lox_parser__expression(self, env);
+        struct expr* left_expr = lox_parser__expression(self);
         if (left_expr == NULL) {
             return NULL;
         }
-        struct tokenizer_token* colon_op = lox_parser__advance_err(self, LOX_TOKEN_COLON, "Expect ':' in ternary expression.");
+        struct token* colon_op = lox_parser__advance_err(self, LOX_TOKEN_COLON, "Expect ':' in ternary expression.");
         if (colon_op == NULL) {
             return NULL;
         }
-        struct parser_expression* right_expr = lox_parser__expression(self, env);
+        struct expr* right_expr = lox_parser__expression(self);
         if (right_expr == NULL) {
             return NULL;
         }
-        conditional_expr = (struct parser_expression*) lox_parser__get_expr__op_binary(
+        conditional_expr = (struct expr*) lox_parser__get_expr__op_binary(
             self,
             conditional_expr,
             question_mark_op,
-            (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_expr, colon_op, right_expr)
+            (struct expr*) lox_parser__get_expr__op_binary(self, left_expr, colon_op, right_expr)
         );
     }
 
     return conditional_expr;
 }
 
-struct parser_expression* lox_parser__logical_or(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_logical_and_expr = lox_parser__logical_and(self, env);
+struct expr* lox_parser__logical_or(struct parser* self) {
+    struct expr* left_logical_and_expr = lox_parser__logical_and(self);
     if (left_logical_and_expr == NULL) {
         return NULL;
     }
 
     while (lox_parser__peek(self) == LOX_TOKEN_OR) {
-        struct tokenizer_token* or_token = lox_parser__advance_if(self, LOX_TOKEN_OR);
+        struct token* or_token = lox_parser__advance_if(self, LOX_TOKEN_OR);
         ASSERT(or_token != NULL);
-        struct parser_expression* right_logical_and_expr = lox_parser__logical_and(self, env);
+        struct expr* right_logical_and_expr = lox_parser__logical_and(self);
         if (right_logical_and_expr == NULL) {
             return NULL;
         }
-        left_logical_and_expr = (struct parser_expression*) lox_parser__get_expr__logical(
+        left_logical_and_expr = (struct expr*) lox_parser__get_expr__logical(
             self,
-            (struct parser_expression*) left_logical_and_expr,
+            (struct expr*) left_logical_and_expr,
             or_token,
-            (struct parser_expression*) right_logical_and_expr
+            (struct expr*) right_logical_and_expr
         );
     }
 
     return left_logical_and_expr;
 }
 
-struct parser_expression* lox_parser__logical_and(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_equality_expr = lox_parser__equality(self, env);
+struct expr* lox_parser__logical_and(struct parser* self) {
+    struct expr* left_equality_expr = lox_parser__equality(self);
     if (left_equality_expr == NULL) {
         return NULL;
     }
 
     while (lox_parser__peek(self) == LOX_TOKEN_AND) {
-        struct tokenizer_token* and_token = lox_parser__advance_if(self, LOX_TOKEN_AND);
+        struct token* and_token = lox_parser__advance_if(self, LOX_TOKEN_AND);
         ASSERT(and_token != NULL);
-        struct parser_expression* right_equality_expr = lox_parser__equality(self, env);
+        struct expr* right_equality_expr = lox_parser__equality(self);
         if (right_equality_expr == NULL) {
             return NULL;
         }
-        left_equality_expr = (struct parser_expression*) lox_parser__get_expr__logical(
+        left_equality_expr = (struct expr*) lox_parser__get_expr__logical(
             self,
-            (struct parser_expression*) left_equality_expr,
+            (struct expr*) left_equality_expr,
             and_token,
-            (struct parser_expression*) right_equality_expr
+            (struct expr*) right_equality_expr
         );
     }
 
     return left_equality_expr;
 }
 
-struct parser_expression* lox_parser__equality(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_comp = lox_parser__comparison(self, env);
+struct expr* lox_parser__equality(struct parser* self) {
+    struct expr* left_comp = lox_parser__comparison(self);
     if (left_comp == NULL) {
         return NULL;
     }
@@ -637,20 +566,20 @@ struct parser_expression* lox_parser__equality(struct parser* self, struct lox_v
         lox_parser__peek(self) == LOX_TOKEN_EXCLAM_EQUAL ||
         lox_parser__peek(self) == LOX_TOKEN_EQUAL_EQUAL
     ) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_comp = lox_parser__comparison(self, env);
+        struct expr* right_comp = lox_parser__comparison(self);
         if (right_comp == NULL) {
             return NULL;
         }
-        left_comp = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_comp, op, right_comp);
+        left_comp = (struct expr*) lox_parser__get_expr__op_binary(self, left_comp, op, right_comp);
     }
 
     return left_comp;
 }
 
-struct parser_expression* lox_parser__comparison(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_term = lox_parser__term(self, env);
+struct expr* lox_parser__comparison(struct parser* self) {
+    struct expr* left_term = lox_parser__term(self);
     if (left_term == NULL) {
         return NULL;
     }
@@ -661,20 +590,20 @@ struct parser_expression* lox_parser__comparison(struct parser* self, struct lox
         lox_parser__peek(self) == LOX_TOKEN_LESS ||
         lox_parser__peek(self) == LOX_TOKEN_LESS_EQUAL
     ) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_term = lox_parser__term(self, env);
+        struct expr* right_term = lox_parser__term(self);
         if (right_term == NULL) {
             return NULL;
         }
-        left_term = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_term, op, right_term);
+        left_term = (struct expr*) lox_parser__get_expr__op_binary(self, left_term, op, right_term);
     }
 
     return left_term;
 }
 
-struct parser_expression* lox_parser__term(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_factor = lox_parser__factor(self, env);
+struct expr* lox_parser__term(struct parser* self) {
+    struct expr* left_factor = lox_parser__factor(self);
     if (left_factor == NULL) {
         return NULL;
     }
@@ -683,20 +612,20 @@ struct parser_expression* lox_parser__term(struct parser* self, struct lox_var_e
         lox_parser__peek(self) == LOX_TOKEN_MINUS ||
         lox_parser__peek(self) == LOX_TOKEN_PLUS
     ) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_factor = lox_parser__factor(self, env);
+        struct expr* right_factor = lox_parser__factor(self);
         if (right_factor == NULL) {
             return NULL;
         }
-        left_factor = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_factor, op, right_factor);
+        left_factor = (struct expr*) lox_parser__get_expr__op_binary(self, left_factor, op, right_factor);
     }
 
     return left_factor;
 }
 
-struct parser_expression* lox_parser__factor(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* left_unary = lox_parser__unary(self, env);
+struct expr* lox_parser__factor(struct parser* self) {
+    struct expr* left_unary = lox_parser__unary(self);
     if (left_unary == NULL) {
         return NULL;
     }
@@ -706,19 +635,19 @@ struct parser_expression* lox_parser__factor(struct parser* self, struct lox_var
         lox_parser__peek(self) == LOX_TOKEN_STAR ||
         lox_parser__peek(self) == LOX_TOKEN_PERCENTAGE
     ) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* right_unary = lox_parser__unary(self, env);
+        struct expr* right_unary = lox_parser__unary(self);
         if (right_unary == NULL) {
             return NULL;
         }
-        left_unary = (struct parser_expression*) lox_parser__get_expr__op_binary(self, left_unary, op, right_unary);
+        left_unary = (struct expr*) lox_parser__get_expr__op_binary(self, left_unary, op, right_unary);
     }
 
     return left_unary;
 }
 
-struct parser_expression* lox_parser__unary(struct parser* self, struct lox_var_environment* env) {
+struct expr* lox_parser__unary(struct parser* self) {
     if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
         parser__syntax_error(self, "Expect unary expression.");
         return NULL;
@@ -728,34 +657,30 @@ struct parser_expression* lox_parser__unary(struct parser* self, struct lox_var_
         lox_parser__peek(self) == LOX_TOKEN_EXCLAM ||
         lox_parser__peek(self) == LOX_TOKEN_MINUS
     ) {
-        struct tokenizer_token* op = lox_parser__advance(self);
+        struct token* op = lox_parser__advance(self);
         ASSERT(op != NULL);
-        struct parser_expression* expr = lox_parser__unary(self, env);
+        struct expr* expr = lox_parser__unary(self);
         if (expr == NULL) {
             return NULL;
         }
-        return (struct parser_expression*) lox_parser__get_expr__op_unary(self, op, expr);
+        return (struct expr*) lox_parser__get_expr__op_unary(self, op, expr);
     }
 
-    return lox_parser__call(self, env);
+    return lox_parser__call(self);
 }
 
-static struct parser_expression* lox_parser__finish_call(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* callee
-) {
-    struct lox_parser_expr_node* args = NULL;
+static struct expr* lox_parser__finish_call(struct parser* self, struct expr* callee) {
+    struct lox_expr_node* args = NULL;
 
     if (lox_parser__peek(self) != LOX_TOKEN_RIGHT_PAREN) {
-        struct parser_expression* expr = lox_parser__expression(self, env);
+        struct expr* expr = lox_parser__expression(self);
         if (expr == NULL) {
             // todo: clean up args list
             return NULL;
         }
         u32 number_of_arguments = 1;
         if (expr->type == LOX_PARSER_EXPRESSION_TYPE_NODE) {
-            struct lox_parser_expr_node* node = (struct lox_parser_expr_node*) expr;
+            struct lox_expr_node* node = (struct lox_expr_node*) expr;
             args = node;
             node = node->next;
             while (node) {
@@ -768,7 +693,7 @@ static struct parser_expression* lox_parser__finish_call(
         }
     }
 
-    struct tokenizer_token* right_paren = lox_parser__advance_err(
+    struct token* right_paren = lox_parser__advance_err(
         self,
         LOX_TOKEN_RIGHT_PAREN,
         "Expect '%s' after arguments.",
@@ -778,18 +703,18 @@ static struct parser_expression* lox_parser__finish_call(
         return NULL;
     }
 
-    return (struct parser_expression*) lox_parser__get_expr__call(self, env, callee, right_paren, args);
+    return lox_parser__get_expr__call(self, callee, right_paren, args);
 }
 
-struct parser_expression* lox_parser__call(struct parser* self, struct lox_var_environment* env) {
-    struct parser_expression* primary_expr = lox_parser__primary(self, env);
+struct expr* lox_parser__call(struct parser* self) {
+    struct expr* primary_expr = lox_parser__primary(self);
     if (primary_expr == NULL) {
         return NULL;
     }
 
     while (true) {
         if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN) != NULL) {
-            primary_expr = lox_parser__finish_call(self, env, primary_expr);
+            primary_expr = lox_parser__finish_call(self, primary_expr);
         } else {
             break ;
         }
@@ -798,7 +723,7 @@ struct parser_expression* lox_parser__call(struct parser* self, struct lox_var_e
     return primary_expr;
 }
 
-struct parser_expression* lox_parser__primary(struct parser* self, struct lox_var_environment* env) {
+struct expr* lox_parser__primary(struct parser* self) {
     if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
         parser__syntax_error(self, "Expect primary expression.");
         return NULL;
@@ -810,26 +735,26 @@ struct parser_expression* lox_parser__primary(struct parser* self, struct lox_va
         case LOX_TOKEN_TRUE:
         case LOX_TOKEN_FALSE:
         case LOX_TOKEN_NIL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
-            return (struct parser_expression*) lox_parser__get_expr__literal(self, op);
+            return (struct expr*) lox_parser__get_expr__literal(self, op);
         } break ;
         case LOX_TOKEN_LEFT_PAREN: {
             ASSERT(lox_parser__advance(self) != NULL);
-            struct parser_expression* expr = lox_parser__expression(self, env);
+            struct expr* expr = lox_parser__expression(self);
             if (expr == NULL) {
                 return NULL;
             }
             if (lox_parser__advance_err(self, LOX_TOKEN_RIGHT_PAREN, "Expect ')' after expression.") == NULL) {
                 return NULL;
             } else {
-                return (struct parser_expression*) lox_parser__get_expr__grouping(self, expr);
+                return (struct expr*) lox_parser__get_expr__grouping(self, expr);
             }
         } break ;
         case LOX_TOKEN_IDENTIFIER: {
-            struct tokenizer_token* var_name = lox_parser__advance(self);
+            struct token* var_name = lox_parser__advance(self);
             ASSERT(var_name != NULL);
-            struct lox_parser_expr_var* var_expr = lox_parser__get_expr__var(self, env, var_name);
+            struct expr* var_expr = lox_parser__get_expr__var(self, var_name, NULL);
             if (var_expr == NULL) {
                 parser__syntax_error(
                     self,
@@ -838,7 +763,7 @@ struct parser_expression* lox_parser__primary(struct parser* self, struct lox_va
                 );
             }
 
-            return (struct parser_expression*) var_expr; 
+            return (struct expr*) var_expr; 
         } break ;
         default: {
             return lox_parser__error(self);
@@ -846,7 +771,7 @@ struct parser_expression* lox_parser__primary(struct parser* self, struct lox_va
     }
 }
 
-struct parser_expression* lox_parser__error(struct parser* self) {
+struct expr* lox_parser__error(struct parser* self) {
     if (lox_parser__peek(self) == LOX_TOKEN_EOF) {
         parser__syntax_error(self, "Expect primary token.");
         return NULL;
@@ -854,72 +779,72 @@ struct parser_expression* lox_parser__error(struct parser* self) {
 
     switch (lox_parser__peek(self)) {
         case LOX_TOKEN_COMMA: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect ternary before comma ',' binary operator.");
         } break ;
         case LOX_TOKEN_QUESTION_MARK: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect equality before ternary '?' binary operator.");
         } break ;
         case LOX_TOKEN_COLON: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect 'equality ? expression' before ternary semicolon ':' binary operator.");
         } break ;
         case LOX_TOKEN_EXCLAM_EQUAL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect comparison expression before '!=' binary operator.");
         } break ;
         case LOX_TOKEN_EQUAL_EQUAL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect comparison expression before '==' binary operator.");
         } break ;
         case LOX_TOKEN_GREATER: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect term expression before '>' binary operator.");
         } break ;
         case LOX_TOKEN_GREATER_EQUAL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect term expression before '>=' binary operator.");
         } break ;
         case LOX_TOKEN_LESS: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect term expression before '<' binary operator.");
         } break ;
         case LOX_TOKEN_LESS_EQUAL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect term expression before '<=' binary operator.");
         } break ;
         case LOX_TOKEN_PLUS: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect factor expression before '+' binary operator.");
         } break ;
         case LOX_TOKEN_EQUAL: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect lvalue expression before '=' binary operator.");
         } break ;
         case LOX_TOKEN_BREAK: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect 'break' to appear inside an iteration statement's body.");
         } break ;
         case LOX_TOKEN_CONTINUE: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Expect 'continue' to appear inside an iteration statement's body.");
         } break ;
         default: {
-            struct tokenizer_token* op = lox_parser__advance(self);
+            struct token* op = lox_parser__advance(self);
             ASSERT(op != NULL);
             parser__syntax_error(self, "Unknown token '%.*s'.", op->lexeme_len, op->lexeme);
         } break ;

@@ -8,7 +8,7 @@
 #include "libc/libc.h"
 
 void token_create(
-    struct tokenizer_token* self,
+    struct token* self,
     const char* lexeme,
     enum lox_token_type lexeme_type
 ) {
@@ -33,61 +33,61 @@ int main() {
 
     // const char* expression_to_evaluate = "(45.67) * - 123";
 
-    struct tokenizer_token _123_token;
+    struct token _123_token;
     token_create(&_123_token, "123", LOX_TOKEN_NUMBER);
-    struct lox_parser_expr_literal _123 = {
+    struct lox_expr_literal _123 = {
         .base = {
             .type = LOX_PARSER_EXPRESSION_TYPE_LITERAL
         },
         .value = &_123_token
     };
 
-    struct tokenizer_token _45_67_token;
+    struct token _45_67_token;
     token_create(&_45_67_token, "45.67", LOX_TOKEN_NUMBER);
-    struct lox_parser_expr_literal _45_67 = {
+    struct lox_expr_literal _45_67 = {
         .base = {
             .type = LOX_PARSER_EXPRESSION_TYPE_LITERAL
         },
         .value = &_45_67_token
     };
 
-    struct lox_parser_expr_grouping grouping = {
+    struct lox_expr_group grouping = {
         .base = {
             .type = LOX_PARSER_EXPRESSION_TYPE_GROUPING
         },
-        .expr = (struct parser_expression*) &_45_67
+        .expr = (struct expr*) &_45_67
     };
 
-    struct tokenizer_token unary_token;
+    struct token unary_token;
     token_create(&unary_token, "-", LOX_TOKEN_MINUS);
-    struct lox_parser_expr_op_unary unary = {
+    struct lox_expr_unary unary = {
         .base = {
             .type = LOX_PARSER_EXPRESSION_TYPE_OP_UNARY
         },
         .op = &unary_token,
-        .expr = (struct parser_expression*) &_123
+        .expr = (struct expr*) &_123
     };
 
-    struct tokenizer_token star_token;
+    struct token star_token;
     token_create(&star_token, "*", LOX_TOKEN_STAR);
-    struct lox_parser_expr_op_binary star = {
+    struct lox_expr_binary star = {
         .base = {
             .type = LOX_PARSER_EXPRESSION_TYPE_OP_BINARY
         },
         .op = &star_token,
-        .left = (struct parser_expression*) &unary,
-        .right = (struct parser_expression*) &grouping
+        .left = (struct expr*) &unary,
+        .right = (struct expr*) &grouping
     };
 
-    const char* expr_star_result = lox_parser_expr_evalute__op_binary((struct parser_expression*) &star);
+    const char* expr_star_result = lox_parser_expr_evalute__op_binary((struct expr*) &star);
     libc__printf("%s\n", expr_star_result);
 
-    libc__printf("Size of struct tokenizer_token: %zu\n", sizeof(struct tokenizer_token));
-    libc__printf("Size of struct parser_expression: %zu\n", sizeof(struct parser_expression));
-    libc__printf("Size of struct lox_parser_expr_op_unary: %zu\n", sizeof(struct lox_parser_expr_op_unary));
-    libc__printf("Size of struct lox_parser_expr_op_binary: %zu\n", sizeof(struct lox_parser_expr_op_binary));
-    libc__printf("Size of struct lox_parser_expr_grouping: %zu\n", sizeof(struct lox_parser_expr_grouping));
-    libc__printf("Size of struct lox_parser_expr_literal: %zu\n", sizeof(struct lox_parser_expr_literal));
+    libc__printf("Size of struct token: %zu\n", sizeof(struct token));
+    libc__printf("Size of struct expr: %zu\n", sizeof(struct expr));
+    libc__printf("Size of struct lox_expr_unary: %zu\n", sizeof(struct lox_expr_unary));
+    libc__printf("Size of struct lox_expr_binary: %zu\n", sizeof(struct lox_expr_binary));
+    libc__printf("Size of struct lox_expr_group: %zu\n", sizeof(struct lox_expr_group));
+    libc__printf("Size of struct lox_expr_literal: %zu\n", sizeof(struct lox_expr_literal));
 
     return 0;
 }

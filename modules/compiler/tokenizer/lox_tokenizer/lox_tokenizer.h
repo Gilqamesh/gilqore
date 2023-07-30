@@ -4,7 +4,7 @@
 # include "lox_tokenizer_defs.h"
 
 struct tokenizer;
-struct tokenizer_token;
+struct token;
 
 PUBLIC_API bool lox_tokenizer__tokenize(struct tokenizer* tokenizer, const char* source);
 PUBLIC_API const char* lox_token__type_name(u8 token_type);

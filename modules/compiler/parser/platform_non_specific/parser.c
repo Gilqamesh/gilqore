@@ -14,10 +14,6 @@ bool parser__create(
     self->had_syntax_error = false;
     self->had_runtime_error = false;
     self->token_index = 0;
-    self->env_parse_id = 0;
-    self->env_stack_ids = NULL;
-    self->env_stack_ids_fill = 0;
-    self->env_stack_ids_size = 0;
 
     return true;
 }

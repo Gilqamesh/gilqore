@@ -21,7 +21,13 @@ typedef void (*interpreter__interpret_ast)(struct interpreter* self, struct pars
 
 // @brief initializes itself
 // @note implement this function for every interpreter
-typedef bool (*interpreter__initialize)(struct interpreter* self, struct memory_slice internal_buffer);
+typedef bool (*interpreter__initialize)(struct interpreter* self, struct memory_slice internal_memory);
+
+// @brief clears itself
+// @note implement this function for every interpreter
+typedef bool (*interpreter__clear)(struct interpreter* self);
+
+struct lox_env;
 
 struct interpreter {
     struct tokenizer tokenizer;
@@ -35,12 +41,13 @@ struct interpreter {
     parser__is_finished_parsing parser_is_finished_parsing;
     parser__convert_expr_to_string parser_convert_expr_to_string;
 
-    struct tokenizer_token* callable_objects_memory;
-    u32 callable_objects_fill;
-    u32 callable_objects_size;
+    struct memory_slice internal_memory;
 
     bool had_runtime_error;
     interpreter__interpret_ast interpreter_interpret_ast;
+    interpreter__initialize interpreter_initialize;
+    interpreter__clear interpreter_clear;
+    struct lox_env* env;
 };
 
 PUBLIC_API bool interpreter__create(

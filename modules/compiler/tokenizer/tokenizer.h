@@ -6,7 +6,7 @@
 # define TOKENIZER_TOKEN_TYPE_BITS 8
 # define TOKENIZER_TOKEN_LINE_BITS 24
 
-struct tokenizer_token {
+struct token {
     const char* lexeme; // not null-terminated
     u32 lexeme_len : 32;
     u32 type : TOKENIZER_TOKEN_TYPE_BITS;
@@ -18,7 +18,7 @@ struct tokenizer_token_type_metadata {
 };
 
 struct tokenizer {
-    struct tokenizer_token* tokens;
+    struct token* tokens;
     u32 tokens_fill;
     u32 tokens_size;
 
@@ -48,14 +48,16 @@ PUBLIC_API void tokenizer__clear(struct tokenizer* self);
 
 PUBLIC_API bool tokenizer__add(
     struct tokenizer* self,
-    const char* lexeme,
-    u32 lexeme_len,
-    u32 token_type,
-    u32 line
+    const char* lexeme, u32 lexeme_len,
+    u32 token_type, u32 line
 );
 
+// @brief use only after tokenization is done
+// @returns uninitialized token
+PUBLIC_API struct token* tokenizer__get(struct tokenizer* self);
+
 // @brief returns the number of occurances of the token at the current stage of tokenization
-PUBLIC_API u32 tokenizer__occurance_counter(struct tokenizer* self, struct tokenizer_token* token);
+PUBLIC_API u32 tokenizer__occurance_counter(struct tokenizer* self, struct token* token);
 
 PUBLIC_API void tokenizer__error(
     struct tokenizer* self,

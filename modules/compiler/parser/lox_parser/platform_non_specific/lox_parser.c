@@ -10,21 +10,10 @@
 
 #include "lox_parse_state.h"
 
-static struct memory_slice lox_parser_expr_evalute__op_unary(struct parser_expression* expr, struct memory_slice buffer);
-static struct memory_slice lox_parser_expr_evalute__op_binary(struct parser_expression* expr, struct memory_slice buffer);
-static struct memory_slice lox_parser_expr_evalute__grouping(struct parser_expression* expr, struct memory_slice buffer);
-static struct memory_slice lox_parser_expr_evalute__literal(struct parser_expression* expr, struct memory_slice buffer);
-
-static void lox_parser__init_global_env(struct parser* self) {
-    struct lox_var_environment* global_env = lox_parser__push_environment(self);
-    (void) global_env;
-}
-
-struct lox_var_environment* lox_parser__get_global_environment(struct parser* self) {
-    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-
-    return &table->var_env_arr[0];
-}
+static struct memory_slice lox_parser_expr_evalute__op_unary(struct expr* expr, struct memory_slice buffer);
+static struct memory_slice lox_parser_expr_evalute__op_binary(struct expr* expr, struct memory_slice buffer);
+static struct memory_slice lox_parser_expr_evalute__grouping(struct expr* expr, struct memory_slice buffer);
+static struct memory_slice lox_parser_expr_evalute__literal(struct expr* expr, struct memory_slice buffer);
 
 bool lox_parser__clear(struct parser* self) {
     self->had_syntax_error = false;
@@ -33,7 +22,6 @@ bool lox_parser__clear(struct parser* self) {
     if (lox_parser_clear_tables(self) == false) {
         return false;
     }
-    lox_parser__init_global_env(self);
 
     return true;
 }
@@ -55,14 +43,14 @@ const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type e
     }
 }
 
-char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer, u32 *buffer_size) {
+char* lox_parser__expression_to_str(struct expr* expr, char* buffer, u32 *buffer_size) {
     if (*buffer_size == 0) {
         return buffer;
     }
 
     switch (expr->type) {
         case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: {
-            struct lox_parser_expr_op_unary* expr_unary = (struct lox_parser_expr_op_unary*) expr;
+            struct lox_expr_unary* expr_unary = (struct lox_expr_unary*) expr;
 
             u32 bytes_written = libc__snprintf(buffer, *buffer_size, "%.*s", expr_unary->op->lexeme_len, expr_unary->op->lexeme);
             if (bytes_written >= *buffer_size) {
@@ -75,7 +63,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer = lox_parser__expression_to_str(expr_unary->expr, buffer, buffer_size);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: {
-            struct lox_parser_expr_op_binary* expr_binary = (struct lox_parser_expr_op_binary*) expr;
+            struct lox_expr_binary* expr_binary = (struct lox_expr_binary*) expr;
             buffer = lox_parser__expression_to_str(expr_binary->left, buffer, buffer_size);
 
             u32 bytes_written = libc__snprintf(buffer, *buffer_size, " %.*s ", expr_binary->op->lexeme_len, expr_binary->op->lexeme);
@@ -89,7 +77,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer = lox_parser__expression_to_str(expr_binary->right, buffer, buffer_size);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_GROUPING: {
-            struct lox_parser_expr_grouping* expr_grouping = (struct lox_parser_expr_grouping*) expr;
+            struct lox_expr_group* expr_grouping = (struct lox_expr_group*) expr;
 
             u32 bytes_written = libc__snprintf(buffer, *buffer_size, "(");
             if (bytes_written >= *buffer_size) {
@@ -110,7 +98,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer += bytes_written;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: {
-            struct lox_parser_expr_literal* expr_literal = (struct lox_parser_expr_literal*) expr;
+            struct lox_expr_literal* expr_literal = (struct lox_expr_literal*) expr;
             u32 bytes_written = 0;
             if (expr_literal->value->type == LOX_TOKEN_STRING) {
                 bytes_written = libc__snprintf(buffer, *buffer_size, "\"%.*s\"", expr_literal->value->lexeme_len, expr_literal->value->lexeme);
@@ -126,7 +114,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer += bytes_written;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_VAR: {
-            struct lox_parser_expr_var* expr_var = (struct lox_parser_expr_var*) expr;
+            struct lox_expr_var* expr_var = (struct lox_expr_var*) expr;
             u32 bytes_written = libc__snprintf(buffer, *buffer_size, "%.*s", expr_var->name->lexeme_len, expr_var->name->lexeme);
             if (bytes_written >= *buffer_size) {
                 *buffer_size = 0;
@@ -136,7 +124,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer += bytes_written;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: {
-            struct lox_parser_expr_logical* expr_logical = (struct lox_parser_expr_logical*) expr;
+            struct lox_expr_logical* expr_logical = (struct lox_expr_logical*) expr;
             buffer = lox_parser__expression_to_str(expr_logical->left, buffer, buffer_size);
 
             u32 bytes_written = libc__snprintf(buffer, *buffer_size, " %.*s ", expr_logical->op->lexeme_len, expr_logical->op->lexeme);
@@ -150,14 +138,14 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             buffer = lox_parser__expression_to_str(expr_logical->right, buffer, buffer_size);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_NODE: {
-            struct lox_parser_expr_node* expr_node = (struct lox_parser_expr_node*) expr;
+            struct lox_expr_node* expr_node = (struct lox_expr_node*) expr;
             while (expr_node) {
                 buffer = lox_parser__expression_to_str(expr_node->expression, buffer, buffer_size);
                 if (*buffer_size == 0) {
                     break ;
                 }
 
-                struct lox_parser_expr_node* next_node = expr_node->next;
+                struct lox_expr_node* next_node = expr_node->next;
                 if (next_node != NULL) {
                     u32 bytes_written = libc__snprintf(buffer, *buffer_size, ", ");
                     if (bytes_written >= *buffer_size) {
@@ -172,7 +160,7 @@ char* lox_parser__expression_to_str(struct parser_expression* expr, char* buffer
             }
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_CALL: {
-            struct lox_parser_expr_call* expr_call = (struct lox_parser_expr_call*) expr;
+            struct lox_expr_call* expr_call = (struct lox_expr_call*) expr;
             buffer = lox_parser__expression_to_str(expr_call->callee, buffer, buffer_size);
         } break ;
         default: {
@@ -204,55 +192,40 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
 
 #include "lox_parse_state.inl"
 
-void lox_parser__print_environment_table_stats(struct parser* self) {
-    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
-    libc__printf(
-        "  --=== Environments table ===--\n"
-        "  unique environments allocated: %u, total: %u\n"
-        "  from pool allocated: %u, total: %u\n"
-        "  -----------------------------\n",
-        table->var_env_arr_fill, table->var_env_arr_size,
-        table->var_env_pool_arr_fill, table->var_env_pool_arr_size
-    );
-}
-
-void lox_parser__delete_from_expressions_table(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* expression
-) {
+void lox_parser__delete_from_expressions_table(struct parser* self,struct expr* expression) {
         switch (expression->type) {
         case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: {
-            struct lox_parser_expr_op_unary* unary_expression = (struct lox_parser_expr_op_unary*) expression;
-            lox_parser__delete_from_expressions_table(self, env, unary_expression->expr);
+            struct lox_expr_unary* unary_expression = (struct lox_expr_unary*) expression;
+            lox_parser__delete_from_expressions_table(self, unary_expression->expr);
             // todo: delete unary_expression->evaluated_literal;
-            lox_parser__delete_expr__op_unary(self, unary_expression);
+            lox_parser__delete_expr__op_unary(self, expression);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: {
-            struct lox_parser_expr_op_binary* binary_expr = (struct lox_parser_expr_op_binary*) expression;
-            lox_parser__delete_from_expressions_table(self, env, binary_expr->left);
-            lox_parser__delete_from_expressions_table(self, env, binary_expr->right);
+            struct lox_expr_binary* binary_expr = (struct lox_expr_binary*) expression;
+            lox_parser__delete_from_expressions_table(self, binary_expr->left);
+            lox_parser__delete_from_expressions_table(self, binary_expr->right);
             // todo: delete binary_expr->evaluated_literal
-            lox_parser__delete_expr__op_binary(self, binary_expr);
+            lox_parser__delete_expr__op_binary(self, expression);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_GROUPING: {
-            struct lox_parser_expr_grouping* grouping_expr = (struct lox_parser_expr_grouping*) expression;
-            lox_parser__delete_from_expressions_table(self, env, grouping_expr->expr);
+            struct lox_expr_group* grouping_expr = (struct lox_expr_group*) expression;
+            lox_parser__delete_from_expressions_table(self, grouping_expr->expr);
             // todo: delete grouping_expr->evaluated_literal
-            lox_parser__delete_expr__grouping(self, grouping_expr);
+            lox_parser__delete_expr__grouping(self, expression);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: {
-            struct lox_parser_expr_literal* literal_expr = (struct lox_parser_expr_literal*) expression;
+            struct lox_expr_literal* literal_expr = (struct lox_expr_literal*) expression;
+            (void) literal_expr;
             // todo: delete literal_expr->literal
-            lox_parser__delete_expr__literal(self, literal_expr);
+            lox_parser__delete_expr__literal(self, expression);
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_VAR: {
-            struct lox_parser_expr_var* var_expr = (struct lox_parser_expr_var*) expression;
+            struct lox_expr_var* var_expr = (struct lox_expr_var*) expression;
             if (var_expr->value != NULL) {
-                lox_parser__delete_from_expressions_table(self, env, var_expr->value);
+                lox_parser__delete_from_expressions_table(self, var_expr->value);
             }
             // todo: delete var_expr->evaluated_literal;
-            // lox_parser__delete_expr__var(env, var_expr);
+            // lox_parser__delete_expr__var(expression);
         } break ;
         default: ASSERT(false);
     }
@@ -274,10 +247,9 @@ void lox_parser__print_expressions_table_stats(struct parser* self) {
     );
 }
 
-struct parser_expression* lox_parser__copy_expression(
+struct expr* lox_parser__copy_expression(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* expr
+    struct expr* expr
 ) {
     if (expr == NULL) {
         return NULL;
@@ -285,86 +257,83 @@ struct parser_expression* lox_parser__copy_expression(
     
     switch (expr->type) {
         case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: {
-            struct lox_parser_expr_op_unary* expr_op_unary = (struct lox_parser_expr_op_unary*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__op_unary(
+            struct lox_expr_unary* expr_op_unary = (struct lox_expr_unary*) expr;
+            return (struct expr*) lox_parser__get_expr__op_unary(
                 self,
                 expr_op_unary->op,
-                lox_parser__copy_expression(self, env, expr_op_unary->expr)
+                lox_parser__copy_expression(self, expr_op_unary->expr)
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: {
-            struct lox_parser_expr_op_binary* expr_op_binary = (struct lox_parser_expr_op_binary*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__op_binary(
+            struct lox_expr_binary* expr_op_binary = (struct lox_expr_binary*) expr;
+            return (struct expr*) lox_parser__get_expr__op_binary(
                 self,
-                lox_parser__copy_expression(self, env, expr_op_binary->left),
+                lox_parser__copy_expression(self, expr_op_binary->left),
                 expr_op_binary->op,
-                lox_parser__copy_expression(self, env, expr_op_binary->right)
+                lox_parser__copy_expression(self, expr_op_binary->right)
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_GROUPING: {
-            struct lox_parser_expr_grouping* expr_grouping = (struct lox_parser_expr_grouping*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__grouping(
+            struct lox_expr_group* expr_grouping = (struct lox_expr_group*) expr;
+            return (struct expr*) lox_parser__get_expr__grouping(
                 self,
-                lox_parser__copy_expression(self, env, expr_grouping->expr)
+                lox_parser__copy_expression(self, expr_grouping->expr)
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LITERAL: {
-            struct lox_parser_expr_literal* expr_literal = (struct lox_parser_expr_literal*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__literal(
+            struct lox_expr_literal* expr_literal = (struct lox_expr_literal*) expr;
+            return (struct expr*) lox_parser__get_expr__literal(
                 self,
                 expr_literal->value
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_VAR: {
-            struct lox_parser_expr_var* expr_var = (struct lox_parser_expr_var*) expr;
-            return (struct parser_expression*) lox_parser__define_expr_var(
+            struct lox_expr_var* expr_var = (struct lox_expr_var*) expr;
+            return lox_parser__get_expr__var(
                 self,
-                env,
-                expr_var->name,
-                lox_parser__copy_expression(self, env, expr_var->value)
+                expr_var->name, lox_parser__copy_expression(self, expr_var->value)
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: {
-            struct lox_parser_expr_logical* expr_logical = (struct lox_parser_expr_logical*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__logical(
+            struct lox_expr_logical* expr_logical = (struct lox_expr_logical*) expr;
+            return (struct expr*) lox_parser__get_expr__logical(
                 self,
-                lox_parser__copy_expression(self, env, expr_logical->left),
+                lox_parser__copy_expression(self, expr_logical->left),
                 expr_logical->op,
-                lox_parser__copy_expression(self, env, expr_logical->right)
+                lox_parser__copy_expression(self, expr_logical->right)
             );
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_NODE: {
-            struct lox_parser_expr_node* result = NULL;
-            struct lox_parser_expr_node** presult = &result;
-            struct lox_parser_expr_node* expr_node = (struct lox_parser_expr_node*) expr;
+            struct lox_expr_node* result = NULL;
+            struct lox_expr_node** presult = &result;
+            struct lox_expr_node* expr_node = (struct lox_expr_node*) expr;
             while (expr_node) {
                 *presult = lox_parser__get_expr__node(
                     self,
-                    lox_parser__copy_expression(self, env, expr_node->expression)
+                    lox_parser__copy_expression(self, expr_node->expression)
                 );
                 presult = &(*presult)->next;
                 expr_node = expr_node->next;
             }
-            return (struct parser_expression*) result;
+            return (struct expr*) result;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_CALL: {
-            struct lox_parser_expr_call* expr_call = (struct lox_parser_expr_call*) expr;
-            return (struct parser_expression*) lox_parser__get_expr__call(
+            struct lox_expr_call* expr_call = (struct lox_expr_call*) expr;
+            return (struct expr*) lox_parser__get_expr__call(
                 self,
-                env,
-                lox_parser__copy_expression(self, env, expr_call->callee),
+                lox_parser__copy_expression(self, expr_call->callee),
                 expr_call->closing_paren,
-                (struct lox_parser_expr_node*) lox_parser__copy_expression(self, env, (struct parser_expression*) expr_call->parameters)
+                (struct lox_expr_node*) lox_parser__copy_expression(self, (struct expr*) expr_call->parameters)
             );
         } break ;
         default: ASSERT(false);
     }
 }
 
-struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
+struct expr* lox_parser__get_expr__op_unary(
     struct parser* self,
-    struct tokenizer_token* op,
-    struct parser_expression* expr
+    struct token* op,
+    struct expr* expr
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->op_unary_arr_fill == table->op_unary_arr_size) {
@@ -373,7 +342,7 @@ struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
 
     u32 hash_value = (u64) op % table->op_unary_arr_size;
     for (u32 unary_index = hash_value; unary_index < table->op_unary_arr_size; ++unary_index) {
-        struct lox_parser_expr_op_unary* result = &table->op_unary_arr[unary_index];
+        struct lox_expr_unary* result = &table->op_unary_arr[unary_index];
         if (result->op == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_OP_UNARY;
             result->expr = expr;
@@ -382,12 +351,12 @@ struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
 
             ++table->op_unary_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
     for (u32 unary_index = 0; unary_index < hash_value; ++unary_index) {
-        struct lox_parser_expr_op_unary* result = &table->op_unary_arr[unary_index];
+        struct lox_expr_unary* result = &table->op_unary_arr[unary_index];
         if (result->op == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_OP_UNARY;
             result->expr = expr;
@@ -396,7 +365,7 @@ struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
 
             ++table->op_unary_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
@@ -404,12 +373,15 @@ struct lox_parser_expr_op_unary* lox_parser__get_expr__op_unary(
     return NULL;
 }
 
-void lox_parser__delete_expr__op_unary(struct parser* self, struct lox_parser_expr_op_unary* op_unary_expr) {
+void lox_parser__delete_expr__op_unary(struct parser* self, struct expr* expr) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    ASSERT(expr->type == LOX_PARSER_EXPRESSION_TYPE_OP_UNARY);
+    struct lox_expr_unary* op_unary_expr = (struct lox_expr_unary*) expr;
 
     u32 hash_value = (u64) op_unary_expr->op % table->op_unary_arr_size;
     for (u32 unary_index = hash_value; unary_index < table->op_unary_arr_size; ++unary_index) {
-        struct lox_parser_expr_op_unary* unary_expr_to_delete = &table->op_unary_arr[unary_index];
+        struct lox_expr_unary* unary_expr_to_delete = &table->op_unary_arr[unary_index];
         if (unary_expr_to_delete->op == op_unary_expr->op) {
             op_unary_expr->op = NULL;
 
@@ -420,7 +392,7 @@ void lox_parser__delete_expr__op_unary(struct parser* self, struct lox_parser_ex
     }
 
     for (u32 unary_index = 0; unary_index < hash_value; ++unary_index) {
-        struct lox_parser_expr_op_unary* unary_expr_to_delete = &table->op_unary_arr[unary_index];
+        struct lox_expr_unary* unary_expr_to_delete = &table->op_unary_arr[unary_index];
         if (unary_expr_to_delete->op == op_unary_expr->op) {
             op_unary_expr->op = NULL;
 
@@ -433,11 +405,11 @@ void lox_parser__delete_expr__op_unary(struct parser* self, struct lox_parser_ex
     error_code__exit(324342);
 }
 
-struct lox_parser_expr_op_binary* lox_parser__get_expr__op_binary(
+struct expr* lox_parser__get_expr__op_binary(
     struct parser* self,
-    struct parser_expression* left,
-    struct tokenizer_token* op,
-    struct parser_expression* right
+    struct expr* left,
+    struct token* op,
+    struct expr* right
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->op_binary_arr_fill == table->op_binary_arr_size) {
@@ -446,7 +418,7 @@ struct lox_parser_expr_op_binary* lox_parser__get_expr__op_binary(
 
     u32 hash_value = (u64) op % table->op_binary_arr_size;
     for (u32 binary_index = hash_value; binary_index < table->op_binary_arr_size; ++binary_index) {
-        struct lox_parser_expr_op_binary* result = &table->op_binary_arr[binary_index];
+        struct lox_expr_binary* result = &table->op_binary_arr[binary_index];
         if (result->op == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_OP_BINARY;
             result->left = left;
@@ -456,12 +428,12 @@ struct lox_parser_expr_op_binary* lox_parser__get_expr__op_binary(
 
             ++table->op_binary_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
     for (u32 binary_index = 0; binary_index < hash_value; ++binary_index) {
-        struct lox_parser_expr_op_binary* result = &table->op_binary_arr[binary_index];
+        struct lox_expr_binary* result = &table->op_binary_arr[binary_index];
         if (result->op == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_OP_BINARY;
             result->left = left;
@@ -471,7 +443,7 @@ struct lox_parser_expr_op_binary* lox_parser__get_expr__op_binary(
 
             ++table->op_binary_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
@@ -479,12 +451,15 @@ struct lox_parser_expr_op_binary* lox_parser__get_expr__op_binary(
     return NULL;
 }
 
-void lox_parser__delete_expr__op_binary(struct parser* self, struct lox_parser_expr_op_binary* op_binary_expr) {
+void lox_parser__delete_expr__op_binary(struct parser* self, struct expr* expr) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    ASSERT(expr->type == LOX_PARSER_EXPRESSION_TYPE_OP_BINARY);
+    struct lox_expr_binary* op_binary_expr = (struct lox_expr_binary*) expr;
 
     u32 hash_value = (u64) op_binary_expr->op % table->op_binary_arr_size;
     for (u32 binary_index = hash_value; binary_index < table->op_binary_arr_size; ++binary_index) {
-        struct lox_parser_expr_op_binary* binary_expr_to_delete = &table->op_binary_arr[binary_index];
+        struct lox_expr_binary* binary_expr_to_delete = &table->op_binary_arr[binary_index];
         if (binary_expr_to_delete->op == op_binary_expr->op) {
             op_binary_expr->op = NULL;
 
@@ -495,7 +470,7 @@ void lox_parser__delete_expr__op_binary(struct parser* self, struct lox_parser_e
     }
 
     for (u32 binary_index = 0; binary_index < hash_value; ++binary_index) {
-        struct lox_parser_expr_op_binary* binary_expr_to_delete = &table->op_binary_arr[binary_index];
+        struct lox_expr_binary* binary_expr_to_delete = &table->op_binary_arr[binary_index];
         if (binary_expr_to_delete->op == op_binary_expr->op) {
             op_binary_expr->op = NULL;
 
@@ -508,9 +483,9 @@ void lox_parser__delete_expr__op_binary(struct parser* self, struct lox_parser_e
     error_code__exit(324342);
 }
 
-struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(
+struct expr* lox_parser__get_expr__grouping(
     struct parser* self,
-    struct parser_expression* expr
+    struct expr* expr
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->grouping_arr_fill == table->grouping_arr_size) {
@@ -519,7 +494,7 @@ struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(
 
     u32 hash_value = (u64) expr % table->grouping_arr_size;
     for (u32 grouping_index = hash_value; grouping_index < table->grouping_arr_size; ++grouping_index) {
-        struct lox_parser_expr_grouping* result = &table->grouping_arr[grouping_index];
+        struct lox_expr_group* result = &table->grouping_arr[grouping_index];
         if (result->expr == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_GROUPING;
             result->expr = expr;
@@ -527,12 +502,12 @@ struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(
 
             ++table->grouping_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
     for (u32 grouping_index = 0; grouping_index < hash_value; ++grouping_index) {
-        struct lox_parser_expr_grouping* result = &table->grouping_arr[grouping_index];
+        struct lox_expr_group* result = &table->grouping_arr[grouping_index];
         if (result->expr == NULL) {
             result->base.type = LOX_PARSER_EXPRESSION_TYPE_GROUPING;
             result->expr = expr;
@@ -540,7 +515,7 @@ struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(
 
             ++table->grouping_arr_fill;
 
-            return result;
+            return (struct expr*) result;
         }
     }
 
@@ -548,12 +523,15 @@ struct lox_parser_expr_grouping* lox_parser__get_expr__grouping(
     return NULL;
 }
 
-void lox_parser__delete_expr__grouping(struct parser* self, struct lox_parser_expr_grouping* grouping_expr) {
+void lox_parser__delete_expr__grouping(struct parser* self, struct expr* expr) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    ASSERT(expr->type == LOX_PARSER_EXPRESSION_TYPE_GROUPING);
+    struct lox_expr_group* grouping_expr = (struct lox_expr_group*) expr;
 
     u32 hash_value = (u64) grouping_expr->expr % table->grouping_arr_size;
     for (u32 grouping_index = hash_value; grouping_index < table->grouping_arr_size; ++grouping_index) {
-        struct lox_parser_expr_grouping* grouping_expr_to_delete = &table->grouping_arr[grouping_index];
+        struct lox_expr_group* grouping_expr_to_delete = &table->grouping_arr[grouping_index];
         if (grouping_expr_to_delete->expr == grouping_expr->expr) {
             grouping_expr_to_delete->expr = NULL;
             --table->grouping_arr_fill;
@@ -563,7 +541,7 @@ void lox_parser__delete_expr__grouping(struct parser* self, struct lox_parser_ex
     }
 
     for (u32 grouping_index = 0; grouping_index < hash_value; ++grouping_index) {
-        struct lox_parser_expr_grouping* grouping_expr_to_delete = &table->grouping_arr[grouping_index];
+        struct lox_expr_group* grouping_expr_to_delete = &table->grouping_arr[grouping_index];
         if (grouping_expr_to_delete->expr == grouping_expr->expr) {
             grouping_expr_to_delete->expr = NULL;
             --table->grouping_arr_fill;
@@ -575,7 +553,7 @@ void lox_parser__delete_expr__grouping(struct parser* self, struct lox_parser_ex
     error_code__exit(324342);
 }
 
-struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* self, struct tokenizer_token* value) {
+struct expr* lox_parser__get_expr__literal(struct parser* self, struct token* value) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->literal_arr_fill == table->literal_arr_size) {
         error_code__exit(21437);
@@ -583,7 +561,7 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* sel
     
     u32 hash_value = (u64) value % table->literal_arr_size;
     for (u32 literal_index = hash_value; literal_index < table->literal_arr_size; ++literal_index) {
-        struct lox_parser_expr_literal* literal_expr = &table->literal_arr[literal_index];
+        struct lox_expr_literal* literal_expr = &table->literal_arr[literal_index];
         if (literal_expr->value == NULL) {
             literal_expr->base.type = LOX_PARSER_EXPRESSION_TYPE_LITERAL;
             literal_expr->value = value;
@@ -591,12 +569,12 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* sel
 
             ++table->literal_arr_fill;
 
-            return literal_expr;
+            return (struct expr*) literal_expr;
         }
     }
 
     for (u32 literal_index = 0; literal_index < hash_value; ++literal_index) {
-        struct lox_parser_expr_literal* literal_expr = &table->literal_arr[literal_index];
+        struct lox_expr_literal* literal_expr = &table->literal_arr[literal_index];
         if (literal_expr->value == NULL) {
             literal_expr->base.type = LOX_PARSER_EXPRESSION_TYPE_LITERAL;
             literal_expr->value = value;
@@ -604,7 +582,7 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* sel
 
             ++table->literal_arr_fill;
 
-            return literal_expr;
+            return (struct expr*) literal_expr;
         }
     }
 
@@ -612,81 +590,81 @@ struct lox_parser_expr_literal* lox_parser__get_expr__literal(struct parser* sel
     return NULL;
 }
 
-struct lox_parser_expr_literal* lox_parser__get_expr__literal_true(struct parser* self) {
+struct expr* lox_parser__get_expr__literal_true(struct parser* self) {
     static const char true_lexeme[] = "true";
-    static struct tokenizer_token true_token = {
+    static struct token true_token = {
         .lexeme = true_lexeme,
         .lexeme_len = ARRAY_SIZE(true_lexeme) - 1,
         .type = LOX_TOKEN_TRUE,
         .line = -1
     };
-    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &true_token);
-    result->literal = (struct parser_literal*) lox_parser__get_literal__boolean(self, true);
-    return result;
+    struct lox_expr_literal* result = (struct lox_expr_literal*) lox_parser__get_expr__literal(self, &true_token);
+    result->literal = (struct literal*) lox_parser__get_literal__boolean(self, true);
+    return (struct expr*) result;
 }
 
-struct lox_parser_expr_literal* lox_parser__get_expr__literal_false(struct parser* self) {
+struct expr* lox_parser__get_expr__literal_false(struct parser* self) {
     static const char false_lexeme[] = "false";
-    static struct tokenizer_token false_token = {
+    static struct token false_token = {
         .lexeme = false_lexeme,
         .lexeme_len = ARRAY_SIZE(false_lexeme) - 1,
         .type = LOX_TOKEN_FALSE,
         .line = -1
     };
-    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &false_token);
-    result->literal = (struct parser_literal*) lox_parser__get_literal__boolean(self, false);
-    return result;
+    struct lox_expr_literal* result = (struct lox_expr_literal*) lox_parser__get_expr__literal(self, &false_token);
+    result->literal = (struct literal*) lox_parser__get_literal__boolean(self, false);
+    return (struct expr*) result;
 }
 
-struct lox_parser_expr_literal* lox_parser__get_expr__literal_nil(struct parser* self) {
+struct expr* lox_parser__get_expr__literal_nil(struct parser* self) {
     static const char nil_lexeme[] = "true";
-    static struct tokenizer_token nil_token = {
+    static struct token nil_token = {
         .lexeme = nil_lexeme,
         .lexeme_len = ARRAY_SIZE(nil_lexeme) - 1,
         .type = LOX_TOKEN_NIL,
         .line = -1
     };
-    struct lox_parser_expr_literal* result = lox_parser__get_expr__literal(self, &nil_token);
-    result->literal = (struct parser_literal*) lox_parser__get_literal__nil(self);
-    return result;
+    struct lox_expr_literal* result = (struct lox_expr_literal*) lox_parser__get_expr__literal(self, &nil_token);
+    result->literal = (struct literal*) lox_parser__get_literal__nil(self);
+    return (struct expr*) result;
 }
 
-struct lox_parser_expr_logical* lox_parser__get_expr__logical(
+struct expr* lox_parser__get_expr__logical(
     struct parser* self,
-    struct parser_expression* left,
-    struct tokenizer_token* op,
-    struct parser_expression* right
+    struct expr* left,
+    struct token* op,
+    struct expr* right
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->logical_arr_fill == table->logical_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_expr_logical* result = &table->logical_arr[table->logical_arr_fill++];
+    struct lox_expr_logical* result = &table->logical_arr[table->logical_arr_fill++];
     result->base.type = LOX_PARSER_EXPRESSION_TYPE_LOGICAL;
     result->left = left;
     result->op = op;
     result->right = right;
     result->evaluated_literal = NULL;
 
-    return result;
+    return (struct expr*) result;
 }
 
-void lox_parser__delete_expr__logical(struct parser* self, struct lox_parser_expr_logical* logical_expr) {
+void lox_parser__delete_expr__logical(struct parser* self, struct expr* logical_expr) {
     (void) self;
     (void) logical_expr;
 }
 
-struct lox_parser_expr_node* lox_parser__get_expr__node(
+struct lox_expr_node* lox_parser__get_expr__node(
     struct parser* self,
-    struct parser_expression* expr
+    struct expr* expr
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->node_arr_fill == table->node_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_expr_node* result = &table->node_arr[table->node_arr_fill++];
+    struct lox_expr_node* result = &table->node_arr[table->node_arr_fill++];
     result->base.type = LOX_PARSER_EXPRESSION_TYPE_NODE;
     result->expression = expr;
     result->next = NULL;
@@ -694,34 +672,54 @@ struct lox_parser_expr_node* lox_parser__get_expr__node(
     return result;
 }
 
-struct lox_parser_expr_call* lox_parser__get_expr__call(
+struct expr* lox_parser__get_expr__call(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* callee,
-    struct tokenizer_token* closing_paren,
-    struct lox_parser_expr_node* parameters
+    struct expr* callee,
+    struct token* closing_paren,
+    struct lox_expr_node* parameters
 ) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->call_arr_fill == table->call_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_expr_call* result = &table->call_arr[table->call_arr_fill++];
+    struct lox_expr_call* result = &table->call_arr[table->call_arr_fill++];
     result->base.type = LOX_PARSER_EXPRESSION_TYPE_CALL;
-    result->env = env;
     result->callee = callee;
     result->closing_paren = closing_paren;
     result->parameters = parameters;
 
-    return result;
+    return (struct expr*) result;
 }
 
-void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_expr_literal* literal_expr) {
+struct expr* lox_parser__get_expr__var(
+    struct parser* self,
+    struct token* name,
+    struct expr* value
+) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->var_arr_fill == table->var_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_expr_var* result = &table->var_arr[table->var_arr_fill++];
+    result->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
+    result->name = name;
+    result->value = value;
+    result->evaluated_literal = NULL;
+
+    return (struct expr*) result;
+}
+
+void lox_parser__delete_expr__literal(struct parser* self, struct expr* expr) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+
+    ASSERT(expr->type == LOX_PARSER_EXPRESSION_TYPE_LITERAL);
+    struct lox_expr_literal* literal_expr = (struct lox_expr_literal*) expr;
 
     u32 hash_value = (u64) literal_expr->value % table->literal_arr_size;
     for (u32 literal_index = hash_value; literal_index < table->literal_arr_size; ++literal_index) {
-        struct lox_parser_expr_literal* literal_expr_to_delete = &table->literal_arr[literal_index];
+        struct lox_expr_literal* literal_expr_to_delete = &table->literal_arr[literal_index];
         if (literal_expr_to_delete->value == literal_expr->value) {
             literal_expr_to_delete->value = NULL;
             --table->literal_arr_fill;
@@ -731,7 +729,7 @@ void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_exp
     }
 
     for (u32 literal_index = 0; literal_index < hash_value; ++literal_index) {
-        struct lox_parser_expr_literal* literal_expr_to_delete = &table->literal_arr[literal_index];
+        struct lox_expr_literal* literal_expr_to_delete = &table->literal_arr[literal_index];
         if (literal_expr_to_delete->value == literal_expr->value) {
             literal_expr_to_delete->value = NULL;
             --table->literal_arr_fill;
@@ -743,7 +741,7 @@ void lox_parser__delete_expr__literal(struct parser* self, struct lox_parser_exp
     error_code__exit(324342);
 }
 
-struct lox_literal_object* lox_parser__get_literal__object(
+struct literal* lox_parser__get_literal__object(
     struct parser* self,
     struct object_header header,
     struct memory_slice value
@@ -753,25 +751,25 @@ struct lox_literal_object* lox_parser__get_literal__object(
         error_code__exit(234782);
     }
 
-    struct lox_literal_object* result = &table->object_arr[table->object_arr_fill++];
+    struct lox_literal_obj* result = &table->object_arr[table->object_arr_fill++];
     result->base.type = LOX_LITERAL_TYPE_OBJECT;
     result->header = header;
     result->data = value;
 
-    return result;
+    return (struct literal*) result;
 }
 
-struct lox_literal_nil* lox_parser__get_literal__nil(struct parser* self) {
+struct literal* lox_parser__get_literal__nil(struct parser* self) {
     struct lox_literal_table* table = lox_parser__get_literal_table(self);
-    return table->nil_literal;
+    return (struct literal*) table->nil_literal;
 }
 
-struct lox_literal_boolean* lox_parser__get_literal__boolean(struct parser* self, bool value) {
+struct literal* lox_parser__get_literal__boolean(struct parser* self, bool value) {
     struct lox_literal_table* table = lox_parser__get_literal_table(self);
-    return value == true ? table->boolean_literal_true : table->boolean_literal_false;
+    return (struct literal*) (value == true ? table->boolean_literal_true : table->boolean_literal_false);
 }
 
-struct lox_literal_number* lox_parser__get_literal__number(
+struct literal* lox_parser__get_literal__number(
     struct parser* self,
     r64 value
 ) {
@@ -784,10 +782,10 @@ struct lox_literal_number* lox_parser__get_literal__number(
     result->base.type = LOX_LITERAL_TYPE_NUMBER;
     result->data = value;
 
-    return result;
+    return (struct literal*) result;
 }
 
-struct lox_literal_string* lox_parser__get_literal__string(
+struct literal* lox_parser__get_literal__string(
     struct parser* self,
     char* format, ...
 ) {
@@ -820,10 +818,10 @@ struct lox_literal_string* lox_parser__get_literal__string(
 
     va_end(ap);
 
-    return result;
+    return (struct literal*) result;
 }
 
-struct memory_slice lox_parser__convert_expr_to_string(struct parser_expression* expr, struct memory_slice buffer) {
+struct memory_slice lox_parser__convert_expr_to_string(struct expr* expr, struct memory_slice buffer) {
     switch (expr->type) {
         case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: return lox_parser_expr_evalute__op_unary(expr, buffer);
         case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: return lox_parser_expr_evalute__op_binary(expr, buffer);
@@ -869,7 +867,7 @@ struct memory_slice lox_parser__write_to_memory(
 }
 
 static struct memory_slice lox_parser__write_to_memory_expressions(
-    struct tokenizer_token* token,
+    struct token* token,
     struct memory_slice buffer,
     u32 expressions_count, ...
 ) {
@@ -878,7 +876,7 @@ static struct memory_slice lox_parser__write_to_memory_expressions(
 
         va_start(ap, expressions_count);
         while (expressions_count > 0) {
-            struct parser_expression* expr = (struct parser_expression*) va_arg(ap, void*);
+            struct expr* expr = (struct expr*) va_arg(ap, void*);
             parser__convert_expr_to_string lox_parser_expr_evalute_fn = NULL;
             switch (expr->type) {
                 case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: {
@@ -908,8 +906,8 @@ static struct memory_slice lox_parser__write_to_memory_expressions(
     return buffer;
 }
 
-struct memory_slice lox_parser_expr_evalute__op_unary(struct parser_expression* expr, struct memory_slice buffer) {
-    struct lox_parser_expr_op_unary* unary_expr = (struct lox_parser_expr_op_unary*) expr;
+struct memory_slice lox_parser_expr_evalute__op_unary(struct expr* expr, struct memory_slice buffer) {
+    struct lox_expr_unary* unary_expr = (struct lox_expr_unary*) expr;
     return
     lox_parser__write_to_memory_expressions(
         unary_expr->op,
@@ -919,8 +917,8 @@ struct memory_slice lox_parser_expr_evalute__op_unary(struct parser_expression* 
     );
 }
 
-struct memory_slice lox_parser_expr_evalute__op_binary(struct parser_expression* expr, struct memory_slice buffer) {
-    struct lox_parser_expr_op_binary* binary_expr = (struct lox_parser_expr_op_binary*) expr;
+struct memory_slice lox_parser_expr_evalute__op_binary(struct expr* expr, struct memory_slice buffer) {
+    struct lox_expr_binary* binary_expr = (struct lox_expr_binary*) expr;
     return
     lox_parser__write_to_memory_expressions(
         binary_expr->op,
@@ -931,8 +929,8 @@ struct memory_slice lox_parser_expr_evalute__op_binary(struct parser_expression*
     );
 }
 
-struct memory_slice lox_parser_expr_evalute__grouping(struct parser_expression* expr, struct memory_slice buffer) {
-    struct lox_parser_expr_grouping* grouping_expr = (struct lox_parser_expr_grouping*) expr;
+struct memory_slice lox_parser_expr_evalute__grouping(struct expr* expr, struct memory_slice buffer) {
+    struct lox_expr_group* grouping_expr = (struct lox_expr_group*) expr;
 
     buffer = lox_parser__write_to_memory(buffer, "( ");
 
@@ -943,8 +941,8 @@ struct memory_slice lox_parser_expr_evalute__grouping(struct parser_expression* 
     return buffer;
 }
 
-struct memory_slice lox_parser_expr_evalute__literal(struct parser_expression* expr, struct memory_slice buffer) {
-    struct lox_parser_expr_literal* literal_expr = (struct lox_parser_expr_literal*) expr;
+struct memory_slice lox_parser_expr_evalute__literal(struct expr* expr, struct memory_slice buffer) {
+    struct lox_expr_literal* literal_expr = (struct lox_expr_literal*) expr;
 
     // if (literal_expr->value->type == LOX_TOKEN_STRING) {
     //     buffer = lox_parser__write_to_memory(buffer, "\"");
@@ -989,380 +987,163 @@ void lox_parser__print_statements_table_stats(struct parser* self) {
     );
 }
 
-struct lox_parser_statement_print* lox_parser__get_statement_print(
+struct stmt* lox_parser__get_statement_print(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* expr
+    struct expr* expr
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->print_statements_arr_fill == table->print_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_print* result = &table->print_statements_arr[table->print_statements_arr_fill++];
+    struct lox_stmt_print* result = &table->print_statements_arr[table->print_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_PRINT;
-    result->base.env = env;
     result->expr = expr;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_expression* lox_parser__get_statement_expression(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* expr
-) {
+struct stmt* lox_parser__get_statement_expression(struct parser* self,struct expr* expr) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->expression_statements_arr_fill == table->expression_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_expression* result = &table->expression_statements_arr[table->expression_statements_arr_fill++];
+    struct lox_stmt_expr* result = &table->expression_statements_arr[table->expression_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_EXPRESSION;
-    result->base.env = env;
     result->expr = expr;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_var_decl* lox_parser__get_statement_var_decl(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* var_expr
-) {
+struct stmt* lox_parser__get_statement_var_decl(struct parser* self, struct expr* var_expr) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->var_decl_statements_arr_fill == table->var_decl_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_var_decl* result = &table->var_decl_statements_arr[table->var_decl_statements_arr_fill++];
+    struct lox_stmt_var_decl* result = &table->var_decl_statements_arr[table->var_decl_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_VAR_DECL;
-    result->base.env = env;
     result->var_expr = var_expr;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_node* lox_parser__get_statement_node(
+struct lox_stmt_node* lox_parser__get_statement_node(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_statement* statement
+    struct stmt* statement
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->lox_parser_statement_node_arr_fill == table->lox_parser_statement_node_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_node* result = &table->lox_parser_statement_node_arr[table->lox_parser_statement_node_arr_fill++];
+    struct lox_stmt_node* result = &table->lox_parser_statement_node_arr[table->lox_parser_statement_node_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_NODE;
-    result->base.env = env;
     result->statement = statement;
     result->next = NULL;
 
     return result;
 }
 
-struct lox_parser_statement_block* lox_parser__get_statement_block(
+struct stmt* lox_parser__get_statement_block(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct lox_parser_statement_node* statement_list
+    struct lox_stmt_node* statement_list
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->block_statements_arr_fill == table->block_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_block* result = &table->block_statements_arr[table->block_statements_arr_fill++];
+    struct lox_stmt_block* result = &table->block_statements_arr[table->block_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_BLOCK;
-    result->base.env = env;
     result->statement_list = statement_list;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_fun_block* lox_parser__get_statement_fun_block(
+struct stmt* lox_parser__get_statement_if(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct lox_parser_statement_node* statement_list
-) {
-    struct lox_statements_table* table = lox_parser__get_statements_table(self);
-    if (table->fun_block_statements_arr_fill == table->fun_block_statements_arr_size) {
-        error_code__exit(21437);
-    }
-
-    struct lox_parser_statement_fun_block* result = &table->fun_block_statements_arr[table->fun_block_statements_arr_fill++];
-    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_BLOCK;
-    result->base.env = env;
-    result->statement_list = statement_list;
-
-    return result;
-}
-
-struct lox_parser_statement_if* lox_parser__get_statement_if(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* condition,
-    struct parser_statement* then_branch,
-    struct parser_statement* else_branch
+    struct expr* condition,
+    struct stmt* then_branch,
+    struct stmt* else_branch
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->if_statements_arr_fill == table->if_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_if* result = &table->if_statements_arr[table->if_statements_arr_fill++];
+    struct lox_stmt_if* result = &table->if_statements_arr[table->if_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_IF;
-    result->base.env = env;
     result->condition = condition;
     result->then_branch = then_branch;
     result->else_branch = else_branch;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_while* lox_parser__get_statement_while(
+struct stmt* lox_parser__get_statement_while(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct parser_expression* condition,
-    struct parser_statement* statement
+    struct expr* condition,
+    struct stmt* statement
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->while_statements_arr_fill == table->while_statements_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_while* result = &table->while_statements_arr[table->while_statements_arr_fill++];
+    struct lox_stmt_while* result = &table->while_statements_arr[table->while_statements_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_WHILE;
-    result->base.env = env;
     result->condition = condition;
     result->statement = statement;
 
-    return result;
+    return (struct stmt*) result;
 }
 
-struct lox_parser_statement_break* lox_parser__get_statement_break(
-    struct parser* self
-) {
+struct stmt* lox_parser__get_statement_break(struct parser* self) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
 
-    return table->break_statement;
+    return (struct stmt*) table->break_statement;
 }
 
-struct lox_parser_statement_continue* lox_parser__get_statement_continue(
-    struct parser* self
-) {
+struct stmt* lox_parser__get_statement_continue(struct parser* self) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
 
-    return table->continue_statement;
+    return (struct stmt*) table->continue_statement;
 }
 
-struct lox_parser_statement_token_node* lox_parser__get_statement_fun_params_node (
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct tokenizer_token* name
-) {
+struct lox_stmt_token_node* lox_parser__get_statement_fun_params_node(struct parser* self, struct token* name) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->fun_params_arr_fill == table->fun_params_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_token_node* result = &table->fun_params_arr[table->fun_params_arr_fill++];
+    struct lox_stmt_token_node* result = &table->fun_params_arr[table->fun_params_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE;
-    result->base.env = env;
     result->name = name;
     result->next = NULL;
 
     return result;
 }
 
-struct lox_parser_statement_function* lox_parser__get_statement_fun(
+struct stmt* lox_parser__get_statement_fun(
     struct parser* self,
-    struct lox_var_environment* env,
-    struct tokenizer_token* name,
-    struct lox_parser_statement_token_node* params,
-    struct lox_parser_statement_block* body
+    struct token* name,
+    struct lox_stmt_token_node* params,
+    struct lox_stmt_block* body
 ) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->fun_arr_fill == table->fun_arr_size) {
         error_code__exit(21437);
     }
 
-    struct lox_parser_statement_function* result = &table->fun_arr[table->fun_arr_fill++];
+    struct lox_stmt_fun* result = &table->fun_arr[table->fun_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN;
-    result->base.env = env;
     result->name = name;
     result->params = params;
     result->body = body;
 
-    return result;
-}
-
-struct lox_parser_expr_var* lox_parser__get_expr__var(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct tokenizer_token* var_name
-) {
-    (void) self;
-
-    ASSERT(env != NULL);
-    u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
-
-    while (env != NULL) {
-        struct lox_var_environment* cur_env = env;
-        while (
-            cur_env != NULL &&
-            cur_env->var_expressions_arr_fill > 0
-        ) {
-            for (u32 var_index = var_hash; var_index < cur_env->var_expressions_arr_size; ++var_index) {
-                struct lox_parser_expr_var* cur_var = &cur_env->var_expressions_arr[var_index];
-                if (
-                    cur_var->name != NULL &&
-                    cur_var->name->lexeme_len == var_name->lexeme_len &&
-                    libc__strncmp(
-                        cur_var->name->lexeme,
-                        var_name->lexeme,
-                        var_name->lexeme_len
-                    ) == 0
-                ) {
-                    return cur_var;
-                }
-            }
-
-            for (u32 var_index = 0; var_index < var_hash; ++var_index) {
-                struct lox_parser_expr_var* cur_var = &cur_env->var_expressions_arr[var_index];
-                if (
-                    cur_var->name != NULL &&
-                    cur_var->name->lexeme_len == var_name->lexeme_len &&
-                    libc__strncmp(
-                        cur_var->name->lexeme,
-                        var_name->lexeme,
-                        var_name->lexeme_len
-                    ) == 0
-                ) {
-                    return cur_var;
-                }
-            }
-
-            cur_env = cur_env->next;
-        }
-        env = env->parent;
-    }
-
-    return NULL;
-}
-
-struct lox_parser_expr_var* lox_parser__define_expr_var(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct tokenizer_token* var_name,
-    struct parser_expression* var_value
-) {
-    while (
-        env != NULL &&
-        env->var_expressions_arr_fill == env->var_expressions_arr_size
-    ) {
-        env = env->next;
-    }
-    if (env == NULL) {
-        env = lox_var_environment__get_from_pool(self);
-    }
-
-    u32 var_hash = hash__sum_n(var_name->lexeme, var_name->lexeme_len) % env->var_expressions_arr_size;
-    for (u32 var_index = var_hash; var_index < env->var_expressions_arr_size; ++var_index) {
-        struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-        if (cur_var->name == NULL) {
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_expressions_arr_fill;
-            
-            return cur_var;
-        } else if (
-            cur_var->name->lexeme_len == var_name->lexeme_len &&
-            libc__strncmp(
-                cur_var->name->lexeme,
-                var_name->lexeme,
-                var_name->lexeme_len
-            ) == 0
-        ) {
-            // delete previous declaration
-            // lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
-            // note: allow redeclaring/redefining variables
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
-            // and in other situations the equal binary operator should evaluate and replace the value properly
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_expressions_arr_fill;
-
-            return cur_var;
-        }
-    }
-
-    for (u32 var_index = 0; var_index < var_hash; ++var_index) {
-        struct lox_parser_expr_var* cur_var = &env->var_expressions_arr[var_index];
-        if (cur_var->name == NULL) {
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_expressions_arr_fill;
-
-            return cur_var;
-        } else if (
-            cur_var->name->lexeme_len == var_name->lexeme_len &&
-            libc__strncmp(
-                cur_var->name->lexeme,
-                var_name->lexeme,
-                var_name->lexeme_len
-            ) == 0
-        ) {
-            // delete previous declaration
-            // lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
-            // note: allow redeclaring/redefining variables
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
-            // and in other situations the equal binary operator should evaluate and replace the value properly
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_expressions_arr_fill;
-
-            return cur_var;
-        }
-    }
-
-    // var declaration arr is full
-    error_code__exit(12434);
-    return NULL;
-}
-
-struct lox_parser_expr_var* lox_parser__set_expr__var(
-    struct parser* self,
-    struct lox_var_environment* env,
-    struct tokenizer_token* var_name,
-    struct parser_expression* var_value
-) {
-    struct lox_parser_expr_var* expr_var = lox_parser__get_expr__var(self, env, var_name);
-    if (expr_var == NULL) {
-        return NULL;
-    }
-
-    // todo: delete previous declaration
-    //   lox_parser__delete_from_expressions_table(self, env, (struct parser_expression*) cur_var);
-    // note: allow redeclaring/redefining variables
-    // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
-    // and in other situations the equal binary operator should evaluate and replace the value properly
-    expr_var->name = var_name;
-    expr_var->value = var_value;
-
-    return expr_var;
+    return (struct stmt*) result;
 }
 
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type) {
@@ -1396,7 +1177,7 @@ void lox_parser__print_literal_table_stats(struct parser* self) {
 struct parser_ast lox_parser__parse_ast(struct parser* self) {
     struct parser_ast result;
 
-    result.statement = lox_parser__declaration(self, lox_parser__get_environment(self));
+    result.statement = lox_parser__declaration(self);
 
     return result;
 }

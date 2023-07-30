@@ -4,7 +4,7 @@
 # include "comment_tokenizer_defs.h"
 
 struct tokenizer;
-struct tokenizer_token;
+struct token;
 
 PUBLIC_API bool tokenizer__tokenize_comments(struct tokenizer* tokenizer, const char* source);
 PUBLIC_API const char* token__type_name_comment(u8 token_type);

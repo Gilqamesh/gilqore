@@ -1,0 +1,9 @@
+fun f(x) {
+    print x;
+    if (x < 10) {
+        f(x + 1);
+    }
+    print x;
+}
+
+f(-5);

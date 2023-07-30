@@ -1,0 +1,300 @@
+cc -c modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c -o modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.o -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -Imodules -DGIL_DEBUG -DGIL_TEST_SHOULD_PRINT -MMD -MP -MF modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.d
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:193:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl: In function ‘lox_parser__for_statement’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:247:44: error: initialization of ‘struct lox_stmt_node *’ from incompatible pointer type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  247 |     struct lox_stmt_node* loop_body_node = lox_parser__get_statement_node(self, loop_body);
+      |                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:252:24: error: assignment to ‘struct lox_stmt_node *’ from incompatible pointer type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  252 |         increment_node = lox_parser__get_statement_node(self, (struct stmt*) lox_parser__get_statement_expression(self, increment));
+      |                        ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:269:50: error: initialization of ‘struct lox_stmt_node *’ from incompatible pointer type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  269 |     struct lox_stmt_node* whole_loop_stmt_node = lox_parser__get_statement_node(
+      |                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:275:26: error: assignment to ‘struct lox_stmt_node *’ from incompatible pointer type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  275 |         initializer_node = lox_parser__get_statement_node(self, initializer);
+      |                          ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl: In function ‘lox_parser__block_statement_internal’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:414:32: error: assignment to ‘struct lox_stmt_node *’ from incompatible pointer type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  414 |         *pblock_statement_node = lox_parser__get_statement_node(self, statement);
+      |                                ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl: In function ‘lox_parser__comma’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:455:41: error: initialization of ‘struct lox_expr_node *’ from incompatible pointer type ‘struct expr *’ [-Wincompatible-pointer-types]
+  455 |     struct lox_expr_node* result_node = lox_parser__get_expr__node(self, assignment_expr);
+      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:464:23: error: assignment to ‘struct lox_expr_node *’ from incompatible pointer type ‘struct expr *’ [-Wincompatible-pointer-types]
+  464 |         *presult_node = lox_parser__get_expr__node(self, expression);
+      |                       ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl: In function ‘lox_parser__finish_call’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:731:81: error: passing argument 4 of ‘lox_parser__get_expr__call’ from incompatible pointer type [-Wincompatible-pointer-types]
+  731 |     return (struct expr*) lox_parser__get_expr__call(self, callee, right_paren, args);
+      |                                                                                 ^~~~
+      |                                                                                 |
+      |                                                                                 struct lox_expr_node *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:340:18: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_node *’
+  340 |     struct expr* parameters
+      |     ~~~~~~~~~~~~~^~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:193:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl: In function ‘lox_parser__primary’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parse_state.inl:782:45: error: too few arguments to function ‘lox_parser__get_expr__var’
+  782 |             struct lox_expr_var* var_expr = lox_parser__get_expr__var(self, var_name);
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:343:14: note: declared here
+  343 | struct expr* lox_parser__get_expr__var(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__delete_from_expressions_table’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:204:53: error: passing argument 2 of ‘lox_parser__delete_expr__op_unary’ from incompatible pointer type [-Wincompatible-pointer-types]
+  204 |             lox_parser__delete_expr__op_unary(self, unary_expression);
+      |                                                     ^~~~~~~~~~~~~~~~
+      |                                                     |
+      |                                                     struct lox_expr_unary *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:307:74: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_unary *’
+  307 | void lox_parser__delete_expr__op_unary(struct parser* self, struct expr* op_unary_expr);
+      |                                                             ~~~~~~~~~~~~~^~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:211:54: error: passing argument 2 of ‘lox_parser__delete_expr__op_binary’ from incompatible pointer type [-Wincompatible-pointer-types]
+  211 |             lox_parser__delete_expr__op_binary(self, binary_expr);
+      |                                                      ^~~~~~~~~~~
+      |                                                      |
+      |                                                      struct lox_expr_binary *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:313:75: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_binary *’
+  313 | void lox_parser__delete_expr__op_binary(struct parser* self, struct expr* op_binary_expr);
+      |                                                              ~~~~~~~~~~~~~^~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:217:53: error: passing argument 2 of ‘lox_parser__delete_expr__grouping’ from incompatible pointer type [-Wincompatible-pointer-types]
+  217 |             lox_parser__delete_expr__grouping(self, grouping_expr);
+      |                                                     ^~~~~~~~~~~~~
+      |                                                     |
+      |                                                     struct lox_expr_group *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:316:74: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_group *’
+  316 | void lox_parser__delete_expr__grouping(struct parser* self, struct expr* grouping_expr);
+      |                                                             ~~~~~~~~~~~~~^~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:222:52: error: passing argument 2 of ‘lox_parser__delete_expr__literal’ from incompatible pointer type [-Wincompatible-pointer-types]
+  222 |             lox_parser__delete_expr__literal(self, literal_expr);
+      |                                                    ^~~~~~~~~~~~
+      |                                                    |
+      |                                                    struct lox_expr_literal *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:322:73: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_literal *’
+  322 | void lox_parser__delete_expr__literal(struct parser* self, struct expr* literal_expr);
+      |                                                            ~~~~~~~~~~~~~^~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__copy_expression’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:294:35: error: implicit declaration of function ‘lox_parser__define_expr_var’; did you mean ‘lox_parser__get_expr__var’? [-Wimplicit-function-declaration]
+  294 |             return (struct expr*) lox_parser__define_expr_var(
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                   lox_parser__get_expr__var
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:296:9: error: expected expression before ‘,’ token
+  296 |         ,
+      |         ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:315:26: error: assignment to ‘struct lox_expr_node *’ from incompatible pointer type ‘struct expr *’ [-Wincompatible-pointer-types]
+  315 |                 *presult = lox_parser__get_expr__node(
+      |                          ^
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:330:17: error: passing argument 4 of ‘lox_parser__get_expr__call’ from incompatible pointer type [-Wincompatible-pointer-types]
+  330 |                 (struct lox_expr_node*) lox_parser__copy_expression(self, (struct expr*) expr_call->parameters)
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                 |
+      |                 struct lox_expr_node *
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:340:18: note: expected ‘struct expr *’ but argument is of type ‘struct lox_expr_node *’
+  340 |     struct expr* parameters
+      |     ~~~~~~~~~~~~~^~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: At top level:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:337:24: error: conflicting types for ‘lox_parser__get_expr__op_unary’; have ‘struct lox_expr_unary *(struct parser *, struct token *, struct expr *)’
+  337 | struct lox_expr_unary* lox_parser__get_expr__op_unary(
+      |                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:303:14: note: previous declaration of ‘lox_parser__get_expr__op_unary’ with type ‘struct expr *(struct parser *, struct token *, struct expr *)’
+  303 | struct expr* lox_parser__get_expr__op_unary(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:380:6: error: conflicting types for ‘lox_parser__delete_expr__op_unary’; have ‘void(struct parser *, struct lox_expr_unary *)’
+  380 | void lox_parser__delete_expr__op_unary(struct parser* self, struct lox_expr_unary* op_unary_expr) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:307:6: note: previous declaration of ‘lox_parser__delete_expr__op_unary’ with type ‘void(struct parser *, struct expr *)’
+  307 | void lox_parser__delete_expr__op_unary(struct parser* self, struct expr* op_unary_expr);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:409:25: error: conflicting types for ‘lox_parser__get_expr__op_binary’; have ‘struct lox_expr_binary *(struct parser *, struct expr *, struct token *, struct expr *)’
+  409 | struct lox_expr_binary* lox_parser__get_expr__op_binary(
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:309:14: note: previous declaration of ‘lox_parser__get_expr__op_binary’ with type ‘struct expr *(struct parser *, struct expr *, struct token *, struct expr *)’
+  309 | struct expr* lox_parser__get_expr__op_binary(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:455:6: error: conflicting types for ‘lox_parser__delete_expr__op_binary’; have ‘void(struct parser *, struct lox_expr_binary *)’
+  455 | void lox_parser__delete_expr__op_binary(struct parser* self, struct lox_expr_binary* op_binary_expr) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:313:6: note: previous declaration of ‘lox_parser__delete_expr__op_binary’ with type ‘void(struct parser *, struct expr *)’
+  313 | void lox_parser__delete_expr__op_binary(struct parser* self, struct expr* op_binary_expr);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:484:24: error: conflicting types for ‘lox_parser__get_expr__grouping’; have ‘struct lox_expr_group *(struct parser *, struct expr *)’
+  484 | struct lox_expr_group* lox_parser__get_expr__grouping(
+      |                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:315:14: note: previous declaration of ‘lox_parser__get_expr__grouping’ with type ‘struct expr *(struct parser *, struct expr *)’
+  315 | struct expr* lox_parser__get_expr__grouping(struct parser* self, struct expr* expr);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:524:6: error: conflicting types for ‘lox_parser__delete_expr__grouping’; have ‘void(struct parser *, struct lox_expr_group *)’
+  524 | void lox_parser__delete_expr__grouping(struct parser* self, struct lox_expr_group* grouping_expr) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:316:6: note: previous declaration of ‘lox_parser__delete_expr__grouping’ with type ‘void(struct parser *, struct expr *)’
+  316 | void lox_parser__delete_expr__grouping(struct parser* self, struct expr* grouping_expr);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:551:26: error: conflicting types for ‘lox_parser__get_expr__literal’; have ‘struct lox_expr_literal *(struct parser *, struct token *)’
+  551 | struct lox_expr_literal* lox_parser__get_expr__literal(struct parser* self, struct token* value) {
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:318:14: note: previous declaration of ‘lox_parser__get_expr__literal’ with type ‘struct expr *(struct parser *, struct token *)’
+  318 | struct expr* lox_parser__get_expr__literal(struct parser* self, struct token* value);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:588:26: error: conflicting types for ‘lox_parser__get_expr__literal_true’; have ‘struct lox_expr_literal *(struct parser *)’
+  588 | struct lox_expr_literal* lox_parser__get_expr__literal_true(struct parser* self) {
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:319:14: note: previous declaration of ‘lox_parser__get_expr__literal_true’ with type ‘struct expr *(struct parser *)’
+  319 | struct expr* lox_parser__get_expr__literal_true(struct parser* self);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:601:26: error: conflicting types for ‘lox_parser__get_expr__literal_false’; have ‘struct lox_expr_literal *(struct parser *)’
+  601 | struct lox_expr_literal* lox_parser__get_expr__literal_false(struct parser* self) {
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:320:14: note: previous declaration of ‘lox_parser__get_expr__literal_false’ with type ‘struct expr *(struct parser *)’
+  320 | struct expr* lox_parser__get_expr__literal_false(struct parser* self);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:614:26: error: conflicting types for ‘lox_parser__get_expr__literal_nil’; have ‘struct lox_expr_literal *(struct parser *)’
+  614 | struct lox_expr_literal* lox_parser__get_expr__literal_nil(struct parser* self) {
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:321:14: note: previous declaration of ‘lox_parser__get_expr__literal_nil’ with type ‘struct expr *(struct parser *)’
+  321 | struct expr* lox_parser__get_expr__literal_nil(struct parser* self);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:627:26: error: conflicting types for ‘lox_parser__get_expr__logical’; have ‘struct lox_expr_logical *(struct parser *, struct expr *, struct token *, struct expr *)’
+  627 | struct lox_expr_logical* lox_parser__get_expr__logical(
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:324:14: note: previous declaration of ‘lox_parser__get_expr__logical’ with type ‘struct expr *(struct parser *, struct expr *, struct token *, struct expr *)’
+  324 | struct expr* lox_parser__get_expr__logical(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:648:6: error: conflicting types for ‘lox_parser__delete_expr__logical’; have ‘void(struct parser *, struct lox_expr_logical *)’
+  648 | void lox_parser__delete_expr__logical(struct parser* self, struct lox_expr_logical* logical_expr) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:330:6: note: previous declaration of ‘lox_parser__delete_expr__logical’ with type ‘void(struct parser *, struct expr *)’
+  330 | void lox_parser__delete_expr__logical(struct parser* self, struct expr* logical_expr);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:653:23: error: conflicting types for ‘lox_parser__get_expr__node’; have ‘struct lox_expr_node *(struct parser *, struct expr *)’
+  653 | struct lox_expr_node* lox_parser__get_expr__node(
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:332:14: note: previous declaration of ‘lox_parser__get_expr__node’ with type ‘struct expr *(struct parser *, struct expr *)’
+  332 | struct expr* lox_parser__get_expr__node(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:670:23: error: conflicting types for ‘lox_parser__get_expr__call’; have ‘struct lox_expr_call *(struct parser *, struct expr *, struct token *, struct lox_expr_node *)’
+  670 | struct lox_expr_call* lox_parser__get_expr__call(
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:336:14: note: previous declaration of ‘lox_parser__get_expr__call’ with type ‘struct expr *(struct parser *, struct expr *, struct token *, struct expr *)’
+  336 | struct expr* lox_parser__get_expr__call(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:690:22: error: conflicting types for ‘lox_parser__get_expr__var’; have ‘struct lox_expr_var *(struct parser *, struct token *, struct expr *)’
+  690 | struct lox_expr_var* lox_parser__get_expr__var(
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:343:14: note: previous declaration of ‘lox_parser__get_expr__var’ with type ‘struct expr *(struct parser *, struct token *, struct expr *)’
+  343 | struct expr* lox_parser__get_expr__var(
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:709:6: error: conflicting types for ‘lox_parser__delete_expr__literal’; have ‘void(struct parser *, struct lox_expr_literal *)’
+  709 | void lox_parser__delete_expr__literal(struct parser* self, struct lox_expr_literal* literal_expr) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:322:6: note: previous declaration of ‘lox_parser__delete_expr__literal’ with type ‘void(struct parser *, struct expr *)’
+  322 | void lox_parser__delete_expr__literal(struct parser* self, struct expr* literal_expr);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:736:25: error: conflicting types for ‘lox_parser__get_literal__object’; have ‘struct lox_literal_obj *(struct parser *, struct object_header,  struct memory_slice)’
+  736 | struct lox_literal_obj* lox_parser__get_literal__object(
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:417:17: note: previous declaration of ‘lox_parser__get_literal__object’ with type ‘struct literal *(struct parser *, struct object_header,  struct memory_slice)’
+  417 | struct literal* lox_parser__get_literal__object(
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:754:25: error: conflicting types for ‘lox_parser__get_literal__nil’; have ‘struct lox_literal_nil *(struct parser *)’
+  754 | struct lox_literal_nil* lox_parser__get_literal__nil(struct parser* self) {
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:422:17: note: previous declaration of ‘lox_parser__get_literal__nil’ with type ‘struct literal *(struct parser *)’
+  422 | struct literal* lox_parser__get_literal__nil(struct parser* self);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:759:26: error: conflicting types for ‘lox_parser__get_literal__boolean’; have ‘struct lox_literal_bool *(struct parser *, _Bool)’
+  759 | struct lox_literal_bool* lox_parser__get_literal__boolean(struct parser* self, bool value) {
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:423:17: note: previous declaration of ‘lox_parser__get_literal__boolean’ with type ‘struct literal *(struct parser *, _Bool)’
+  423 | struct literal* lox_parser__get_literal__boolean(struct parser* self, bool value);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:764:28: error: conflicting types for ‘lox_parser__get_literal__number’; have ‘struct lox_literal_number *(struct parser *, r64)’ {aka ‘struct lox_literal_number *(struct parser *, double)’}
+  764 | struct lox_literal_number* lox_parser__get_literal__number(
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:424:17: note: previous declaration of ‘lox_parser__get_literal__number’ with type ‘struct literal *(struct parser *, r64)’ {aka ‘struct literal *(struct parser *, double)’}
+  424 | struct literal* lox_parser__get_literal__number(struct parser* self, r64 value);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:780:28: error: conflicting types for ‘lox_parser__get_literal__string’; have ‘struct lox_literal_string *(struct parser *, char *, ...)’
+  780 | struct lox_literal_string* lox_parser__get_literal__string(
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1:
+modules/compiler/parser/lox_parser/lox_parser.h:425:17: note: previous declaration of ‘lox_parser__get_literal__string’ with type ‘struct literal *(struct parser *, char *, ...)’
+  425 | struct literal* lox_parser__get_literal__string(struct parser* self, char* format, ...);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_print’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:995:12: error: returning ‘struct lox_stmt_print *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+  995 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_expression’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1008:12: error: returning ‘struct lox_stmt_expr *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1008 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_var_decl’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1021:12: error: returning ‘struct lox_stmt_var_decl *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1021 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_node’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1038:12: error: returning ‘struct lox_stmt_node *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1038 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_block’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1054:12: error: returning ‘struct lox_stmt_block *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1054 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_fun_block’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1070:12: error: returning ‘struct lox_stmt_fun_block *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1070 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_if’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1090:12: error: returning ‘struct lox_stmt_if *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1090 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_while’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1108:12: error: returning ‘struct lox_stmt_while *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1108 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_break’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1114:17: error: returning ‘struct lox_stmt_break *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1114 |     return table->break_statement;
+      |            ~~~~~^~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_continue’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1120:17: error: returning ‘struct lox_stmt_continue *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1120 |     return table->continue_statement;
+      |            ~~~~~^~~~~~~~~~~~~~~~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__get_statement_fun’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:1154:12: error: returning ‘struct lox_stmt_fun *’ from a function with incompatible return type ‘struct stmt *’ [-Wincompatible-pointer-types]
+ 1154 |     return result;
+      |            ^~~~~~
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c: In function ‘lox_parser__copy_expression’:
+modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.c:335:1: error: control reaches end of non-void function [-Werror=return-type]
+  335 | }
+      | ^
+cc1: all warnings being treated as errors
+make: *** [makefile:17: modules/compiler/parser/lox_parser/platform_non_specific/lox_parser.o] Error 1
