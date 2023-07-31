@@ -152,7 +152,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*statements_table);
         ASSERT(statements_table_size >= memory_offset);
         statements_table_size -= memory_offset;
-        u64 statements_subtable_memory_size = statements_table_size / 11;
+        u64 statements_subtable_memory_size = statements_table_size / 12;
 
         statements_table->print_statements_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->print_statements_arr_fill = 0;
@@ -205,6 +205,11 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->fun_arr = (void*) ((char*) statements_table + memory_offset);
         statements_table->fun_arr_fill = 0;
         statements_table->fun_arr_size = statements_subtable_memory_size / sizeof(*statements_table->fun_arr);
+        memory_offset += statements_subtable_memory_size;
+
+        statements_table->return_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->return_arr_fill = 0;
+        statements_table->return_arr_size = statements_subtable_memory_size / sizeof(*statements_table->return_arr);
         memory_offset += statements_subtable_memory_size;
     }
 

@@ -93,7 +93,6 @@ struct lox_stmt_token_node {
 
 struct lox_stmt_return {
     struct stmt base;
-    struct token* name;
     struct expr* expr;
 };
 
@@ -150,6 +149,10 @@ struct lox_statements_table {
     u32 fun_arr_fill;
     u32 fun_arr_size;
 
+    struct lox_stmt_return* return_arr;
+    u32 return_arr_fill;
+    u32 return_arr_size;
+
     u64 table_memory_size;
 };
 
@@ -175,6 +178,8 @@ struct stmt* lox_parser__get_statement_fun(
     struct parser* self,
     struct token* name, struct lox_stmt_token_node* params, struct lox_stmt_block* body
 );
+
+struct stmt* lox_parser__get_statement_return(struct parser* self, struct expr* expr);
 
 // STATEMENTS TYPES, METHODS AND TABLE END
 

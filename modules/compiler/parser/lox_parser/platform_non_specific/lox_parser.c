@@ -1149,6 +1149,19 @@ struct stmt* lox_parser__get_statement_fun(
     return (struct stmt*) result;
 }
 
+struct stmt* lox_parser__get_statement_return(struct parser* self, struct expr* expr) {
+    struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->return_arr_fill == table->return_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_stmt_return* result = &table->return_arr[table->return_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_RETURN;
+    result->expr = expr;
+
+    return (struct stmt*) result;
+}
+
 const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type) {
     switch (literal_type) {
         case LOX_LITERAL_TYPE_OBJECT: return "object";

@@ -8,6 +8,7 @@ struct stmt* lox_parser__if_statement(struct parser* self);
 struct stmt* lox_parser__while_statement(struct parser* self);
 struct stmt* lox_parser__break_statement(struct parser* self);
 struct stmt* lox_parser__continue_statement(struct parser* self);
+struct stmt* lox_parser__return_statement(struct parser* self);
 struct stmt* lox_parser__print_statement(struct parser* self);
 struct stmt* lox_parser__block_statement(struct parser* self);
 struct expr* lox_parser__expression(struct parser* self);
@@ -161,6 +162,10 @@ struct stmt* lox_parser__statement(struct parser* self) {
         return lox_parser__continue_statement(self);
     }
 
+    if (lox_parser__advance_if(self, LOX_TOKEN_RETURN) != NULL) {
+        return lox_parser__return_statement(self);
+    }
+
     if (lox_parser__advance_if(self, LOX_TOKEN_LEFT_BRACE) != NULL) {
         struct stmt* block_statement = lox_parser__block_statement(self);
         if (block_statement == NULL) {
@@ -186,7 +191,7 @@ struct stmt* lox_parser__expr_statement(struct parser* self) {
         return NULL;
     }
 
-    return (struct stmt*) lox_parser__get_statement_expression(self, expression);
+    return lox_parser__get_statement_expression(self, expression);
 }
 
 struct stmt* lox_parser__for_statement(struct parser* self) {
@@ -316,17 +321,16 @@ struct stmt* lox_parser__if_statement(struct parser* self) {
         }
     }
 
-    return (struct stmt*) lox_parser__get_statement_if(self, condition, then_branch, else_branch);
+    return lox_parser__get_statement_if(self, condition, then_branch, else_branch);
 }
 
 struct stmt* lox_parser__while_statement(struct parser* self) {
-    struct token* left_param = lox_parser__advance_if(self, LOX_TOKEN_LEFT_PAREN);
-    if (left_param == NULL) {
-        parser__syntax_error(
-            self,
-            "Expect '(' after '%s' statement.",
-            lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_WHILE)
-        );
+    if (
+        lox_parser__advance_err(
+            self, LOX_TOKEN_LEFT_PAREN,
+            "Expect '(' after '%s' statement.", lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_WHILE)
+        ) == NULL
+    ) {
         return NULL;
     }
 
@@ -335,13 +339,12 @@ struct stmt* lox_parser__while_statement(struct parser* self) {
         return NULL;
     }
 
-    struct token* right_param = lox_parser__advance_if(self, LOX_TOKEN_RIGHT_PAREN);
-    if (right_param == NULL) {
-        parser__syntax_error(
-            self,
-            "Expect ')' after '%s' expression.",
-            lox_parser__expression_type_to_str(condition->type)
-        );
+    if (
+        lox_parser__advance_err(
+            self, LOX_TOKEN_RIGHT_PAREN,
+            "Expect ')' after '%s' expression.", lox_parser__expression_type_to_str(condition->type)
+        ) == NULL
+    ) {
         return NULL;
     }
 
@@ -350,31 +353,48 @@ struct stmt* lox_parser__while_statement(struct parser* self) {
         return NULL;
     }
 
-    return (struct stmt*) lox_parser__get_statement_while(self, condition, while_body);
+    return lox_parser__get_statement_while(self, condition, while_body);
 }
 
 struct stmt* lox_parser__break_statement(struct parser* self) {
-    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
-        parser__syntax_error(
-            self,
+    if (
+        lox_parser__advance_err(
+            self, LOX_TOKEN_SEMICOLON,
             "Expect ';' after '%s' statement.", lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_BREAK)
-        );
+        ) == NULL
+    ) {
         return NULL;
     }
 
-    return (struct stmt*) lox_parser__get_statement_break(self);
+    return lox_parser__get_statement_break(self);
 }
 
 struct stmt* lox_parser__continue_statement(struct parser* self) {
-    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
-        parser__syntax_error(
-            self,
+    if (
+        lox_parser__advance_err(
+            self, LOX_TOKEN_SEMICOLON,
             "Expect ';' after '%s' statement.", lox_parser__statement_type_to_str(LOX_PARSER_STATEMENT_TYPE_CONTINUE)
-        );
+        ) == NULL
+    ) {
         return NULL;
     }
 
-    return (struct stmt*) lox_parser__get_statement_continue(self);
+    return lox_parser__get_statement_continue(self);
+}
+
+struct stmt* lox_parser__return_statement(struct parser* self) {
+    struct expr* expr = NULL;
+    if (lox_parser__peek(self) != LOX_TOKEN_SEMICOLON) {
+        expr = lox_parser__expression(self);
+        if (expr == NULL) {
+            return NULL;
+        }
+    }
+
+    if (lox_parser__advance_err(self, LOX_TOKEN_SEMICOLON, "Expect ';' after return statement.") == NULL) {
+        return NULL;
+    }
+    return lox_parser__get_statement_return(self, expr);
 }
 
 struct stmt* lox_parser__print_statement(struct parser* self) {
@@ -383,11 +403,12 @@ struct stmt* lox_parser__print_statement(struct parser* self) {
         return NULL;
     }
 
-    if (lox_parser__advance_if(self, LOX_TOKEN_SEMICOLON) == NULL) {
-        parser__syntax_error(
-            self,
+    if (
+        lox_parser__advance_err(
+            self, LOX_TOKEN_SEMICOLON,
             "Expect ';' after '%s' operator.", lox_token__type_name(LOX_TOKEN_PRINT)
-        );
+        ) == NULL
+    ) {
         return NULL;
     }
 

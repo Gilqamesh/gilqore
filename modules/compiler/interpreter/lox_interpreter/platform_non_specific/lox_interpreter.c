@@ -19,11 +19,17 @@ static void lox_interpreter__bind_global_fn(
 enum statement_return_type {
     STATEMENT_RETURN_TYPE_CONTINUE,
     STATEMENT_RETURN_TYPE_BREAK,
+    STATEMENT_RETURN_TYPE_RETURN,
     STATEMENT_RETURN_TYPE_NORMAL,
     STATEMENT_RETURN_TYPE_ERROR
 };
 
-static enum statement_return_type lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement);
+struct stmt_return {
+    enum statement_return_type type;
+    void* context; // for return
+};
+
+static struct stmt_return lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement);
 
 static bool lox_parser__literal_is_truthy(struct literal* literal) {
     switch (literal->type) {
@@ -688,15 +694,23 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     }
     // execute body
     self->env = fn_env;
-    lox_interpreter__interpret_statement(self, (struct stmt*) fn_decl->body);
+    struct stmt_return stmt_return = lox_interpreter__interpret_statement(self, (struct stmt*) fn_decl->body);
     self->env = caller_env;
 
     // todo: get call result
-    return lox_parser__get_literal__nil(&self->parser);
+    if (stmt_return.context != NULL) {
+        ASSERT(stmt_return.type == STATEMENT_RETURN_TYPE_RETURN);
+        return stmt_return.context;
+    } else {
+        return lox_parser__get_literal__nil(&self->parser);
+    }
 }
 
-static enum statement_return_type lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement) {
-    enum statement_return_type result = STATEMENT_RETURN_TYPE_NORMAL;
+static struct stmt_return lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement) {
+    struct stmt_return result = {
+        .type = STATEMENT_RETURN_TYPE_NORMAL,
+        .context = NULL
+    };
 
     switch (statement->type) {
         case LOX_PARSER_STATEMENT_TYPE_PRINT: {
@@ -705,14 +719,14 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             if (literal_base != NULL) {
                 lox_parser__literal_base_print(literal_base);
             } else {
-                result = STATEMENT_RETURN_TYPE_ERROR;
+                result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
             // lox_interpreter__interpret_expr(self, print_statement->expr);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_EXPRESSION: {
             struct lox_stmt_expr* expression_statement = (struct lox_stmt_expr*) statement;
             if (lox_interpreter__interpret_expression(self, expression_statement->expr) == NULL) {
-                result = STATEMENT_RETURN_TYPE_ERROR;
+                result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_VAR_DECL: {
@@ -720,7 +734,7 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             struct lox_expr_var* var_expr = (struct lox_expr_var*) variable_statement->var_expr;
             struct lox_expr_var* env_var_expr = lox_interpreter__define_var(self, var_expr->name, var_expr->value);
             if (lox_interpreter__interpret_expression(self, (struct expr*) env_var_expr) == NULL) {
-                result = STATEMENT_RETURN_TYPE_ERROR;
+                result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_BLOCK: {
@@ -730,9 +744,12 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             // these are considered closures
             lox_interpreter__env_push(self);
             while (cur_node != NULL) {
-                enum statement_return_type return_type = lox_interpreter__interpret_statement(self, cur_node->statement);
-                if (return_type != STATEMENT_RETURN_TYPE_NORMAL) {
-                    result = return_type;
+                struct stmt_return stmt_return = lox_interpreter__interpret_statement(self, cur_node->statement);
+                if (stmt_return.type == STATEMENT_RETURN_TYPE_RETURN) {
+                    return stmt_return;
+                }
+                if (stmt_return.type != STATEMENT_RETURN_TYPE_NORMAL) {
+                    result = stmt_return;
                     break ;
                 }
                 if (cur_node->statement->type == LOX_PARSER_STATEMENT_TYPE_FUN_DECL) { 
@@ -752,7 +769,7 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             lox_interpreter__env_pop(self);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_NODE: {
-            result = STATEMENT_RETURN_TYPE_ERROR;
+            result.type = STATEMENT_RETURN_TYPE_ERROR;
             struct lox_stmt_node* node_statement = (struct lox_stmt_node*) statement;
             (void) node_statement;
             ASSERT(false);
@@ -769,29 +786,38 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
         case LOX_PARSER_STATEMENT_TYPE_WHILE: {
             struct lox_stmt_while* while_statement = (struct lox_stmt_while*) statement;
             while (lox_parser__literal_is_truthy(lox_interpreter__interpret_expression(self, while_statement->condition))) {
-                enum statement_return_type return_type = lox_interpreter__interpret_statement(self, while_statement->statement);
-                if (return_type != STATEMENT_RETURN_TYPE_NORMAL) {
-                    result = return_type;
+                struct stmt_return stmt_return = lox_interpreter__interpret_statement(self, while_statement->statement);
+                if (stmt_return.type == STATEMENT_RETURN_TYPE_RETURN) {
+                    return stmt_return;
+                }
+                if (stmt_return.type != STATEMENT_RETURN_TYPE_NORMAL) {
+                    result = stmt_return;
                     break ;
                 }
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_BREAK: {
-            result = STATEMENT_RETURN_TYPE_BREAK;
+            result.type = STATEMENT_RETURN_TYPE_BREAK;
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
-            result = STATEMENT_RETURN_TYPE_CONTINUE;
+            result.type = STATEMENT_RETURN_TYPE_CONTINUE;
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE: {
             // handled in LOX_PARSER_STATEMENT_TYPE_FUN_DECL
-            result = STATEMENT_RETURN_TYPE_ERROR;
+            result.type = STATEMENT_RETURN_TYPE_ERROR;
             ASSERT(false);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: {
             struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) statement;
             if (lox_interpreter__bind_fn_decl(self, fn_decl) == false) {
-                result = STATEMENT_RETURN_TYPE_ERROR;
+                result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_RETURN: {
+            struct lox_stmt_return* return_stmt = (struct lox_stmt_return*) statement;
+            struct literal* return_value = lox_interpreter__interpret_expression(self, return_stmt->expr);
+            result.type = STATEMENT_RETURN_TYPE_RETURN;
+            result.context = return_value;
         } break ;
         default: ASSERT(false);
     }
