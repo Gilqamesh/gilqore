@@ -1,0 +1,10 @@
+var a = 3;
+{
+    fun show_a() {
+        print a;
+    }
+
+    show_a();
+    var a = 0;
+    show_a();
+}

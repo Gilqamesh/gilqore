@@ -32,7 +32,8 @@ enum lox_parser_statement_type {
     LOX_PARSER_STATEMENT_TYPE_BREAK,
     LOX_PARSER_STATEMENT_TYPE_CONTINUE,
     LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE,
-    LOX_PARSER_STATEMENT_TYPE_FUN
+    LOX_PARSER_STATEMENT_TYPE_FUN_DECL,
+    LOX_PARSER_STATEMENT_TYPE_RETURN
 };
 
 const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type type);
@@ -90,11 +91,22 @@ struct lox_stmt_token_node {
     struct lox_stmt_token_node* next;
 };
 
+struct lox_stmt_return {
+    struct stmt base;
+    struct token* name;
+    struct expr* expr;
+};
+
+struct lox_env;
 struct lox_stmt_fun {
     struct stmt base;
     struct token* name;
     struct lox_stmt_token_node* params;
     struct lox_stmt_block* body;
+
+    // for closures, a fun decl captures the env it's declared in and "closes" that env off
+    // from the rest of the scope
+    struct lox_env* env;
 };
 
 struct lox_statements_table {

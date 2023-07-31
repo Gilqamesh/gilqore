@@ -26,7 +26,8 @@ statement       -> expr_stmt
                  | while_stmt
                  | break_stmt
                  | continue_stmt
-                 | block ;
+                 | block
+                 | return_stmt ;
 function        -> IDENTIFIER "(" parameters? ")" block ;
 expr_stmt       -> expression ";" ;
 for_stmt        -> "for" "(" ( var_decl | expr_stmt | ";" )
@@ -39,6 +40,7 @@ while_stmt      -> "while" "(" expression ")" statement ;
 break_stmt      -> "break" ";" ;
 continue_stmt   -> "continue" ";" ;
 block           -> "{" declaration* "}" ;
+return_stmt     -> "return" expression? ";" ;
 parameters      -> IDENTIFIER ( "," IDENTIFIER)* ;
 expression      -> comma ;
 comma           -> assignment ( "," expression)* ;

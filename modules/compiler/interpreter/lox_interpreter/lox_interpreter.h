@@ -37,6 +37,8 @@ struct lox_interpreter_env_table {
 
 struct lox_interpreter_env_table* lox_interpreter__get_env_table(struct interpreter* self);
 
+void lox_interpreter__env_push(struct interpreter* self);
+void lox_interpreter__env_pop(struct interpreter* self);
 struct lox_env* lox_interpreter__env_pool_get(struct interpreter* self);
 void lox_interpreter__env_pool_put(struct interpreter* self, struct lox_env* env);
 struct lox_env* lox_interpreter__global_env(struct interpreter* self);

@@ -326,7 +326,10 @@ struct expr* lox_parser__copy_expression(
                 (struct lox_expr_node*) lox_parser__copy_expression(self, (struct expr*) expr_call->parameters)
             );
         } break ;
-        default: ASSERT(false);
+        default: {
+            ASSERT(false);
+            return NULL;
+        }
     }
 }
 
@@ -1138,7 +1141,7 @@ struct stmt* lox_parser__get_statement_fun(
     }
 
     struct lox_stmt_fun* result = &table->fun_arr[table->fun_arr_fill++];
-    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN;
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_DECL;
     result->name = name;
     result->params = params;
     result->body = body;

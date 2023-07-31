@@ -668,8 +668,7 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) memory_slice__memory(&fn_obj->data);
 
     struct lox_env* caller_env = self->env;
-    struct lox_env* fn_env = lox_interpreter__env_pool_get(self);
-    fn_env->parent = lox_interpreter__global_env(self);
+    struct lox_env* fn_env = fn_decl->env;
 
     struct lox_expr_node* argument = call_site->parameters;
     // define params
@@ -728,19 +727,29 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             struct lox_stmt_block* block_statement = (struct lox_stmt_block*) statement;
             struct lox_stmt_node* cur_node = block_statement->statement_list;
 
-            struct lox_env* block_env = lox_interpreter__env_pool_get(self);
-            block_env->parent = self->env;
-            self->env = block_env;
+            // these are considered closures
+            lox_interpreter__env_push(self);
             while (cur_node != NULL) {
                 enum statement_return_type return_type = lox_interpreter__interpret_statement(self, cur_node->statement);
                 if (return_type != STATEMENT_RETURN_TYPE_NORMAL) {
                     result = return_type;
                     break ;
                 }
+                if (cur_node->statement->type == LOX_PARSER_STATEMENT_TYPE_FUN_DECL) { 
+                    struct lox_stmt_fun* fun_decl = (struct lox_stmt_fun*) cur_node->statement;
+                    fun_decl->env = self->env;
+                    lox_interpreter__env_push(self);
+                }
                 cur_node = cur_node->next;
             }
-            self->env = block_env->parent;
-            lox_interpreter__env_pool_put(self, block_env);
+            cur_node = block_statement->statement_list;
+            while (cur_node != NULL) {
+                if (cur_node->statement->type == LOX_PARSER_STATEMENT_TYPE_FUN_DECL) {
+                    lox_interpreter__env_pop(self);
+                }
+                cur_node = cur_node->next;
+            }
+            lox_interpreter__env_pop(self);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_NODE: {
             result = STATEMENT_RETURN_TYPE_ERROR;
@@ -774,11 +783,11 @@ static enum statement_return_type lox_interpreter__interpret_statement(struct in
             result = STATEMENT_RETURN_TYPE_CONTINUE;
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE: {
-            // handled in LOX_PARSER_STATEMENT_TYPE_FUN
+            // handled in LOX_PARSER_STATEMENT_TYPE_FUN_DECL
             result = STATEMENT_RETURN_TYPE_ERROR;
             ASSERT(false);
         } break ;
-        case LOX_PARSER_STATEMENT_TYPE_FUN: {
+        case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: {
             struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) statement;
             if (lox_interpreter__bind_fn_decl(self, fn_decl) == false) {
                 result = STATEMENT_RETURN_TYPE_ERROR;
@@ -935,6 +944,20 @@ static void lox_interpreter__clear_env(struct interpreter* self, struct lox_env*
     env->next = NULL;
     env->parent = NULL;
     env->var_arr_size = (table->env_memory_size - sizeof(*env)) / sizeof(*env->var_arr);
+}
+
+void lox_interpreter__env_push(struct interpreter* self) {
+    struct lox_env* env = lox_interpreter__env_pool_get(self);
+
+    env->parent = self->env;
+    self->env = env;
+}
+
+void lox_interpreter__env_pop(struct interpreter* self) {
+    struct lox_env* env = self->env;
+    ASSERT(env);
+    self->env = env->parent;
+    lox_interpreter__env_pool_put(self, env);
 }
 
 struct lox_env* lox_interpreter__env_pool_get(struct interpreter* self) {
