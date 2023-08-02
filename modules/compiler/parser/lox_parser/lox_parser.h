@@ -96,16 +96,11 @@ struct lox_stmt_return {
     struct expr* expr;
 };
 
-struct lox_env;
 struct lox_stmt_fun {
     struct stmt base;
     struct token* name;
     struct lox_stmt_token_node* params;
     struct lox_stmt_block* body;
-
-    // for closures, a fun decl captures the env it's declared in and "closes" that env off
-    // from the rest of the scope
-    struct lox_env* env;
 };
 
 struct lox_statements_table {
@@ -362,6 +357,7 @@ const char* lox_parser__literal_type_to_str(enum lox_literal_type literal_type);
 
 typedef struct literal* (*lox_call_fn)(struct interpreter*, struct lox_expr_call*);
 struct object_header {
+    struct lox_env* env;
     lox_call_fn call;
     u32 arity;
 };

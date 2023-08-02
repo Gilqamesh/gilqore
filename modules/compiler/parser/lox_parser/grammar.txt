@@ -28,7 +28,8 @@ statement       -> expr_stmt
                  | continue_stmt
                  | block
                  | return_stmt ;
-function        -> IDENTIFIER "(" parameters? ")" block ;
+anonym_fn       -> "(" parameters? ")" block ;
+function        -> IDENTIFIER anonym_fn ;
 expr_stmt       -> expression ";" ;
 for_stmt        -> "for" "(" ( var_decl | expr_stmt | ";" )
                    expression? ";"

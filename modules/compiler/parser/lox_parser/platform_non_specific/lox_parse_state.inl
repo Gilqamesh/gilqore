@@ -37,10 +37,16 @@ struct stmt* lox_parser__declaration(struct parser* self) {
 }
 
 struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) {
-    struct token* fn_name = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect '%s' name.", kind);
+    struct token* fn_name = lox_parser__advance_if(self, LOX_TOKEN_IDENTIFIER);
     if (fn_name == NULL) {
-        return NULL;
+        // todo: allow anonymous functions, we don't need a token though, because it binds to an expression during runtime
+        fn_name = tokenizer__get(&parser->tokenizer);
+        fn_name->lexeme = ;
+        fn_name->lexeme_len = ;
+        fn_name->type = LOX_TOKEN_FUN;
+        fn_name->line = ;
     }
+    ASSERT(fn_name);
 
     if (lox_parser__advance_err(self, LOX_TOKEN_LEFT_PAREN, "Expect '(' after '%s' name.", kind) == NULL) {
         return NULL;

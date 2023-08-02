@@ -11,7 +11,7 @@ static struct literal* lox_interpreter__interpret_expression(struct interpreter*
 
 static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun* fun_decl);
 
-static void lox_interpreter__bind_global_fn(
+static bool lox_interpreter__bind_global_fn(
     struct interpreter* self,
     const char* name, u32 arity, lox_call_fn call, struct memory_slice context
 );
@@ -674,7 +674,9 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) memory_slice__memory(&fn_obj->data);
 
     struct lox_env* caller_env = self->env;
-    struct lox_env* fn_env = fn_decl->env;
+    struct lox_env* fn_decl_env = fn_obj->header.env;
+    struct lox_env* fn_env = lox_interpreter__env_pool_get(self);
+    fn_env->parent = fn_decl_env;
 
     struct lox_expr_node* argument = call_site->parameters;
     // define params
@@ -687,6 +689,10 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
         self->env = fn_env;
 
         struct lox_expr_var* arg_var = lox_interpreter__define_var(self, fn_parameter->name, NULL);
+        if (arg_var == NULL) {
+            return NULL;
+        }
+
         arg_var->evaluated_literal = evaluated_arg;
 
         fn_parameter = fn_parameter->next;
@@ -696,6 +702,8 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     self->env = fn_env;
     struct stmt_return stmt_return = lox_interpreter__interpret_statement(self, (struct stmt*) fn_decl->body);
     self->env = caller_env;
+
+    lox_interpreter__env_pool_put(self, fn_env);
 
     // todo: get call result
     if (stmt_return.context != NULL) {
@@ -733,6 +741,12 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
             struct lox_stmt_var_decl* variable_statement = (struct lox_stmt_var_decl*) statement;
             struct lox_expr_var* var_expr = (struct lox_expr_var*) variable_statement->var_expr;
             struct lox_expr_var* env_var_expr = lox_interpreter__define_var(self, var_expr->name, var_expr->value);
+            if (env_var_expr == NULL) {
+                result.type = STATEMENT_RETURN_TYPE_ERROR;
+                result.context = NULL;
+                return result;
+            }
+
             if (lox_interpreter__interpret_expression(self, (struct expr*) env_var_expr) == NULL) {
                 result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
@@ -752,9 +766,7 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
                     result = stmt_return;
                     break ;
                 }
-                if (cur_node->statement->type == LOX_PARSER_STATEMENT_TYPE_FUN_DECL) { 
-                    struct lox_stmt_fun* fun_decl = (struct lox_stmt_fun*) cur_node->statement;
-                    fun_decl->env = self->env;
+                if (cur_node->statement->type == LOX_PARSER_STATEMENT_TYPE_FUN_DECL) {
                     lox_interpreter__env_push(self);
                 }
                 cur_node = cur_node->next;
@@ -845,12 +857,6 @@ struct token* lox_interpreter__get_token(struct interpreter* self, const char* t
 static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun* fun_decl) {
     struct parser* parser = &self->parser;
 
-    // check if fn declared already
-    if (lox_interpreter__get_var(self, fun_decl->name) != NULL) {
-        interpreter__runtime_error(self, "Function '%.*s' is already defined.", fun_decl->name->lexeme_len, fun_decl->name->lexeme);
-        return false;
-    }
-
     // check arity
     u32 fn_arity = 0;
     struct lox_stmt_token_node* params = fun_decl->params;
@@ -863,17 +869,24 @@ static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_s
 
     // bind fn
     struct object_header header = {
+        .env = self->env,
         .arity = fn_arity,
         .call = &lox_interpreter__interpret_generic_call
     };
-    struct lox_literal_obj* obj_literal = (struct lox_literal_obj*) lox_parser__get_literal__object(parser, header, memory_slice__create(fun_decl, sizeof(fun_decl)));
+    struct lox_literal_obj* obj_literal = (struct lox_literal_obj*) lox_parser__get_literal__object(
+        parser, header, memory_slice__create(fun_decl, sizeof(fun_decl))
+    );
     struct lox_expr_var* fn_decl = lox_interpreter__define_var(self, fun_decl->name, NULL);
+    if (fn_decl == NULL) {
+        return false;
+    }
+
     fn_decl->evaluated_literal = (struct literal*) obj_literal;
 
     return true;
 }
 
-static void lox_interpreter__bind_global_fn(
+static bool lox_interpreter__bind_global_fn(
     struct interpreter* self,
     const char* name, u32 arity, lox_call_fn call, struct memory_slice context
 ) {
@@ -889,7 +902,13 @@ static void lox_interpreter__bind_global_fn(
     };
     struct lox_literal_obj* obj_literal = (struct lox_literal_obj*) lox_parser__get_literal__object(parser, header, context);
     struct lox_expr_var* fn_decl = lox_interpreter__define_var(self, fn_name, NULL);
+    if (fn_decl == NULL) {
+        return false;
+    }
+
     fn_decl->evaluated_literal = (struct literal*) obj_literal;
+
+    return true;
 }
 
 #include "lox_interpreter_native.inl"
@@ -941,9 +960,9 @@ bool lox_interpreter__initialize(struct interpreter* self, struct memory_slice i
 
 static bool lox_interpreter__init_native_callables(struct interpreter* self) {
     struct memory_slice empty_context = memory_slice__create(NULL, 0);
-    lox_interpreter__bind_global_fn(self, "clock", 0, &lox_interpreter__native_clock, empty_context);
-    lox_interpreter__bind_global_fn(self, "usleep", 1, &lox_interpreter__native_usleep, empty_context);
-    lox_interpreter__bind_global_fn(self, "sleep", 1, &lox_interpreter__native_sleep, empty_context);
+    ASSERT(lox_interpreter__bind_global_fn(self, "clock", 0, &lox_interpreter__native_clock, empty_context));
+    ASSERT(lox_interpreter__bind_global_fn(self, "usleep", 1, &lox_interpreter__native_usleep, empty_context));
+    ASSERT(lox_interpreter__bind_global_fn(self, "sleep", 1, &lox_interpreter__native_sleep, empty_context));
 
     return true;
 }
@@ -1103,19 +1122,8 @@ struct lox_expr_var* lox_interpreter__define_var(struct interpreter* self, struc
                 var_name->lexeme_len
             ) == 0
         ) {
-            // delete previous declaration
-            // lox_parser__delete_from_expressions_table(self, env, (struct expr*) cur_var);
-            // note: allow redeclaring/redefining variables
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
-            // and in other situations the equal binary operator should evaluate and replace the value properly
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_arr_fill;
-
-            return cur_var;
+            interpreter__runtime_error(self, "Already defined symbol in scope: '%.*s'.", var_name->lexeme_len, var_name->lexeme);
+            return NULL;
         }
     }
 
@@ -1138,19 +1146,8 @@ struct lox_expr_var* lox_interpreter__define_var(struct interpreter* self, struc
                 var_name->lexeme_len
             ) == 0
         ) {
-            // delete previous declaration
-            // lox_parser__delete_from_expressions_table(self, env, (struct expr*) cur_var);
-            // note: allow redeclaring/redefining variables
-            cur_var->base.type = LOX_PARSER_EXPRESSION_TYPE_VAR;
-            cur_var->name = var_name;
-            cur_var->value = var_value;
-            // note: do not replace cur_var->evaluated_literal, otherwise variables can't be evaluated if their expression contains themselves
-            // and in other situations the equal binary operator should evaluate and replace the value properly
-            cur_var->evaluated_literal = NULL;
-
-            ++env->var_arr_fill;
-
-            return cur_var;
+            interpreter__runtime_error(self, "Already defined symbol in scope: '%.*s'.", var_name->lexeme_len, var_name->lexeme);
+            return NULL;
         }
     }
 
