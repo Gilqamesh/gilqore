@@ -20,13 +20,13 @@ enum statement_return_type {
     STATEMENT_RETURN_TYPE_CONTINUE,
     STATEMENT_RETURN_TYPE_BREAK,
     STATEMENT_RETURN_TYPE_RETURN,
-    STATEMENT_RETURN_TYPE_NORMAL,
+    STATEMENT_RETURN_TYPE_LITERAL,
     STATEMENT_RETURN_TYPE_ERROR
 };
 
 struct stmt_return {
     enum statement_return_type type;
-    void* context; // for return
+    struct literal* literal; // for return
 };
 
 static struct stmt_return lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement);
@@ -645,6 +645,14 @@ static struct literal* lox_interpreter__interpret_expression(struct interpreter*
             return last_evaluated_literal;
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_CALL: return lox_interpreter__interpret_call(self, expr);
+        case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: {
+            struct lox_expr_lambda* lambda_expr = (struct lox_expr_lambda*) expr;
+            struct stmt_return stmt_result = lox_interpreter__interpret_statement(self, lambda_expr->stmt);
+            if (stmt_result.type == STATEMENT_RETURN_TYPE_LITERAL) {
+                return stmt_result.literal;
+            }
+            return NULL;
+        }
         default: {
             ASSERT(false);
             return NULL;
@@ -706,9 +714,9 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     lox_interpreter__env_pool_put(self, fn_env);
 
     // todo: get call result
-    if (stmt_return.context != NULL) {
+    if (stmt_return.literal != NULL) {
         ASSERT(stmt_return.type == STATEMENT_RETURN_TYPE_RETURN);
-        return stmt_return.context;
+        return stmt_return.literal;
     } else {
         return lox_parser__get_literal__nil(&self->parser);
     }
@@ -716,8 +724,8 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
 
 static struct stmt_return lox_interpreter__interpret_statement(struct interpreter* self, struct stmt* statement) {
     struct stmt_return result = {
-        .type = STATEMENT_RETURN_TYPE_NORMAL,
-        .context = NULL
+        .type = STATEMENT_RETURN_TYPE_LITERAL,
+        .literal = NULL
     };
 
     switch (statement->type) {
@@ -743,7 +751,7 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
             struct lox_expr_var* env_var_expr = lox_interpreter__define_var(self, var_expr->name, var_expr->value);
             if (env_var_expr == NULL) {
                 result.type = STATEMENT_RETURN_TYPE_ERROR;
-                result.context = NULL;
+                result.literal = NULL;
                 return result;
             }
 
@@ -762,7 +770,7 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
                 if (stmt_return.type == STATEMENT_RETURN_TYPE_RETURN) {
                     return stmt_return;
                 }
-                if (stmt_return.type != STATEMENT_RETURN_TYPE_NORMAL) {
+                if (stmt_return.type != STATEMENT_RETURN_TYPE_LITERAL) {
                     result = stmt_return;
                     break ;
                 }
@@ -802,7 +810,7 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
                 if (stmt_return.type == STATEMENT_RETURN_TYPE_RETURN) {
                     return stmt_return;
                 }
-                if (stmt_return.type != STATEMENT_RETURN_TYPE_NORMAL) {
+                if (stmt_return.type != STATEMENT_RETURN_TYPE_LITERAL) {
                     result = stmt_return;
                     break ;
                 }
@@ -829,7 +837,7 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
             struct lox_stmt_return* return_stmt = (struct lox_stmt_return*) statement;
             struct literal* return_value = lox_interpreter__interpret_expression(self, return_stmt->expr);
             result.type = STATEMENT_RETURN_TYPE_RETURN;
-            result.context = return_value;
+            result.literal = return_value;
         } break ;
         default: ASSERT(false);
     }

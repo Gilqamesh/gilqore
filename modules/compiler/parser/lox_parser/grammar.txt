@@ -1,18 +1,3 @@
-Formal grammar:
-expression     -> literal
-                | unary
-                | binary
-                | grouping ;
-
-literal        -> NUMBER | STRING | "true" | "false" | "nil" ;
-grouping       -> "(" expression ")" ;
-unary          -> ( "-" | "!" ) expression ;
-binary         -> expression operator expression ;
-operator       -> "==" | "!=" | "<" | "<=" | ">" | ">="
-                | "+"  | "-"  | "*" | "/" ;
-
-Precedence and Associativity:
-
 program         -> declaration* EOF;
 declaration     -> fun_decl
                  | var_decl
@@ -28,8 +13,8 @@ statement       -> expr_stmt
                  | continue_stmt
                  | block
                  | return_stmt ;
-anonym_fn       -> "(" parameters? ")" block ;
-function        -> IDENTIFIER anonym_fn ;
+function        -> IDENTIFIER lambda_expr ;
+lambda_expr     -> "(" parameters? ")" block ;
 expr_stmt       -> expression ";" ;
 for_stmt        -> "for" "(" ( var_decl | expr_stmt | ";" )
                    expression? ";"
@@ -55,6 +40,7 @@ comparison      -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term            -> factor ( ( "-" | "+" ) factor )* ;
 factor          -> unary ( ( "/" | "*" | "%" ) unary )* ;
 unary           -> ( "!" | "-" ) unary
+                 | "fun" lambda_expr
                  | call ;
 call            -> primary ( "(" arguments? ")" )* ;
 arguments       -> expression ( "," expression )* ;

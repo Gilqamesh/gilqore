@@ -63,7 +63,7 @@ bool lox_parser_clear_tables(struct parser* self) {
         u64 memory_offset = sizeof(*expression_table);
         ASSERT(expression_table_size >= memory_offset);
         expression_table_size -= memory_offset;
-        u64 expression_subtable_memory_size = expression_table_size / 8;
+        u64 expression_subtable_memory_size = expression_table_size / 9;
 
         expression_table->op_unary_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->op_unary_arr_fill = 0;
@@ -103,6 +103,11 @@ bool lox_parser_clear_tables(struct parser* self) {
         expression_table->var_arr = (void*) ((char*) expression_table + memory_offset);
         expression_table->var_arr_fill = 0;
         expression_table->var_arr_size = expression_subtable_memory_size / sizeof(*expression_table->var_arr);
+        memory_offset += expression_subtable_memory_size;
+
+        expression_table->lambda_arr = (void*) ((char*) expression_table + memory_offset);
+        expression_table->lambda_arr_fill = 0;
+        expression_table->lambda_arr_size = expression_subtable_memory_size / sizeof(*expression_table->lambda_arr);
         memory_offset += expression_subtable_memory_size;
     }
 

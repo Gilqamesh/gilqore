@@ -744,6 +744,20 @@ void lox_parser__delete_expr__literal(struct parser* self, struct expr* expr) {
     error_code__exit(324342);
 }
 
+struct expr* lox_parser__get_expr__lambda(struct parser* self, struct stmt* stmt) {
+    struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
+    if (table->lambda_arr_fill == table->lambda_arr_size) {
+        error_code__exit(21437);
+    }
+
+    struct lox_expr_lambda* result = &table->lambda_arr[table->lambda_arr_fill++];
+    result->base.type = LOX_PARSER_EXPRESSION_TYPE_LAMBDA;
+    result->stmt = stmt;
+    result->evaluated_literal = NULL;
+
+    return (struct expr*) result;
+}
+
 struct literal* lox_parser__get_literal__object(
     struct parser* self,
     struct object_header header,

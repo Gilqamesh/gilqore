@@ -22,6 +22,7 @@ struct expr* lox_parser__comparison(struct parser* self);
 struct expr* lox_parser__term(struct parser* self);
 struct expr* lox_parser__factor(struct parser* self);
 struct expr* lox_parser__unary(struct parser* self);
+struct expr* lox_parser__lambda(struct parser* self);
 struct expr* lox_parser__call(struct parser* self);
 struct expr* lox_parser__primary(struct parser* self);
 struct expr* lox_parser__error(struct parser* self);
@@ -36,18 +37,7 @@ struct stmt* lox_parser__declaration(struct parser* self) {
     return lox_parser__statement(self);
 }
 
-struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) {
-    struct token* fn_name = lox_parser__advance_if(self, LOX_TOKEN_IDENTIFIER);
-    if (fn_name == NULL) {
-        // todo: allow anonymous functions, we don't need a token though, because it binds to an expression during runtime
-        fn_name = tokenizer__get(&parser->tokenizer);
-        fn_name->lexeme = ;
-        fn_name->lexeme_len = ;
-        fn_name->type = LOX_TOKEN_FUN;
-        fn_name->line = ;
-    }
-    ASSERT(fn_name);
-
+static struct stmt* lox_parser__fun_declaration_internal(struct parser* self, struct token* name, const char* kind) {
     if (lox_parser__advance_err(self, LOX_TOKEN_LEFT_PAREN, "Expect '(' after '%s' name.", kind) == NULL) {
         return NULL;
     }
@@ -67,7 +57,7 @@ struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) 
             if (parameter->type != LOX_TOKEN_IDENTIFIER) {
                 parser__syntax_error(
                     self, "Expect parameter name in function declaration '%.*s', but got '%s'.",
-                    fn_name->lexeme_len, fn_name->lexeme, lox_token__type_name(parameter->type)
+                    name->lexeme_len, name->lexeme, lox_token__type_name(parameter->type)
                 );
                 // todo: clean up params
                 return NULL;
@@ -80,7 +70,7 @@ struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) 
     if (lox_parser__advance_err(
         self, LOX_TOKEN_RIGHT_PAREN,
         "Expect ')' after parameters in function declaration '%.*s'.",
-        fn_name->lexeme_len, fn_name->lexeme
+        name->lexeme_len, name->lexeme
     ) == NULL) {
         // todo: clean up params
         return NULL;
@@ -89,7 +79,7 @@ struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) 
     if (lox_parser__advance_err(
         self, LOX_TOKEN_LEFT_BRACE,
         "Expect '{' after function declaration '%.*s'.",
-        fn_name->lexeme_len, fn_name->lexeme
+        name->lexeme_len, name->lexeme
     ) == NULL) {
         // todo: clean up params
         return NULL;
@@ -101,7 +91,16 @@ struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) 
         return NULL;
     }
 
-    return lox_parser__get_statement_fun(self, fn_name, params, (struct lox_stmt_block*) fun_block_statement);
+    return lox_parser__get_statement_fun(self, name, params, (struct lox_stmt_block*) fun_block_statement);
+}
+
+struct stmt* lox_parser__fun_declaration(struct parser* self, const char* kind) {
+    struct token* fn_name = lox_parser__advance_err(self, LOX_TOKEN_IDENTIFIER, "Expect '%s' name.", kind);
+    if (fn_name == NULL) {
+        return NULL;
+    }
+
+    return lox_parser__fun_declaration_internal(self, fn_name, kind);
 }
 
 struct stmt* lox_parser__var_declaration(struct parser* self) {
@@ -680,6 +679,10 @@ struct expr* lox_parser__unary(struct parser* self) {
         return NULL;
     }
 
+    if (lox_parser__advance_if(self, LOX_TOKEN_FUN)) {
+        return lox_parser__lambda(self);
+    }
+
     if (
         lox_parser__peek(self) == LOX_TOKEN_EXCLAM ||
         lox_parser__peek(self) == LOX_TOKEN_MINUS
@@ -690,10 +693,27 @@ struct expr* lox_parser__unary(struct parser* self) {
         if (expr == NULL) {
             return NULL;
         }
-        return (struct expr*) lox_parser__get_expr__op_unary(self, op, expr);
+        return lox_parser__get_expr__op_unary(self, op, expr);
     }
 
     return lox_parser__call(self);
+}
+
+struct expr* lox_parser__lambda(struct parser* self) {
+    struct token* lambda_token = tokenizer__get(self->tokenizer);
+    static u32 lambda_unique_id = 0;
+    struct literal* literal = lox_parser__get_literal__string(self, "lambda_%u", lambda_unique_id++);
+    struct lox_literal_string* literal_str = (struct lox_literal_string*) literal;
+    lambda_token->lexeme = literal_str->data;
+    lambda_token->lexeme_len = libc__strlen(literal_str->data);
+    lambda_token->type = LOX_TOKEN_FUN;
+    struct token* prev_token = lox_parser__get_previous(self);
+    ASSERT(prev_token != NULL);
+    lambda_token->line = prev_token->line;
+
+    struct stmt* fun_stmt = lox_parser__fun_declaration_internal(self, lambda_token, "function");
+
+    return lox_parser__get_expr__lambda(self, fun_stmt); 
 }
 
 static struct expr* lox_parser__finish_call(struct parser* self, struct expr* callee) {

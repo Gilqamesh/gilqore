@@ -188,7 +188,8 @@ enum lox_parser_expression_type {
     LOX_PARSER_EXPRESSION_TYPE_VAR,
     LOX_PARSER_EXPRESSION_TYPE_LOGICAL,
     LOX_PARSER_EXPRESSION_TYPE_NODE,
-    LOX_PARSER_EXPRESSION_TYPE_CALL
+    LOX_PARSER_EXPRESSION_TYPE_CALL,
+    LOX_PARSER_EXPRESSION_TYPE_LAMBDA
 };
 
 const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type expr_type);
@@ -259,6 +260,13 @@ packed_struct(1) lox_expr_call {
     struct lox_expr_node* parameters;
 };
 
+struct lox_expr_lambda {
+    struct expr base;
+    struct stmt* stmt;
+
+    struct literal* evaluated_literal;
+};
+
 struct lox_expressions_table {
     struct lox_expr_unary* op_unary_arr;
     u32 op_unary_arr_fill;
@@ -291,6 +299,10 @@ struct lox_expressions_table {
     struct lox_expr_var* var_arr;
     u32 var_arr_fill;
     u32 var_arr_size;
+
+    struct lox_expr_lambda* lambda_arr;
+    u32 lambda_arr_fill;
+    u32 lambda_arr_size;
 
     u64 table_memory_size;
 };
@@ -340,6 +352,8 @@ struct expr* lox_parser__get_expr__var(
     struct parser* self,
     struct token* name, struct expr* value
 );
+
+struct expr* lox_parser__get_expr__lambda(struct parser* self, struct stmt* stmt);
 
 // EXPRESSION TYPES, METHODS AND TABLE END
 
