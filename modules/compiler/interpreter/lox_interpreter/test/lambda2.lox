@@ -1,0 +1,13 @@
+fun makeMultipliers(n) {
+  return fun (x) {
+    return fun (y) {
+      return x * y * n;
+    };
+  };
+}
+
+var multiplier2 = makeMultipliers(2);
+var multiplier3 = makeMultipliers(3);
+
+print multiplier2(10)(5);
+print multiplier3(10)(5);

@@ -467,17 +467,53 @@ struct expr* lox_parser__comma(struct parser* self) {
 
     struct lox_expr_node* result_node = lox_parser__get_expr__node(self, assignment_expr);
     struct lox_expr_node** presult_node = (struct lox_expr_node**) &result_node->next;
-    while (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
-        struct token* op = lox_parser__advance(self);
-        ASSERT(op != NULL);
-        struct expr* expression = lox_parser__expression(self);
-        if (expression == NULL) {
-            return NULL;
+    if (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
+        while (lox_parser__peek(self) == LOX_TOKEN_COMMA) {
+            struct token* op = lox_parser__advance(self);
+            ASSERT(op != NULL);
+            struct expr* expression = lox_parser__expression(self);
+            if (expression == NULL) {
+                return NULL;
+            }
+            if (expression->type == LOX_PARSER_EXPRESSION_TYPE_NODE) {
+                *presult_node = (struct lox_expr_node*) expression;
+            } else {
+                *presult_node = lox_parser__get_expr__node(self, expression);
+            }
+            presult_node = (struct lox_expr_node**) &(*presult_node)->next;
         }
-        *presult_node = lox_parser__get_expr__node(self, expression);
-        presult_node = (struct lox_expr_node**) &(*presult_node)->next;
     }
+/*
+    when parsing: 1000, fun (a) { return a / 2; }, fun (a) { return 3 * a + 1; }
+    node:
+        expr: literal
+        next: node
+            expr: node
+                expr: lambda
+                next: node
+                    expr: node
+                        expr: lambda
+                        next: -
+                    next: -
+            next: -
+    
+    but we assume:
+    node:
+        expr: literal
+        next: node
+            expr: lambda
+            next: node
+                expr: lambda
+                next: -
 
+    node:
+        expr: literal
+        next: node
+            expr: lambda
+            next: node
+                expr: lambda
+                next: -
+*/
     return (struct expr*) result_node;
 }
 
@@ -722,7 +758,7 @@ struct expr* lox_parser__lambda(struct parser* self) {
 
     struct stmt* fun_stmt = lox_parser__fun_declaration_internal(self, lambda_token, "function");
 
-    return lox_parser__get_expr__lambda(self, fun_stmt); 
+    return lox_parser__get_expr__lambda(self, (struct lox_stmt_fun_decl*) fun_stmt); 
 }
 
 static struct expr* lox_parser__finish_call(struct parser* self, struct expr* callee) {
@@ -738,11 +774,10 @@ static struct expr* lox_parser__finish_call(struct parser* self, struct expr* ca
         if (expr->type == LOX_PARSER_EXPRESSION_TYPE_NODE) {
             struct lox_expr_node* node = (struct lox_expr_node*) expr;
             args = node;
-            node = node->next;
-            while (node) {
+            do {
                 ++number_of_arguments;
                 node = node->next;
-            }
+            } while (node != NULL);
         }
         if (number_of_arguments >= 255) {
             parser__warn_error(self, "Cannot have more than %u arguments.", LOX_MAX_NUMBER_OF_FN_ARGUMENTS);

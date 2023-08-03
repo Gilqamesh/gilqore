@@ -100,7 +100,7 @@ struct lox_stmt_return {
     struct expr* expr;
 };
 
-struct lox_stmt_fun {
+struct lox_stmt_fun_decl {
     struct stmt base;
     struct token* name;
     struct lox_stmt_token_node* params;
@@ -148,7 +148,7 @@ struct lox_statements_table {
     u32 fun_params_arr_fill;
     u32 fun_params_arr_size;
 
-    struct lox_stmt_fun* fun_arr;
+    struct lox_stmt_fun_decl* fun_arr;
     u32 fun_arr_fill;
     u32 fun_arr_size;
 
@@ -270,7 +270,7 @@ packed_struct(1) lox_expr_call {
 
 struct lox_expr_lambda {
     struct expr base;
-    struct stmt* stmt;
+    struct lox_stmt_fun_decl* fun_decl;
 
     struct literal* evaluated_literal;
 };
@@ -361,7 +361,7 @@ struct expr* lox_parser__get_expr__var(
     struct token* name, struct expr* value
 );
 
-struct expr* lox_parser__get_expr__lambda(struct parser* self, struct stmt* stmt);
+struct expr* lox_parser__get_expr__lambda(struct parser* self, struct lox_stmt_fun_decl* fun_decl);
 
 // EXPRESSION TYPES, METHODS AND TABLE END
 

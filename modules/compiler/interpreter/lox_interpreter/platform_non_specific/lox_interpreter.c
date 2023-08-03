@@ -9,7 +9,7 @@
 
 static struct literal* lox_interpreter__interpret_expression(struct interpreter* self, struct expr* expr);
 
-static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun* fun_decl);
+static struct lox_expr_var* lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun_decl* fun_decl);
 
 static bool lox_interpreter__bind_global_fn(
     struct interpreter* self,
@@ -647,11 +647,12 @@ static struct literal* lox_interpreter__interpret_expression(struct interpreter*
         case LOX_PARSER_EXPRESSION_TYPE_CALL: return lox_interpreter__interpret_call(self, expr);
         case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: {
             struct lox_expr_lambda* lambda_expr = (struct lox_expr_lambda*) expr;
-            struct stmt_return stmt_result = lox_interpreter__interpret_statement(self, lambda_expr->stmt);
-            if (stmt_result.type == STATEMENT_RETURN_TYPE_LITERAL) {
-                return stmt_result.literal;
+            // bind lambda to lambda_expr
+            struct lox_expr_var* fn_decl = lox_interpreter__bind_fn_decl(self, lambda_expr->fun_decl);
+            if (fn_decl == NULL) {
+                return NULL;
             }
-            return NULL;
+            return fn_decl->evaluated_literal;
         }
         default: {
             ASSERT(false);
@@ -668,7 +669,7 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
         struct token* closing_paren;
         struct lox_expr_node* parameters;
     };
-    struct lox_stmt_fun {
+    struct lox_stmt_fun_decl {
         struct stmt base;
         struct token* name;
         struct lox_stmt_token_node* params;
@@ -679,7 +680,7 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
     struct literal* callee_literal = lox_interpreter__interpret_expression(self, call_site->callee);
     ASSERT(callee_literal->type == LOX_LITERAL_TYPE_OBJECT);
     struct lox_literal_obj* fn_obj = (struct lox_literal_obj*) callee_literal;
-    struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) memory_slice__memory(&fn_obj->data);
+    struct lox_stmt_fun_decl* fn_decl = (struct lox_stmt_fun_decl*) memory_slice__memory(&fn_obj->data);
 
     struct lox_env* caller_env = self->env;
     struct lox_env* fn_decl_env = fn_obj->header.env;
@@ -828,8 +829,8 @@ static struct stmt_return lox_interpreter__interpret_statement(struct interprete
             ASSERT(false);
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: {
-            struct lox_stmt_fun* fn_decl = (struct lox_stmt_fun*) statement;
-            if (lox_interpreter__bind_fn_decl(self, fn_decl) == false) {
+            struct lox_stmt_fun_decl* fn_decl = (struct lox_stmt_fun_decl*) statement;
+            if (lox_interpreter__bind_fn_decl(self, fn_decl) == NULL) {
                 result.type = STATEMENT_RETURN_TYPE_ERROR;
             }
         } break ;
@@ -862,7 +863,7 @@ struct token* lox_interpreter__get_token(struct interpreter* self, const char* t
     return result;
 }
 
-static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun* fun_decl) {
+static struct lox_expr_var* lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_stmt_fun_decl* fun_decl) {
     struct parser* parser = &self->parser;
 
     // check arity
@@ -885,13 +886,11 @@ static bool lox_interpreter__bind_fn_decl(struct interpreter* self, struct lox_s
         parser, header, memory_slice__create(fun_decl, sizeof(fun_decl))
     );
     struct lox_expr_var* fn_decl = lox_interpreter__define_var(self, fun_decl->name, NULL);
-    if (fn_decl == NULL) {
-        return false;
+    if (fn_decl != NULL) {
+        fn_decl->evaluated_literal = (struct literal*) obj_literal;
     }
 
-    fn_decl->evaluated_literal = (struct literal*) obj_literal;
-
-    return true;
+    return fn_decl;
 }
 
 static bool lox_interpreter__bind_global_fn(

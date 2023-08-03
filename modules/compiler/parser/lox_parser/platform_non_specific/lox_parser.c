@@ -36,6 +36,7 @@ const char* lox_parser__expression_type_to_str(enum lox_parser_expression_type e
         case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: return "logical";
         case LOX_PARSER_EXPRESSION_TYPE_NODE: return "node";
         case LOX_PARSER_EXPRESSION_TYPE_CALL: return "call";
+        case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: return "lambda";
         default: {
             ASSERT(false);
             return NULL;
@@ -162,6 +163,42 @@ char* lox_parser__expression_to_str(struct expr* expr, char* buffer, u32 *buffer
         case LOX_PARSER_EXPRESSION_TYPE_CALL: {
             struct lox_expr_call* expr_call = (struct lox_expr_call*) expr;
             buffer = lox_parser__expression_to_str(expr_call->callee, buffer, buffer_size);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: {
+            struct lox_expr_lambda* expr_lambda = (struct lox_expr_lambda*) expr;
+            struct lox_stmt_fun_decl* fun_decl = expr_lambda->fun_decl;
+
+            u32 bytes_written = libc__snprintf(buffer, *buffer_size, "%.*s ", fun_decl->name->lexeme_len, fun_decl->name->lexeme);
+            if (bytes_written >= *buffer_size) {
+                *buffer_size = 0;
+                return buffer + *buffer_size;
+            }
+            *buffer_size -= bytes_written;
+            buffer += bytes_written;
+
+            struct lox_stmt_token_node* param = fun_decl->params;
+            while (param != NULL) {
+                u32 bytes_written = libc__snprintf(buffer, *buffer_size, "(%.*s)", param->name->lexeme_len, param->name->lexeme);
+                if (bytes_written >= *buffer_size) {
+                    *buffer_size = 0;
+                    return buffer + *buffer_size;
+                }
+                *buffer_size -= bytes_written;
+                buffer += bytes_written;
+
+                struct lox_stmt_token_node* next_node = param->next;
+                if (next_node != NULL) {
+                    u32 bytes_written = libc__snprintf(buffer, *buffer_size, ", ");
+                    if (bytes_written >= *buffer_size) {
+                        *buffer_size = 0;
+                        return buffer + *buffer_size;
+                    }
+                    *buffer_size -= bytes_written;
+                    buffer += bytes_written;
+                }
+
+                param = next_node;
+            }
         } break ;
         default: {
             ASSERT(false);
@@ -747,7 +784,7 @@ void lox_parser__delete_expr__literal(struct parser* self, struct expr* expr) {
     error_code__exit(324342);
 }
 
-struct expr* lox_parser__get_expr__lambda(struct parser* self, struct stmt* stmt) {
+struct expr* lox_parser__get_expr__lambda(struct parser* self, struct lox_stmt_fun_decl* fun_decl) {
     struct lox_expressions_table* table = lox_parser__get_expressions_table(self);
     if (table->lambda_arr_fill == table->lambda_arr_size) {
         error_code__exit(21437);
@@ -755,7 +792,7 @@ struct expr* lox_parser__get_expr__lambda(struct parser* self, struct stmt* stmt
 
     struct lox_expr_lambda* result = &table->lambda_arr[table->lambda_arr_fill++];
     result->base.type = LOX_PARSER_EXPRESSION_TYPE_LAMBDA;
-    result->stmt = stmt;
+    result->fun_decl = fun_decl;
     result->evaluated_literal = NULL;
 
     return (struct expr*) result;
@@ -1171,7 +1208,7 @@ struct stmt* lox_parser__get_statement_fun(
         error_code__exit(21437);
     }
 
-    struct lox_stmt_fun* result = &table->fun_arr[table->fun_arr_fill++];
+    struct lox_stmt_fun_decl* result = &table->fun_arr[table->fun_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_FUN_DECL;
     result->name = name;
     result->params = params;
@@ -1234,22 +1271,38 @@ bool lox_parser__ast_is_valid(struct parser_ast ast) {
     return ast.statement != NULL;
 }
 
+#define AST_PRINT_DEPTH_SPACE_SIZE 2
+
 void lox_parser__ast_print_token(struct token* token, u32 depth) {
-    libc__printf("%*c%s\n", depth * 3, ' ', token == NULL ? "(null token)" : lox_token__type_name(token->type));
+    if (token == NULL) {
+        libc__printf("%*c(null token)\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ');
+        return ;
+    }
+    libc__printf(
+        "%*ctoken: %.*s, type: %s, line: %u\n",
+        depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ', token->lexeme_len, token->lexeme, lox_token__type_name(token->type), token->line
+    );
 }
 
 void lox_parser__ast_print_literal(struct literal* literal, u32 depth) {
-    libc__printf("%*c%s\n", depth * 3, ' ', literal == NULL ? "(null literal)" : lox_parser__literal_type_to_str(literal->type));
+    if (literal == NULL) {
+        libc__printf("%*c(null token)\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ');
+        return ;
+    }
+    libc__printf(
+        "%*c%s literal\n",
+        depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ', lox_parser__literal_type_to_str(literal->type)
+    );
 }
 
 void lox_parser__ast_print_stmt(struct stmt* stmt, u32 depth);
 
 void lox_parser__ast_print_expr(struct expr* expr, u32 depth) {
     if (expr == NULL) {
-        libc__printf("%*c(null expr)\n", depth * 3, ' ');
+        libc__printf("%*c(null expr)\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ');
         return ;
     }
-    libc__printf("%*c%s\n", depth * 3, ' ', lox_parser__expression_type_to_str(expr->type));
+    libc__printf("%*c%s expr\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ', lox_parser__expression_type_to_str(expr->type));
 
     switch (expr->type)
     {
@@ -1303,7 +1356,7 @@ void lox_parser__ast_print_expr(struct expr* expr, u32 depth) {
         } break ;
         case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: {
             struct lox_expr_lambda* lambda_expr = (struct lox_expr_lambda*) expr;
-            lox_parser__ast_print_stmt(lambda_expr->stmt, depth + 1);
+            lox_parser__ast_print_stmt((struct stmt*) lambda_expr->fun_decl, depth + 1);
         } break ;
         default: ASSERT(false);
     }
@@ -1311,10 +1364,10 @@ void lox_parser__ast_print_expr(struct expr* expr, u32 depth) {
 
 void lox_parser__ast_print_stmt(struct stmt* stmt, u32 depth) {
     if (stmt == NULL) {
-        libc__printf("%*c(null stmt)\n", depth * 3, ' ');
+        libc__printf("%*c(null stmt)\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ');
         return ;
     }
-    libc__printf("%*c%s\n", depth * 3, ' ', lox_parser__statement_type_to_str(stmt->type));
+    libc__printf("%*c%s stmt\n", depth * AST_PRINT_DEPTH_SPACE_SIZE, ' ', lox_parser__statement_type_to_str(stmt->type));
 
     switch (stmt->type) {
         case LOX_PARSER_STATEMENT_TYPE_PRINT: {
@@ -1371,7 +1424,7 @@ void lox_parser__ast_print_stmt(struct stmt* stmt, u32 depth) {
             }
         } break ;
         case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: {
-            struct lox_stmt_fun* fun_decl_stmt = (struct lox_stmt_fun*) stmt;
+            struct lox_stmt_fun_decl* fun_decl_stmt = (struct lox_stmt_fun_decl*) stmt;
             lox_parser__ast_print_token(fun_decl_stmt->name, depth + 1);
             struct lox_stmt_token_node* fun_params_node_stmt = fun_decl_stmt->params;
             while (fun_params_node_stmt != NULL) {

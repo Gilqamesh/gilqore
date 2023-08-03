@@ -1,9 +1,16 @@
-fun thrice(fn) {
-  for (var i = 1; i <= 3; i = i + 1) {
-    fn(i);
-  }
+fun collatz(a, fn_if_even, fn_if_odd) {
+    while (a != 1) {
+        print a;
+        if (a % 2 == 0) {
+            a = fn_if_even(a);
+        } else {
+            a = fn_if_odd(a);
+        }
+    }
 }
 
-thrice(fun (a) {
-  print a;
-});
+collatz(
+    1000,
+    fun (a) { return a / 2; },
+    fun (a) { return 3 * a + 1; }
+);
