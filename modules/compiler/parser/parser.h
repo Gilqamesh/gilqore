@@ -49,7 +49,14 @@ typedef bool (*parser__clear)(struct parser* self);
 // @returns next ast parsed or NULL if nothing more to parse
 // @note implement this function for every parser
 typedef struct parser_ast (*parser__parse_ast)(struct parser* self);
+
+// @returns true if the ast is valid
+// @note implement this function for every parser
 typedef bool (*parser__ast_is_valid)(struct parser_ast ast);
+
+// @brief prints the ast
+// @note implement this function for every parser
+typedef void (*parser__ast_print)(struct parser_ast ast);
 
 // @returns true if parsed all tokens
 // @note implement this function for every parser

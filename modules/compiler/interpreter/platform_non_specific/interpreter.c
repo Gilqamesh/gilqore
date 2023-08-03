@@ -25,6 +25,7 @@ bool interpreter__create(
             self->parser_clear = NULL;
             self->parser_parse_ast = NULL;
             self->parser_ast_is_valid = NULL;
+            self->parser_ast_print = NULL;
             self->parser_is_finished_parsing = NULL;
             self->parser_convert_expr_to_string = NULL;
 
@@ -101,6 +102,7 @@ static bool run_source(
     do {
         struct parser_ast ast = self->parser_parse_ast(parser);
         if (self->parser_ast_is_valid(ast)) {
+            self->parser_ast_print(ast);
             self->interpreter_interpret_ast(self, ast);
         }
     } while (self->parser_is_finished_parsing(parser) == false);

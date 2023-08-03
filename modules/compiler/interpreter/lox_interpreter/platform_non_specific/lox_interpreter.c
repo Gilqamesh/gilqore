@@ -928,6 +928,7 @@ bool lox_interpreter__initialize(struct interpreter* self, struct memory_slice i
     self->parser_clear = &lox_parser__clear;
     self->parser_parse_ast = &lox_parser__parse_ast;
     self->parser_ast_is_valid = &lox_parser__ast_is_valid;
+    self->parser_ast_print = &lox_parser__ast_print;
     self->parser_is_finished_parsing = &lox_parser__is_finished_parsing;
     self->parser_convert_expr_to_string = &lox_parser__convert_expr_to_string;
 

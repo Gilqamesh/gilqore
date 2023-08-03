@@ -194,12 +194,14 @@ bool lox_parser_clear_tables(struct parser* self) {
         statements_table->while_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->while_statements_arr);
         memory_offset += statements_subtable_memory_size;
 
-        statements_table->break_statement = (void*) ((char*) statements_table + memory_offset);
-        statements_table->break_statement->base.type = LOX_PARSER_STATEMENT_TYPE_BREAK;
+        statements_table->break_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->break_statements_arr_fill = 0;
+        statements_table->break_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->break_statements_arr);
         memory_offset += statements_subtable_memory_size;
 
-        statements_table->continue_statement = (void*) ((char*) statements_table + memory_offset);
-        statements_table->continue_statement->base.type = LOX_PARSER_STATEMENT_TYPE_CONTINUE;
+        statements_table->continue_statements_arr = (void*) ((char*) statements_table + memory_offset);
+        statements_table->continue_statements_arr_fill = 0;
+        statements_table->continue_statements_arr_size = statements_subtable_memory_size / sizeof(*statements_table->continue_statements_arr);
         memory_offset += statements_subtable_memory_size;
 
         statements_table->fun_params_arr = (void*) ((char*) statements_table + memory_offset);

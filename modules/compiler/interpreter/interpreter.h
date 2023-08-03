@@ -38,6 +38,7 @@ struct interpreter {
     parser__clear parser_clear;
     parser__parse_ast parser_parse_ast;
     parser__ast_is_valid parser_ast_is_valid;
+    parser__ast_print parser_ast_print;
     parser__is_finished_parsing parser_is_finished_parsing;
     parser__convert_expr_to_string parser_convert_expr_to_string;
 

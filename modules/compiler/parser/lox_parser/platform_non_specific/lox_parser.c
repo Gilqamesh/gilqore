@@ -183,6 +183,9 @@ const char* lox_parser__statement_type_to_str(enum lox_parser_statement_type typ
         case LOX_PARSER_STATEMENT_TYPE_WHILE: return "while";
         case LOX_PARSER_STATEMENT_TYPE_BREAK: return "break";
         case LOX_PARSER_STATEMENT_TYPE_CONTINUE: return "continue";
+        case LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE: return "fun params node";
+        case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: return "fun decl";
+        case LOX_PARSER_STATEMENT_TYPE_RETURN: return "return";
         default: {
             ASSERT(false);
             return NULL;
@@ -1117,16 +1120,30 @@ struct stmt* lox_parser__get_statement_while(
     return (struct stmt*) result;
 }
 
-struct stmt* lox_parser__get_statement_break(struct parser* self) {
+struct stmt* lox_parser__get_statement_break(struct parser* self, struct token* name) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->break_statements_arr_fill == table->break_statements_arr_size) {
+        error_code__exit(21437);
+    }
 
-    return (struct stmt*) table->break_statement;
+    struct lox_stmt_break* result = &table->break_statements_arr[table->break_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_BREAK;
+    result->name = name;
+
+    return (struct stmt*) result;
 }
 
-struct stmt* lox_parser__get_statement_continue(struct parser* self) {
+struct stmt* lox_parser__get_statement_continue(struct parser* self, struct token* name) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
+    if (table->continue_statements_arr_fill == table->continue_statements_arr_size) {
+        error_code__exit(21437);
+    }
 
-    return (struct stmt*) table->continue_statement;
+    struct lox_stmt_continue* result = &table->continue_statements_arr[table->continue_statements_arr_fill++];
+    result->base.type = LOX_PARSER_STATEMENT_TYPE_CONTINUE;
+    result->name = name;
+
+    return (struct stmt*) result;
 }
 
 struct lox_stmt_token_node* lox_parser__get_statement_fun_params_node(struct parser* self, struct token* name) {
@@ -1163,7 +1180,7 @@ struct stmt* lox_parser__get_statement_fun(
     return (struct stmt*) result;
 }
 
-struct stmt* lox_parser__get_statement_return(struct parser* self, struct expr* expr) {
+struct stmt* lox_parser__get_statement_return(struct parser* self, struct token* name, struct expr* expr) {
     struct lox_statements_table* table = lox_parser__get_statements_table(self);
     if (table->return_arr_fill == table->return_arr_size) {
         error_code__exit(21437);
@@ -1171,6 +1188,7 @@ struct stmt* lox_parser__get_statement_return(struct parser* self, struct expr* 
 
     struct lox_stmt_return* result = &table->return_arr[table->return_arr_fill++];
     result->base.type = LOX_PARSER_STATEMENT_TYPE_RETURN;
+    result->name = name;
     result->expr = expr;
 
     return (struct stmt*) result;
@@ -1214,4 +1232,167 @@ struct parser_ast lox_parser__parse_ast(struct parser* self) {
 
 bool lox_parser__ast_is_valid(struct parser_ast ast) {
     return ast.statement != NULL;
+}
+
+void lox_parser__ast_print_token(struct token* token, u32 depth) {
+    libc__printf("%*c%s\n", depth * 3, ' ', token == NULL ? "(null token)" : lox_token__type_name(token->type));
+}
+
+void lox_parser__ast_print_literal(struct literal* literal, u32 depth) {
+    libc__printf("%*c%s\n", depth * 3, ' ', literal == NULL ? "(null literal)" : lox_parser__literal_type_to_str(literal->type));
+}
+
+void lox_parser__ast_print_stmt(struct stmt* stmt, u32 depth);
+
+void lox_parser__ast_print_expr(struct expr* expr, u32 depth) {
+    if (expr == NULL) {
+        libc__printf("%*c(null expr)\n", depth * 3, ' ');
+        return ;
+    }
+    libc__printf("%*c%s\n", depth * 3, ' ', lox_parser__expression_type_to_str(expr->type));
+
+    switch (expr->type)
+    {
+        case LOX_PARSER_EXPRESSION_TYPE_OP_UNARY: {
+            struct lox_expr_unary* unary_expr = (struct lox_expr_unary*) expr;
+            lox_parser__ast_print_expr(unary_expr->expr, depth + 1);
+            lox_parser__ast_print_token(unary_expr->op, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_OP_BINARY: {
+            struct lox_expr_binary* binary_expr = (struct lox_expr_binary*) expr;
+            lox_parser__ast_print_expr(binary_expr->left, depth + 1);
+            lox_parser__ast_print_token(binary_expr->op, depth + 1);
+            lox_parser__ast_print_expr(binary_expr->right, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_GROUPING: {
+            struct lox_expr_group* grouping_expr = (struct lox_expr_group*) expr;
+            lox_parser__ast_print_expr(grouping_expr->expr, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_LITERAL: {
+            struct lox_expr_literal* literal_expr = (struct lox_expr_literal*) expr;
+            lox_parser__ast_print_token(literal_expr->value, depth + 1);
+            lox_parser__ast_print_literal(literal_expr->literal, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_VAR: {
+            struct lox_expr_var* var_expr = (struct lox_expr_var*) expr;
+            lox_parser__ast_print_token(var_expr->name, depth + 1);
+            lox_parser__ast_print_expr(var_expr->value, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_LOGICAL: {
+            struct lox_expr_logical* logical_expr = (struct lox_expr_logical*) expr;
+            lox_parser__ast_print_expr(logical_expr->left, depth + 1);
+            lox_parser__ast_print_token(logical_expr->op, depth + 1);
+            lox_parser__ast_print_expr(logical_expr->right, depth + 1);
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_NODE: {
+            struct lox_expr_node* node_expr = (struct lox_expr_node*) expr;
+            while (node_expr != NULL) {
+                lox_parser__ast_print_expr(node_expr->expression, depth + 1);
+                node_expr = node_expr->next;
+            }
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_CALL: {
+            struct lox_expr_call* call_expr = (struct lox_expr_call*) expr;
+            lox_parser__ast_print_token(call_expr->closing_paren, depth + 1);
+            lox_parser__ast_print_expr(call_expr->callee, depth + 1);
+            struct lox_expr_node* node_expr = call_expr->parameters;
+            while (node_expr != NULL) {
+                lox_parser__ast_print_expr(node_expr->expression, depth + 1);
+                node_expr = node_expr->next;
+            }
+        } break ;
+        case LOX_PARSER_EXPRESSION_TYPE_LAMBDA: {
+            struct lox_expr_lambda* lambda_expr = (struct lox_expr_lambda*) expr;
+            lox_parser__ast_print_stmt(lambda_expr->stmt, depth + 1);
+        } break ;
+        default: ASSERT(false);
+    }
+}
+
+void lox_parser__ast_print_stmt(struct stmt* stmt, u32 depth) {
+    if (stmt == NULL) {
+        libc__printf("%*c(null stmt)\n", depth * 3, ' ');
+        return ;
+    }
+    libc__printf("%*c%s\n", depth * 3, ' ', lox_parser__statement_type_to_str(stmt->type));
+
+    switch (stmt->type) {
+        case LOX_PARSER_STATEMENT_TYPE_PRINT: {
+            struct lox_stmt_print* print_stmt = (struct lox_stmt_print*) stmt;
+            lox_parser__ast_print_expr(print_stmt->expr, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_EXPRESSION: {
+            struct lox_stmt_expr* expr_stmt = (struct lox_stmt_expr*) stmt;
+            lox_parser__ast_print_expr(expr_stmt->expr, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_VAR_DECL: {
+            struct lox_stmt_var_decl* var_decl_stmt = (struct lox_stmt_var_decl*) stmt;
+            lox_parser__ast_print_expr(var_decl_stmt->var_expr, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_NODE: {
+            struct lox_stmt_node* node_stmt = (struct lox_stmt_node*) stmt;
+            while (node_stmt != NULL) {
+                lox_parser__ast_print_stmt(node_stmt->statement, depth + 1);
+                node_stmt = node_stmt->next;
+            }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_BLOCK: {
+            struct lox_stmt_block* block_stmt = (struct lox_stmt_block*) stmt;
+            struct lox_stmt_node* node_stmt = block_stmt->statement_list;
+            while (node_stmt != NULL) {
+                lox_parser__ast_print_stmt(node_stmt->statement, depth + 1);
+                node_stmt = node_stmt->next;
+            }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_IF: {
+            struct lox_stmt_if* if_stmt = (struct lox_stmt_if*) stmt;
+            lox_parser__ast_print_expr(if_stmt->condition, depth + 1);
+            lox_parser__ast_print_stmt(if_stmt->then_branch, depth + 1);
+            lox_parser__ast_print_stmt(if_stmt->else_branch, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_WHILE: {
+            struct lox_stmt_while* while_stmt = (struct lox_stmt_while*) stmt;
+            lox_parser__ast_print_expr(while_stmt->condition, depth + 1);
+            lox_parser__ast_print_stmt(while_stmt->statement, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_BREAK: {
+            struct lox_stmt_break* break_stmt = (struct lox_stmt_break*) stmt;
+            lox_parser__ast_print_token(break_stmt->name, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_CONTINUE: {
+            struct lox_stmt_continue* continue_stmt = (struct lox_stmt_continue*) stmt;
+            lox_parser__ast_print_token(continue_stmt->name, depth + 1);
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_FUN_PARAMS_NODE: {
+            struct lox_stmt_token_node* fun_params_node_stmt = (struct lox_stmt_token_node*) stmt;
+            while (fun_params_node_stmt != NULL) {
+                lox_parser__ast_print_token(fun_params_node_stmt->name, depth + 1);
+                fun_params_node_stmt = fun_params_node_stmt->next;
+            }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_FUN_DECL: {
+            struct lox_stmt_fun* fun_decl_stmt = (struct lox_stmt_fun*) stmt;
+            lox_parser__ast_print_token(fun_decl_stmt->name, depth + 1);
+            struct lox_stmt_token_node* fun_params_node_stmt = fun_decl_stmt->params;
+            while (fun_params_node_stmt != NULL) {
+                lox_parser__ast_print_token(fun_params_node_stmt->name, depth + 1);
+                fun_params_node_stmt = fun_params_node_stmt->next;
+            }
+            struct lox_stmt_node* node_stmt = fun_decl_stmt->body->statement_list;
+            while (node_stmt != NULL) {
+                lox_parser__ast_print_stmt(node_stmt->statement, depth + 1);
+                node_stmt = node_stmt->next;
+            }
+        } break ;
+        case LOX_PARSER_STATEMENT_TYPE_RETURN: {
+            struct lox_stmt_return* return_stmt = (struct lox_stmt_return*) stmt;
+            lox_parser__ast_print_token(return_stmt->name, depth + 1);
+            lox_parser__ast_print_expr(return_stmt->expr, depth + 1);
+        } break ;
+        default: ASSERT(false);
+    }
+}
+
+void lox_parser__ast_print(struct parser_ast ast) {
+    lox_parser__ast_print_stmt(ast.statement, 0);
 }

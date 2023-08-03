@@ -14,6 +14,7 @@ PUBLIC_API bool lox_parser__clear(struct parser* self);
 
 PUBLIC_API struct parser_ast lox_parser__parse_ast(struct parser* self);
 PUBLIC_API bool lox_parser__ast_is_valid(struct parser_ast ast);
+PUBLIC_API void lox_parser__ast_print(struct parser_ast ast);
 
 PUBLIC_API bool lox_parser__is_finished_parsing(struct parser* self);
 
@@ -79,10 +80,12 @@ struct lox_stmt_while {
 
 struct lox_stmt_break {
     struct stmt base;
+    struct token* name;
 };
 
 struct lox_stmt_continue {
     struct stmt base;
+    struct token* name;
 };
 
 struct lox_stmt_token_node {
@@ -93,6 +96,7 @@ struct lox_stmt_token_node {
 
 struct lox_stmt_return {
     struct stmt base;
+    struct token* name;
     struct expr* expr;
 };
 
@@ -132,9 +136,13 @@ struct lox_statements_table {
     u32 while_statements_arr_fill;
     u32 while_statements_arr_size;
 
-    struct lox_stmt_break* break_statement;
+    struct lox_stmt_break* break_statements_arr;
+    u32 break_statements_arr_fill;
+    u32 break_statements_arr_size;
     
-    struct lox_stmt_continue* continue_statement;
+    struct lox_stmt_continue* continue_statements_arr;
+    u32 continue_statements_arr_fill;
+    u32 continue_statements_arr_size;
 
     struct lox_stmt_token_node* fun_params_arr;
     u32 fun_params_arr_fill;
@@ -166,15 +174,15 @@ struct stmt* lox_parser__get_statement_while(
     struct parser* self,
     struct expr* condition, struct stmt* statement
 );
-struct stmt* lox_parser__get_statement_break(struct parser* self);
-struct stmt* lox_parser__get_statement_continue(struct parser* self);
+struct stmt* lox_parser__get_statement_break(struct parser* self, struct token* name);
+struct stmt* lox_parser__get_statement_continue(struct parser* self, struct token* name);
 struct lox_stmt_token_node* lox_parser__get_statement_fun_params_node(struct parser* self, struct token* name);
 struct stmt* lox_parser__get_statement_fun(
     struct parser* self,
     struct token* name, struct lox_stmt_token_node* params, struct lox_stmt_block* body
 );
 
-struct stmt* lox_parser__get_statement_return(struct parser* self, struct expr* expr);
+struct stmt* lox_parser__get_statement_return(struct parser* self, struct token* name, struct expr* expr);
 
 // STATEMENTS TYPES, METHODS AND TABLE END
 
