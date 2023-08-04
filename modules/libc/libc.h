@@ -15,6 +15,7 @@
 
 PUBLIC_API void* libc__malloc(u64 size_bytes);
 PUBLIC_API void* libc__calloc(u64 size_bytes);
+PUBLIC_API void* libc__realloc(void* data, u64 new_size_bytes);
 PUBLIC_API void  libc__free(void* data);
 # if defined(GIL_DEBUG)
 PUBLIC_API u32   libc__unfreed_byte_count(void);

@@ -266,6 +266,8 @@ packed_struct(1) lox_expr_call {
     struct expr* callee;
     struct token* closing_paren;
     struct lox_expr_node* parameters;
+
+    struct literal* evaluated_literal;
 };
 
 struct lox_expr_lambda {

@@ -571,6 +571,9 @@ static struct literal* lox_interpreter__interpret_logical(struct interpreter* se
 
 static struct literal* lox_interpreter__interpret_call(struct interpreter* self, struct expr* expr) {
     struct lox_expr_call* call_expr = (struct lox_expr_call*) expr;
+    if (call_expr != NULL) {
+        return call_expr->evaluated_literal;
+    }
 
     char buffer[512];
     u32 buffer_size = ARRAY_SIZE(buffer);
@@ -621,6 +624,9 @@ static struct literal* lox_interpreter__interpret_call(struct interpreter* self,
     }
 
     return callee_obj->header.call(self, call_expr);
+    // call_expr->evaluated_literal = callee_obj->header.call(self, call_expr);
+
+    // return call_expr->evaluated_literal;
 }
 
 static struct literal* lox_interpreter__interpret_expression(struct interpreter* self, struct expr* expr) {
@@ -676,7 +682,6 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
         struct lox_stmt_block* body;
     };
     */
-    ASSERT(call_site->callee->type == LOX_PARSER_EXPRESSION_TYPE_VAR);
     struct literal* callee_literal = lox_interpreter__interpret_expression(self, call_site->callee);
     ASSERT(callee_literal->type == LOX_LITERAL_TYPE_OBJECT);
     struct lox_literal_obj* fn_obj = (struct lox_literal_obj*) callee_literal;

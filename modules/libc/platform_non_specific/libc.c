@@ -101,6 +101,22 @@ void* libc__calloc(u64 size_bytes) {
     return result;
 }
 
+void* libc__realloc(void* data, u64 new_size_bytes) {
+    if (data != NULL) {
+        debug__bookkeep_memory_remove(data);
+    }
+
+    void* result = realloc(data, new_size_bytes);
+    if (result == NULL) {
+        // error_code__exit(LIBC_ERROR_CODE_REALLOC_FAILED);
+        error_code__exit(234);
+    }
+
+    debug__bookkeep_memory_add(result, new_size_bytes);
+
+    return result;
+}
+
 void libc__free(void* data) {
     if (data != NULL) {
         debug__bookkeep_memory_remove(data);
@@ -109,9 +125,11 @@ void libc__free(void* data) {
     }
 }
 
+#if defined(GIL_DEBUG)
 u32 libc__unfreed_byte_count(void) {
     return (u32) g_unfreed_memory_bytes_count;
 }
+#endif
 
 void* libc__memcpy(void* dest, const void* src, u64 size) {
     return memcpy(dest, src, size);

@@ -731,6 +731,7 @@ struct expr* lox_parser__get_expr__call(
     result->callee = callee;
     result->closing_paren = closing_paren;
     result->parameters = parameters;
+    result->evaluated_literal = NULL;
 
     return (struct expr*) result;
 }

@@ -1,9 +1,13 @@
 #include <stdio.h>
 
+typedef struct asd {
+    int a;
+    int b;
+    char c;
+} asd_t;
+
 int main() {
-    int a = 3;
-    a = 2, 9;
-    printf("%d\n", a);
+    printf("%zu\n", sizeof(asd_t));
 
     return 0;
 }
