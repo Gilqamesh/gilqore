@@ -641,7 +641,7 @@ static struct literal* lox_interpreter__interpret_expression(struct interpreter*
             // evaluate all and return right-most node (comma)
             struct lox_expr_node* expr_node = (struct lox_expr_node*) expr;
             struct literal* last_evaluated_literal = NULL;
-            while (expr_node) {
+            while (expr_node != NULL) {
                 last_evaluated_literal = lox_interpreter__interpret_expression(self, expr_node->expression);
                 if (last_evaluated_literal == NULL) {
                     return NULL;
@@ -682,6 +682,7 @@ static struct literal* lox_interpreter__interpret_generic_call(struct interprete
         struct lox_stmt_block* body;
     };
     */
+    // ASSERT(call_site->callee->type == LOX_PARSER_EXPRESSION_TYPE_VAR);
     struct literal* callee_literal = lox_interpreter__interpret_expression(self, call_site->callee);
     ASSERT(callee_literal->type == LOX_LITERAL_TYPE_OBJECT);
     struct lox_literal_obj* fn_obj = (struct lox_literal_obj*) callee_literal;
