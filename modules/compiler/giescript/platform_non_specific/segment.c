@@ -9,8 +9,6 @@ struct seg_tag {
     seg_t free_seg;
 };
 
-seg_t     seg__data_to_seg(void* data); // converts data to seg
-void*     seg__seg_to_data(seg_t seg); // payload data
 size_t    seg__data_size(seg_t seg); // size of payload data
 seg_tag_t seg__head(seg_t seg); // header tag of segment
 seg_tag_t seg__tail(seg_t seg); // tailer tag of segment
@@ -65,6 +63,10 @@ seg_tag_t seg__tail(seg_t seg) {
 }
 
 void* seg__seg_to_data(seg_t seg) {
+    if (!seg) {
+        return NULL;
+    }
+
     return (u8*) seg + sizeof(struct seg_tag);
 }
 
@@ -326,7 +328,7 @@ void* seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
         // need to copy here before freeing the segment
         seg__copy(result, seg);
         // free seg
-        seg__free(memory, first_free, seg__seg_to_data(seg));
+        seg__free(memory, first_free, seg);
 
         return seg__seg_to_data(result);
     } else if (data_size_requested < old_data_size) {
@@ -340,10 +342,8 @@ void* seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
     ASSERT(false);
 }
 
-void seg__free(memory_slice_t memory, seg_t* first_free, void* data) {
+void seg__free(memory_slice_t memory, seg_t* first_free, seg_t seg) {
     ASSERT(*first_free);
-
-    seg_t seg = seg__data_to_seg(data);
 
     seg__set_available(seg, true);
 
@@ -369,6 +369,10 @@ void seg__free(memory_slice_t memory, seg_t* first_free, void* data) {
 }
 
 seg_t seg__data_to_seg(void* data) {
+    if (!data) {
+        return NULL;
+    }
+    
     return (seg_t) ((u8*) data - sizeof(struct seg_tag));
 }
 
