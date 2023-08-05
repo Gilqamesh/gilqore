@@ -19,7 +19,7 @@ void memory__destroy(memory_t* self) {
 void* memory__realloc(memory_t* self, void* data, u64 old_size, u64 new_size) {
     if (new_size == 0) {
         ASSERT(old_size);
-        seg__free(&self->first_free_segment, data);
+        seg__free(self->main_memory, &self->first_free_segment, data);
         return NULL;
     }
     void* result = seg__realloc(self->main_memory, &self->first_free_segment, data, new_size);
