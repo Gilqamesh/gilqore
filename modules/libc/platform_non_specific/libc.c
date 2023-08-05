@@ -143,6 +143,10 @@ void* libc__memset(void *dest, s32 value, u64 size) {
     return memset(dest, value, size);
 }
 
+void* libc__memmove(void* dst, void* src, size_t size) {
+    return memmove(dst, src, size);
+}
+
 u32 libc__strlen(const char* str) {
     return (u32) strlen(str);
 }

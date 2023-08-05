@@ -19,16 +19,14 @@ int main(int argc, char** argv) {
     chunk_t chunk;
     chunk__create(&chunk, &memory);
 
-    for (u32 i = 0; i < 1000; ++i) {
+    for (u32 i = 0; i < 10; ++i) {
         u32 line = i * 12;
-        u32 value_index = chunk__push_value(&chunk, &memory, 1.2);
-        chunk__push_op(&chunk, &memory, OP_CONSTANT, line);
-        chunk__push_op(&chunk, &memory, value_index, line);
+        chunk__push_imm_long(&chunk, &memory, 1.2, line);
 
         chunk__push_op(&chunk, &memory, OP_RETURN, line);
     }
 
-    chunk__disassemble(&chunk, "test chunk");
+    chunk__disasm(&chunk, "test chunk");
 
     chunk__destroy(&chunk, &memory);
 

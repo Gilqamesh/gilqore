@@ -1,11 +1,13 @@
-#ifndef DEBUG_H
-# define DEBUG_H
+#ifndef GIES_DEBUG_H
+# define GIES_DEBUG_H
 
 # include "compiler/giescript/giescript_defs.h"
 
 # include "types.h"
 
-void chunk__disassemble(chunk_t* self, const char* name);
-u32 chunk__disassemble_ins(chunk_t* self, u32 ip);
+// @brief disassembles chunk and prints, check disasm_grammar.txt
+// @param name chunk name to be displayed
+void chunk__disasm(chunk_t* self, const char* name);
+u32 chunk__disasm_op(chunk_t* self, u32 ip);
 
-#endif // DEBUG_H
+#endif // GIES_DEBUG_H

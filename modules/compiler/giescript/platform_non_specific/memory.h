@@ -14,10 +14,11 @@
     memory__realloc(memory, data, sizeof(type) * size, 0)
 
 struct memory {
-    memory_slice_t memory;
+    memory_slice_t   main_memory;
+    seg_t            first_free_segment;
 };
 
-void memory__create(memory_t* self, memory_slice_t memory);
+bool memory__create(memory_t* self, memory_slice_t memory);
 void memory__destroy(memory_t* self);
 
 void* memory__realloc(memory_t* self, void* data, u64 old_size, u64 new_size);

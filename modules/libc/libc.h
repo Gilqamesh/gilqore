@@ -24,6 +24,7 @@ PUBLIC_API u32   libc__unfreed_byte_count(void);
 PUBLIC_API void* libc__memcpy(void* dest, const void* src, u64 size);
 PUBLIC_API s32   libc__memcmp(const void *s1, const void *s2, u64 size);
 PUBLIC_API void* libc__memset(void *dest, s32 value, u64 size);
+PUBLIC_API void* libc__memmove(void* dst, void* src, size_t size);
 
 PUBLIC_API u32 libc__strlen(const char* str);
 PUBLIC_API u32 libc__strnlen(const char* str,  u32 max_len);

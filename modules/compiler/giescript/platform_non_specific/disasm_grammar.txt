@@ -1,0 +1,9 @@
+format          -> IP (LINE | "|") OP
+OP              -> OP_RETURN | OP_IMM | OP_IMM_LONG
+OP_RETURN       -> ""
+OP_IMM          -> IMM_INDEX IMM_VALUE
+OP_IMM_LONG     -> IMM_INDEX IMM_VALUE
+IP              -> number
+LINE            -> number
+IMM_INDEX       -> number
+IMM_VALUE       -> value
