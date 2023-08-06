@@ -14,6 +14,8 @@
 # include <stdarg.h>
 
 PUBLIC_API void* libc__malloc(u64 size_bytes);
+// @brief allocate at specific address
+PUBLIC_API void* libc__mmalloc(void* addr, size_t size);
 PUBLIC_API void* libc__calloc(u64 size_bytes);
 PUBLIC_API void* libc__realloc(void* data, u64 new_size_bytes);
 PUBLIC_API void  libc__free(void* data);

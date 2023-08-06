@@ -9,17 +9,19 @@
 
 # include "types.h"
 
-// @brief initializes memory as a free segment
-seg_t seg__init(void* data, size_t data_size);
+// @brief converts memory to seg view
+seg_t seg__convert_memory_to_seg(memory_slice_t memory);
+// @brief print segment view of memory
+void  seg__print(memory_slice_t memory);
+
+seg_t seg__malloc(memory_slice_t memory, seg_t* first_free, size_t data_size_requested);
 // @param seg segment to resize
 // @param size new size of the segment, cannot be 0
 // @brief modifies the size of 'seg' if necessary
 // @returns seg large enough to fulfill the request or NULL on failure
 seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t data_size_requested);
-// @brief free data
-void seg__free(memory_slice_t memory, seg_t* first_free, seg_t seg);
-// @brief 'src' into 'dst'
-void seg__copy(seg_t dst, seg_t src);
+// @brief free seg, returns freed seg
+seg_t seg__free(memory_slice_t memory, seg_t* first_free, seg_t seg);
 
 // @returns seg_t associated with 'data'
 seg_t seg__data_to_seg(void* data);

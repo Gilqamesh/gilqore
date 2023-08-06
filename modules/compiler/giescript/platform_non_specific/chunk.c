@@ -1,6 +1,8 @@
 #include "chunk.h"
 #include "memory.h"
 
+#include "libc/libc.h"
+
 static void chunk__init(chunk_t* self) {
     self->code_fill = 0;
     self->code_size = 0;
@@ -27,7 +29,7 @@ void chunk__destroy(chunk_t* self, memory_t* memory) {
 u32 chunk__push_op(chunk_t* self, memory_t* memory, op_code_t code, u32 line) {
     if (self->code_fill == self->code_size) {
         u32 new_size = GROW_CAPACITY(self->code_size);
-        self->code = GROW_ARRAY(memory, u8, self->code, self->code_size, new_size);
+        GROW_ARRAY(self->code, memory, u8, self->code, self->code_size, new_size);
         self->code_size = new_size;
     }
     u32 ip = self->code_fill++;
@@ -39,7 +41,7 @@ u32 chunk__push_op(chunk_t* self, memory_t* memory, op_code_t code, u32 line) {
     } else {
         if (self->lines_fill == self->lines_size) {
             u32 new_size = GROW_CAPACITY(self->lines_size);
-            self->lines = GROW_ARRAY(memory, u32, self->lines, self->lines_size, new_size);
+            GROW_ARRAY(self->lines, memory, u32, self->lines, self->lines_size, new_size);
             self->lines_size = new_size;
         }
         self->lines[self->lines_fill++] = 1;
