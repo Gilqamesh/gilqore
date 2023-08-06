@@ -1,13 +1,13 @@
-#include "segment.h"
+#include "memory/segment_allocator/segment_allocator.h"
 
 #include "memory/memory.h"
 #include "libc/libc.h"
 
-struct seg_tag {
+typedef struct seg_tag {
     u32   seg_size     : 31;
     u32   is_available : 1;
     seg_t free_seg;
-};
+} *seg_tag_t;
 
 struct seg_state {
     bool    is_available;

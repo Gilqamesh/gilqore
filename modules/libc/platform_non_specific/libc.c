@@ -9,8 +9,6 @@
 #include "common/error_code.h"
 #include "gil_math/compare/compare.h"
 
-#undef GIL_DEBUG
-
 #if defined(GIL_DEBUG)
 struct debug_memory_entry {
     void* addr;

@@ -17,7 +17,7 @@ static void fatal(const char* err, ...) {
 bool memory__create(memory_t* self, memory_slice_t memory) {
     self->main_memory = memory;
 
-    self->first_free_segment = seg__convert_memory_to_seg(self->main_memory);
+    self->first_free_segment = seg__init(self->main_memory);
 
     return true;
 }

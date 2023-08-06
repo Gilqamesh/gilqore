@@ -16,6 +16,7 @@
 PUBLIC_API void* libc__malloc(u64 size_bytes);
 PUBLIC_API void* libc__calloc(u64 size_bytes);
 PUBLIC_API void* libc__realloc(void* data, u64 new_size_bytes);
+PUBLIC_API void  libc__free(void* data);
 
 // @brief allocate at specific address
 PUBLIC_API void* libc__mmap(void* addr, size_t size);
