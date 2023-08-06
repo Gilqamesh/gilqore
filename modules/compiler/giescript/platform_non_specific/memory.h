@@ -14,7 +14,7 @@
     seg__print(memory->main_memory); \
 }
 # define FREE_ARRAY(memory, type, data, size) \
-    memory__realloc(memory, data, sizeof(type) * size, 0)
+    memory__free(memory, data);
 
 struct memory {
     memory_slice_t   main_memory;

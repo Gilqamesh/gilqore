@@ -260,7 +260,12 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             seg_state__available(memory, first_free, prev, false);
         }
 
-        // problem: after updating size, need to update link
+        // copy info
+        size_t seg_data_size = seg__data_size(seg);
+        void*  seg_dst       = seg__seg_to_data(prev);
+        void*  seg_src       = seg__seg_to_data(seg);
+
+        // resize, update tail
         if (seg_is_available) {
             seg_t next_free = seg__next_free(prev);
             size_t new_size = seg__size(seg) + seg__size(prev);
@@ -273,14 +278,12 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             size_t new_size = seg__size(seg) + seg__size(prev);
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
-
-            // fix tail link as sized changed
-            seg__tail(prev)->free_seg = 0;
         }
 
-        // maintain seg's data
-        if (seg_is_available) {
-            seg__copy_data(prev, seg, seg__data_size(prev));
+        // copy to maintain seg's data
+        if (!seg_is_available) {
+            ASSERT(seg_data_size < seg__data_size(prev));
+            libc__memmove(seg_dst, seg_src, seg_data_size);
         }
     } else if (!is_prev_available && is_next_available) {
         bool seg_is_available = seg__is_available(seg);
@@ -288,7 +291,7 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
         // getting rid of one of the coaled next
         seg_state__available(memory, first_free, next, false);
 
-        // problem: after updating size, need to update link
+        // resize, update tail
         if (seg_is_available) {
             seg_t next_free = seg__next_free(next);
             size_t new_size = seg__size(seg) + seg__size(next);
@@ -305,7 +308,6 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             // fix tail link as sized changed
             seg__tail(seg)->free_seg = 0;
         }
-
     } else {
         bool seg_is_available = seg__is_available(seg);
 
@@ -318,9 +320,14 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             seg_state__available(memory, first_free, next, false);
         }
 
-        // problem: after updating size, need to update link
+        // copy info
+        size_t seg_data_size = seg__data_size(seg);
+        void*  seg_dst       = seg__seg_to_data(prev);
+        void*  seg_src       = seg__seg_to_data(seg);
+
+        // resize, update tail
         if (seg_is_available) {
-            seg_t next_free = seg__next_free(next);
+            seg_t next_free = seg__next_free(prev);
             size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
@@ -331,14 +338,12 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
-
-            // fix tail link as sized changed
-            seg__tail(prev)->free_seg = 0;
         }
 
-        // maintain seg's data
-        if (seg_is_available) {
-            seg__copy_data(prev, seg, seg__data_size(prev));
+        // copy to maintain seg's data
+        if (!seg_is_available) {
+            ASSERT(seg_data_size < seg__data_size(prev));
+            libc__memmove(seg_dst, seg_src, seg_data_size);
         }
     }
 
@@ -456,7 +461,6 @@ void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, b
             }
         } else {
             ASSERT(prev);
-            ASSERT(*first_free == prev);
         }
     } else {
         seg__head(seg)->is_available = value;

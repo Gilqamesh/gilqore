@@ -11,8 +11,8 @@
 #include "compiler/giescript/platform_non_specific/segment.h"
 
 int main(int argc, char** argv) {
-    u64 gies_memory_size = KILOBYTES(1);
-    void* gies_memory = libc__mmalloc((void*) 0x40000000, gies_memory_size);
+    u64 gies_memory_size = KILOBYTES(32);
+    void* gies_memory = libc__mmap((void*) 0x40000000, gies_memory_size);
 
     memory_t memory;
     memory__create(&memory, memory_slice__create(gies_memory, gies_memory_size));
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     //     error_code__exit(3245);
     // }
 
-    libc__free(gies_memory);
+    libc__munmap(gies_memory);
 
     return 0;
 }
