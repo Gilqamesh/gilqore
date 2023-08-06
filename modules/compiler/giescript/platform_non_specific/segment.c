@@ -60,8 +60,6 @@ void seg_state__init(seg_t seg, size_t seg_size, bool available, seg_t prev_free
 seg_state seg_state__get(seg_t seg);
 // --== state transitions ==--
 void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, bool value);
-void seg_state__prev_free(seg_t seg, seg_t* first_free, seg_t value);
-void seg_state__next_free(seg_t seg, seg_t* first_free, seg_t value);
 
 // Sequential Fit Policies
 /*  First Fit
@@ -253,24 +251,66 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
 
     if (!is_prev_available && !is_next_available) {
     } else if (is_prev_available && !is_next_available) {
-        if (seg__is_available(seg)) {
+        bool seg_is_available = seg__is_available(seg);
+
+        // getting rid of one of the two segs
+        if (seg_is_available) {
             seg_state__available(memory, first_free, seg, false);
         } else {
             seg_state__available(memory, first_free, prev, false);
         }
 
-        size_t new_size = seg__size(seg) + seg__size(prev);
-        seg__tail(seg)->seg_size = new_size;
-        seg__head(prev)->seg_size = new_size;
-        seg__copy_data(prev, seg, seg__data_size(prev));
+        // problem: after updating size, need to update link
+        if (seg_is_available) {
+            seg_t next_free = seg__next_free(prev);
+            size_t new_size = seg__size(seg) + seg__size(prev);
+            seg__tail(seg)->seg_size = new_size;
+            seg__head(prev)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(prev)->free_seg = next_free;
+        } else {
+            size_t new_size = seg__size(seg) + seg__size(prev);
+            seg__tail(seg)->seg_size = new_size;
+            seg__head(prev)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(prev)->free_seg = 0;
+        }
+
+        // maintain seg's data
+        if (seg_is_available) {
+            seg__copy_data(prev, seg, seg__data_size(prev));
+        }
     } else if (!is_prev_available && is_next_available) {
+        bool seg_is_available = seg__is_available(seg);
+
+        // getting rid of one of the coaled next
         seg_state__available(memory, first_free, next, false);
 
-        size_t new_size = seg__size(seg) + seg__size(next);
-        seg__tail(next)->seg_size = new_size;
-        seg__head(seg)->seg_size = new_size;
+        // problem: after updating size, need to update link
+        if (seg_is_available) {
+            seg_t next_free = seg__next_free(next);
+            size_t new_size = seg__size(seg) + seg__size(next);
+            seg__tail(next)->seg_size = new_size;
+            seg__head(seg)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(seg)->free_seg = next_free;
+        } else {
+            size_t new_size = seg__size(seg) + seg__size(next);
+            seg__tail(next)->seg_size = new_size;
+            seg__head(seg)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(seg)->free_seg = 0;
+        }
+
     } else {
-        if (seg__is_available(seg)) {
+        bool seg_is_available = seg__is_available(seg);
+
+        // getting rid of two of the three segs
+        if (seg_is_available) {
             seg_state__available(memory, first_free, seg, false);
             seg_state__available(memory, first_free, next, false);
         } else {
@@ -278,10 +318,28 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
             seg_state__available(memory, first_free, next, false);
         }
 
-        size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
-        seg__tail(next)->seg_size = new_size;
-        seg__head(prev)->seg_size = new_size;
-        seg__copy_data(prev, seg, seg__data_size(prev));
+        // problem: after updating size, need to update link
+        if (seg_is_available) {
+            seg_t next_free = seg__next_free(next);
+            size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
+            seg__tail(next)->seg_size = new_size;
+            seg__head(prev)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(prev)->free_seg = next_free;
+        } else {
+            size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
+            seg__tail(next)->seg_size = new_size;
+            seg__head(prev)->seg_size = new_size;
+
+            // fix tail link as sized changed
+            seg__tail(prev)->free_seg = 0;
+        }
+
+        // maintain seg's data
+        if (seg_is_available) {
+            seg__copy_data(prev, seg, seg__data_size(prev));
+        }
     }
 
     if (is_prev_available) {
@@ -326,7 +384,7 @@ seg_t seg__detach(memory_slice_t memory, seg_t* first_free, seg_t seg, size_t ne
     seg_t  detachment = (seg_t) ((u8*) seg + new_seg_size);
 
     // do not support 0 size segments
-    if (detachment_size <= 2 * sizeof(struct seg_tag)) {
+    if (detachment_size <= seg__data_size_to_seg_size(0)) {
         return seg;
     }
 
@@ -365,106 +423,65 @@ seg_state seg_state__get(seg_t seg) {
 void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, bool value) {
     ASSERT(seg);
 
-    if (seg__is_available(seg)) {
-        if (!value) {
-            // prev and next states
-            seg_t prev = seg__prev_free(seg);
-            seg_t next = seg__next_free(seg);
+    if (seg__is_available(seg) == value) {
+        return ;
+    }
 
-            // first_free state
-            if (seg == *first_free) {
-                ASSERT(!seg__prev_free(seg));
-                *first_free = next;
-            }
-            
-            if (prev) {
-                seg_state__next_free(prev, first_free, next);
-            }
-            if (next) {
-                seg_state__prev_free(next, first_free, prev);
-            }
-        } else {
-            ASSERT(false);
-            // if ((u8*) seg < (u8*) *first_free) {
-            //     *first_free = seg;
-            // }
-        }
-    } else if (value) {
+    if (seg__is_available(seg)) {
+        seg__head(seg)->is_available = value;
+        seg__tail(seg)->is_available = value;
+
+        ASSERT(*first_free);
+
+        seg_t prev = seg__prev_free(seg);
+        seg_t next = seg__next_free(seg);
+
         seg__head(seg)->free_seg = 0;
         seg__tail(seg)->free_seg = 0;
 
-        // first_free state
-        if (!*first_free || (u8*) seg < (u8*) *first_free) {
-            seg_t next_free = *first_free;
-            *first_free = seg;
-            seg__tail(*first_free)->free_seg = next_free;
-        }
-
-        // prev and next states
-        seg_t prev = seg__find_prev_free(memory, seg);
-        seg__head(seg)->free_seg = prev;
         if (prev) {
-            seg_state__next_free(prev, first_free, seg);
+            seg__tail(prev)->free_seg = next;
         }
-        seg_t next = seg__find_next_free(memory, seg);
-        seg__tail(seg)->free_seg = next;
         if (next) {
-            seg_state__prev_free(next, first_free, seg);
+            seg__head(next)->free_seg = prev;
         }
-    } else {
-        ASSERT(false);
-    }
 
-    seg__head(seg)->is_available = value;
-    seg__tail(seg)->is_available = value;
-}
-
-void seg_state__prev_free(seg_t seg, seg_t* first_free, seg_t value) {
-    ASSERT(seg);
-
-    seg_t prev = seg__prev_free(seg);
-    if (prev) {
-        if (value) {
-            if ((u8*) value < (u8*) *first_free) {
-                *first_free = value;
+        if (*first_free == seg) {
+            if (prev) {
+                *first_free = prev;
+            } if (next) {
+                *first_free = next;
+            } else {
+                *first_free = 0;
             }
         } else {
-            if (*first_free == seg) {
-                *first_free = seg__next_free(*first_free);
-            }
+            ASSERT(prev);
+            ASSERT(*first_free == prev);
         }
-    } else if (value) {
-        if (!*first_free || (u8*) seg < (u8*) *first_free) {
+    } else {
+        seg__head(seg)->is_available = value;
+        seg__tail(seg)->is_available = value;
+
+        seg_t prev = seg__find_prev_free(memory, seg);
+        seg_t next = seg__find_next_free(memory, seg);
+
+        if (prev) {
+            seg__tail(prev)->free_seg = seg;
+        }
+        seg__head(seg)->free_seg = prev;
+        seg__tail(seg)->free_seg = next;
+        if (next) {
+            seg__head(next)->free_seg = seg;
+        }
+
+        if (!*first_free) {
+            *first_free = seg;
+        } else if ((u8*) seg < (u8*) *first_free) {
+            ASSERT(next);
+            ASSERT(*first_free == next);
             *first_free = seg;
         }
     }
-
-    seg__head(seg)->free_seg = value;
-}
-
-void seg_state__next_free(seg_t seg, seg_t* first_free, seg_t value) {
-    ASSERT(seg);
-
-    seg_t next = seg__next_free(seg);
-
-    if (next) {
-        if (!value) {
-            ASSERT(*first_free);
-
-            if (*first_free == seg) {
-                *first_free = seg__next_free(*first_free);
-            }
-            if (*first_free) {
-                seg__head(*first_free)->free_seg = 0;
-            }
-        }
-    } else if (value) {
-        if (!*first_free) {
-            *first_free = value;
-        }
-    }
-
-    seg__tail(seg)->free_seg = value;
 }
 
 seg_t seg__convert_memory_to_seg(memory_slice_t memory) {
@@ -527,8 +544,16 @@ seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
 
     size_t old_data_size = seg__data_size(seg);
     if (old_data_size < data_size_requested) {
-        // coal if coaling satisfies the request
-        if (seg__seg_size_to_data_size(seg__check_coal_size(memory, seg)) >= data_size_requested) {
+        // coal if it would satisfy the request
+        size_t coal_data_size = seg__seg_size_to_data_size(seg__check_coal_size(memory, seg));
+
+        size_t required_seg_size = seg__data_size_to_seg_size(data_size_requested);
+        size_t coal_seg_size = seg__data_size_to_seg_size(coal_data_size);
+
+        bool is_coal_big_enough = coal_data_size >= data_size_requested;
+        bool is_coal_bigger_than_smallest_seg = is_coal_big_enough && (coal_seg_size - required_seg_size > seg__data_size_to_seg_size(0));
+
+        if (is_coal_bigger_than_smallest_seg) {
             seg = seg__coal(memory, first_free, seg);
 
             // detach the unnecessary segment

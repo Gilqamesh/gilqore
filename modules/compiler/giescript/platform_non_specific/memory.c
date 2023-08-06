@@ -33,7 +33,7 @@ void* memory__realloc(memory_t* self, void* data, size_t old_size, size_t new_si
 
         // for now do not support this
         seg__print(self->main_memory);
-        fatal("Error: could not allocate more memory\n");
+        fatal("Error: could not allocate %u memory\n", new_size);
 
         return NULL;
     }
@@ -41,7 +41,7 @@ void* memory__realloc(memory_t* self, void* data, size_t old_size, size_t new_si
     seg_t seg = seg__realloc(self->main_memory, &self->first_free_segment, data, new_size);
     if (seg == NULL) {
         seg__print(self->main_memory);
-        fatal("Error: could not allocate more memory\n");
+        fatal("Error: could not allocate %u memory\n", new_size);
         return NULL;
     }
 
@@ -53,7 +53,7 @@ void* memory__malloc(memory_t* self, size_t size) {
 
     if (seg == NULL) {
         seg__print(self->main_memory);
-        fatal("Error: could not allocate more memory\n");
+        fatal("Error: could not allocate %u memory\n", size);
         return NULL;
     }
 
