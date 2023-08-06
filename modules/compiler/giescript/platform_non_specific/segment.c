@@ -74,7 +74,7 @@ size_t seg__data_size(seg_t seg) {
     seg_tag_t head = seg__head(seg);
     seg_tag_t tail = seg__tail(seg);
     if (head == tail) {
-        return seg__size(seg) - sizeof(struct seg_tag);
+        return 0;
     }
     else {
         return seg__size(seg) - 2 * sizeof(struct seg_tag);
