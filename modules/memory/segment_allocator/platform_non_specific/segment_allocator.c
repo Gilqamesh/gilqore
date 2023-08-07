@@ -13,8 +13,11 @@ struct seg_state {
     bool    is_available;
     seg_t   next;
     seg_t   prev;
-    seg_t*  ff;
 };
+
+typedef struct { // stored at the end of the provided memory
+    size_t  ff;
+} aux_state;
 
 // size of payload data
 size_t    seg__data_size(seg_t seg);
@@ -41,13 +44,18 @@ seg_t     seg__next_free(seg_t seg);
 // prev free seg
 seg_t     seg__prev_free(seg_t seg);
 // try to coal with neighbors, seg can be either available or not, returns resulting grown seg
-seg_t     seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg);
+seg_t     seg__coal(memory_slice_t memory, seg_t seg);
 // returns the size of coaling without applying coal
 size_t    seg__check_coal_size(memory_slice_t memory, seg_t seg);
 // removes part of the seg, seg must be not available, returns the seg with the required size [!A] -> [!A][A]
-seg_t     seg__detach(memory_slice_t memory, seg_t* first_free, seg_t seg, size_t new_seg_size);
-// @brief copy 'size' bytes from the start of src's data to the start of dst's data
+seg_t     seg__detach(memory_slice_t memory, seg_t seg, size_t new_seg_size);
+// copy 'size' bytes from the start of src's data to the start of dst's data
 void      seg__copy_data(seg_t dst, seg_t src, size_t size);
+
+// get the first free pointer
+seg_t     seg__get_ff(memory_slice_t memory);
+// seg the first free pointer
+void      seg__set_ff(memory_slice_t memory, seg_t seg);
 
 // --== states ==--
 typedef struct {
@@ -59,7 +67,7 @@ typedef struct {
 void seg_state__init(seg_t seg, size_t seg_size, bool available, seg_t prev_free, seg_t next_free);
 seg_state seg_state__get(seg_t seg);
 // --== state transitions ==--
-void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, bool value);
+void seg_state__available(memory_slice_t memory, seg_t seg, bool value);
 
 // Sequential Fit Policies
 /*  First Fit
@@ -68,7 +76,7 @@ void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, b
     Problem: The larger blocks near the beginning of the list tend to be split first, and the remaining fragments
     result in a lot of small free blocks near the beginning of the list.
 */
-seg_t     seg__first_fit(seg_t* first_free_seg, size_t requested_seg_size);
+seg_t     seg__first_fit(memory_slice_t memory, size_t requested_seg_size);
 /*  Next Fit
     Search from segment X with first fit policy.
     Policies for X:
@@ -76,13 +84,13 @@ seg_t     seg__first_fit(seg_t* first_free_seg, size_t requested_seg_size);
         to the segment immediately followed by the last allocation performed (often, this will be sufficiently
         big for the next allocation).
 */
-seg_t     seg__next_fit(seg_t seg, size_t requested_seg_size);
+seg_t     seg__next_fit(memory_slice_t memory, size_t requested_seg_size);
 /*  Best Fit
     Search the entire list to find the smallest, that is large enough to satisfy the request.
     It may stop if a perfect fit is found earlier.
     Problem: Depending on how the data structure is implemented, this can be slow.
 */
-seg_t     seg__best_fit(seg_t* first_free_seg, size_t requested_seg_size);
+seg_t     seg__best_fit(memory_slice_t memory, size_t requested_seg_size);
 
 seg_tag_t seg__head(seg_t seg) {
     ASSERT(seg);
@@ -136,8 +144,8 @@ void seg__set_size(seg_t seg, size_t segment_size) {
     tail->seg_size = segment_size;
 }
 
-seg_t seg__first_fit(seg_t* first_free_seg, size_t requested_seg_size) {
-    seg_t cur = *first_free_seg;
+seg_t seg__first_fit(memory_slice_t memory, size_t requested_seg_size) {
+    seg_t cur = seg__get_ff(memory);
     while (cur) {
         ASSERT(seg__is_available(cur));
 
@@ -152,14 +160,14 @@ seg_t seg__first_fit(seg_t* first_free_seg, size_t requested_seg_size) {
     return NULL;
 }
 
-seg_t seg__next_fit(seg_t seg, size_t requested_seg_size) {
+seg_t seg__next_fit(memory_slice_t memory, size_t requested_seg_size) {
     // todo: implement
-    return seg__first_fit(&seg, requested_seg_size);
+    return seg__first_fit(memory, requested_seg_size);
 }
 
-seg_t seg__best_fit(seg_t* first_free_seg, size_t requested_seg_size) {
+seg_t seg__best_fit(memory_slice_t memory, size_t requested_seg_size) {
     seg_t best_seg = NULL;
-    seg_t cur_seg = *first_free_seg;
+    seg_t cur_seg = seg__get_ff(memory);
     while (cur_seg) {
         ASSERT(seg__is_available(cur_seg));
 
@@ -183,7 +191,7 @@ seg_t seg__next(memory_slice_t memory, seg_t seg) {
     ASSERT(memory_slice__memory(&memory));
 
     seg_t next_seg = (u8*) seg + seg__size(seg);
-    if ((u8*) next_seg >= (u8*) memory_slice__memory(&memory) + memory_slice__size(&memory)) {
+    if ((u8*) next_seg >= (u8*) memory_slice__memory(&memory) + memory_slice__size(&memory) - sizeof(aux_state)) {
         return NULL;
     }
 
@@ -240,7 +248,7 @@ bool seg__is_available(seg_t seg) {
     return seg__head(seg)->is_available;
 }
 
-seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
+seg_t seg__coal(memory_slice_t memory, seg_t seg) {
     ASSERT(seg);
     
     seg_t prev = seg__prev(memory, seg);
@@ -255,9 +263,9 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
 
         // getting rid of one of the two segs
         if (seg_is_available) {
-            seg_state__available(memory, first_free, seg, false);
+            seg_state__available(memory, seg, false);
         } else {
-            seg_state__available(memory, first_free, prev, false);
+            seg_state__available(memory, prev, false);
         }
 
         // copy info
@@ -289,7 +297,7 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
         bool seg_is_available = seg__is_available(seg);
 
         // getting rid of one of the coaled next
-        seg_state__available(memory, first_free, next, false);
+        seg_state__available(memory, next, false);
 
         // resize, update tail
         if (seg_is_available) {
@@ -313,11 +321,11 @@ seg_t seg__coal(memory_slice_t memory, seg_t* first_free, seg_t seg) {
 
         // getting rid of two of the three segs
         if (seg_is_available) {
-            seg_state__available(memory, first_free, seg, false);
-            seg_state__available(memory, first_free, next, false);
+            seg_state__available(memory, seg, false);
+            seg_state__available(memory, next, false);
         } else {
-            seg_state__available(memory, first_free, prev, false);
-            seg_state__available(memory, first_free, next, false);
+            seg_state__available(memory, prev, false);
+            seg_state__available(memory, next, false);
         }
 
         // copy info
@@ -374,7 +382,7 @@ size_t seg__check_coal_size(memory_slice_t memory, seg_t seg) {
     }
 }
 
-seg_t seg__detach(memory_slice_t memory, seg_t* first_free, seg_t seg, size_t new_seg_size) {
+seg_t seg__detach(memory_slice_t memory, seg_t seg, size_t new_seg_size) {
     // store state of seg
     seg_state state = seg_state__get(seg);
     ASSERT(!state.available);
@@ -398,7 +406,7 @@ seg_t seg__detach(memory_slice_t memory, seg_t* first_free, seg_t seg, size_t ne
     seg_state__init(seg, new_seg_size, state.available, state.prev_free, state.next_free);
 
     // free the detachment
-    DISCARD_RETURN seg__free(memory, first_free, detachment);
+    DISCARD_RETURN seg__free(memory, detachment);
 
     return seg;
 }
@@ -425,7 +433,7 @@ seg_state seg_state__get(seg_t seg) {
     return result;
 }
 
-void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, bool value) {
+void seg_state__available(memory_slice_t memory, seg_t seg, bool value) {
     ASSERT(seg);
 
     if (seg__is_available(seg) == value) {
@@ -436,7 +444,8 @@ void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, b
         seg__head(seg)->is_available = value;
         seg__tail(seg)->is_available = value;
 
-        ASSERT(*first_free);
+        seg_t ff = seg__get_ff(memory);
+        ASSERT(ff);
 
         seg_t prev = seg__prev_free(seg);
         seg_t next = seg__next_free(seg);
@@ -451,13 +460,13 @@ void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, b
             seg__head(next)->free_seg = prev;
         }
 
-        if (*first_free == seg) {
+        if (ff == seg) {
             if (prev) {
-                *first_free = prev;
+                seg__set_ff(memory, prev);
             } if (next) {
-                *first_free = next;
+                seg__set_ff(memory, next);
             } else {
-                *first_free = 0;
+                seg__set_ff(memory, 0);
             }
         } else {
             ASSERT(prev);
@@ -478,69 +487,90 @@ void seg_state__available(memory_slice_t memory, seg_t* first_free, seg_t seg, b
             seg__head(next)->free_seg = seg;
         }
 
-        if (!*first_free) {
-            *first_free = seg;
-        } else if ((u8*) seg < (u8*) *first_free) {
+        seg_t ff = seg__get_ff(memory);
+        if (!ff) {
+            seg__set_ff(memory, seg);
+        } else if ((u8*) seg < (u8*) ff) {
             ASSERT(next);
-            ASSERT(*first_free == next);
-            *first_free = seg;
+            ASSERT(ff == next);
+            seg__set_ff(memory, seg);
         }
     }
 }
 
-seg_t seg__init(memory_slice_t memory) {
+bool seg__init(memory_slice_t memory) {
+    size_t mem_size = memory_slice__size(&memory);
+    if (mem_size < sizeof(aux_state)) {
+        return false;
+    }
+
     seg_t seg = (seg_t) memory_slice__memory(&memory);
+    seg__set_ff(memory, seg);
 
-    seg_state__init(seg, memory_slice__size(&memory), true, 0, 0);
+    seg_state__init(seg, mem_size - sizeof(aux_state), true, 0, 0);
 
-    return seg;
+    return true;
 }
 
-void seg__print(memory_slice_t memory) {
+bool seg__print(memory_slice_t memory, seg_t seg) {
+    seg_tag_t tag = seg__head(seg);
+    seg_t next = seg__next(memory, seg);
+    seg_t expected = (seg_t) ((u8*) seg + tag->seg_size);
+    libc__printf(
+        "[<- %12p, %12p, %s, %8u, %12p%s, %12p ->]\n",
+        seg__prev_free(seg),
+        seg,
+        tag->is_available ? "free" : "used",
+        tag->seg_size,
+        next ? expected : 0,
+        next ? (((u8*) expected == (u8*) next) ? "" : " ??") : "",
+        seg__next_free(seg)
+    );
+
+    return true;
+}
+
+void seg__print_aux(memory_slice_t memory) {
+    libc__printf("--== Aux start      ==--\n");
+    libc__printf("[ ff: %12p ]\n", (seg_t) seg__get_ff(memory));
+    libc__printf("--== Aux end        ==--\n");
+}
+
+void seg__for_each(memory_slice_t memory, bool (*fn)(memory_slice_t memory, seg_t seg)) {
     seg_t seg = (seg_t) memory_slice__memory(&memory);
 
-    libc__printf("--== Segments start ==--\n");
     while (seg) {
-        seg_tag_t tag = seg__head(seg);
-        seg_t expected = (seg_t) ((u8*) seg + tag->seg_size);
         seg_t next = seg__next(memory, seg);
-        libc__printf(
-            "[<- %12p, %12p, %s, %8u, %12p%s, %12p ->]\n",
-            seg__prev_free(seg),
-            seg,
-            tag->is_available ? "free" : "used",
-            tag->seg_size,
-            next ? expected : 0,
-            next ? (((u8*) expected == (u8*) next) ? "" : " ??") : "",
-            seg__next_free(seg)
-        );
+        if (!fn(memory, seg)) {
+            break ;
+        }
         seg = next;
     }
-    libc__printf("--== Segments end ==--\n");
+
 }
 
-seg_t seg__malloc(memory_slice_t memory, seg_t* first_free, size_t data_size_requested) {
+seg_t seg__malloc(memory_slice_t memory, size_t data_size_requested) {
     // look for available with one of the sequential fit policy
-    seg_t seg = seg__first_fit(first_free, data_size_requested);
+    seg_t seg = seg__first_fit(memory, data_size_requested);
     if (!seg) {
         return NULL;
     }
 
     // make seg unavailable
-    seg_state__available(memory, first_free, seg, false);
+    seg_state__available(memory, seg, false);
     // detach the unnecessary segment
-    seg = seg__detach(memory, first_free, seg, seg__data_size_to_seg_size(data_size_requested));
+    seg = seg__detach(memory, seg, seg__data_size_to_seg_size(data_size_requested));
 
     return seg;
 }
 
-seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t data_size_requested) {
+seg_t seg__realloc(memory_slice_t memory, void* data, size_t data_size_requested) {
     ASSERT(data_size_requested != 0);
 
     seg_t seg = 0;
 
     if (data == NULL) {
-        return seg__malloc(memory, first_free, data_size_requested);
+        return seg__malloc(memory, data_size_requested);
     }
 
     seg = seg__data_to_seg(data);
@@ -558,17 +588,17 @@ seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
         bool is_coal_bigger_than_smallest_seg = is_coal_big_enough && (coal_seg_size - required_seg_size > seg__data_size_to_seg_size(0));
 
         if (is_coal_bigger_than_smallest_seg) {
-            seg = seg__coal(memory, first_free, seg);
+            seg = seg__coal(memory, seg);
 
             // detach the unnecessary segment
-            seg = seg__detach(memory, first_free, seg, seg__data_size_to_seg_size(data_size_requested));
+            seg = seg__detach(memory, seg, seg__data_size_to_seg_size(data_size_requested));
             return seg;
         }
 
         // todo: copy and free before looking for sequential fit
 
         // malloc new seg
-        seg_t new_seg = seg__malloc(memory, first_free, data_size_requested);
+        seg_t new_seg = seg__malloc(memory, data_size_requested);
         if (!new_seg) {
             return NULL;
         }
@@ -576,12 +606,12 @@ seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
         // copy data to new seg
         seg__copy_data(new_seg, seg, seg__data_size(seg));
         // free seg
-        seg__free(memory, first_free, seg);
+        seg__free(memory, seg);
 
         return new_seg;
     } else if (data_size_requested < old_data_size) {
         // detach the unnecessary segment
-        seg = seg__detach(memory, first_free, seg, seg__data_size_to_seg_size(data_size_requested));
+        seg = seg__detach(memory, seg, seg__data_size_to_seg_size(data_size_requested));
         return seg;
     } else {
         return seg;
@@ -590,11 +620,11 @@ seg_t seg__realloc(memory_slice_t memory, seg_t* first_free, void* data, size_t 
     ASSERT(false);
 }
 
-seg_t seg__free(memory_slice_t memory, seg_t* first_free, seg_t seg) {
+seg_t seg__free(memory_slice_t memory, seg_t seg) {
     ASSERT(!seg__is_available(seg));
-    seg_state__available(memory, first_free, seg, true);
+    seg_state__available(memory, seg, true);
 
-    return seg__coal(memory, first_free, seg);
+    return seg__coal(memory, seg);
 }
 
 seg_t seg__data_to_seg(void* data) {
@@ -611,4 +641,18 @@ void seg__copy_data(seg_t dst, seg_t src, size_t size) {
     ASSERT(src_size <= dst_size);
 
     libc__memmove(seg__seg_to_data(dst), seg__seg_to_data(src), size);
+}
+
+seg_t seg__get_ff(memory_slice_t memory) {
+    void* data = memory_slice__memory(&memory);
+    size_t data_size = memory_slice__size(&memory);
+    aux_state* aux = (aux_state*) ((u8*) data + data_size - sizeof(aux_state));
+    return (seg_t) aux->ff;
+}
+
+void seg__set_ff(memory_slice_t memory, seg_t seg) {
+    void* data = memory_slice__memory(&memory);
+    size_t data_size = memory_slice__size(&memory);
+    aux_state* aux = (aux_state*) ((u8*) data + data_size - sizeof(aux_state));
+    aux->ff = (size_t) seg;
 }

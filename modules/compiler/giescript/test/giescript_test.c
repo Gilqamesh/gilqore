@@ -4,11 +4,11 @@
 
 #include "libc/libc.h"
 #include "memory/memory.h"
+#include "memory/segment_allocator/segment_allocator.h"
 
 #include "compiler/giescript/platform_non_specific/chunk.h"
 #include "compiler/giescript/platform_non_specific/memory.h"
 #include "compiler/giescript/platform_non_specific/debug.h"
-#include "compiler/giescript/platform_non_specific/segment.h"
 
 int main(int argc, char** argv) {
     u64 gies_memory_size = KILOBYTES(32);
@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 
     chunk__disasm(&chunk, "test chunk");
 
-    seg__print(memory.main_memory);
+    memory__print(&memory);
 
     chunk__destroy(&chunk, &memory);
 
