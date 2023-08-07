@@ -9,6 +9,7 @@
 #include "compiler/giescript/platform_non_specific/chunk.h"
 #include "compiler/giescript/platform_non_specific/memory.h"
 #include "compiler/giescript/platform_non_specific/debug.h"
+#include "compiler/giescript/platform_non_specific/vm.h"
 
 int main(int argc, char** argv) {
     u64 gies_memory_size = KILOBYTES(32);
@@ -17,21 +18,29 @@ int main(int argc, char** argv) {
     memory_t memory;
     memory__create(&memory, memory_slice__create(gies_memory, gies_memory_size));
 
+    vm_t vm;
+    vm__create(&vm);
+
     chunk_t chunk;
     chunk__create(&chunk, &memory);
 
-    for (u32 i = 0; i < 100; ++i) {
+    for (u32 i = 0; i < 50; ++i) {
         u32 line = i * 12;
         chunk__push_imm_long(&chunk, &memory, 1.2, line);
+        chunk__push_imm(&chunk, &memory, 1.2, line);
 
-        chunk__push_op(&chunk, &memory, OP_RETURN, line);
     }
+    chunk__push_op(&chunk, &memory, OP_RETURN, 123);
 
     chunk__disasm(&chunk, "test chunk");
+
+    vm__interpret(&vm, &chunk);
 
     memory__print(&memory);
 
     chunk__destroy(&chunk, &memory);
+
+    vm__destroy(&vm);
 
     memory__destroy(&memory);
 

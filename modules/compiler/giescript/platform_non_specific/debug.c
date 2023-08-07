@@ -17,7 +17,9 @@ static void disasm__imm_interal(const char* op, chunk_t* self, u32 imm_ip) {
     libc__printf(OP_FORMAT, op);
     libc__printf(IP_FORMAT, imm_ip);
     libc__printf("'");
+
     value__print(self->immediates.values[imm_ip]);
+
     libc__printf("'\n");
 }
 
@@ -29,9 +31,9 @@ static u32 disasm__imm(const char* op, chunk_t* self, u32 ip) {
 }
 
 static u32 disasm__imm_long(const char* op, chunk_t* self, u32 ip) {
-    u8 imm_ip_high = self->code[ip + 1];
-    u8 imm_ip_mid = self->code[ip + 2];
-    u8 imm_ip_low = self->code[ip + 3];
+    u32 imm_ip_high = self->code[ip + 1];
+    u32 imm_ip_mid  = self->code[ip + 2];
+    u32 imm_ip_low  = self->code[ip + 3];
     disasm__imm_interal(op, self, (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low);
 
     return ip + 4;

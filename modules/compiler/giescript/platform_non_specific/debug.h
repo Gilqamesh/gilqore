@@ -8,6 +8,6 @@
 // @brief disassembles chunk and prints, check disasm_grammar.txt
 // @param name chunk name to be displayed
 void chunk__disasm(chunk_t* self, const char* name);
-u32 chunk__disasm_op(chunk_t* self, u32 ip);
+u32  chunk__disasm_op(chunk_t* self, u32 ip);
 
 #endif // GIES_DEBUG_H

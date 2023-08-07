@@ -15,7 +15,7 @@ void value_arr__create(value_arr_t* self, memory_t* memory);
 void value_arr__destroy(value_arr_t* self, memory_t* memory);
 
 // @returns index of pushed value
-u32 value_arr__push(value_arr_t* self, memory_t* memory, value_t value);
+u32  value_arr__push(value_arr_t* self, memory_t* memory, value_t value);
 void value__print(value_t value);
 
 #endif // GIES_VALUE_H
