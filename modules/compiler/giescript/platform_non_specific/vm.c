@@ -29,12 +29,12 @@ vm_code_t vm__interpret(vm_t* self, chunk_t* chunk) {
     self->ip = chunk->code;
 
     while (42) {
-        u8 op = READ_BYTE();
-
 #if defined(DEBUG_TRACE_EXECUTION)
         ASSERT(chunk->code <= self->ip);
         chunk__disasm_op(chunk, (u32) (self->ip - chunk->code));
 #endif
+
+        u8 op = READ_BYTE();
 
         switch (op) {
             case OP_RETURN: {
