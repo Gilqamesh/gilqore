@@ -141,7 +141,7 @@ bool file__stat(const char* path, enum file_type* file_type) {
     return true;
 }
 
-bool file__size(const char* path, u64* file_size) {
+bool file__size(const char* path, size_t* file_size) {
     struct file file;
     if (file__open(&file, path, FILE_ACCESS_MODE_RDWR, FILE_CREATION_MODE_OPEN) == false) {
         return false;

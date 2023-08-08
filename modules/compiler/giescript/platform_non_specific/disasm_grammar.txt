@@ -1,10 +1,10 @@
-format          -> IP LINE OP
+format          -> IP LINE INS
 LINE            -> number | REPEATED_LINE
 REPEATED_LINE   -> "|"
-OP              -> OP_RETURN | OP_IMM | OP_IMM_LONG
-OP_RETURN       -> "OP_RETURN"
-OP_IMM          -> "OP_IMM"      IMM_INDEX IMM_VALUE
-OP_IMM_LONG     -> "OP_IMM_LONG" IMM_INDEX IMM_VALUE
+INS             -> INS_RETURN | INS_IMM | INS_IMM_LONG
+INS_RETURN      -> "INS_RETURN"
+INS_IMM         -> "INS_IMM"      IMM_INDEX IMM_VALUE
+INS_IMM_LONG    -> "INS_IMM_LONG" IMM_INDEX IMM_VALUE
 IP              -> number
 LINE            -> number
 IMM_INDEX       -> number

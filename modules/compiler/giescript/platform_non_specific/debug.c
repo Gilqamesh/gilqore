@@ -6,15 +6,21 @@
 
 #define IP_FORMAT "%04d "
 #define LINE_FORMAT "%04d "
-#define OP_FORMAT "%-16s "
+#define INS_FORMAT "%-16s "
 
-static u32 disasm__simple(const char* op, u32 ip) {
-    libc__printf("%s\n", op);
+static u32 disasm__simple(const char* instruction, u32 ip);
+static void disasm__imm_interal(const char* instruction, chunk_t* self, u32 imm_ip);
+static u32 disasm__imm(const char* instruction, chunk_t* self, u32 ip);
+static u32 disasm__imm_long(const char* instruction, chunk_t* self, u32 ip);
+static u32 ins__get_line(chunk_t* self, u32 ip);
+
+static u32 disasm__simple(const char* instruction, u32 ip) {
+    libc__printf("%s\n", instruction);
     return ip + 1;
 }
 
-static void disasm__imm_interal(const char* op, chunk_t* self, u32 imm_ip) {
-    libc__printf(OP_FORMAT, op);
+static void disasm__imm_interal(const char* instruction, chunk_t* self, u32 imm_ip) {
+    libc__printf(INS_FORMAT, instruction);
     libc__printf(IP_FORMAT, imm_ip);
     libc__printf("'");
 
@@ -23,23 +29,23 @@ static void disasm__imm_interal(const char* op, chunk_t* self, u32 imm_ip) {
     libc__printf("'\n");
 }
 
-static u32 disasm__imm(const char* op, chunk_t* self, u32 ip) {
-    u8 imm_ip = self->code[ip + 1];
-    disasm__imm_interal(op, self, imm_ip);
+static u32 disasm__imm(const char* instruction, chunk_t* self, u32 ip) {
+    u8 imm_ip = self->instructions[ip + 1];
+    disasm__imm_interal(instruction, self, imm_ip);
 
     return ip + 2;
 }
 
-static u32 disasm__imm_long(const char* op, chunk_t* self, u32 ip) {
-    u32 imm_ip_high = self->code[ip + 1];
-    u32 imm_ip_mid  = self->code[ip + 2];
-    u32 imm_ip_low  = self->code[ip + 3];
-    disasm__imm_interal(op, self, (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low);
+static u32 disasm__imm_long(const char* instruction, chunk_t* self, u32 ip) {
+    u32 imm_ip_high = self->instructions[ip + 1];
+    u32 imm_ip_mid  = self->instructions[ip + 2];
+    u32 imm_ip_low  = self->instructions[ip + 3];
+    disasm__imm_interal(instruction, self, (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low);
 
     return ip + 4;
 }
 
-static u32 op__get_line(chunk_t* self, u32 ip) {
+static u32 ins__get_line(chunk_t* self, u32 ip) {
     u32 lines_index = 0;
     while (lines_index < self->lines_fill) {
         u32 n = self->lines[lines_index];
@@ -59,33 +65,48 @@ static u32 op__get_line(chunk_t* self, u32 ip) {
 void chunk__disasm(chunk_t* self, const char* name) {
     libc__printf("--== %s ==--\n", name);
 
-    for (u32 ip = 0; ip < self->code_fill;) {
-        ip = chunk__disasm_op(self, ip);
+    for (u32 ip = 0; ip < self->instructions_fill;) {
+        ip = chunk__disasm_ins(self, ip);
     }
 }
 
-u32 chunk__disasm_op(chunk_t* self, u32 ip) {
+u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
     libc__printf(IP_FORMAT, ip);
-    u32 line = op__get_line(self, ip);
-    if (ip > 0 && line == op__get_line(self, ip - 1)) {
+    u32 line = ins__get_line(self, ip);
+    if (ip > 0 && line == ins__get_line(self, ip - 1)) {
         libc__printf("   | ");
     } else {
         libc__printf(LINE_FORMAT, line);
     }
 
-    u8 op = self->code[ip];
-    switch (op) {
-        case OP_IMM: {
-            return disasm__imm("OP_IMM", self, ip);
+    u8 ins = self->instructions[ip];
+    switch (ins) {
+        case INS_RETURN: {
+            return disasm__simple("INS_RETURN", ip);
         } break ;
-        case OP_IMM_LONG: {
-            return disasm__imm_long("OP_IMM_LONG", self, ip);
+        case INS_IMM: {
+            return disasm__imm("INS_IMM", self, ip);
         } break ;
-        case OP_RETURN: {
-            return disasm__simple("OP_RETURN", ip);
+        case INS_IMM_LONG: {
+            return disasm__imm_long("INS_IMM_LONG", self, ip);
+        } break ;
+        case INS_NEG: {
+            return disasm__simple("INS_NEG", ip);
+        } break ;
+        case INS_ADD: {
+            return disasm__simple("INS_ADD", ip);
+        } break ;
+        case INS_SUB: {
+            return disasm__simple("INS_SUB", ip);
+        } break ;
+        case INS_MUL: {
+            return disasm__simple("INS_MUL", ip);
+        } break ;
+        case INS_DIV: {
+            return disasm__simple("INS_DIV", ip);
         } break ;
         default: {
-            libc__printf("Unknown opcode %d\n", op);
+            libc__printf("Unknown instruction %d\n", ins);
             return ip + 1;
         }
     }

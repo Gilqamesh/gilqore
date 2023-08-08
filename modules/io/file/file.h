@@ -51,7 +51,7 @@ PUBLIC_API bool file__move(const char* src_path, const char* dest_path);
 PUBLIC_API bool file__last_modified(const char* path, struct time* last_modified);
 PUBLIC_API bool file__stat(const char* path, enum file_type* file_type);
 // @returns whether the operations was successful or not as well as the file_size if it was
-PUBLIC_API bool file__size(const char* path, u64* file_size);
+PUBLIC_API bool file__size(const char* path, size_t* file_size);
 // @brief copies the source file to the destination path
 // @note if dest exists, its contents will be overwritten
 PUBLIC_API bool file__copy(const char* dest_path, const char* src_path);
