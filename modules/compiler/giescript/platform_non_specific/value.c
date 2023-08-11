@@ -38,16 +38,20 @@ u32 value_arr__push(value_arr_t* self, allocator_t* allocator, value_t value) {
 }
 
 void value__print(value_t value) {
-    if (value__is_num(value)) {
-        libc__printf("%g", value__as_num(value));
-    } else if (value__is_bool(value)) {
-        libc__printf("%s", value__as_bool(value) ? "true" : "false");
-    } else if (value__is_nil(value)) {
-        libc__printf("(nil)");
-    } else if (value__is_obj(value)) {
-        obj__print(value);
-    } else {
-        ASSERT(false);
+    switch (value.type) {
+        case VALUE_TYPE_BOOL: {
+            libc__printf("%s", value__as_bool(value) ? "true" : "false");
+        } break ;
+        case VALUE_TYPE_NIL: {
+            libc__printf("(nil)");
+        } break ;
+        case VALUE_TYPE_NUMBER: {
+            libc__printf("%g", value__as_num(value));
+        } break ;
+        case VALUE_TYPE_OBJ: {
+            obj__print(value);
+        } break ;
+        default: ASSERT(false);
     }
 }
 

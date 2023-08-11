@@ -1,5 +1,6 @@
 program         -> declaration* EOF;
-declaration     -> fun_decl
+declaration     -> class_decl
+                 | fun_decl
                  | var_decl
                  | statement ;
 fun_decl        -> "fun" function ;

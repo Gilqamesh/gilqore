@@ -30,10 +30,12 @@ static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
 static u8      vm__eat(vm_t* self);
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk);
 static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk);
+static value_t vm__eat_identifier(vm_t* self, chunk_t* chunk);
+static value_t vm__peek(vm_t* self);
 // push value on the value stack
-static void    vm__push           (vm_t* self, value_t value);
+static void    vm__push(vm_t* self, value_t value);
 // pop value from the value stack
-static value_t vm__pop            (vm_t* self);
+static value_t vm__pop(vm_t* self);
 
 static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
 #if defined(DEBUG_VM_TRACE)
@@ -70,6 +72,32 @@ static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk) {
     return chunk->immediates.values[imm_index];
 }
 
+static value_t vm__eat_identifier(vm_t* self, chunk_t* chunk) {
+    u8 ins = vm__eat(self);
+    value_t identifier_index;
+    switch (ins) {
+        case INS_IMM: {
+            identifier_index = vm__eat_imm(self, chunk);
+        } break ;
+        case INS_IMM_LONG: {
+            identifier_index = vm__eat_imm_long(self, chunk);
+        } break ;
+        default: ASSERT(false);
+    }
+    ASSERT(value__is_num(identifier_index));
+    u32 identifier_index_num = (u32) value__as_num(identifier_index);
+    value_t identifier = chunk->immediates.values[identifier_index_num];
+    ASSERT(obj__is_str(identifier));
+
+    return identifier;
+}
+
+static value_t vm__peek(vm_t* self) {
+    ASSERT(self->values_top > self->values_data && "underflow");
+
+    return *(self->values_top - 1);
+}
+
 static void vm__push(vm_t* self, value_t value) {
     ASSERT(self->values_top < self->values_data + self->values_size && "overflow");
 
@@ -91,6 +119,7 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
     self->objs = 0;
 
     table__create(&self->obj_str_table, allocator);
+    table__create(&self->globals_table, allocator);
 
     return true;
 }
@@ -98,6 +127,8 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
 void vm__destroy(vm_t* self, allocator_t* allocator) {
     allocator__free(allocator, self->values_data);
     vm__free_objs(self, allocator);
+    
+    table__destroy(&self->globals_table);
     table__destroy(&self->obj_str_table);
 
     libc__memset(self, 0, sizeof(*self));
@@ -220,9 +251,6 @@ vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t*
 
         switch (ins) {
             case INS_RETURN: {
-                value_t value = vm__pop(self);
-                value__print(value);
-                libc__printf("\n");
                 return VM_OK;
             } break ;
             case INS_IMM: {
@@ -317,6 +345,31 @@ vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t*
                     return VM_RUNTIME_ERROR;
                 }
                 vm__push(self, value__bool(value__as_num(left) > value__as_num(right)));
+            } break ;
+            case INS_PRINT: {
+                value_t value = vm__pop(self);
+                value__print(value);
+                libc__printf("\n");
+            } break ;
+            case INS_POP: {
+                DISCARD_RETURN vm__pop(self);
+            } break ;
+            case INS_DEFINE_GLOBAL: {
+                value_t identifier = vm__eat_identifier(self, chunk);
+                // peek instead of pop first as the garbage collector might trigger during this operation
+                value_t initializer = vm__peek(self);
+                table__insert(&self->globals_table, identifier, initializer);
+                DISCARD_RETURN vm__pop(self);
+            } break ;
+            case INS_GET_GLOBAL: {
+                value_t identifier = vm__eat_identifier(self, chunk);
+                value_t value;
+                if (!table__get(&self->globals_table, identifier, &value)) {
+                    obj_str_t* identifier_str = obj__as_str(identifier);
+                    vm__error(self, chunk, "Undefined variable '%s'.", identifier_str->str);
+                    return VM_RUNTIME_ERROR;
+                }
+                vm__push(self, value);
             } break ;
             default: ASSERT(false);
         }

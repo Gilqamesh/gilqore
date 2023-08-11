@@ -4,15 +4,11 @@
 #include "libc/libc.h"
 
 static void chunk__init(chunk_t* self);
-static u32 chunk__push_value(chunk_t* self, allocator_t* allocator, value_t value);
+
 static void chunk__init(chunk_t* self) {
     libc__memset(self, 0, sizeof(*self));
 
     self->values_stack_size_watermark = 8;
-}
-
-static u32 chunk__push_value(chunk_t* self, allocator_t* allocator, value_t immediate) {
-    return value_arr__push(&self->immediates, allocator, immediate);
 }
 
 void chunk__create(chunk_t* self, allocator_t* allocator) {
@@ -73,6 +69,10 @@ u32 chunk__push_imm(chunk_t* self, allocator_t* allocator, value_t imm, u32 line
     }
 
     return imm_index;
+}
+
+u32 chunk__push_value(chunk_t* self, allocator_t* allocator, value_t immediate) {
+    return value_arr__push(&self->immediates, allocator, immediate);
 }
 
 u32 chunk__ins_get_line(chunk_t* self, u32 ip) {

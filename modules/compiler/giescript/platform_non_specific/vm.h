@@ -17,6 +17,7 @@ struct vm {
     obj_t* objs;
 
     table_t  obj_str_table;
+    table_t  globals_table;
 };
 
 bool vm__create(vm_t* self, allocator_t* allocator);

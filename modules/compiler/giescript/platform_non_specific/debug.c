@@ -108,6 +108,18 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_LT: {
             return disasm__simple("INS_LT", ip);
         } break ;
+        case INS_PRINT: {
+            return disasm__simple("INS_PRINT", ip);
+        } break ;
+        case INS_POP: {
+            return disasm__simple("INS_POP", ip);
+        } break ;
+        case INS_DEFINE_GLOBAL: {
+            return disasm__simple("INS_DEFINE_GLOBAL", ip);
+        } break ;
+        case INS_GET_GLOBAL: {
+            return disasm__simple("INS_GET_GLOBAL", ip);
+        } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);
             return ip + 1;
