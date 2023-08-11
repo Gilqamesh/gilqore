@@ -1,5 +1,5 @@
 unique_error_codes: [
 ]
-module_dependencies: libc segment_allocator
+module_dependencies: libc segment_allocator console hash
 test_dependencies:
 application_type: CONSOLE

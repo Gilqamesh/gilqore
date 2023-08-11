@@ -6,6 +6,9 @@
 # include "file_defs.h"
 
 struct time;
+struct file;
+
+typedef struct file file_t;
 
 # if defined(WINDOWS)
 #  include "platform_specific/windows/file_platform_specific_defs.h"

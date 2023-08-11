@@ -1,9 +1,13 @@
 #include <stdio.h>
 
+typedef enum {
+    yoo
+} idk;
+
 typedef struct asd {
-    int a;
+    idk a;
     int b;
-    char c;
+    char c[];
 } asd_t;
 
 int main() {

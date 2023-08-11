@@ -28,24 +28,25 @@ typedef enum ins_mnemonic {
     INS_RETURN,   // [ins]
     INS_IMM,      // [ins, imm index]
     INS_IMM_LONG, // [ins, imm_index_high, imm_index_mid, imm_index_low]
+    INS_NIL,      // [ins]
+    INS_TRUE,     // [ins]
+    INS_FALSE,    // [ins]
     INS_NEG,      // [ins]
     INS_ADD,      // [ins]
     INS_SUB,      // [ins]
     INS_MUL,      // [ins]
     INS_DIV,      // [ins]
+    INS_NOT,      // [ins]
+    INS_EQ,       // [ins]
+    INS_GT,       // [ins]
+    INS_LT,       // [ins]
 } ins_mnemonic_t;
 
 // @returns ip of pushed instruction
 u32 chunk__push_ins(chunk_t* self, allocator_t* allocator, ins_mnemonic_t instruction, u32 line);
-u32 chunk__push_value(chunk_t* self, allocator_t* allocator, value_t value);
-
-//> convenience functions
-// @brief pushes an INS_IMM_LONG instruction, use when the index of the immediate can't be represented by 1 byte, but can be with 3 bytes
-// @returns ip of pushed immediate
-u32 chunk__push_imm_long(chunk_t* self, allocator_t* allocator, value_t immediate, u32 line);
-// @brief pushes an INS_IMM instruction
-// @returns ip of pushed immediate
-u32 chunk__push_imm(chunk_t* self, allocator_t* allocator, value_t immediate, u32 line);
-//< convenience functions
+// @returns index of pushed immediate instruction
+u32 chunk__push_imm(chunk_t* self, allocator_t* allocator, value_t imm, u32 line);
+// @returns the line in the source code associated with the instruction pointer
+u32 chunk__ins_get_line(chunk_t* self, u32 ip);
 
 #endif // GIES_CHUNK_H

@@ -8,11 +8,10 @@
 #define LINE_FORMAT "%04d "
 #define INS_FORMAT "%-16s "
 
-static u32 disasm__simple(const char* instruction, u32 ip);
+static u32  disasm__simple(const char* instruction, u32 ip);
 static void disasm__imm_interal(const char* instruction, chunk_t* self, u32 imm_ip);
-static u32 disasm__imm(const char* instruction, chunk_t* self, u32 ip);
-static u32 disasm__imm_long(const char* instruction, chunk_t* self, u32 ip);
-static u32 ins__get_line(chunk_t* self, u32 ip);
+static u32  disasm__imm(const char* instruction, chunk_t* self, u32 ip);
+static u32  disasm__imm_long(const char* instruction, chunk_t* self, u32 ip);
 
 static u32 disasm__simple(const char* instruction, u32 ip) {
     libc__printf("%s\n", instruction);
@@ -45,23 +44,6 @@ static u32 disasm__imm_long(const char* instruction, chunk_t* self, u32 ip) {
     return ip + 4;
 }
 
-static u32 ins__get_line(chunk_t* self, u32 ip) {
-    u32 lines_index = 0;
-    while (lines_index < self->lines_fill) {
-        u32 n = self->lines[lines_index];
-        u32 line = self->lines[lines_index + 1];
-        if (ip < n) {
-            return line;
-        }
-        ip -= n;
-
-        lines_index += 2;
-    }
-
-    ASSERT(false);
-    return -1;
-}
-
 void chunk__disasm(chunk_t* self, const char* name) {
     libc__printf("--== %s ==--\n", name);
 
@@ -72,8 +54,8 @@ void chunk__disasm(chunk_t* self, const char* name) {
 
 u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
     libc__printf(IP_FORMAT, ip);
-    u32 line = ins__get_line(self, ip);
-    if (ip > 0 && line == ins__get_line(self, ip - 1)) {
+    u32 line = chunk__ins_get_line(self, ip);
+    if (ip > 0 && line == chunk__ins_get_line(self, ip - 1)) {
         libc__printf("   | ");
     } else {
         libc__printf(LINE_FORMAT, line);
@@ -90,6 +72,15 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_IMM_LONG: {
             return disasm__imm_long("INS_IMM_LONG", self, ip);
         } break ;
+        case INS_NIL: {
+            return disasm__simple("INS_NIL", ip);
+        } break ;
+        case INS_TRUE: {
+            return disasm__simple("INS_TRUE", ip);
+        } break ;
+        case INS_FALSE: {
+            return disasm__simple("INS_FALSE", ip);
+        } break ;
         case INS_NEG: {
             return disasm__simple("INS_NEG", ip);
         } break ;
@@ -104,6 +95,18 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         } break ;
         case INS_DIV: {
             return disasm__simple("INS_DIV", ip);
+        } break ;
+        case INS_NOT: {
+            return disasm__simple("INS_NOT", ip);
+        } break ;
+        case INS_EQ: {
+            return disasm__simple("INS_EQ", ip);
+        } break ;
+        case INS_GT: {
+            return disasm__simple("INS_GT", ip);
+        } break ;
+        case INS_LT: {
+            return disasm__simple("INS_LT", ip);
         } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);

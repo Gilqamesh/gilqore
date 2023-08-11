@@ -207,9 +207,9 @@ seg_t seg__prev(memory_slice_t memory, seg_t seg) {
     }
 
     seg_tag_t prev_seg_tail = (seg_tag_t) ((u8*) seg - sizeof(struct seg_tag));
-    size_t prev_seg_size = seg__size(prev_seg_tail);
+    // size_t prev_seg_size = seg__size(prev_seg_tail);
 
-    return (u8*) seg - prev_seg_size;
+    return (u8*) seg - prev_seg_tail->seg_size;
 }
 
 seg_t seg__find_next_free(memory_slice_t memory, seg_t seg) {
@@ -286,6 +286,9 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             size_t new_size = seg__size(seg) + seg__size(prev);
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
+
+            ASSERT(seg__head(prev)->free_seg == 0);
+            ASSERT(seg__tail(seg)->free_seg == 0);
         }
 
         // copy to maintain seg's data
@@ -315,6 +318,7 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
 
             // fix tail link as sized changed
             seg__tail(seg)->free_seg = 0;
+            ASSERT(seg__tail(next)->free_seg == 0);
         }
     } else {
         bool seg_is_available = seg__is_available(seg);
@@ -346,6 +350,9 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
+
+            ASSERT(seg__head(prev)->free_seg == 0);
+            ASSERT(seg__tail(next)->free_seg == 0);
         }
 
         // copy to maintain seg's data
@@ -405,6 +412,9 @@ seg_t seg__detach(memory_slice_t memory, seg_t seg, size_t new_seg_size) {
     seg_state__init(detachment, detachment_size, false, 0, 0);
     seg_state__init(seg, new_seg_size, state.available, state.prev_free, state.next_free);
 
+    ASSERT(seg__tail(seg)->free_seg == 0);
+    ASSERT(seg__head(seg)->free_seg == 0);
+
     // free the detachment
     DISCARD_RETURN seg__free(memory, detachment);
 
@@ -435,10 +445,7 @@ seg_state seg_state__get(seg_t seg) {
 
 void seg_state__available(memory_slice_t memory, seg_t seg, bool value) {
     ASSERT(seg);
-
-    if (seg__is_available(seg) == value) {
-        return ;
-    }
+    ASSERT(seg__is_available(seg) != value);
 
     if (seg__is_available(seg)) {
         seg__head(seg)->is_available = value;

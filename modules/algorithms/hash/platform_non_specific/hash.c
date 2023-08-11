@@ -22,3 +22,17 @@ u64 hash__sum_n(const char* str, u32 str_len) {
 
     return hash_result;
 }
+
+u32 hash__fnv_1a(const char* str, u32 len, u32 prev_hash) {
+    // FNV offset basis
+    u32 hash_result = prev_hash ? prev_hash : 2166136261U;
+
+    while (len > 0) {
+        hash_result ^= *str++;
+        // FNV prime
+        hash_result *= 16777619;
+        --len;
+    }
+
+    return hash_result;
+}
