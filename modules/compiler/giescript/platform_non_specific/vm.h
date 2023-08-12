@@ -10,9 +10,9 @@
 struct vm {
     u8* ip;
 
-    value_t* values_data;
-    value_t* values_top;
-    u32      values_size;
+    value_t* values_stack_data;
+    value_t* values_stack_top;
+    u32      values_stack_size;
 
     obj_t* objs;
 

@@ -42,9 +42,12 @@ typedef enum ins_mnemonic {
     INS_LT,                 // [ins]
     INS_PRINT,              // [ins]
     INS_POP,                // [ins]
+    INS_POPN,               // [ins] [ins_imm]
     INS_DEFINE_GLOBAL,      // [ins]
     INS_GET_GLOBAL,         // [ins]
     INS_SET_GLOBAL,         // [ins]
+    INS_GET_LOCAL,          // [ins]
+    INS_SET_LOCAL,          // [ins]
 } ins_mnemonic_t;
 
 // @returns ip of pushed instruction

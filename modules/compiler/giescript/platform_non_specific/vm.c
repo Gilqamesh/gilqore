@@ -42,8 +42,8 @@ static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
 #if defined(DEBUG_VM_TRACE)
     libc__printf("--== vm trace ==--\n"); 
     libc__printf("     values stack\n");
-    value_t* value = self->values_data;
-    while (value != self->values_top) {
+    value_t* value = self->values_stack_data;
+    while (value != self->values_stack_top) {
         libc__printf("[ ");
         value__print(*value++);
         libc__printf(" ]");
@@ -99,28 +99,28 @@ static value_t vm__eat_global_identifier_value(vm_t* self, chunk_t* chunk) {
 }
 
 static value_t vm__peek(vm_t* self) {
-    ASSERT(self->values_top > self->values_data && "underflow");
+    ASSERT(self->values_stack_top > self->values_stack_data && "underflow");
 
-    return *(self->values_top - 1);
+    return *(self->values_stack_top - 1);
 }
 
 static void vm__push(vm_t* self, value_t value) {
-    ASSERT(self->values_top < self->values_data + self->values_size && "overflow");
+    ASSERT(self->values_stack_top < self->values_stack_data + self->values_stack_size && "overflow");
 
-    *self->values_top++ = value;
+    *self->values_stack_top++ = value;
 }
 
 static value_t vm__pop(vm_t* self) {
-    ASSERT(self->values_top > self->values_data && "underflow");
+    ASSERT(self->values_stack_top > self->values_stack_data && "underflow");
 
-    return *--self->values_top;
+    return *--self->values_stack_top;
 }
 
 bool vm__create(vm_t* self, allocator_t* allocator) {
     self->ip = 0;
-    self->values_data = 0;
-    self->values_top = 0;
-    self->values_size = 0;
+    self->values_stack_data = 0;
+    self->values_stack_top = 0;
+    self->values_stack_size = 0;
 
     self->objs = 0;
 
@@ -135,8 +135,8 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
 }
 
 void vm__destroy(vm_t* self) {
-    if (self->values_data) {
-        allocator__free(self->allocator, self->values_data);
+    if (self->values_stack_data) {
+        allocator__free(self->allocator, self->values_stack_data);
     }
     vm__free_objs(self);
     
@@ -236,7 +236,7 @@ static void vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...) {
     u32 line = chunk__ins_get_line(chunk, self->ip - chunk->instructions - 1);
     libc__printf("[line %u] in script.\n", line);
 
-    self->values_top = self->values_data;
+    self->values_stack_top = self->values_stack_data;
 }
 
 static void vm__free_objs(vm_t* self) {
@@ -251,12 +251,12 @@ static void vm__free_objs(vm_t* self) {
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
     self->ip = chunk->instructions;
 
-    if (self->values_size < chunk->values_stack_size_watermark) {
+    if (self->values_stack_size < chunk->values_stack_size_watermark) {
         size_t new_values_data_size = chunk->values_stack_size_watermark << 1;
-        self->values_data = allocator__realloc(self->allocator, self->values_data, self->values_size, new_values_data_size * sizeof(*self->values_data));
-        self->values_size = new_values_data_size;
+        self->values_stack_data = allocator__realloc(self->allocator, self->values_stack_data, self->values_stack_size, new_values_data_size * sizeof(*self->values_stack_data));
+        self->values_stack_size = new_values_data_size;
     }
-    self->values_top = self->values_data;
+    self->values_stack_top = self->values_stack_data;
 
     while (42) {
         vm__interpret_trace(self, chunk);
@@ -285,8 +285,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 vm__push(self, value__bool(false));
             } break ;
             case INS_NEG: {
-                ASSERT(self->values_top != self->values_data);
-                value_t* value = self->values_top - 1;
+                ASSERT(self->values_stack_top != self->values_stack_data);
+                value_t* value = self->values_stack_top - 1;
                 if (!value__is_num(*value)) {
                     vm__error(self, chunk, "Operand must be a number.");
                     return VM_RUNTIME_ERROR;
@@ -333,8 +333,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 vm__push(self, value__num(value__as_num(left) / value__as_num(right)));
             } break ;
             case INS_NOT: {
-                ASSERT(self->values_top != self->values_data);
-                value_t* value = self->values_top - 1;
+                ASSERT(self->values_stack_top != self->values_stack_data);
+                value_t* value = self->values_stack_top - 1;
                 vm__push(self, value__bool(value__is_falsey(*value)));
             } break ;
             case INS_EQ: {
@@ -389,6 +389,17 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                     return VM_RUNTIME_ERROR;
                 }
                 self->global_values.values[global_value_index] = vm__peek(self);
+            } break ;
+            case INS_GET_LOCAL: {
+                u32 local_index = vm__eat_index(self, chunk);
+                ASSERT(local_index < self->values_stack_top - self->values_stack_data);
+                value_t value = self->values_stack_data[local_index];
+                vm__push(self, value);
+            } break ;
+            case INS_SET_LOCAL: {
+                u32 local_index = vm__eat_index(self, chunk);
+                ASSERT(local_index < self->values_stack_top - self->values_stack_data);
+                self->values_stack_data[local_index] = vm__peek(self);
             } break ;
             default: ASSERT(false);
         }

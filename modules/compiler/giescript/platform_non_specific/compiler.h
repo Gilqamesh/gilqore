@@ -6,6 +6,17 @@
 # include "scanner.h"
 # include "table.h"
 
+typedef struct local {
+    token_t  identifier;
+    s32      scope_depth; // -1
+} local_t;
+
+typedef struct scope {
+    local_t  locals[256];
+    u32      locals_fill;
+    s32      scope_depth;
+} scope_t;
+
 struct compiler {
     token_t current;
     token_t previous;
@@ -14,8 +25,7 @@ struct compiler {
     bool had_error;
     bool panic_mode;
 
-    // identifier name -> index of the value stored in the chunk
-    // table_t identifier_to_index;
+    scope_t scope;
 
     vm_t* vm;
     allocator_t* allocator;
