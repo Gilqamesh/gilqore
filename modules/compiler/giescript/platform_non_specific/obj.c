@@ -83,12 +83,12 @@ char* obj__as_cstr(value_t value) {
 obj_str_t* obj__copy_str(vm_t* vm, allocator_t* allocator, const char* bytes, u32 len) {
     u32 hash = hash__fnv_1a(bytes, len, 0);
     // if we already have this str in the interned table, do not create a new one, this way every str address is unique and can be compared
-    obj_str_t* intern = table__find_str(&vm->obj_str_table, bytes, len, hash);
-    if (intern) {
-        return intern;
+    obj_str_t* obj_str = table__find_str(&vm->obj_str_table, bytes, len, hash);
+    if (obj_str) {
+        return obj_str;
     }
 
-    obj_str_t* obj_str = (obj_str_t*) obj__allocate(vm, allocator, sizeof(*obj_str) + len + 1, OBJ_STRING);
+    obj_str = (obj_str_t*) obj__allocate(vm, allocator, sizeof(*obj_str) + len + 1, OBJ_STRING);
     obj_str->len = len;
     libc__memcpy(obj_str->str, bytes, len);
     obj_str->str[len] = '\0';
@@ -102,9 +102,9 @@ obj_str_t* obj__copy_str(vm_t* vm, allocator_t* allocator, const char* bytes, u3
 obj_str_t* obj__cat_str(vm_t* vm, allocator_t* allocator, value_t left, value_t right) {
     ASSERT(obj__is_str(left) && obj__is_str(right));
 
-    obj_str_t* intern = table__find_concat_str(&vm->obj_str_table, left, right);
-    if (intern) {
-        return intern;
+    obj_str_t* obj_str = table__find_concat_str(&vm->obj_str_table, left, right);
+    if (obj_str) {
+        return obj_str;
     }
 
     obj_str_t* obj_str_left = obj__as_str(left);
@@ -118,7 +118,7 @@ obj_str_t* obj__cat_str(vm_t* vm, allocator_t* allocator, value_t left, value_t 
 
     u32 len = obj_str_left->len + obj_str_right->len;
 
-    obj_str_t* obj_str = (obj_str_t*) obj__allocate(vm, allocator, sizeof(*obj_str) + len + 1, OBJ_STRING);
+    obj_str = (obj_str_t*) obj__allocate(vm, allocator, sizeof(*obj_str) + len + 1, OBJ_STRING);
     libc__memcpy(obj_str->str, obj_str_left->str, obj_str_left->len);
     libc__memcpy(obj_str->str + obj_str_left->len, obj_str_right->str, obj_str_right->len);
     obj_str->str[len] = '\0';

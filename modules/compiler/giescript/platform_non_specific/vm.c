@@ -18,11 +18,11 @@ typedef enum vm_interpret_result {
     VM_RUNTIME_ERROR
 } vm_interpret_result_t;
 
-static void vm__free_objs(vm_t* self, allocator_t* allocator);
+static void vm__free_objs(vm_t* self);
 // executes the chunk and returns the result
-static vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t* chunk);
+static vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk);
 // compiles, interprets and returns the result
-static vm_interpret_result_t vm__run_source(vm_t* self, allocator_t* allocator, const char* source);
+static vm_interpret_result_t vm__run_source(vm_t* self, const char* source);
 static void    vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...);
 // trace the current state of the vm
 static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
@@ -30,7 +30,8 @@ static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
 static u8      vm__eat(vm_t* self);
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk);
 static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk);
-static value_t vm__eat_identifier(vm_t* self, chunk_t* chunk);
+static u32     vm__eat_index(vm_t* self, chunk_t* chunk);
+static value_t vm__eat_global_identifier_value(vm_t* self, chunk_t* chunk);
 static value_t vm__peek(vm_t* self);
 // push value on the value stack
 static void    vm__push(vm_t* self, value_t value);
@@ -72,7 +73,7 @@ static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk) {
     return chunk->immediates.values[imm_index];
 }
 
-static value_t vm__eat_identifier(vm_t* self, chunk_t* chunk) {
+static u32 vm__eat_index(vm_t* self, chunk_t* chunk) {
     u8 ins = vm__eat(self);
     value_t identifier_index;
     switch (ins) {
@@ -84,10 +85,15 @@ static value_t vm__eat_identifier(vm_t* self, chunk_t* chunk) {
         } break ;
         default: ASSERT(false);
     }
+
     ASSERT(value__is_num(identifier_index));
-    u32 identifier_index_num = (u32) value__as_num(identifier_index);
-    value_t identifier = chunk->immediates.values[identifier_index_num];
-    ASSERT(obj__is_str(identifier));
+    return (u32) value__as_num(identifier_index);
+}
+
+static value_t vm__eat_global_identifier_value(vm_t* self, chunk_t* chunk) {
+    u32 identifier_index_num = vm__eat_index(self, chunk);
+    ASSERT(identifier_index_num < self->global_values.values_fill);
+    value_t identifier = self->global_values.values[identifier_index_num];
 
     return identifier;
 }
@@ -119,27 +125,35 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
     self->objs = 0;
 
     table__create(&self->obj_str_table, allocator);
-    table__create(&self->globals_table, allocator);
+
+    table__create(&self->global_names_to_index, allocator);
+    value_arr__create(&self->global_values, allocator);
+
+    self->allocator = allocator;
 
     return true;
 }
 
-void vm__destroy(vm_t* self, allocator_t* allocator) {
-    allocator__free(allocator, self->values_data);
-    vm__free_objs(self, allocator);
+void vm__destroy(vm_t* self) {
+    if (self->values_data) {
+        allocator__free(self->allocator, self->values_data);
+    }
+    vm__free_objs(self);
     
-    table__destroy(&self->globals_table);
     table__destroy(&self->obj_str_table);
+
+    table__destroy(&self->global_names_to_index);
+    value_arr__destroy(&self->global_values, self->allocator);
 
     libc__memset(self, 0, sizeof(*self));
 }
 
-bool vm__run_file(vm_t* self, allocator_t* allocator, const char* path) {
+bool vm__run_file(vm_t* self, const char* path) {
     size_t script_file_size;
     if (file__size(path, &script_file_size) == false) {
         return false;
     }
-    char* script_file_contents = allocator__alloc(allocator, script_file_size + 1);
+    char* script_file_contents = allocator__alloc(self->allocator, script_file_size + 1);
 
     file_t script_file;
     if (file__open(&script_file, path, FILE_ACCESS_MODE_READ, FILE_CREATION_MODE_OPEN) == false) {
@@ -149,7 +163,7 @@ bool vm__run_file(vm_t* self, allocator_t* allocator, const char* path) {
     script_file_contents[script_file_contents_len] = '\0';
     file__close(&script_file);
 
-    vm_interpret_result_t result = vm__run_source(self, allocator, script_file_contents);
+    vm_interpret_result_t result = vm__run_source(self, script_file_contents);
     switch (result) {
         case VM_OK: {
             libc__printf("VM: No errors compiling and running file '%s'\n", path);
@@ -167,10 +181,10 @@ bool vm__run_file(vm_t* self, allocator_t* allocator, const char* path) {
     return true;
 }
 
-bool vm__run_repl(vm_t* self, allocator_t* allocator) {
+bool vm__run_repl(vm_t* self) {
     console_t console = console__init_module(KILOBYTES(1), false);
     size_t line_buffer_size = KILOBYTES(1);
-    char*  line_buffer = allocator__alloc(allocator, line_buffer_size);
+    char*  line_buffer = allocator__alloc(self->allocator, line_buffer_size);
 
     bool prompt_is_running = true;
     while (prompt_is_running) {
@@ -182,30 +196,30 @@ bool vm__run_repl(vm_t* self, allocator_t* allocator) {
         if (read_line_length == 0) {
             prompt_is_running = false;
         } else {
-            vm__run_source(self, allocator, line_buffer);
+            vm__run_source(self, line_buffer);
         }
     }
 
-    allocator__free(allocator, line_buffer);
+    allocator__free(self->allocator, line_buffer);
     console__deinit_module(console);
 
     return true;
 }
 
-static vm_interpret_result_t vm__run_source(vm_t* self, allocator_t* allocator, const char* source) {
+static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
     chunk_t chunk;
-    chunk__create(&chunk, allocator);
+    chunk__create(&chunk, self->allocator);
 
     compiler_t compiler;
-    compiler__init(&compiler, self, source);
-    if (!compiler__compile(&compiler, allocator, &chunk)) {
-        chunk__destroy(&chunk, allocator);
+    compiler__init(&compiler, self, self->allocator, &chunk, source);
+    if (!compiler__compile(&compiler)) {
+        chunk__destroy(&chunk, self->allocator);
         return VM_COMPILE_ERROR;
     }
 
-    vm_interpret_result_t result = vm__interpret(self, allocator, &chunk);
+    vm_interpret_result_t result = vm__interpret(self, &chunk);
 
-    chunk__destroy(&chunk, allocator);
+    chunk__destroy(&chunk, self->allocator);
 
     return result;
 }
@@ -225,21 +239,21 @@ static void vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...) {
     self->values_top = self->values_data;
 }
 
-static void vm__free_objs(vm_t* self, allocator_t* allocator) {
+static void vm__free_objs(vm_t* self) {
     obj_t* obj = self->objs;
     while (obj) {
         obj_t* next = obj->next_free;
-        obj__free(allocator, obj);
+        obj__free(self->allocator, obj);
         obj = next;
     }
 }
 
-vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t* chunk) {
+vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
     self->ip = chunk->instructions;
 
     if (self->values_size < chunk->values_stack_size_watermark) {
         size_t new_values_data_size = chunk->values_stack_size_watermark << 1;
-        self->values_data = allocator__realloc(allocator, self->values_data, self->values_size, new_values_data_size * sizeof(*self->values_data));
+        self->values_data = allocator__realloc(self->allocator, self->values_data, self->values_size, new_values_data_size * sizeof(*self->values_data));
         self->values_size = new_values_data_size;
     }
     self->values_top = self->values_data;
@@ -283,7 +297,7 @@ vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t*
                 value_t right = vm__pop(self);
                 value_t left  = vm__pop(self);
                 if (obj__is_str(left) && obj__is_str(right)) {
-                    vm__push(self, value__obj((obj_t*) obj__cat_str(self, allocator, left, right)));
+                    vm__push(self, value__obj((obj_t*) obj__cat_str(self, self->allocator, left, right)));
                 } else if (value__is_num(left) && value__is_num(right)) {
                     vm__push(self, value__num(value__as_num(left) + value__as_num(right)));
                 } else {
@@ -355,21 +369,26 @@ vm_interpret_result_t vm__interpret(vm_t* self, allocator_t* allocator, chunk_t*
                 DISCARD_RETURN vm__pop(self);
             } break ;
             case INS_DEFINE_GLOBAL: {
-                value_t identifier = vm__eat_identifier(self, chunk);
-                // peek instead of pop first as the garbage collector might trigger during this operation
-                value_t initializer = vm__peek(self);
-                table__insert(&self->globals_table, identifier, initializer);
-                DISCARD_RETURN vm__pop(self);
+                u32 initializer_index = vm__eat_index(self, chunk);
+                self->global_values.values[initializer_index] = vm__pop(self);
             } break ;
             case INS_GET_GLOBAL: {
-                value_t identifier = vm__eat_identifier(self, chunk);
-                value_t value;
-                if (!table__get(&self->globals_table, identifier, &value)) {
-                    obj_str_t* identifier_str = obj__as_str(identifier);
-                    vm__error(self, chunk, "Undefined variable '%s'.", identifier_str->str);
+                value_t identifier_value = vm__eat_global_identifier_value(self, chunk);
+                if (value__is_undefined(identifier_value)) {
+                    vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                vm__push(self, value);
+                vm__push(self, identifier_value);
+            } break ;
+            case INS_SET_GLOBAL: {
+                u32 global_value_index = vm__eat_index(self, chunk);
+                ASSERT(global_value_index < self->global_values.values_fill);
+                value_t identifier_value = self->global_values.values[global_value_index];
+                if (value__is_undefined(identifier_value)) {
+                    vm__error(self, chunk, "Undefined variable.");
+                    return VM_RUNTIME_ERROR;
+                }
+                self->global_values.values[global_value_index] = vm__peek(self);
             } break ;
             default: ASSERT(false);
         }

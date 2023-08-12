@@ -55,10 +55,6 @@ void value__print(value_t value) {
     }
 }
 
-value_t value__empty() {
-    return (value_t) { .type = VALUE_TYPE_EMPTY, .as.number = 0 };
-}
-
 value_t value__num(r64 value) {
     return (value_t) { .type = VALUE_TYPE_NUMBER, .as.number = value };
 }
@@ -75,8 +71,12 @@ value_t value__nil() {
     return (value_t) { .type = VALUE_TYPE_NIL, .as.number = 0 };
 }
 
-bool value__is_empty(value_t value) {
-    return value.type == VALUE_TYPE_EMPTY;
+value_t value__empty() {
+    return (value_t) { .type = VALUE_TYPE_EMPTY, .as.number = 0 };
+}
+
+value_t value__undefined() {
+    return (value_t) { .type = VALUE_TYPE_UNDEFINED, .as.number = 0 };
 }
 
 bool value__is_num(value_t value) {
@@ -93,6 +93,14 @@ bool value__is_nil(value_t value) {
 
 bool value__is_obj(value_t value) {
     return value.type == VALUE_TYPE_OBJ;
+}
+
+bool value__is_empty(value_t value) {
+    return value.type == VALUE_TYPE_EMPTY;
+}
+
+bool value__is_undefined(value_t value) {
+    return value.type == VALUE_TYPE_UNDEFINED;
 }
 
 r64 value__as_num(value_t value) {

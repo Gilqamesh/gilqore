@@ -45,11 +45,11 @@ int main(int argc, char** argv) {
     }
 
     if (argc == 1) {
-        if (!vm__run_repl(&context.vm, &context.allocator)) {
+        if (!vm__run_repl(&context.vm)) {
             fatal(context, "vm__run_repl failed");
         }
     } else if (argc == 2) {
-        if (!vm__run_file(&context.vm, &context.allocator, argv[1])) {
+        if (!vm__run_file(&context.vm, argv[1])) {
             fatal(context, "vm__run_file failed");
         }
         error_code__exit(125);
