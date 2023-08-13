@@ -257,11 +257,6 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
     bool is_prev_available = prev && seg__is_available(prev);
     bool is_next_available = next && seg__is_available(next);
 
-    if ((size_t)seg == 0x40000772) {
-        int dbg = 0;
-        ++dbg;
-    }
-
     if (!is_prev_available && !is_next_available) {
     } else if (is_prev_available && !is_next_available) {
         /*
@@ -269,12 +264,15 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
                     ^
         */
 
-        bool seg_is_available = seg__is_available(seg);
+        bool  seg_is_available = seg__is_available(seg);
+        seg_t next_free;
 
         // getting rid of one of the two segs
         if (seg_is_available) {
+            next_free = seg__next_free(seg);
             seg_state__available(memory, seg, false);
         } else {
+            next_free = seg__next_free(prev);
             seg_state__available(memory, prev, false);
         }
 
@@ -285,7 +283,6 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
 
         // resize, update tail
         if (seg_is_available) {
-            seg_t next_free = seg__next_free(prev);
             size_t new_size = seg__size(seg) + seg__size(prev);
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
@@ -313,14 +310,14 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             [ A/!A ][ A ]
                 ^
         */
-        bool seg_is_available = seg__is_available(seg);
+        bool  seg_is_available = seg__is_available(seg);
+        seg_t next_free = seg__next_free(next);
 
         // getting rid of one of the coaled next
         seg_state__available(memory, next, false);
 
         // resize, update tail
-        if (seg_is_available) {
-            seg_t next_free = seg__next_free(next);
+        if (seg_is_available) {  
             size_t new_size = seg__size(seg) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(seg)->seg_size = new_size;
@@ -343,7 +340,8 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             [ A ][ A/!A ][ A ]
                     ^
         */
-        bool seg_is_available = seg__is_available(seg);
+        bool  seg_is_available = seg__is_available(seg);
+        seg_t next_free = seg__next_free(next);
 
         // getting rid of two of the three segs
         if (seg_is_available) {
@@ -361,7 +359,6 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
 
         // resize, update tail
         if (seg_is_available) {
-            seg_t next_free = seg__next_free(prev);
             size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
@@ -472,21 +469,6 @@ seg_state seg_state__get(seg_t seg) {
 void seg_state__available(memory_slice_t memory, seg_t seg, bool value) {
     ASSERT(seg);
     ASSERT(seg__is_available(seg) != value);
-
-    seg_t next = seg__next(memory, seg);
-    seg_t prev = seg__prev(memory, seg);
-    if (
-        ((size_t)next == 0x4000083a && (size_t)seg == 0x40000772) ||
-        ((size_t)seg == 0x4000083a && (size_t)prev == 0x40000772)
-    ) {
-        int dbg = 0;
-        ++dbg;
-    }
-
-    if ((size_t)seg == 0x4000083a) {
-        int dbg = 0;
-        ++dbg;
-    }
 
     if (seg__is_available(seg)) {
         seg__head(seg)->is_available = value;
@@ -672,18 +654,20 @@ seg_t seg__realloc(memory_slice_t memory, void* data, size_t old_size, size_t da
 }
 
 seg_t seg__free(memory_slice_t memory, seg_t seg) {
-    size_t size = seg__size(seg);
-    (void) size;
-
-    if ((size_t)seg == (size_t)0x40000772) {
-        int bp = 0;
-        ++bp;
-    } 
-
     ASSERT(!seg__is_available(seg));
     seg_state__available(memory, seg, true);
 
-    return seg__coal(memory, seg);
+    // libc__printf("------- BEFORE COAL START -------\n");
+    // seg__for_each(memory, &seg__print);
+    // libc__printf("------- BEFORE COAL END   -------\n");
+
+    seg_t coaled_seg = seg__coal(memory, seg);
+
+    // libc__printf("------- AFTER COAL START -------\n");
+    // seg__for_each(memory, &seg__print);
+    // libc__printf("------- AFTER COAL END   -------\n");
+
+    return coaled_seg;
 }
 
 seg_t seg__data_to_seg(void* data) {
