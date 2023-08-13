@@ -10,8 +10,6 @@
 #include "io/file/file.h"
 #include "io/console/console.h"
 
-#define DEBUG_VM_TRACE
-
 typedef enum vm_interpret_result {
     VM_OK,
     VM_COMPILE_ERROR,
@@ -54,6 +52,9 @@ static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
     ASSERT(chunk->instructions <= self->ip);
     chunk__disasm_ins(chunk, (u32) (self->ip - chunk->instructions));
     libc__printf("\n");
+#else
+    (void) self;
+    (void) chunk;
 #endif
 }
 
@@ -126,7 +127,7 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
 
     table__create(&self->obj_str_table, allocator);
 
-    table__create(&self->global_names_to_index, allocator);
+    table__create(&self->global_names_to_var_infos, allocator);
     value_arr__create(&self->global_values, allocator);
 
     self->allocator = allocator;
@@ -142,7 +143,7 @@ void vm__destroy(vm_t* self) {
     
     table__destroy(&self->obj_str_table);
 
-    table__destroy(&self->global_names_to_index);
+    table__destroy(&self->global_names_to_var_infos);
     value_arr__destroy(&self->global_values, self->allocator);
 
     libc__memset(self, 0, sizeof(*self));
@@ -166,7 +167,6 @@ bool vm__run_file(vm_t* self, const char* path) {
     vm_interpret_result_t result = vm__run_source(self, script_file_contents);
     switch (result) {
         case VM_OK: {
-            libc__printf("VM: No errors compiling and running file '%s'\n", path);
         } break ;
         case VM_COMPILE_ERROR: {
             libc__printf("VM: Compilation error in file '%s'\n", path);
@@ -176,7 +176,7 @@ bool vm__run_file(vm_t* self, const char* path) {
         } break ;
     }
 
-    libc__free(script_file_contents);
+    allocator__free(self->allocator, script_file_contents);
 
     return true;
 }
@@ -211,11 +211,18 @@ static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
     chunk__create(&chunk, self->allocator);
 
     compiler_t compiler;
-    compiler__init(&compiler, self, self->allocator, &chunk, source);
-    if (!compiler__compile(&compiler)) {
+    if (!compiler__create(&compiler, self, self->allocator, &chunk, source)) {
         chunk__destroy(&chunk, self->allocator);
         return VM_COMPILE_ERROR;
     }
+
+    if (!compiler__compile(&compiler)) {
+        compiler__destroy(&compiler);
+        chunk__destroy(&chunk, self->allocator);
+        return VM_COMPILE_ERROR;
+    }
+
+    compiler__destroy(&compiler);
 
     vm_interpret_result_t result = vm__interpret(self, &chunk);
 
@@ -243,7 +250,7 @@ static void vm__free_objs(vm_t* self) {
     obj_t* obj = self->objs;
     while (obj) {
         obj_t* next = obj->next_free;
-        obj__free(self->allocator, obj);
+        obj__free(self, obj);
         obj = next;
     }
 }
@@ -251,10 +258,15 @@ static void vm__free_objs(vm_t* self) {
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
     self->ip = chunk->instructions;
 
+    ASSERT(chunk->values_stack_size_watermark > 0);
     if (self->values_stack_size < chunk->values_stack_size_watermark) {
-        size_t new_values_data_size = chunk->values_stack_size_watermark << 1;
-        self->values_stack_data = allocator__realloc(self->allocator, self->values_stack_data, self->values_stack_size, new_values_data_size * sizeof(*self->values_stack_data));
-        self->values_stack_size = new_values_data_size;
+        size_t new_values_stack_size = chunk->values_stack_size_watermark << 1;
+        self->values_stack_data = allocator__realloc(
+            self->allocator, self->values_stack_data,
+            self->values_stack_size * sizeof(*self->values_stack_data),
+            new_values_stack_size   * sizeof(*self->values_stack_data)
+        );
+        self->values_stack_size = new_values_stack_size;
     }
     self->values_stack_top = self->values_stack_data;
 
@@ -297,7 +309,7 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 value_t right = vm__pop(self);
                 value_t left  = vm__pop(self);
                 if (obj__is_str(left) && obj__is_str(right)) {
-                    vm__push(self, value__obj((obj_t*) obj__cat_str(self, self->allocator, left, right)));
+                    vm__push(self, obj__cat_str(self, left, right));
                 } else if (value__is_num(left) && value__is_num(right)) {
                     vm__push(self, value__num(value__as_num(left) + value__as_num(right)));
                 } else {
@@ -388,7 +400,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                     vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                self->global_values.values[global_value_index] = vm__peek(self);
+                value_t value = vm__peek(self);
+                self->global_values.values[global_value_index] = value;
             } break ;
             case INS_GET_LOCAL: {
                 u32 local_index = vm__eat_index(self, chunk);
@@ -399,7 +412,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
             case INS_SET_LOCAL: {
                 u32 local_index = vm__eat_index(self, chunk);
                 ASSERT(local_index < self->values_stack_top - self->values_stack_data);
-                self->values_stack_data[local_index] = vm__peek(self);
+                value_t value = vm__peek(self);
+                self->values_stack_data[local_index] = value;
             } break ;
             default: ASSERT(false);
         }

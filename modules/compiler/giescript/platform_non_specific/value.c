@@ -19,7 +19,7 @@ void value_arr__create(value_arr_t* self, allocator_t* allocator) {
 
 void value_arr__destroy(value_arr_t* self, allocator_t* allocator) {
     if (self->values) {
-        FREE_ARRAY(allocator, value_t, self->values, self->values_size);
+        allocator__free(allocator, self->values);
     }
     
     value_arr__init(self);
@@ -27,8 +27,12 @@ void value_arr__destroy(value_arr_t* self, allocator_t* allocator) {
 
 u32 value_arr__push(value_arr_t* self, allocator_t* allocator, value_t value) {
     if (self->values_fill == self->values_size) {
-        u32 new_size = GROW_CAPACITY(self->values_size);
-        GROW_ARRAY(self->values, allocator, value_t, self->values, self->values_size, new_size);
+        u32 new_size = self->values_size < 8 ? 8 : self->values_size * 2;
+        self->values = allocator__realloc(
+            allocator, self->values,
+            self->values_size * sizeof(*self->values),
+            new_size * sizeof(*self->values)
+        );
         self->values_size = new_size;
     }
     u32 index = self->values_fill;
@@ -172,7 +176,7 @@ u32 value__hash(value_t value) {
             return value__hash_number(value);
         } break ;
         case VALUE_TYPE_OBJ: {
-            return obj__hash(value, 0);
+            return obj__hash(value);
         } break ;
         default: ASSERT(false);
     }

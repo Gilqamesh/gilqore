@@ -33,6 +33,10 @@ static token_t scanner__make_token(scanner_t* self, token_type type) {
         .line       = self->line
     };
 
+#if defined (DEBUG_TOKEN_TRACE)
+    libc__printf("token: line = %d, type = %d, str = [%.*s]\n", result.line, result.type, result.lexeme_len, result.lexeme);
+#endif
+
     return result;
 }
 
@@ -170,16 +174,23 @@ static token_type scanner__identifier_type_helper(scanner_t* self, u32 start, u3
 static token_type scanner__identifier_type(scanner_t* self) {
     switch (*self->start) {
         case 'a': return scanner__identifier_type_helper(self, 1, 2, "nd",    TOKEN_AND);
-        case 'c': return scanner__identifier_type_helper(self, 1, 4, "lass",  TOKEN_CLASS);
+        case 'c': {
+            if (self->top - self->start > 1) {
+                switch (*(self->start + 1)) {
+                    case 'l': return scanner__identifier_type_helper(self, 2, 3, "ass", TOKEN_CLASS);
+                    case 'o': return scanner__identifier_type_helper(self, 2, 3, "nst", TOKEN_CONST);
+                }
+            }
+        } break ;
         case 'e': return scanner__identifier_type_helper(self, 1, 3, "lse",   TOKEN_ELSE);
         case 'i': return scanner__identifier_type_helper(self, 1, 1, "f",     TOKEN_IF);
         case 'n': return scanner__identifier_type_helper(self, 1, 2, "il",    TOKEN_NIL);
         case 'o': return scanner__identifier_type_helper(self, 1, 1, "r",     TOKEN_OR);
         case 'p': return scanner__identifier_type_helper(self, 1, 4, "rint",  TOKEN_PRINT);
         case 'r': return scanner__identifier_type_helper(self, 1, 5, "eturn", TOKEN_RETURN);
-        case 's': return scanner__identifier_type_helper(self, 1, 4, "uper",  TOKEN_SUPER);
-        case 'v': return scanner__identifier_type_helper(self, 1, 2, "ar",    TOKEN_VAR);
-        case 'w': return scanner__identifier_type_helper(self, 1, 4, "hile",  TOKEN_WHILE);
+        case 's': return scanner__identifier_type_helper(self, 2, 3, "per",   TOKEN_SUPER);
+        case 'v': return scanner__identifier_type_helper(self, 1, 2, "ar",   TOKEN_VAR);
+        case 'w': return scanner__identifier_type_helper(self, 1, 4, "hile", TOKEN_WHILE);
         case 'f': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {

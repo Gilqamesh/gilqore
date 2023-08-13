@@ -3,7 +3,7 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 
 // @brief disassembles chunk and prints, check disasm_grammar.txt
 // @param name chunk name to be displayed

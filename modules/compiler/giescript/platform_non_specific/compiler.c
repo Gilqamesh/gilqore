@@ -3,11 +3,7 @@
 #include "chunk.h"
 #include "obj.h"
 #include "vm.h"
-
-#define DEBUG_COMPILER_TRACE
-#if defined(DEBUG_COMPILER_TRACE)
-# include "debug.h"
-#endif
+#include "debug.h"
 
 #include "libc/libc.h"
 
@@ -61,24 +57,27 @@ static void compiler__emit_identifier(compiler_t* self, bool can_assign);
 
 // returns current token type being compiled
 static token_type compiler__peak(compiler_t* self);
-static void       compiler__eat(compiler_t* self);
-static bool       compiler__eat_if(compiler_t* self, token_type type);
-static void       compiler__eat_err(compiler_t* self, token_type type, const char* err_msg);
-static void       compiler__error_at(compiler_t* self, token_t* token, const char* err_msg);
-static void       compiler__end_compile(compiler_t* self);
+static void compiler__eat(compiler_t* self);
+static bool compiler__eat_if(compiler_t* self, token_type type);
+static void compiler__eat_err(compiler_t* self, token_type type, const char* err_msg);
+static void compiler__error_at(compiler_t* self, token_t* token, const char* err_msg);
+// static void       compiler__warn_at(compiler_t* self, token_t* token, const char* warn_msg);
+static void compiler__end_compile(compiler_t* self);
 // skips tokens until a statement boundary is reached
-static void       compiler__synchronize(compiler_t* self);
-static u32        compiler__parse_variable(compiler_t* self);
-static u32        compiler__push_value_index(compiler_t* self, token_t* name);
-static void       compiler__define_variable(compiler_t* self, u32 identifier_index);
-static void       compiler__declare_variable(compiler_t* self);
+static void compiler__synchronize(compiler_t* self);
+// parses variable, returns the declaration
+static obj_var_info_t compiler__parse_variable(compiler_t* self);
+// registers the global to the name -> var infos table, returns the var info
+static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* global, token_t* global_type);
+static void compiler__define_variable(compiler_t* self, obj_var_info_t* var_info);
+static void compiler__declare_local(compiler_t* self, token_t* ident, token_t* ident_type);
 // add local variable
-static void       compiler__add_local(compiler_t* self, token_t* local_name);
+static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident_type);
 // returns local index or -1 if not found, which means it's a global variable
-static s32        compiler__find_local(compiler_t* self, token_t* local_name);
-static void       compiler__emit_named_var(compiler_t* self, token_t* token, bool can_assign);
-static void       compiler__begin_scope(compiler_t* self);
-static void       compiler__end_scope(compiler_t* self);
+static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name);
+static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign);
+static void compiler__begin_scope(compiler_t* self);
+static void compiler__end_scope(compiler_t* self);
 
 // maps token type to its compile rule
 static compile_rule compile_rules[] = {
@@ -148,6 +147,7 @@ static void compiler__emit_prec(compiler_t* self, precedence prec) {
         infix_rule->infix(self, can_assign);
     }
 
+    // if the assignment did not get consumed, nothing else is going to consume it -> error
     if (can_assign && compiler__eat_if(self, TOKEN_EQUAL)) {
         compiler__error_at(self, &self->previous, "Invalid assignment target.");
     }
@@ -267,12 +267,12 @@ static void compiler__emit_str(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
     ASSERT(self->previous.lexeme_len > 1);
-    obj_str_t* obj_str = obj__copy_str(self->vm, self->allocator, self->previous.lexeme + 1, self->previous.lexeme_len - 2);
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__obj((obj_t*) obj_str), self->previous.line);
+    value_t obj_str = obj__copy_str(self->vm, self->previous.lexeme + 1, self->previous.lexeme_len - 2);
+    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, obj_str, self->previous.line);
 }
 
 static void compiler__emit_identifier(compiler_t* self, bool can_assign) {
-    compiler__emit_named_var(self, &self->previous, can_assign);
+    compiler__emit_named_var(self, self->previous, can_assign);
 }
 
 static token_type compiler__peak(compiler_t* self) {
@@ -313,13 +313,13 @@ static void compiler__eat_err(compiler_t* self, token_type type, const char* err
 
 static void compiler__error_at(compiler_t* self, token_t* token, const char* err_msg) {
     if (self->panic_mode) {
-        return;
+        return ;
     }
 
     self->had_error = true;
     self->panic_mode = true;
 
-    libc__printf("[line %d] Error", token->line);
+    libc__printf("%d | Error", token->line);
     switch (token->type) {
         case TOKEN_ERROR: {
         } break ;
@@ -333,15 +333,38 @@ static void compiler__error_at(compiler_t* self, token_t* token, const char* err
     libc__printf(": %s\n", err_msg);
 }
 
+// static void compiler__warn_at(compiler_t* self, token_t* token, const char* warn_msg) {
+//     if (self->panic_mode) {
+//         return ;
+//     }
+
+//     libc__printf("%d | Warning", token->line);
+//     switch (token->type) {
+//         case TOKEN_ERROR: {
+//         } break ;
+//         case TOKEN_EOF: {
+//             libc__printf(" at end");
+//         } break ;
+//         default: {
+//             libc__printf(" at '%.*s'", token->lexeme_len, token->lexeme);
+//         }
+//     }
+//     libc__printf(": %s\n", warn_msg);
+// }
+
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins) {
     chunk__push_ins(self->chunk, self->allocator, ins, self->previous.line);
 }
 
 static void compiler__emit_decl(compiler_t* self) {
-    if (compiler__eat_if(self, TOKEN_VAR)) {
-        compiler__emit_var_decl(self);
-    } else {
-        compiler__emit_stmt(self);
+    switch (compiler__peak(self)) {
+        case TOKEN_VAR:
+        case TOKEN_CONST: {
+            compiler__emit_var_decl(self);
+        } break ;
+        default: {
+            compiler__emit_stmt(self);
+        }
     }
 
     if (self->panic_mode) {
@@ -349,22 +372,35 @@ static void compiler__emit_decl(compiler_t* self) {
     }
 }
 
-// [initializer expr INS / INS_NIL]
-// [INS_DEFINE_GLOBAL]
-// [INS_IMM/INS_IMM_LONG]
-// [1 to 3 INS for index of identifier name]
+// local:  [expr ins (if initializer exists) | ins_nil]
+// global: [expr ins (if initializer exists) | ins_nil]
+//         [ins_define_global] [imm/imm_long]
 static void compiler__emit_var_decl(compiler_t* self) {
-    u32 var_index = compiler__parse_variable(self);
+    obj_var_info_t var_info = compiler__parse_variable(self);
 
     if (compiler__eat_if(self, TOKEN_EQUAL)) {
         compiler__emit_expr(self);
     } else {
+        if (var_info.is_const) {
+            compiler__error_at(self, &self->previous, "Constant variable requires an initializer.");
+            // table__erase(&self->vm->global_names_to_var_infos);
+            return ;
+        }
         compiler__emit_ins(self, INS_NIL);
     }
 
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
 
-    compiler__define_variable(self, var_index);
+    // do not store variables that are in local scopes
+    if (var_info.var_index == -1) {
+        // at this point we compiled the initializer, ready to set the state of the local to initialized
+        ASSERT(self->scope.scope_depth > 0);
+        local_t* local = &self->scope.locals_data[self->scope.scope_depth - 1];
+        local->scope_depth = self->scope.scope_depth;
+        return ;
+    }
+
+    compiler__define_variable(self, &var_info);
 }
 
 static void compiler__emit_stmt(compiler_t* self) {
@@ -431,120 +467,171 @@ static void compiler__synchronize(compiler_t* self) {
     }
 }
 
-static u32 compiler__parse_variable(compiler_t* self) {
-    compiler__eat_err(self, TOKEN_IDENTIFIER, "Expect variable name.");
+static obj_var_info_t compiler__parse_variable(compiler_t* self) {
+    obj_var_info_t result = obj__var_info(-1, false);
 
-    compiler__declare_variable(self);
-    if (self->scope.scope_depth > 0) {
-        // do not store variables that are not in the global scope, return dummy value
-        return 0;
+    // check for identifier prefixes that identifies its type (not yet implemented), constness etc
+    /* while (!compiler__eat_if(self, identifier)) */
+    compiler__eat(self);
+    token_t identifier_type = self->previous;
+
+    compiler__eat_err(self, TOKEN_IDENTIFIER, "Expect variable name.");
+    token_t ident = self->previous;
+
+    if (self->scope.scope_depth == 0) {
+        obj_var_info_t* var_info = compiler__declare_global(self, &ident, &identifier_type);
+        if (!var_info) {
+            return result;
+        }
+
+        result = *var_info;
+    } else {
+        compiler__declare_local(self, &ident, &identifier_type);
+        // declare but not initialize yet
+        result.var_index = -1;
     }
 
-    return compiler__push_value_index(self, &self->previous);
+    return result;
 }
 
-static u32 compiler__push_value_index(compiler_t* self, token_t* token) {
-    obj_str_t* obj_str = obj__copy_str(self->vm, self->allocator, token->lexeme, token->lexeme_len);
+static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* ident, token_t* ident_type) {
+    value_t obj_str = obj__copy_str(self->vm, ident->lexeme, ident->lexeme_len);
 
-    // check if name -> index for the token already exists, which saves us having to do this check during runtime
+    // check if name -> var info for the ident already exists, which saves us having to do this check during runtime
     vm_t* vm = self->vm;
-    value_t index_value;
-    if (table__get(&vm->global_names_to_index, value__obj((obj_t*) obj_str), &index_value)) {
+    value_t var_info;
+    if (table__get(&vm->global_names_to_var_infos, obj_str, &var_info)) {
+        // already declared variable
+        compiler__error_at(self, ident, "Already declared identifier");
         // if it does, no need to create an index, just return with it
-        return (u32) value__as_num(index_value);
+        return NULL;
     }
 
     // store name -> index
     u32 index = value_arr__push(&vm->global_values, self->allocator, value__undefined());
-    table__insert(&vm->global_names_to_index, value__obj((obj_t*) obj_str), value__num((r64) index));
+    var_info = obj__get_var_info(self->vm, index, ident_type->type == TOKEN_CONST);
+    table__insert(&vm->global_names_to_var_infos, obj_str, var_info);
 
-    return index;
+    return obj__as_var_info(var_info);
 }
 
-static void compiler__define_variable(compiler_t* self, u32 identifier_index) {
-    if (self->scope.scope_depth > 0) {
-        // do not store variables that are not in the global scope
-        return ;
-    }
-
+// local:  -
+// global: [ins_define_global] [imm/imm_long (index of global)]
+static void compiler__define_variable(compiler_t* self, obj_var_info_t* var_info) {
     compiler__emit_ins(self, INS_DEFINE_GLOBAL);
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num(identifier_index), self->previous.line);
+    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num(var_info->var_index), self->previous.line);
 }
 
-static void compiler__declare_variable(compiler_t* self) {
-    if (self->scope.scope_depth == 0) {
-        // do not store local variables for the global scope
-        return ;
-    }
-
-    token_t* local_name = &self->previous;
-
+static void compiler__declare_local(compiler_t* self, token_t* ident, token_t* ident_type) {
     // check if local is already stored
     for (s32 local_index = self->scope.locals_fill - 1; local_index >= 0; --local_index) {
-        local_t* local = &self->scope.locals[local_index];
+        local_t* local = &self->scope.locals_data[local_index];
         if (local->scope_depth != -1 && local->scope_depth < self->scope.scope_depth) {
-            // if local is in an outer scope, we allow shadowing
+            // if local is in an outer scope, allow shadowing
             break ;
         }
 
         if (
-            local->identifier.lexeme_len == local_name->lexeme_len &&
-            libc__memcmp(local->identifier.lexeme, local_name->lexeme, local_name->lexeme_len) == 0
+            local->identifier.lexeme_len == ident->lexeme_len &&
+            libc__memcmp(local->identifier.lexeme, ident->lexeme, ident->lexeme_len) == 0
         ) {
-            compiler__error_at(self, local_name, "Variable already declared in this scope.");
+            compiler__error_at(self, ident, "Variable already declared in this scope.");
             return ;
         }
     }
 
-    compiler__add_local(self, local_name);
+    compiler__add_local(self, ident, ident_type);
 }
 
-static void compiler__add_local(compiler_t* self, token_t* local_name) {
-    if (self->scope.locals_fill == ARRAY_SIZE(self->scope.locals)) {
-        compiler__error_at(self, local_name, "Too many local variables in function.");
-        return ;
+static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident_type) {
+    if (self->scope.locals_fill == self->scope.locals_size) {
+        u32 new_locals_size = self->scope.locals_fill < 8 ? 8 : self->scope.locals_fill * 2;
+        self->scope.locals_data = allocator__realloc(
+            self->allocator, self->scope.locals_data,
+            self->scope.locals_size * sizeof(*self->scope.locals_data),
+            new_locals_size         * sizeof(*self->scope.locals_data)
+        );
+        self->scope.locals_size = new_locals_size;
     }
 
-    local_t* local = &self->scope.locals[self->scope.locals_fill++];
-    local->identifier  = *local_name;
-    local->scope_depth = self->scope.scope_depth;
+    local_t* local = &self->scope.locals_data[self->scope.locals_fill++];
+    local->identifier  = *ident;
+    // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state
+    local->scope_depth = -1;
+    local->is_const = ident_type->type == TOKEN_CONST;
 }
 
-static s32 compiler__find_local(compiler_t* self, token_t* local_name) {
+static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name) {
+    obj_var_info_t result = obj__var_info(-1, false);
+
     for (s32 local_index = self->scope.locals_fill - 1; local_index >= 0; --local_index) {
-        local_t* local = &self->scope.locals[local_index];
+        local_t* local = &self->scope.locals_data[local_index];
         if (
             local->identifier.lexeme_len == local_name->lexeme_len &&
             libc__memcmp(local->identifier.lexeme, local_name->lexeme, local_name->lexeme_len) == 0
         ) {
-            return local_index;
+            if (local->scope_depth == -1) {
+                compiler__error_at(self, local_name, "Cannot read local variable in its own initializer.");
+            }
+
+            result.is_const = local->is_const;
+            result.var_index = local_index;
+            break ;
         }
     }
 
-    return -1;
+    return result;
 }
 
-static void compiler__emit_named_var(compiler_t* self, token_t* token, bool can_assign) {
-    s32 var_index = compiler__find_local(self, token);
-    ins_mnemonic_t get_ins;
-    ins_mnemonic_t set_ins;
-    if (var_index != -1) {
-        get_ins = INS_GET_LOCAL;
-        set_ins = INS_SET_LOCAL;
-    } else {
-        var_index = compiler__push_value_index(self, token);
-        get_ins = INS_GET_GLOBAL;
-        set_ins = INS_SET_GLOBAL;
-    }
+// local:  [expr ins (if assignment)]
+//         [ins_set_local/ins_get_local] [imm/imm_long (index of local)]
+// global: [expr ins (if assignment)]
+//         [ins_set_global/ins_get_global] [imm/imm_long (index of global)]
+static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign) {
+    (void) can_assign;
 
-    if (can_assign && compiler__eat_if(self, TOKEN_EQUAL)) {
-        compiler__emit_expr(self);
-        compiler__emit_ins(self, set_ins);
-    } else {
-        compiler__emit_ins(self, get_ins);
-    }
+    obj_var_info_t local_result = compiler__find_local(self, &var);
+    if (local_result.var_index != -1) {
+        if (compiler__eat_if(self, TOKEN_EQUAL)) {
+            if (local_result.is_const) {
+                compiler__error_at(self, &var, "Cannot assign to constant variable.");
+                return ;
+            } else {
+                compiler__emit_expr(self);
+                compiler__emit_ins(self, INS_SET_LOCAL);
+            }
+        } else {
+            compiler__emit_ins(self, INS_GET_LOCAL);
+        }
 
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num((r64) var_index), self->previous.line);
+        DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num((r64) local_result.var_index), self->previous.line);
+    } else {
+        value_t obj_str = obj__copy_str(self->vm, var.lexeme, var.lexeme_len);
+        // get the global
+        value_t global_info;
+        bool found_global_decl = table__get(&self->vm->global_names_to_var_infos, obj_str, &global_info);
+        if (!found_global_decl) {
+            compiler__error_at(self, &var, "Variable is not declared.");
+            return ;
+        }
+
+        ASSERT(obj__is_var_info(global_info));
+        obj_var_info_t* var_info = obj__as_var_info(global_info);
+
+        if (compiler__eat_if(self, TOKEN_EQUAL)) {
+            if (var_info->is_const) {
+                compiler__error_at(self, &var, "Cannot assign to constant variable.");
+                return ;
+            } else {
+                compiler__emit_expr(self);
+                compiler__emit_ins(self, INS_SET_GLOBAL);
+            }
+        } else {
+            compiler__emit_ins(self, INS_GET_GLOBAL);
+        }
+
+        DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num((r64) var_info->var_index), self->previous.line);
+    }
 }
 
 static void compiler__begin_scope(compiler_t* self) {
@@ -559,25 +646,35 @@ static void compiler__end_scope(compiler_t* self) {
     // pop locals from the scope
     while (
         self->scope.locals_fill > 0 &&
-        self->scope.locals[self->scope.locals_fill - 1].scope_depth > self->scope.scope_depth
+        self->scope.locals_data[self->scope.locals_fill - 1].scope_depth > self->scope.scope_depth
     ) {
         compiler__emit_ins(self, INS_POP);
         --self->scope.locals_fill;
     }
 }
 
-void compiler__init(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source) {
+bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source) {
     scanner__init(&self->scanner, source);
 
     self->had_error = false;
     self->panic_mode = false;
 
+    self->scope.locals_data = 0;
     self->scope.locals_fill = 0;
+    self->scope.locals_size = 0;
     self->scope.scope_depth = 0;
 
     self->vm = vm;
     self->allocator = allocator;
     self->chunk = chunk;
+
+    return true;
+}
+
+void compiler__destroy(compiler_t* self) {
+    if (self->scope.locals_data) {
+        allocator__free(self->allocator, self->scope.locals_data);
+    }
 }
 
 bool compiler__compile(compiler_t* self) {

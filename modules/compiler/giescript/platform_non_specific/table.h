@@ -3,7 +3,7 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 # include "value.h"
 
 struct entry {

@@ -4,6 +4,7 @@
 #include "value.h"
 
 #include "libc/libc.h"
+#include "algorithms/hash/hash.h"
 
 #define TABLE_LOAD_FACTOR 0.75
 
@@ -18,7 +19,7 @@ static void table__ensure_size(table_t* self, u32 size) {
     new_table.size = size;
     new_table.entries = allocator__alloc(self->allocator, size * sizeof(*new_table.entries));
     entry_t* entry = new_table.entries;
-    entry_t* last_entry = &new_table.entries[new_table.size - 1];
+    entry_t* last_entry = &new_table.entries[new_table.size];
     while (entry < last_entry) {
         entry->key = value__empty();
         entry->value = value__nil();
@@ -41,9 +42,9 @@ static void table__copy(table_t* dst, table_t* src) {
     }
 
     entry_t* entry = &src->entries[0];
-    entry_t* last_entry = &src->entries[src->size - 1];
+    entry_t* last_entry = &src->entries[src->size];
     while (entry < last_entry) {
-        if (value__is_empty(entry->key)) {
+        if (!value__is_empty(entry->key)) {
             table__insert(dst, entry->key, entry->value);
         }
         ++entry;
@@ -70,7 +71,7 @@ bool table__insert(table_t* self, value_t key, value_t value) {
     ASSERT(!value__is_empty(key));
 
     if (self->fill + 1 > self->size * TABLE_LOAD_FACTOR) {
-        u32 new_size = GROW_CAPACITY(self->size);
+        u32 new_size = self->size < 8 ? 8 : self->size * 2;
         table__ensure_size(self, new_size);
     }
 
@@ -190,11 +191,13 @@ obj_str_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
         return 0;
     }
 
-    u32 left_hash  = obj__hash(left, 0);
-    u32 hash       = obj__hash(right, left_hash);
-    u32 index = hash % self->size;
     obj_str_t* obj_str_left = obj__as_str(left);
     obj_str_t* obj_str_right = obj__as_str(right);
+    u32 left_hash  = obj__hash(left);
+    u32 right_hash = obj__hash(right);
+    u32 hash       = hash__fnv_1a(obj_str_right->str, obj_str_right->len, left_hash);
+    ASSERT((left_hash ^ right_hash) == hash);
+    u32 index = hash % self->size;
     u32 len = obj_str_left->len + obj_str_right->len;
     while (true) {
         entry_t* cur = &self->entries[index];

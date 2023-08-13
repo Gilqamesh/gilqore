@@ -9,39 +9,76 @@
 #define INS_FORMAT "%-16s "
 
 static u32  disasm__simple(const char* instruction, u32 ip);
-static void disasm__imm_interal(const char* instruction, chunk_t* self, u32 imm_ip);
-static u32  disasm__imm(const char* instruction, chunk_t* self, u32 ip);
-static u32  disasm__imm_long(const char* instruction, chunk_t* self, u32 ip);
+static void disasm__imm_interal(const char* instruction, chunk_t* chunk, u32 imm_ip);
+static u32  disasm__imm(const char* instruction, chunk_t* chunk, u32 ip);
+static u32  disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip);
+static u32  disasm__local(const char* instruction, chunk_t* chunk, u32 ip);
+
+static u32  disasm__get_index(chunk_t* chunk, u32 ip, u32* index);
 
 static u32 disasm__simple(const char* instruction, u32 ip) {
     libc__printf("%s\n", instruction);
     return ip + 1;
 }
 
-static void disasm__imm_interal(const char* instruction, chunk_t* self, u32 imm_ip) {
+static void disasm__imm_interal(const char* instruction, chunk_t* chunk, u32 imm_ip) {
     libc__printf(INS_FORMAT, instruction);
     libc__printf(IP_FORMAT, imm_ip);
     libc__printf("'");
 
-    value__print(self->immediates.values[imm_ip]);
+    value__print(chunk->immediates.values[imm_ip]);
 
     libc__printf("'\n");
 }
 
-static u32 disasm__imm(const char* instruction, chunk_t* self, u32 ip) {
-    u8 imm_ip = self->instructions[ip + 1];
-    disasm__imm_interal(instruction, self, imm_ip);
+static u32 disasm__imm(const char* instruction, chunk_t* chunk, u32 ip) {
+    u8 imm_ip = chunk->instructions[ip + 1];
+    disasm__imm_interal(instruction, chunk, imm_ip);
 
     return ip + 2;
 }
 
-static u32 disasm__imm_long(const char* instruction, chunk_t* self, u32 ip) {
-    u32 imm_ip_high = self->instructions[ip + 1];
-    u32 imm_ip_mid  = self->instructions[ip + 2];
-    u32 imm_ip_low  = self->instructions[ip + 3];
-    disasm__imm_interal(instruction, self, (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low);
+static u32 disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip) {
+    u32 imm_ip_high = chunk->instructions[ip + 1];
+    u32 imm_ip_mid  = chunk->instructions[ip + 2];
+    u32 imm_ip_low  = chunk->instructions[ip + 3];
+    disasm__imm_interal(instruction, chunk, (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low);
 
     return ip + 4;
+}
+
+static u32 disasm__local(const char* instruction, chunk_t* chunk, u32 ip) {
+    u32 local_index;
+    ++ip; // skip INS_GET_LOCAL/INS_SET_LOCAL
+    u32 index_len = disasm__get_index(chunk, ip, &local_index);
+    libc__printf(INS_FORMAT, instruction);
+    libc__printf(IP_FORMAT, local_index);
+    libc__printf("\n");
+
+    return ip + index_len + 1;
+}
+
+static u32 disasm__get_index(chunk_t* chunk, u32 ip, u32* index) {
+    u8 ins = chunk->instructions[ip];
+    u32 index_len;
+    switch (ins) {
+        case INS_IMM: {
+            *index = chunk->instructions[ip + 1];
+            index_len = 1;
+        } break ;
+        case INS_IMM_LONG: {
+            u32 imm_ip_high = chunk->instructions[ip + 1];
+            u32 imm_ip_mid  = chunk->instructions[ip + 2];
+            u32 imm_ip_low  = chunk->instructions[ip + 3];
+            *index = (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low;
+            index_len = 3;
+        } break ;
+        default: {
+            ASSERTFV(false, "\n!! 'ins: %u' !!\n", ins);
+        }
+    }
+
+    return index_len;
 }
 
 void chunk__disasm(chunk_t* self, const char* name) {
@@ -122,6 +159,12 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         } break ;
         case INS_SET_GLOBAL: {
             return disasm__simple("INS_SET_GLOBAL", ip);
+        } break ;
+        case INS_GET_LOCAL: {
+            return disasm__local("INS_GET_LOCAL", self, ip);
+        } break ;
+        case INS_SET_LOCAL: {
+            return disasm__local("INS_SET_LOCAL", self, ip);
         } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);

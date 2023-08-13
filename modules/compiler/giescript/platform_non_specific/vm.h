@@ -3,7 +3,7 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 # include "allocator.h"
 # include "table.h"
 
@@ -19,8 +19,8 @@ struct vm {
     // intern all strings into here -> == operator is super fast
     table_t  obj_str_table;
 
-    // identifier name -> value index
-    table_t     global_names_to_index;
+    // identifier name -> var infos
+    table_t     global_names_to_var_infos;
     // identifier initializers
     value_arr_t global_values;
 

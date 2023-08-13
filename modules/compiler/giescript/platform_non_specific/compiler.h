@@ -1,20 +1,24 @@
 #ifndef GIES_COMPILER_H
 # define GIES_COMPILER_H
 
-# include "types.h"
+# include "common.h"
 
 # include "scanner.h"
 # include "table.h"
 
 typedef struct local {
     token_t  identifier;
-    s32      scope_depth; // -1
+    // -1 - uninitialized state before we compile the initializer
+    // 0  - impossible, 0 depth means it's global
+    bool     is_const;
+    s32      scope_depth;
 } local_t;
 
 typedef struct scope {
-    local_t  locals[256];
-    u32      locals_fill;
-    s32      scope_depth;
+    local_t*  locals_data;
+    u32       locals_fill;
+    u32       locals_size;
+    s32       scope_depth;
 } scope_t;
 
 struct compiler {
@@ -32,7 +36,8 @@ struct compiler {
     chunk_t* chunk;
 };
 
-void compiler__init(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source);
+bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source);
+void compiler__destroy(compiler_t* self);
 
 bool compiler__compile(compiler_t* self);
 

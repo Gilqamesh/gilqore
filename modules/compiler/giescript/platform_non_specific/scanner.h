@@ -3,7 +3,7 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 
 struct scanner {
     const char*  start;
@@ -35,7 +35,7 @@ typedef enum {
     TOKEN_FUN,      TOKEN_FOR,    TOKEN_IF,    TOKEN_NIL,                         /*  fun       for     if     nil    */
     TOKEN_PRINT,    TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,                        /*  print     return  super  this   */
     TOKEN_TRUE,     TOKEN_VAR,    TOKEN_WHILE, TOKEN_BREAK,                       /*  true      var     while  break  */
-    TOKEN_CONTINUE, TOKEN_OR,                                                     /*  continue  or                    */
+    TOKEN_CONTINUE, TOKEN_OR,     TOKEN_CONST,                                    /*  continue  or      const         */
 
     // Tokens with special meaning
     TOKEN_ERROR,                    /*  encountered an error  */
@@ -45,7 +45,7 @@ typedef enum {
 
 struct token {
     const char*  lexeme; // not null-terminated
-    u32          lexeme_len : 32;
+    u32          lexeme_len : 28;
     u32          type : 8;
     u32          line : 24;
 };

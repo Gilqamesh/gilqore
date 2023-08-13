@@ -11,4 +11,18 @@
 # define GIGABYTES(bytes) (MEGABYTES(bytes) * 1024LL)
 # define TERABYTES(bytes) (GIGABYTES(bytes) * 1024LL)
 
+# define ASSERTF(cond, format) do { \
+    if (!(cond)) { \
+        libc__printf(format); \
+        ASSERT(cond); \
+    } \
+} while (false)
+
+# define ASSERTFV(cond, format, ...) do { \
+    if (!(cond)) { \
+        libc__printf(format, __VA_ARGS__); \
+        ASSERT(cond); \
+    } \
+} while (false)
+
 #endif

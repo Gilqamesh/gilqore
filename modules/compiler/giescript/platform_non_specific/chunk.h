@@ -3,7 +3,7 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 # include "value.h"
 
 struct chunk {
@@ -24,10 +24,10 @@ struct chunk {
 void chunk__create(chunk_t* self, allocator_t* allocator);
 void chunk__destroy(chunk_t* self, allocator_t* allocator);
 
-typedef enum ins_mnemonic {
+typedef enum ins_mnemonic { // compiled in the following way
     INS_RETURN,             // [ins]
-    INS_IMM,                // [ins, imm index]
-    INS_IMM_LONG,           // [ins, imm_index_high, imm_index_mid, imm_index_low]
+    INS_IMM,                // [ins] [u8]
+    INS_IMM_LONG,           // [ins] [u24 high] [u24 mid] [u24 low]
     INS_NIL,                // [ins]
     INS_TRUE,               // [ins]
     INS_FALSE,              // [ins]
@@ -42,12 +42,12 @@ typedef enum ins_mnemonic {
     INS_LT,                 // [ins]
     INS_PRINT,              // [ins]
     INS_POP,                // [ins]
-    INS_POPN,               // [ins] [ins_imm]
-    INS_DEFINE_GLOBAL,      // [ins]
-    INS_GET_GLOBAL,         // [ins]
-    INS_SET_GLOBAL,         // [ins]
-    INS_GET_LOCAL,          // [ins]
-    INS_SET_LOCAL,          // [ins]
+    INS_POPN,               // [ins] [imm/imm_long (pop n times)]
+    INS_DEFINE_GLOBAL,      // [ins] [imm/imm_long (index of global)]
+    INS_GET_GLOBAL,         // [ins] [imm/imm_long (index of global)]
+    INS_SET_GLOBAL,         // [ins] [imm/imm_long (index of global)]
+    INS_GET_LOCAL,          // [ins] [imm/imm_long (index of local)]
+    INS_SET_LOCAL,          // [ins] [imm/imm_long (index of local)]
 } ins_mnemonic_t;
 
 // @returns ip of pushed instruction

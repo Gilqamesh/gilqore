@@ -3,17 +3,9 @@
 
 # include "compiler/giescript/giescript_defs.h"
 
-# include "types.h"
+# include "common.h"
 
 # include "memory/memory.h"
-
-# define GROW_CAPACITY(capacity) ((capacity) < 8 ? 8 : (capacity) * 2)
-# define GROW_ARRAY(assign, allocator, type, data, old_size, new_size) { \
-    assign = (type*) allocator__realloc(allocator, data, old_size * sizeof(type), new_size * sizeof(type)); \
-    allocator__print(allocator); \
-}
-# define FREE_ARRAY(allocator, type, data, size) \
-    allocator__free(allocator, data);
 
 struct allocator {
     memory_slice_t memory;

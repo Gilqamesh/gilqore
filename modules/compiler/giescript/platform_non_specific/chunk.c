@@ -19,11 +19,11 @@ void chunk__create(chunk_t* self, allocator_t* allocator) {
 
 void chunk__destroy(chunk_t* self, allocator_t* allocator) {
     if (self->instructions) {
-        FREE_ARRAY(allocator, u8, self->instructions, self->instructions_size);
+        allocator__free(allocator, self->instructions);
     }
 
     if (self->lines) {
-        FREE_ARRAY(allocator, u32, self->lines, self->lines_size);
+        allocator__free(allocator, self->lines);
     }
 
     value_arr__destroy(&self->immediates, allocator);
@@ -33,8 +33,12 @@ void chunk__destroy(chunk_t* self, allocator_t* allocator) {
 
 u32 chunk__push_ins(chunk_t* self, allocator_t* allocator, ins_mnemonic_t instruction, u32 line) {
     if (self->instructions_fill == self->instructions_size) {
-        u32 new_size = GROW_CAPACITY(self->instructions_size);
-        GROW_ARRAY(self->instructions, allocator, u8, self->instructions, self->instructions_size, new_size);
+        u32 new_size = self->instructions_size < 8 ? 8 : self->instructions_size * 2;
+        self->instructions = allocator__realloc(
+            allocator, self->instructions,
+            self->instructions_size * sizeof(*self->instructions),
+            new_size * sizeof(*self->instructions)
+        );
         self->instructions_size = new_size;
     }
     u32 ip = self->instructions_fill++;
@@ -45,8 +49,12 @@ u32 chunk__push_ins(chunk_t* self, allocator_t* allocator, ins_mnemonic_t instru
         ++self->lines[self->lines_fill - 2];
     } else {
         if (self->lines_fill == self->lines_size) {
-            u32 new_size = GROW_CAPACITY(self->lines_size);
-            GROW_ARRAY(self->lines, allocator, u32, self->lines, self->lines_size, new_size);
+            u32 new_size = self->lines_size < 8 ? 8 : self->lines_size * 2;
+            self->lines = allocator__realloc(
+                allocator, self->lines,
+                self->lines_size * sizeof(*self->lines),
+                new_size * sizeof(*self->lines)
+            );
             self->lines_size = new_size;
         }
         self->lines[self->lines_fill++] = 1;
