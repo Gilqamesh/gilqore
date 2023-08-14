@@ -78,6 +78,9 @@ static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name
 static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign);
 static void compiler__begin_scope(compiler_t* self);
 static void compiler__end_scope(compiler_t* self);
+static void compiler__push_stack(compiler_t* self);
+static void compiler__pop_stack(compiler_t* self);
+static u32  compiler__push_imm(compiler_t* self, value_t value, u32 line);
 
 // maps token type to its compile rule
 static compile_rule compile_rules[] = {
@@ -242,7 +245,7 @@ static void compiler__emit_imm(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
     r64 value = libc__strntod(self->previous.lexeme, self->previous.lexeme_len);
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num(value), self->previous.line);
+    DISCARD_RETURN compiler__push_imm(self, value__num(value), self->previous.line);
 }
 
 static void compiler__emit_nil(compiler_t* self, bool can_assign) {
@@ -268,7 +271,7 @@ static void compiler__emit_str(compiler_t* self, bool can_assign) {
     
     ASSERT(self->previous.lexeme_len > 1);
     value_t obj_str = obj__copy_str(self->vm, self->previous.lexeme + 1, self->previous.lexeme_len - 2);
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, obj_str, self->previous.line);
+    DISCARD_RETURN compiler__push_imm(self, obj_str, self->previous.line);
 }
 
 static void compiler__emit_identifier(compiler_t* self, bool can_assign) {
@@ -353,6 +356,9 @@ static void compiler__error_at(compiler_t* self, token_t* token, const char* err
 // }
 
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins) {
+    if (ins == INS_POP) {
+        compiler__pop_stack(self);
+    }
     chunk__push_ins(self->chunk, self->allocator, ins, self->previous.line);
 }
 
@@ -439,6 +445,8 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 }
 
 static void compiler__end_compile(compiler_t* self) {
+    ASSERT(self->stack_fill == 0);
+    
     compiler__emit_ins(self, INS_RETURN);
 }
 
@@ -519,7 +527,7 @@ static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* ident
 // global: [ins_define_global] [imm/imm_long (index of global)]
 static void compiler__define_variable(compiler_t* self, obj_var_info_t* var_info) {
     compiler__emit_ins(self, INS_DEFINE_GLOBAL);
-    DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num(var_info->var_index), self->previous.line);
+    DISCARD_RETURN compiler__push_imm(self, value__num(var_info->var_index), self->previous.line);
 }
 
 static void compiler__declare_local(compiler_t* self, token_t* ident, token_t* ident_type) {
@@ -559,6 +567,8 @@ static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident
     // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state
     local->scope_depth = -1;
     local->is_const = ident_type->type == TOKEN_CONST;
+
+    compiler__push_stack(self);
 }
 
 static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name) {
@@ -604,7 +614,7 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
             compiler__emit_ins(self, INS_GET_LOCAL);
         }
 
-        DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num((r64) local_result.var_index), self->previous.line);
+        DISCARD_RETURN compiler__push_imm(self, value__num((r64) local_result.var_index), self->previous.line);
     } else {
         value_t obj_str = obj__copy_str(self->vm, var.lexeme, var.lexeme_len);
         // get the global
@@ -630,7 +640,7 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
             compiler__emit_ins(self, INS_GET_GLOBAL);
         }
 
-        DISCARD_RETURN chunk__push_imm(self->chunk, self->allocator, value__num((r64) var_info->var_index), self->previous.line);
+        DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous.line);
     }
 }
 
@@ -653,6 +663,27 @@ static void compiler__end_scope(compiler_t* self) {
     }
 }
 
+static void compiler__push_stack(compiler_t* self) {
+    ++self->stack_fill;
+
+    if (self->chunk->values_stack_size_watermark < self->stack_fill) {
+        self->chunk->values_stack_size_watermark = self->stack_fill;
+    }
+}
+
+static void compiler__pop_stack(compiler_t* self) {
+    ASSERT(self->stack_fill > 0);
+    --self->stack_fill;
+}
+
+static u32 compiler__push_imm(compiler_t* self, value_t value, u32 line) {
+    u32 value_index = chunk__push_imm(self->chunk, self->allocator, value, line);
+
+    compiler__push_stack(self);
+
+    return value_index;
+}
+
 bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source) {
     scanner__init(&self->scanner, source);
 
@@ -663,6 +694,8 @@ bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_
     self->scope.locals_fill = 0;
     self->scope.locals_size = 0;
     self->scope.scope_depth = 0;
+
+    self->stack_fill = 0;
 
     self->vm = vm;
     self->allocator = allocator;
