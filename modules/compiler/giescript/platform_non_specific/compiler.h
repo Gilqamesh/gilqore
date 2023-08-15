@@ -31,7 +31,7 @@ struct compiler {
 
     scope_t scope;
 
-    // number of temporaries and locals in play (mimics vm's stack)
+// number of temporaries and locals in play (mimics vm's stack)
     u32 stack_fill;
 
     vm_t* vm;

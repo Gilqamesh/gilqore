@@ -346,8 +346,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
             } break ;
             case INS_NOT: {
                 ASSERT(self->values_stack_top != self->values_stack_data);
-                value_t* value = self->values_stack_top - 1;
-                vm__push(self, value__bool(value__is_falsey(*value)));
+                value_t value = vm__pop(self);
+                vm__push(self, value__bool(value__is_falsey(value)));
             } break ;
             case INS_EQ: {
                 value_t right = vm__pop(self);

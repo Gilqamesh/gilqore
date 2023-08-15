@@ -264,114 +264,85 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
                     ^
         */
 
-        bool   seg_is_available = seg__is_available(seg);
-        seg_t  next_free        = NULL;
-        size_t seg_data_size    = seg__data_size(seg);
-        void*  seg_dst          = seg__seg_to_data(prev);
-        void*  seg_src          = seg__seg_to_data(seg);
+        size_t new_size = seg__size(seg) + seg__size(prev);
 
-        // getting rid of one of the two segs
-        // resize, update tail
-        if (seg_is_available) {
-            next_free = seg__next_free(seg);
+        if (seg__is_available(seg)) {
+            seg_t next_free = seg__next_free(seg);
+
             seg_state__available(memory, seg, false);
-            size_t new_size = seg__size(seg) + seg__size(prev);
+
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
-
-            // fix tail link as sized changed
+            
             seg__tail(prev)->free_seg = next_free;
             seg__tail(prev)->is_available = true;
         } else {
-            next_free = seg__next_free(prev);
+            size_t seg_data_size = seg__data_size(seg);
+            void*  seg_dst       = seg__seg_to_data(prev);
+            void*  seg_src       = seg__seg_to_data(seg);
+
             seg_state__available(memory, prev, false);
-            size_t new_size = seg__size(seg) + seg__size(prev);
+
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
 
-            ASSERT(seg__head(prev)->free_seg == 0);
-            ASSERT(seg__tail(prev)->free_seg == 0);
-            ASSERT(seg__tail(seg)->free_seg == 0);
-        }
-
-        // copy to maintain seg's data
-        if (!seg_is_available) {
             ASSERT(seg_data_size < seg__data_size(prev));
             libc__memmove(seg_dst, seg_src, seg_data_size);
         }
     } else if (!is_prev_available && is_next_available) {
         /*
             [ A/!A ][ A ]
-                ^
+               ^
         */
-        bool  seg_is_available = seg__is_available(seg);
-        seg_t next_free = seg__next_free(next);
 
-        // getting rid of one of the coaled next
-        seg_state__available(memory, next, false);
+        size_t new_size = seg__size(seg) + seg__size(next);
 
-        // resize, update tail
-        if (seg_is_available) {  
-            size_t new_size = seg__size(seg) + seg__size(next);
+        if (seg__is_available(seg)) {  
+            seg_t next_free = seg__next_free(next);
+
+            seg_state__available(memory, next, false);
+
             seg__tail(next)->seg_size = new_size;
             seg__head(seg)->seg_size = new_size;
-
-            // fix tail link as sized changed
+            
             seg__tail(seg)->free_seg = next_free;
             seg__tail(seg)->is_available = true;
         } else {
-            size_t new_size = seg__size(seg) + seg__size(next);
+            seg_state__available(memory, next, false);
+
             seg__tail(next)->seg_size = new_size;
             seg__head(seg)->seg_size = new_size;
-
-            // fix tail link as sized changed
-            seg__tail(seg)->free_seg = 0;
-            seg__tail(seg)->is_available = false;
-            ASSERT(seg__tail(next)->free_seg == 0);
         }
     } else {
         /*
             [ A ][ A/!A ][ A ]
                     ^
         */
-        bool   seg_is_available = seg__is_available(seg);
-        seg_t  next_free        = seg__next_free(next);
-        size_t seg_data_size    = seg__data_size(seg);
-        void*  seg_dst          = seg__seg_to_data(prev);
-        void*  seg_src          = seg__seg_to_data(seg);
 
-        // getting rid of two of the three segs
-        if (seg_is_available) {
+        size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
+
+        if (seg__is_available(seg)) {
+            seg_t next_free = seg__next_free(next);
+
             seg_state__available(memory, seg, false);
             seg_state__available(memory, next, false);
-        } else {
-            seg_state__available(memory, prev, false);
-            seg_state__available(memory, next, false);
-        }
 
-        // resize, update tail
-        if (seg_is_available) {
-            size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
 
-            // fix tail link as sized changed
             seg__tail(prev)->free_seg = next_free;
             seg__tail(prev)->is_available = true;
-            seg__tail(next)->is_available = true;
         } else {
-            size_t new_size = seg__size(seg) + seg__size(prev) + seg__size(next);
+            size_t seg_data_size = seg__data_size(seg);
+            void*  seg_dst       = seg__seg_to_data(prev);
+            void*  seg_src       = seg__seg_to_data(seg);
+
+            seg_state__available(memory, prev, false);
+            seg_state__available(memory, next, false);
+
             seg__tail(next)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
 
-            ASSERT(seg__head(prev)->free_seg == 0);
-            ASSERT(seg__tail(next)->free_seg == 0);
-            seg__tail(prev)->is_available = false;
-            seg__tail(next)->is_available = false;
-        }
-
-        // copy to maintain seg's data
-        if (!seg_is_available) {
             ASSERT(seg_data_size < seg__data_size(prev));
             libc__memmove(seg_dst, seg_src, seg_data_size);
         }
