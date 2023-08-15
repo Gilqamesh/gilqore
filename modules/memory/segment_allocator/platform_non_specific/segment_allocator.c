@@ -264,25 +264,17 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
                     ^
         */
 
-        bool  seg_is_available = seg__is_available(seg);
-        seg_t next_free;
+        bool   seg_is_available = seg__is_available(seg);
+        seg_t  next_free        = NULL;
+        size_t seg_data_size    = seg__data_size(seg);
+        void*  seg_dst          = seg__seg_to_data(prev);
+        void*  seg_src          = seg__seg_to_data(seg);
 
         // getting rid of one of the two segs
+        // resize, update tail
         if (seg_is_available) {
             next_free = seg__next_free(seg);
             seg_state__available(memory, seg, false);
-        } else {
-            next_free = seg__next_free(prev);
-            seg_state__available(memory, prev, false);
-        }
-
-        // copy info
-        size_t seg_data_size = seg__data_size(seg);
-        void*  seg_dst       = seg__seg_to_data(prev);
-        void*  seg_src       = seg__seg_to_data(seg);
-
-        // resize, update tail
-        if (seg_is_available) {
             size_t new_size = seg__size(seg) + seg__size(prev);
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
@@ -291,6 +283,8 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             seg__tail(prev)->free_seg = next_free;
             seg__tail(prev)->is_available = true;
         } else {
+            next_free = seg__next_free(prev);
+            seg_state__available(memory, prev, false);
             size_t new_size = seg__size(seg) + seg__size(prev);
             seg__tail(seg)->seg_size = new_size;
             seg__head(prev)->seg_size = new_size;
@@ -340,8 +334,11 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             [ A ][ A/!A ][ A ]
                     ^
         */
-        bool  seg_is_available = seg__is_available(seg);
-        seg_t next_free = seg__next_free(next);
+        bool   seg_is_available = seg__is_available(seg);
+        seg_t  next_free        = seg__next_free(next);
+        size_t seg_data_size    = seg__data_size(seg);
+        void*  seg_dst          = seg__seg_to_data(prev);
+        void*  seg_src          = seg__seg_to_data(seg);
 
         // getting rid of two of the three segs
         if (seg_is_available) {
@@ -351,11 +348,6 @@ seg_t seg__coal(memory_slice_t memory, seg_t seg) {
             seg_state__available(memory, prev, false);
             seg_state__available(memory, next, false);
         }
-
-        // copy info
-        size_t seg_data_size = seg__data_size(seg);
-        void*  seg_dst       = seg__seg_to_data(prev);
-        void*  seg_src       = seg__seg_to_data(seg);
 
         // resize, update tail
         if (seg_is_available) {
