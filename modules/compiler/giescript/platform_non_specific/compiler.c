@@ -49,6 +49,7 @@ static void compiler__emit_unary(compiler_t* self, bool can_assign);
 static void compiler__emit_binary(compiler_t* self, bool can_assign);
 static void compiler__emit_conditional(compiler_t* self, bool can_assign);
 
+// these define the instruction stream interface between vm/compiler
 static void compiler__emit_return(compiler_t* self, bool can_assign);
 static void compiler__emit_imm(compiler_t* self, bool can_assign);
 static void compiler__emit_nil(compiler_t* self, bool can_assign);
