@@ -24,7 +24,7 @@ static vm_interpret_result_t vm__run_source(vm_t* self, const char* source);
 static void    vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...);
 // trace the current state of the vm
 static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
-// eats next instruction ip
+// returns next instruction and advances ip
 static u8      vm__eat(vm_t* self);
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk);
 static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk);
@@ -345,7 +345,6 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 vm__push(self, value__num(value__as_num(left) / value__as_num(right)));
             } break ;
             case INS_NOT: {
-                ASSERT(self->values_stack_top != self->values_stack_data);
                 value_t value = vm__pop(self);
                 vm__push(self, value__bool(value__is_falsey(value)));
             } break ;

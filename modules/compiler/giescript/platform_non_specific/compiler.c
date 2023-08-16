@@ -48,10 +48,29 @@ static void compiler__emit_grouping(compiler_t* self, bool can_assign);
 static void compiler__emit_unary(compiler_t* self, bool can_assign);
 static void compiler__emit_binary(compiler_t* self, bool can_assign);
 static void compiler__emit_conditional(compiler_t* self, bool can_assign);
+
+static void compiler__emit_return(compiler_t* self, bool can_assign);
 static void compiler__emit_imm(compiler_t* self, bool can_assign);
 static void compiler__emit_nil(compiler_t* self, bool can_assign);
 static void compiler__emit_true(compiler_t* self, bool can_assign);
 static void compiler__emit_false(compiler_t* self, bool can_assign);
+static void compiler__emit_neg(compiler_t* self, bool can_assign);
+static void compiler__emit_add(compiler_t* self, bool can_assign);
+static void compiler__emit_sub(compiler_t* self, bool can_assign);
+static void compiler__emit_mul(compiler_t* self, bool can_assign);
+static void compiler__emit_div(compiler_t* self, bool can_assign);
+static void compiler__emit_not(compiler_t* self, bool can_assign);
+static void compiler__emit_eq(compiler_t* self, bool can_assign);
+static void compiler__emit_lt(compiler_t* self, bool can_assign);
+static void compiler__emit_gt(compiler_t* self, bool can_assign);
+static void compiler__emit_print(compiler_t* self, bool can_assign);
+static void compiler__emit_pop(compiler_t* self, bool can_assign);
+static void compiler__emit_define_global(compiler_t* self, bool can_assign);
+static void compiler__emit_get_global(compiler_t* self, bool can_assign);
+static void compiler__emit_set_global(compiler_t* self, bool can_assign);
+static void compiler__emit_get_local(compiler_t* self, bool can_assign);
+static void compiler__emit_set_local(compiler_t* self, bool can_assign);
+
 static void compiler__emit_str(compiler_t* self, bool can_assign);
 static void compiler__emit_identifier(compiler_t* self, bool can_assign);
 
@@ -175,10 +194,10 @@ static void compiler__emit_unary(compiler_t* self, bool can_assign) {
 
     switch (type) {
         case TOKEN_MINUS: {
-            compiler__emit_ins(self, INS_NEG);
+            compiler__emit_neg(self, can_assign);
         } break ;
         case TOKEN_EXCLAM: {
-            compiler__emit_ins(self, INS_NOT);
+            compiler__emit_not(self, can_assign);
         } break ;
         default: ASSERT(false);
     }
@@ -193,48 +212,36 @@ static void compiler__emit_binary(compiler_t* self, bool can_assign) {
 
     switch (type) {
         case TOKEN_PLUS: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_ADD);
+            compiler__emit_add(self, can_assign);
         } break ;
         case TOKEN_MINUS: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_SUB);
+            compiler__emit_sub(self, can_assign);
         } break ;
         case TOKEN_STAR: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_MUL);
+            compiler__emit_mul(self, can_assign);
         } break ;
         case TOKEN_SLASH: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_DIV);
+            compiler__emit_div(self, can_assign);
         } break ;
         case TOKEN_EXCLAM_EQUAL: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_EQ);
-            compiler__emit_ins(self, INS_NOT);
+            compiler__emit_eq(self, can_assign);
+            compiler__emit_not(self, can_assign);
         } break ;
         case TOKEN_EQUAL_EQUAL: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_EQ);
+            compiler__emit_eq(self, can_assign);
         } break ;
         case TOKEN_GREATER: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_GT);
+            compiler__emit_gt(self, can_assign);
         } break ;
         case TOKEN_GREATER_EQUAL: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_LT);
-            compiler__emit_ins(self, INS_NOT);
+            compiler__emit_lt(self, can_assign);
+            compiler__emit_not(self, can_assign);
         } break ;
         case TOKEN_LESS: {
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_LT);
         } break ;
         case TOKEN_LESS_EQUAL: {
-            compiler__pop_stack(self);
-            compiler__pop_stack(self);
-            compiler__emit_ins(self, INS_GT);
-            compiler__emit_ins(self, INS_EQ);
+            compiler__emit_gt(self, can_assign);
+            compiler__emit_not(self, can_assign);
         } break ;
         default: ASSERT(false);
     }
@@ -250,6 +257,12 @@ static void compiler__emit_conditional(compiler_t* self, bool can_assign) {
     compiler__eat_err(self, TOKEN_COLON, "Expect ':' after then branch of conditional operator.");
 
     compiler__emit_prec(self, PREC_ASSIGNMENT);
+}
+
+static void compiler__emit_return(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+
+    compiler__emit_ins(self, INS_RETURN);
 }
 
 static void compiler__emit_imm(compiler_t* self, bool can_assign) {
@@ -278,6 +291,115 @@ static void compiler__emit_false(compiler_t* self, bool can_assign) {
     
     compiler__push_stack(self);
     compiler__emit_ins(self, INS_FALSE);
+}
+
+static void compiler__emit_neg(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__emit_ins(self, INS_NEG);
+}
+
+static void compiler__emit_add(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_ADD);
+}
+
+static void compiler__emit_sub(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_SUB);
+}
+
+static void compiler__emit_mul(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_MUL);
+}
+
+static void compiler__emit_div(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_DIV);
+}
+
+static void compiler__emit_not(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__emit_ins(self, INS_NOT);
+}
+
+static void compiler__emit_eq(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_EQ);
+}
+
+static void compiler__emit_lt(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_LT);
+}
+
+static void compiler__emit_gt(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_GT);
+}
+
+static void compiler__emit_print(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_PRINT);
+}
+
+static void compiler__emit_pop(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_POP);
+}
+
+static void compiler__emit_define_global(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__pop_stack(self);
+    compiler__emit_ins(self, INS_DEFINE_GLOBAL);
+}
+
+static void compiler__emit_get_global(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__push_stack(self);
+    compiler__emit_ins(self, INS_GET_GLOBAL);
+}
+
+static void compiler__emit_set_global(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__emit_ins(self, INS_SET_GLOBAL);
+}
+
+static void compiler__emit_get_local(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__push_stack(self);
+    compiler__emit_ins(self, INS_GET_LOCAL);
+}
+
+static void compiler__emit_set_local(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__push_stack(self);
+    compiler__emit_ins(self, INS_SET_LOCAL);
 }
 
 static void compiler__emit_str(compiler_t* self, bool can_assign) {
@@ -403,7 +525,7 @@ static void compiler__emit_var_decl(compiler_t* self) {
             // table__erase(&self->vm->global_names_to_var_infos);
             return ;
         }
-        compiler__emit_ins(self, INS_NIL);
+        compiler__emit_nil(self, true);
     }
 
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
@@ -435,15 +557,13 @@ static void compiler__emit_stmt(compiler_t* self) {
 static void compiler__emit_print_stmt(compiler_t* self) {
     compiler__emit_expr(self);
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after value.");
-    compiler__pop_stack(self);
-    compiler__emit_ins(self, INS_PRINT);
+    compiler__emit_print(self, true);
 }
 
 static void compiler__emit_expr_stmt(compiler_t* self) {
     compiler__emit_expr(self);
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after value.");
-    compiler__pop_stack(self);
-    compiler__emit_ins(self, INS_POP);
+    compiler__emit_pop(self, true);
 }
 
 static void compiler__emit_block_stmt(compiler_t* self) {
@@ -460,7 +580,7 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 static void compiler__end_compile(compiler_t* self) {
     ASSERT(self->stack_fill == 0);
 
-    compiler__emit_ins(self, INS_RETURN);
+    compiler__emit_return(self, true);
 }
 
 static void compiler__synchronize(compiler_t* self) {
@@ -539,8 +659,7 @@ static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* ident
 // local:  -
 // global: [ins_define_global] [imm/imm_long (index of global)]
 static void compiler__define_variable(compiler_t* self, obj_var_info_t* var_info) {
-    compiler__pop_stack(self);
-    compiler__emit_ins(self, INS_DEFINE_GLOBAL);
+    compiler__emit_define_global(self, true);
     DISCARD_RETURN compiler__push_imm(self, value__num(var_info->var_index), self->previous.line);
 }
 
@@ -622,11 +741,10 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
                 return ;
             } else {
                 compiler__emit_expr(self);
-                compiler__emit_ins(self, INS_SET_LOCAL);
+                compiler__emit_set_local(self, can_assign);
             }
         } else {
-            compiler__push_stack(self);
-            compiler__emit_ins(self, INS_GET_LOCAL);
+            compiler__emit_get_local(self, can_assign);
         }
 
         DISCARD_RETURN compiler__push_imm(self, value__num((r64) local_result.var_index), self->previous.line);
@@ -649,11 +767,10 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
                 return ;
             } else {
                 compiler__emit_expr(self);
-                compiler__emit_ins(self, INS_SET_GLOBAL);
+                compiler__emit_set_global(self, can_assign);
             }
         } else {
-            compiler__push_stack(self);
-            compiler__emit_ins(self, INS_GET_GLOBAL);
+            compiler__emit_get_global(self, can_assign);
         }
 
         DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous.line);
@@ -675,7 +792,6 @@ static void compiler__end_scope(compiler_t* self) {
         self->scope.locals_data[self->scope.locals_fill - 1].scope_depth > self->scope.scope_depth
     ) {
         compiler__pop_stack(self);
-        compiler__emit_ins(self, INS_POP);
         --self->scope.locals_fill;
     }
 }
