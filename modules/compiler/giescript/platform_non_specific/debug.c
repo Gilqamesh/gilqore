@@ -12,9 +12,9 @@ static u32  disasm__simple(const char* instruction, u32 ip);
 static void disasm__imm_interal(const char* instruction, chunk_t* chunk, u32 imm_ip);
 static u32  disasm__imm(const char* instruction, chunk_t* chunk, u32 ip);
 static u32  disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip);
-static u32  disasm__local(const char* instruction, chunk_t* chunk, u32 ip);
+// static u32  disasm__local(const char* instruction, chunk_t* chunk, u32 ip);
 
-static u32  disasm__get_index(chunk_t* chunk, u32 ip, u32* index);
+// static u32  disasm__get_index(chunk_t* chunk, u32 ip, u32* index);
 
 static u32 disasm__simple(const char* instruction, u32 ip) {
     libc__printf("%s\n", instruction);
@@ -47,39 +47,39 @@ static u32 disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip) {
     return ip + 4;
 }
 
-static u32 disasm__local(const char* instruction, chunk_t* chunk, u32 ip) {
-    u32 local_index;
-    ++ip; // skip INS_GET_LOCAL/INS_SET_LOCAL
-    u32 index_len = disasm__get_index(chunk, ip, &local_index);
-    libc__printf(INS_FORMAT, instruction);
-    libc__printf(IP_FORMAT, local_index);
-    libc__printf("\n");
+// static u32 disasm__local(const char* instruction, chunk_t* chunk, u32 ip) {
+//     u32 local_index;
+//     ++ip; // skip INS_GET_LOCAL/INS_SET_LOCAL
+//     u32 index_len = disasm__get_index(chunk, ip, &local_index);
+//     libc__printf(INS_FORMAT, instruction);
+//     libc__printf(IP_FORMAT, local_index);
+//     libc__printf("\n");
 
-    return ip + index_len + 1;
-}
+//     return ip + index_len + 1;
+// }
 
-static u32 disasm__get_index(chunk_t* chunk, u32 ip, u32* index) {
-    u8 ins = chunk->instructions[ip];
-    u32 index_len;
-    switch (ins) {
-        case INS_IMM: {
-            *index = chunk->instructions[ip + 1];
-            index_len = 1;
-        } break ;
-        case INS_IMM_LONG: {
-            u32 imm_ip_high = chunk->instructions[ip + 1];
-            u32 imm_ip_mid  = chunk->instructions[ip + 2];
-            u32 imm_ip_low  = chunk->instructions[ip + 3];
-            *index = (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low;
-            index_len = 3;
-        } break ;
-        default: {
-            ASSERTFV(false, "\n!! 'ins: %u' !!\n", ins);
-        }
-    }
+// static u32 disasm__get_index(chunk_t* chunk, u32 ip, u32* index) {
+//     u8 ins = chunk->instructions[ip];
+//     u32 index_len;
+//     switch (ins) {
+//         case INS_IMM: {
+//             *index = chunk->instructions[ip + 1];
+//             index_len = 1;
+//         } break ;
+//         case INS_IMM_LONG: {
+//             u32 imm_ip_high = chunk->instructions[ip + 1];
+//             u32 imm_ip_mid  = chunk->instructions[ip + 2];
+//             u32 imm_ip_low  = chunk->instructions[ip + 3];
+//             *index = (imm_ip_high << 16) | (imm_ip_mid << 8) | imm_ip_low;
+//             index_len = 3;
+//         } break ;
+//         default: {
+//             ASSERTFV(false, "\n!! 'ins: %u' !!\n", ins);
+//         }
+//     }
 
-    return index_len;
-}
+//     return index_len;
+// }
 
 void chunk__disasm(chunk_t* self, const char* name) {
     libc__printf("--== %s ==--\n", name);
@@ -92,79 +92,82 @@ void chunk__disasm(chunk_t* self, const char* name) {
 u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
     libc__printf(IP_FORMAT, ip);
     u32 line = chunk__ins_get_line(self, ip);
-    if (ip > 0 && line == chunk__ins_get_line(self, ip - 1)) {
-        libc__printf("   | ");
-    } else {
-        libc__printf(LINE_FORMAT, line);
-    }
+    libc__printf(LINE_FORMAT, line);
+    // if (ip > 0 && line == chunk__ins_get_line(self, ip - 1)) {
+    //     libc__printf("   | ");
+    // } else {
+    //     libc__printf(LINE_FORMAT, line);
+    // }
 
     u8 ins = self->instructions[ip];
     switch (ins) {
         case INS_RETURN: {
-            return disasm__simple("INS_RETURN", ip);
+            return disasm__simple("RET", ip);
         } break ;
         case INS_IMM: {
-            return disasm__imm("INS_IMM", self, ip);
+            return disasm__imm("IMM", self, ip);
         } break ;
         case INS_IMM_LONG: {
-            return disasm__imm_long("INS_IMM_LONG", self, ip);
+            return disasm__imm_long("IMML", self, ip);
         } break ;
         case INS_NIL: {
-            return disasm__simple("INS_NIL", ip);
+            return disasm__simple("NIL", ip);
         } break ;
         case INS_TRUE: {
-            return disasm__simple("INS_TRUE", ip);
+            return disasm__simple("TRUE", ip);
         } break ;
         case INS_FALSE: {
-            return disasm__simple("INS_FALSE", ip);
+            return disasm__simple("FALSE", ip);
         } break ;
         case INS_NEG: {
-            return disasm__simple("INS_NEG", ip);
+            return disasm__simple("NEG", ip);
         } break ;
         case INS_ADD: {
-            return disasm__simple("INS_ADD", ip);
+            return disasm__simple("ADD", ip);
         } break ;
         case INS_SUB: {
-            return disasm__simple("INS_SUB", ip);
+            return disasm__simple("SUB", ip);
         } break ;
         case INS_MUL: {
-            return disasm__simple("INS_MUL", ip);
+            return disasm__simple("MUL", ip);
         } break ;
         case INS_DIV: {
-            return disasm__simple("INS_DIV", ip);
+            return disasm__simple("DIV", ip);
         } break ;
         case INS_NOT: {
-            return disasm__simple("INS_NOT", ip);
+            return disasm__simple("NOT", ip);
         } break ;
         case INS_EQ: {
-            return disasm__simple("INS_EQ", ip);
+            return disasm__simple("EQ", ip);
         } break ;
         case INS_GT: {
-            return disasm__simple("INS_GT", ip);
+            return disasm__simple("GT", ip);
         } break ;
         case INS_LT: {
-            return disasm__simple("INS_LT", ip);
+            return disasm__simple("LT", ip);
         } break ;
         case INS_PRINT: {
-            return disasm__simple("INS_PRINT", ip);
+            return disasm__simple("PRINT", ip);
         } break ;
         case INS_POP: {
-            return disasm__simple("INS_POP", ip);
+            return disasm__simple("POP", ip);
         } break ;
         case INS_DEFINE_GLOBAL: {
-            return disasm__simple("INS_DEFINE_GLOBAL", ip);
+            return disasm__simple("DEFG", ip);
         } break ;
         case INS_GET_GLOBAL: {
-            return disasm__simple("INS_GET_GLOBAL", ip);
+            return disasm__simple("GETG", ip);
         } break ;
         case INS_SET_GLOBAL: {
-            return disasm__simple("INS_SET_GLOBAL", ip);
+            return disasm__simple("SETG", ip);
         } break ;
         case INS_GET_LOCAL: {
-            return disasm__local("INS_GET_LOCAL", self, ip);
+            return disasm__simple("GETL", ip);
+            // return disasm__local("GETL", self, ip);
         } break ;
         case INS_SET_LOCAL: {
-            return disasm__local("INS_SET_LOCAL", self, ip);
+            return disasm__simple("SETL", ip);
+            // return disasm__local("SETL", self, ip);
         } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);

@@ -19,43 +19,20 @@ struct chunk {
 
     // maximum values stack size necessary for the vm
     u32          values_stack_size_watermark;
+    s32          current_stack_size;
+
+    vm_t*        vm;
 };
 
-void chunk__create(chunk_t* self, allocator_t* allocator);
-void chunk__destroy(chunk_t* self, allocator_t* allocator);
-
-typedef enum ins_mnemonic { // compiled in the following way
-    INS_RETURN,             // [ins]
-    INS_IMM,                // [ins] [u8]
-    INS_IMM_LONG,           // [ins] [u24 high] [u24 mid] [u24 low]
-    INS_NIL,                // [ins]
-    INS_TRUE,               // [ins]
-    INS_FALSE,              // [ins]
-    INS_NEG,                // [ins]
-    INS_ADD,                // [ins]
-    INS_SUB,                // [ins]
-    INS_MUL,                // [ins]
-    INS_DIV,                // [ins]
-    INS_NOT,                // [ins]
-    INS_EQ,                 // [ins]
-    INS_GT,                 // [ins]
-    INS_LT,                 // [ins]
-    INS_PRINT,              // [ins]
-    INS_POP,                // [ins]
-    INS_POPN,               // [ins] [imm/imm_long (pop n times)]
-    INS_DEFINE_GLOBAL,      // [ins] [imm/imm_long (index of global)]
-    INS_GET_GLOBAL,         // [ins] [imm/imm_long (index of global)]
-    INS_SET_GLOBAL,         // [ins] [imm/imm_long (index of global)]
-    INS_GET_LOCAL,          // [ins] [imm/imm_long (index of local)]
-    INS_SET_LOCAL,          // [ins] [imm/imm_long (index of local)]
-} ins_mnemonic_t;
+void chunk__create(chunk_t* self, vm_t* vm);
+void chunk__destroy(chunk_t* self);
 
 // @returns ip of pushed instruction
-u32 chunk__push_ins(chunk_t* self, allocator_t* allocator, ins_mnemonic_t instruction, u32 line);
+u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, u32 line);
 // @returns index of pushed immediate instruction
-u32 chunk__push_imm(chunk_t* self, allocator_t* allocator, value_t imm, u32 line);
+u32 chunk__push_imm(chunk_t* self, value_t imm, u32 line);
 // @returns index of pushed value
-u32 chunk__push_value(chunk_t* self, allocator_t* allocator, value_t value);
+u32 chunk__push_value(chunk_t* self, value_t value);
 // @returns the line in the source code associated with the instruction pointer
 u32 chunk__ins_get_line(chunk_t* self, u32 ip);
 

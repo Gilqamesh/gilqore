@@ -98,8 +98,6 @@ static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name
 static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign);
 static void compiler__begin_scope(compiler_t* self);
 static void compiler__end_scope(compiler_t* self);
-static void compiler__push_stack(compiler_t* self);
-static void compiler__pop_stack(compiler_t* self);
 static u32  compiler__push_imm(compiler_t* self, value_t value, u32 line);
 
 // maps token type to its compile rule
@@ -177,7 +175,12 @@ static void compiler__emit_prec(compiler_t* self, precedence prec) {
 }
 
 static void compiler__emit_expr(compiler_t* self) {
+    // s32 stack_size = self->chunk->current_stack_size;
+
     compiler__emit_prec(self, PREC_ASSIGNMENT);
+
+    // expressions always leave a value on top of the stack
+    // ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == stack_size + 1));
 }
 
 static void compiler__emit_grouping(compiler_t* self, bool can_assign) {
@@ -276,21 +279,18 @@ static void compiler__emit_imm(compiler_t* self, bool can_assign) {
 static void compiler__emit_nil(compiler_t* self, bool can_assign) {
     (void) can_assign;
 
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_NIL);
 }
 
 static void compiler__emit_true(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_TRUE);
 }
 
 static void compiler__emit_false(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_FALSE);
 }
 
@@ -303,28 +303,24 @@ static void compiler__emit_neg(compiler_t* self, bool can_assign) {
 static void compiler__emit_add(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_ADD);
 }
 
 static void compiler__emit_sub(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_SUB);
 }
 
 static void compiler__emit_mul(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_MUL);
 }
 
 static void compiler__emit_div(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_DIV);
 }
 
@@ -337,49 +333,42 @@ static void compiler__emit_not(compiler_t* self, bool can_assign) {
 static void compiler__emit_eq(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_EQ);
 }
 
 static void compiler__emit_lt(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_LT);
 }
 
 static void compiler__emit_gt(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_GT);
 }
 
 static void compiler__emit_print(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_PRINT);
 }
 
 static void compiler__emit_pop(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_POP);
 }
 
 static void compiler__emit_define_global(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__pop_stack(self);
     compiler__emit_ins(self, INS_DEFINE_GLOBAL);
 }
 
 static void compiler__emit_get_global(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_GET_GLOBAL);
 }
 
@@ -392,14 +381,12 @@ static void compiler__emit_set_global(compiler_t* self, bool can_assign) {
 static void compiler__emit_get_local(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_GET_LOCAL);
 }
 
 static void compiler__emit_set_local(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
-    compiler__push_stack(self);
     compiler__emit_ins(self, INS_SET_LOCAL);
 }
 
@@ -493,7 +480,7 @@ static void compiler__error_at(compiler_t* self, token_t* token, const char* err
 // }
 
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins) {
-    chunk__push_ins(self->chunk, self->allocator, ins, self->previous.line);
+    chunk__push_ins(self->chunk, ins, self->previous.line);
 }
 
 static void compiler__emit_decl(compiler_t* self) {
@@ -535,7 +522,7 @@ static void compiler__emit_var_decl(compiler_t* self) {
     if (var_info.var_index == -1) {
         // at this point we compiled the initializer, ready to set the state of the local to initialized
         ASSERT(self->scope.scope_depth > 0);
-        local_t* local = &self->scope.locals_data[self->scope.scope_depth - 1];
+        local_t* local = &self->scope.locals_data[self->scope.locals_fill - 1];
         local->scope_depth = self->scope.scope_depth;
         return ;
     }
@@ -579,9 +566,9 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 }
 
 static void compiler__end_compile(compiler_t* self) {
-    ASSERT(self->stack_fill == 0);
-
     compiler__emit_return(self, true);
+
+    // ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == 0));
 }
 
 static void compiler__synchronize(compiler_t* self) {
@@ -650,7 +637,7 @@ static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* ident
     }
 
     // store name -> index
-    u32 index = value_arr__push(&vm->global_values, self->allocator, value__undefined());
+    u32 index = value_arr__push(&vm->global_values, self->vm->allocator, value__undefined());
     var_info = obj__get_var_info(self->vm, index, ident_type->type == TOKEN_CONST);
     table__insert(&vm->global_names_to_var_infos, obj_str, var_info);
 
@@ -660,8 +647,8 @@ static obj_var_info_t* compiler__declare_global(compiler_t* self, token_t* ident
 // local:  -
 // global: [ins_define_global] [imm/imm_long (index of global)]
 static void compiler__define_variable(compiler_t* self, obj_var_info_t* var_info) {
-    compiler__emit_define_global(self, true);
     DISCARD_RETURN compiler__push_imm(self, value__num(var_info->var_index), self->previous.line);
+    compiler__emit_define_global(self, true);
 }
 
 static void compiler__declare_local(compiler_t* self, token_t* ident, token_t* ident_type) {
@@ -689,7 +676,7 @@ static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident
     if (self->scope.locals_fill == self->scope.locals_size) {
         u32 new_locals_size = self->scope.locals_fill < 8 ? 8 : self->scope.locals_fill * 2;
         self->scope.locals_data = allocator__realloc(
-            self->allocator, self->scope.locals_data,
+            self->vm->allocator, self->scope.locals_data,
             self->scope.locals_size * sizeof(*self->scope.locals_data),
             new_locals_size         * sizeof(*self->scope.locals_data)
         );
@@ -701,8 +688,6 @@ static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident
     // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state
     local->scope_depth = -1;
     local->is_const = ident_type->type == TOKEN_CONST;
-
-    compiler__push_stack(self);
 }
 
 static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name) {
@@ -742,13 +727,13 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
                 return ;
             } else {
                 compiler__emit_expr(self);
+                DISCARD_RETURN compiler__push_imm(self, value__num((r64) local_result.var_index), self->previous.line);
                 compiler__emit_set_local(self, can_assign);
             }
         } else {
+            DISCARD_RETURN compiler__push_imm(self, value__num((r64) local_result.var_index), self->previous.line);
             compiler__emit_get_local(self, can_assign);
         }
-
-        DISCARD_RETURN compiler__push_imm(self, value__num((r64) local_result.var_index), self->previous.line);
     } else {
         value_t obj_str = obj__copy_str(self->vm, var.lexeme, var.lexeme_len);
         // get the global
@@ -768,13 +753,13 @@ static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_ass
                 return ;
             } else {
                 compiler__emit_expr(self);
+                DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous.line);
                 compiler__emit_set_global(self, can_assign);
             }
         } else {
+            DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous.line);
             compiler__emit_get_global(self, can_assign);
         }
-
-        DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous.line);
     }
 }
 
@@ -792,32 +777,18 @@ static void compiler__end_scope(compiler_t* self) {
         self->scope.locals_fill > 0 &&
         self->scope.locals_data[self->scope.locals_fill - 1].scope_depth > self->scope.scope_depth
     ) {
-        compiler__pop_stack(self);
+        compiler__emit_ins(self, INS_POP);
         --self->scope.locals_fill;
     }
 }
 
-static void compiler__push_stack(compiler_t* self) {
-    ++self->stack_fill;
-
-    if (self->chunk->values_stack_size_watermark < self->stack_fill) {
-        self->chunk->values_stack_size_watermark = self->stack_fill;
-    }
-}
-
-static void compiler__pop_stack(compiler_t* self) {
-    ASSERT(self->stack_fill > 0);
-    --self->stack_fill;
-}
-
 static u32 compiler__push_imm(compiler_t* self, value_t value, u32 line) {
-    compiler__push_stack(self);
-    u32 value_index = chunk__push_imm(self->chunk, self->allocator, value, line);
+    u32 value_index = chunk__push_imm(self->chunk, value, line);
 
     return value_index;
 }
 
-bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source) {
+bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source) {
     scanner__init(&self->scanner, source);
 
     self->had_error = false;
@@ -828,10 +799,7 @@ bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_
     self->scope.locals_size = 0;
     self->scope.scope_depth = 0;
 
-    self->stack_fill = 0;
-
     self->vm = vm;
-    self->allocator = allocator;
     self->chunk = chunk;
 
     return true;
@@ -839,7 +807,7 @@ bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_
 
 void compiler__destroy(compiler_t* self) {
     if (self->scope.locals_data) {
-        allocator__free(self->allocator, self->scope.locals_data);
+        allocator__free(self->vm->allocator, self->scope.locals_data);
     }
 }
 

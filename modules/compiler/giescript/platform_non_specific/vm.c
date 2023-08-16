@@ -16,6 +16,7 @@ typedef enum vm_interpret_result {
     VM_RUNTIME_ERROR
 } vm_interpret_result_t;
 
+static void vm__define_ins_infos(vm_t* self);
 static void vm__free_objs(vm_t* self);
 // executes the chunk and returns the result
 static vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk);
@@ -28,8 +29,7 @@ static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
 static u8      vm__eat(vm_t* self);
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk);
 static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk);
-static u32     vm__eat_index(vm_t* self, chunk_t* chunk);
-static value_t vm__eat_global_identifier_value(vm_t* self, chunk_t* chunk);
+// static u32     vm__eat_index(vm_t* self, chunk_t* chunk);
 static value_t vm__peek(vm_t* self);
 // push value on the value stack
 static void    vm__push(vm_t* self, value_t value);
@@ -39,7 +39,7 @@ static value_t vm__pop(vm_t* self);
 static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
 #if defined(DEBUG_VM_TRACE)
     libc__printf("--== vm trace ==--\n"); 
-    libc__printf("     values stack\n");
+    libc__printf("     stack: ");
     value_t* value = self->values_stack_data;
     while (value != self->values_stack_top) {
         libc__printf("[ ");
@@ -48,7 +48,7 @@ static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
     }
     libc__printf("\n");
     
-    libc__printf("     instructions disasm\n");
+    libc__printf("     ins:   ");
     ASSERT(chunk->instructions <= self->ip);
     chunk__disasm_ins(chunk, (u32) (self->ip - chunk->instructions));
     libc__printf("\n");
@@ -74,30 +74,22 @@ static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk) {
     return chunk->immediates.values[imm_index];
 }
 
-static u32 vm__eat_index(vm_t* self, chunk_t* chunk) {
-    u8 ins = vm__eat(self);
-    value_t identifier_index;
-    switch (ins) {
-        case INS_IMM: {
-            identifier_index = vm__eat_imm(self, chunk);
-        } break ;
-        case INS_IMM_LONG: {
-            identifier_index = vm__eat_imm_long(self, chunk);
-        } break ;
-        default: ASSERT(false);
-    }
+// static u32 vm__eat_index(vm_t* self, chunk_t* chunk) {
+//     u8 ins = vm__eat(self);
+//     value_t identifier_index;
+//     switch (ins) {
+//         case INS_IMM: {
+//             identifier_index = vm__eat_imm(self, chunk);
+//         } break ;
+//         case INS_IMM_LONG: {
+//             identifier_index = vm__eat_imm_long(self, chunk);
+//         } break ;
+//         default: ASSERT(false);
+//     }
 
-    ASSERT(value__is_num(identifier_index));
-    return (u32) value__as_num(identifier_index);
-}
-
-static value_t vm__eat_global_identifier_value(vm_t* self, chunk_t* chunk) {
-    u32 identifier_index_num = vm__eat_index(self, chunk);
-    ASSERT(identifier_index_num < self->global_values.values_fill);
-    value_t identifier = self->global_values.values[identifier_index_num];
-
-    return identifier;
-}
+//     ASSERT(value__is_num(identifier_index));
+//     return (u32) value__as_num(identifier_index);
+// }
 
 static value_t vm__peek(vm_t* self) {
     ASSERT(self->values_stack_top > self->values_stack_data && "underflow");
@@ -118,6 +110,8 @@ static value_t vm__pop(vm_t* self) {
 }
 
 bool vm__create(vm_t* self, allocator_t* allocator) {
+    vm__define_ins_infos(self);
+
     self->ip = 0;
     self->values_stack_data = 0;
     self->values_stack_top = 0;
@@ -208,17 +202,17 @@ bool vm__run_repl(vm_t* self) {
 
 static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
     chunk_t chunk;
-    chunk__create(&chunk, self->allocator);
+    chunk__create(&chunk, self);
 
     compiler_t compiler;
-    if (!compiler__create(&compiler, self, self->allocator, &chunk, source)) {
-        chunk__destroy(&chunk, self->allocator);
+    if (!compiler__create(&compiler, self, &chunk, source)) {
+        chunk__destroy(&chunk);
         return VM_COMPILE_ERROR;
     }
 
     if (!compiler__compile(&compiler)) {
         compiler__destroy(&compiler);
-        chunk__destroy(&chunk, self->allocator);
+        chunk__destroy(&chunk);
         return VM_COMPILE_ERROR;
     }
 
@@ -226,7 +220,7 @@ static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
 
     vm_interpret_result_t result = vm__interpret(self, &chunk);
 
-    chunk__destroy(&chunk, self->allocator);
+    chunk__destroy(&chunk);
 
     return result;
 }
@@ -255,6 +249,32 @@ static void vm__free_objs(vm_t* self) {
     }
 }
 
+static void vm__define_ins_infos(vm_t* self) {
+    self->ins_infos[INS_RETURN].stack_delta = 0;
+    self->ins_infos[INS_IMM].stack_delta = 1;
+    self->ins_infos[INS_IMM_LONG].stack_delta = 1;
+    self->ins_infos[INS_NIL].stack_delta = 1;
+    self->ins_infos[INS_TRUE].stack_delta = 1;
+    self->ins_infos[INS_FALSE].stack_delta = 1;
+    self->ins_infos[INS_NEG].stack_delta = 0;
+    self->ins_infos[INS_ADD].stack_delta = -1;
+    self->ins_infos[INS_SUB].stack_delta = -1;
+    self->ins_infos[INS_MUL].stack_delta = -1;
+    self->ins_infos[INS_DIV].stack_delta = -1;
+    self->ins_infos[INS_NOT].stack_delta = 0;
+    self->ins_infos[INS_EQ].stack_delta = -1;
+    self->ins_infos[INS_GT].stack_delta = -1;
+    self->ins_infos[INS_LT].stack_delta = -1;
+    self->ins_infos[INS_PRINT].stack_delta = -1;
+    self->ins_infos[INS_POP].stack_delta = -1;
+    self->ins_infos[INS_POPN].stack_delta = 0;
+    self->ins_infos[INS_DEFINE_GLOBAL].stack_delta = -2;
+    self->ins_infos[INS_GET_GLOBAL].stack_delta = 0;
+    self->ins_infos[INS_SET_GLOBAL].stack_delta = 0;
+    self->ins_infos[INS_GET_LOCAL].stack_delta = 1;
+    self->ins_infos[INS_SET_LOCAL].stack_delta = 0;
+}
+
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
     self->ip = chunk->instructions;
 
@@ -273,7 +293,7 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
     while (42) {
         vm__interpret_trace(self, chunk);
         
-        u8 ins = vm__eat(self);
+        ins_mnemonic_t ins = vm__eat(self);
 
         switch (ins) {
             case INS_RETURN: {
@@ -353,15 +373,6 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 value_t left = vm__pop(self);
                 vm__push(self, value__bool(value__is_eq(left, right)));
             } break ;
-            case INS_LT: {
-                value_t right = vm__pop(self);
-                value_t left  = vm__pop(self);
-                if (!value__is_num(left) || !value__is_num(right)) {
-                    vm__error(self, chunk, "Operands must be numbers.");
-                    return VM_RUNTIME_ERROR;
-                }
-                vm__push(self, value__bool(value__as_num(left) < value__as_num(right)));
-            } break ;
             case INS_GT: {
                 value_t right = vm__pop(self);
                 value_t left  = vm__pop(self);
@@ -370,6 +381,15 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                     return VM_RUNTIME_ERROR;
                 }
                 vm__push(self, value__bool(value__as_num(left) > value__as_num(right)));
+            } break ;
+            case INS_LT: {
+                value_t right = vm__pop(self);
+                value_t left  = vm__pop(self);
+                if (!value__is_num(left) || !value__is_num(right)) {
+                    vm__error(self, chunk, "Operands must be numbers.");
+                    return VM_RUNTIME_ERROR;
+                }
+                vm__push(self, value__bool(value__as_num(left) < value__as_num(right)));
             } break ;
             case INS_PRINT: {
                 value_t value = vm__pop(self);
@@ -380,38 +400,56 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 DISCARD_RETURN vm__pop(self);
             } break ;
             case INS_DEFINE_GLOBAL: {
-                u32 initializer_index = vm__eat_index(self, chunk);
+                value_t initializer_index_value = vm__pop(self);
+                ASSERT(value__is_num(initializer_index_value));
+                u32 initializer_index = (u32) value__as_num(initializer_index_value);
                 self->global_values.values[initializer_index] = vm__pop(self);
             } break ;
             case INS_GET_GLOBAL: {
-                value_t identifier_value = vm__eat_global_identifier_value(self, chunk);
-                if (value__is_undefined(identifier_value)) {
+                value_t identifier_value = vm__pop(self);
+                ASSERT(value__is_num(identifier_value));
+                u32 identifier_index_num = (u32) value__as_num(identifier_value);
+
+                ASSERT(identifier_index_num < self->global_values.values_fill);
+                value_t identifier = self->global_values.values[identifier_index_num];
+
+                if (value__is_undefined(identifier)) {
                     vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                vm__push(self, identifier_value);
+                vm__push(self, identifier);
             } break ;
             case INS_SET_GLOBAL: {
-                u32 global_value_index = vm__eat_index(self, chunk);
+                value_t value = vm__pop(self);
+                ASSERT(value__is_num(value));
+                u32 global_value_index = (u32) value__as_num(value);
+
                 ASSERT(global_value_index < self->global_values.values_fill);
-                value_t identifier_value = self->global_values.values[global_value_index];
-                if (value__is_undefined(identifier_value)) {
+                value_t identifier = self->global_values.values[global_value_index];
+
+                if (value__is_undefined(identifier)) {
                     vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                value_t value = vm__peek(self);
+                value = vm__peek(self);
                 self->global_values.values[global_value_index] = value;
             } break ;
             case INS_GET_LOCAL: {
-                u32 local_index = vm__eat_index(self, chunk);
+                value_t value = vm__pop(self);
+                ASSERT(value__is_num(value));
+                u32 local_index = (u32) value__as_num(value);
+
                 ASSERT(local_index < self->values_stack_top - self->values_stack_data);
-                value_t value = self->values_stack_data[local_index];
+                value = self->values_stack_data[local_index];
                 vm__push(self, value);
             } break ;
             case INS_SET_LOCAL: {
-                u32 local_index = vm__eat_index(self, chunk);
+                value_t value = vm__pop(self);
+                ASSERT(value__is_num(value));
+                u32 local_index = (u32) value__as_num(value);
+
                 ASSERT(local_index < self->values_stack_top - self->values_stack_data);
-                value_t value = vm__peek(self);
+                value = vm__peek(self);
                 self->values_stack_data[local_index] = value;
             } break ;
             default: ASSERT(false);

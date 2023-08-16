@@ -31,20 +31,13 @@ struct compiler {
 
     scope_t scope;
 
-    // number of temporaries and locals in play (mimics vm's stack)
-    u32 stack_fill;
-
     vm_t* vm;
-    allocator_t* allocator;
     chunk_t* chunk;
 };
 
-bool compiler__create(compiler_t* self, vm_t* vm, allocator_t* allocator, chunk_t* chunk, const char* source);
+bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source);
 void compiler__destroy(compiler_t* self);
 
 bool compiler__compile(compiler_t* self);
-
-// interface between vm/compiler
-# define INS_EMIT(mnemonic, stack_delta)
 
 #endif // GIES_COMPILER_H

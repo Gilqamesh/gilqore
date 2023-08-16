@@ -7,6 +7,12 @@
 # include "allocator.h"
 # include "table.h"
 
+// interface between vm/compiler so that compiler knows how the instructions are implemented on the vm side, which is necessary to precompute for example the necessary size of the stack
+struct ins_info
+{
+    s32 stack_delta; // how the instruction affects the stack
+};
+
 struct vm {
     u8* ip;
 
@@ -23,6 +29,8 @@ struct vm {
     table_t     global_names_to_var_infos;
     // identifier initializers
     value_arr_t global_values;
+
+    ins_info_t ins_infos[_INS_MNEMONIC_SIZE];
 
     allocator_t* allocator;
 };
