@@ -270,9 +270,9 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_POPN].stack_delta = 0;
     self->ins_infos[INS_DEFINE_GLOBAL].stack_delta = -2;
     self->ins_infos[INS_GET_GLOBAL].stack_delta = 0;
-    self->ins_infos[INS_SET_GLOBAL].stack_delta = 0;
-    self->ins_infos[INS_GET_LOCAL].stack_delta = 1;
-    self->ins_infos[INS_SET_LOCAL].stack_delta = 0;
+    self->ins_infos[INS_SET_GLOBAL].stack_delta = -1;
+    self->ins_infos[INS_GET_LOCAL].stack_delta = 0;
+    self->ins_infos[INS_SET_LOCAL].stack_delta = -1;
 }
 
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {

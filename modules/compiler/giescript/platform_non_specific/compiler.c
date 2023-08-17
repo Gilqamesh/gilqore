@@ -175,12 +175,12 @@ static void compiler__emit_prec(compiler_t* self, precedence prec) {
 }
 
 static void compiler__emit_expr(compiler_t* self) {
-    // s32 stack_size = self->chunk->current_stack_size;
+    s32 stack_size = self->chunk->current_stack_size;
 
     compiler__emit_prec(self, PREC_ASSIGNMENT);
 
     // expressions always leave a value on top of the stack
-    // ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == stack_size + 1));
+    ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == stack_size + 1));
 }
 
 static void compiler__emit_grouping(compiler_t* self, bool can_assign) {
@@ -568,7 +568,7 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 static void compiler__end_compile(compiler_t* self) {
     compiler__emit_return(self, true);
 
-    // ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == 0));
+    ASSERT(self->had_error || (!self->had_error && self->chunk->current_stack_size == 0));
 }
 
 static void compiler__synchronize(compiler_t* self) {
