@@ -2,6 +2,7 @@
 #include "vm.h"
 
 #include "libc/libc.h"
+#include "types/basic_types/basic_types.h"
 
 static void chunk__init(chunk_t* self);
 static u32  chunk__push(chunk_t* self, ins_mnemonic_t instruction, u32 line);
@@ -71,7 +72,18 @@ void chunk__destroy(chunk_t* self) {
 
 u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, u32 line) {
     const s32 stack_delta = self->vm->ins_infos[instruction].stack_delta;
-    self->current_stack_size += stack_delta;
+    if (instruction == INS_POPN) {
+        ASSERT(self->immediates.values_fill > 0);
+        value_t index_value = self->immediates.values[self->immediates.values_fill - 1];
+        r64 value_as_num = value__as_num(index_value);
+        r64 value_as_num_integral_part;
+        r64 value_as_num_fractional_part = r64__modular_fraction(value_as_num, &value_as_num_integral_part);
+        ASSERT(value_as_num_integral_part >= 0 && value_as_num_fractional_part == 0.0);
+        // + 1 because it also pops the immediate
+        self->current_stack_size -= ((s32) value_as_num + 1);
+    } else {
+        self->current_stack_size += stack_delta;
+    }
     if (self->current_stack_size > 0 && (u32) self->current_stack_size > self->values_stack_size_watermark) {
         self->values_stack_size_watermark = (u32) self->current_stack_size;
     }

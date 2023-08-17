@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "obj.h"
 
+#include "types/basic_types/basic_types.h"
 #include "libc/libc.h"
 #include "io/file/file.h"
 #include "io/console/console.h"
@@ -29,12 +30,13 @@ static void    vm__interpret_trace(vm_t* self, chunk_t* chunk);
 static u8      vm__eat(vm_t* self);
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk);
 static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk);
-// static u32     vm__eat_index(vm_t* self, chunk_t* chunk);
 static value_t vm__peek(vm_t* self);
 // push value on the value stack
 static void    vm__push(vm_t* self, value_t value);
 // pop value from the value stack
 static value_t vm__pop(vm_t* self);
+static value_t vm__popn(vm_t* self, u32 n);
+static u32     vm__pop_index(vm_t* self);
 
 static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
 #if defined(DEBUG_VM_TRACE)
@@ -74,22 +76,18 @@ static value_t vm__eat_imm_long(vm_t* self, chunk_t* chunk) {
     return chunk->immediates.values[imm_index];
 }
 
-// static u32 vm__eat_index(vm_t* self, chunk_t* chunk) {
-//     u8 ins = vm__eat(self);
-//     value_t identifier_index;
-//     switch (ins) {
-//         case INS_IMM: {
-//             identifier_index = vm__eat_imm(self, chunk);
-//         } break ;
-//         case INS_IMM_LONG: {
-//             identifier_index = vm__eat_imm_long(self, chunk);
-//         } break ;
-//         default: ASSERT(false);
-//     }
+static u32 vm__pop_index(vm_t* self) {
+    value_t index_value = vm__pop(self);
+    ASSERT(value__is_num(index_value));
 
-//     ASSERT(value__is_num(identifier_index));
-//     return (u32) value__as_num(identifier_index);
-// }
+    r64 value_as_num = value__as_num(index_value);
+    r64 value_as_num_integral_part;
+    r64 value_as_num_fractional_part = r64__modular_fraction(value_as_num, &value_as_num_integral_part);
+    ASSERT(value_as_num_integral_part >= 0 && value_as_num_fractional_part == 0.0);
+    u32 index = (u32) value_as_num;
+
+    return index;
+}
 
 static value_t vm__peek(vm_t* self) {
     ASSERT(self->values_stack_top > self->values_stack_data && "underflow");
@@ -107,6 +105,12 @@ static value_t vm__pop(vm_t* self) {
     ASSERT(self->values_stack_top > self->values_stack_data && "underflow");
 
     return *--self->values_stack_top;
+}
+
+static value_t vm__popn(vm_t* self, u32 n) {
+    ASSERT(self->values_stack_top - n >= self->values_stack_data && "underflow");
+    
+    return *(self->values_stack_top -= n);
 }
 
 bool vm__create(vm_t* self, allocator_t* allocator) {
@@ -267,7 +271,7 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_LT].stack_delta = -1;
     self->ins_infos[INS_PRINT].stack_delta = -1;
     self->ins_infos[INS_POP].stack_delta = -1;
-    self->ins_infos[INS_POPN].stack_delta = 0;
+    self->ins_infos[INS_POPN].stack_delta = 0; // hardcoded to check previous imm when pushing this instruction
     self->ins_infos[INS_DEFINE_GLOBAL].stack_delta = -2;
     self->ins_infos[INS_GET_GLOBAL].stack_delta = 0;
     self->ins_infos[INS_SET_GLOBAL].stack_delta = -1;
@@ -399,58 +403,54 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
             case INS_POP: {
                 DISCARD_RETURN vm__pop(self);
             } break ;
+            case INS_POPN: {
+                u32 index = vm__pop_index(self);
+                DISCARD_RETURN vm__popn(self, index);
+            } break ;
             case INS_DEFINE_GLOBAL: {
-                value_t initializer_index_value = vm__pop(self);
-                ASSERT(value__is_num(initializer_index_value));
-                u32 initializer_index = (u32) value__as_num(initializer_index_value);
-                self->global_values.values[initializer_index] = vm__pop(self);
+                u32 index = vm__pop_index(self);
+
+                ASSERT(index < self->global_values.values_fill);
+                self->global_values.values[index] = vm__pop(self);
             } break ;
             case INS_GET_GLOBAL: {
-                value_t identifier_value = vm__pop(self);
-                ASSERT(value__is_num(identifier_value));
-                u32 identifier_index_num = (u32) value__as_num(identifier_value);
+                u32 index = vm__pop_index(self);
 
-                ASSERT(identifier_index_num < self->global_values.values_fill);
-                value_t identifier = self->global_values.values[identifier_index_num];
+                ASSERT(index < self->global_values.values_fill);
+                value_t value = self->global_values.values[index];
 
-                if (value__is_undefined(identifier)) {
+                if (value__is_undefined(value)) {
                     vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                vm__push(self, identifier);
+                vm__push(self, value);
             } break ;
             case INS_SET_GLOBAL: {
-                value_t value = vm__pop(self);
-                ASSERT(value__is_num(value));
-                u32 global_value_index = (u32) value__as_num(value);
+                u32 index = vm__pop_index(self);
 
-                ASSERT(global_value_index < self->global_values.values_fill);
-                value_t identifier = self->global_values.values[global_value_index];
+                ASSERT(index < self->global_values.values_fill);
+                value_t identifier = self->global_values.values[index];
 
                 if (value__is_undefined(identifier)) {
                     vm__error(self, chunk, "Undefined variable.");
                     return VM_RUNTIME_ERROR;
                 }
-                value = vm__peek(self);
-                self->global_values.values[global_value_index] = value;
+                value_t value = vm__peek(self);
+                self->global_values.values[index] = value;
             } break ;
             case INS_GET_LOCAL: {
-                value_t value = vm__pop(self);
-                ASSERT(value__is_num(value));
-                u32 local_index = (u32) value__as_num(value);
+                u32 index = vm__pop_index(self);
 
-                ASSERT(local_index < self->values_stack_top - self->values_stack_data);
-                value = self->values_stack_data[local_index];
+                ASSERT(index < self->values_stack_top - self->values_stack_data);
+                value_t value = self->values_stack_data[index];
                 vm__push(self, value);
             } break ;
             case INS_SET_LOCAL: {
-                value_t value = vm__pop(self);
-                ASSERT(value__is_num(value));
-                u32 local_index = (u32) value__as_num(value);
+                u32 index = vm__pop_index(self);
 
-                ASSERT(local_index < self->values_stack_top - self->values_stack_data);
-                value = vm__peek(self);
-                self->values_stack_data[local_index] = value;
+                ASSERT(index < self->values_stack_top - self->values_stack_data);
+                value_t value = vm__peek(self);
+                self->values_stack_data[index] = value;
             } break ;
             default: ASSERT(false);
         }

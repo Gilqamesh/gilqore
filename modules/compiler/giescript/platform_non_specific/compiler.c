@@ -772,13 +772,22 @@ static void compiler__end_scope(compiler_t* self) {
 
     --self->scope.scope_depth;
 
+    u32 n_to_pop = 0;
+
     // pop locals from the scope
     while (
         self->scope.locals_fill > 0 &&
         self->scope.locals_data[self->scope.locals_fill - 1].scope_depth > self->scope.scope_depth
     ) {
-        compiler__emit_ins(self, INS_POP);
+        ++n_to_pop;
         --self->scope.locals_fill;
+    }
+
+    if (n_to_pop == 1) {
+        compiler__emit_ins(self, INS_POP);
+    } else if (n_to_pop > 1) {
+        compiler__push_imm(self, value__num(n_to_pop), self->previous.line);
+        compiler__emit_ins(self, INS_POPN);
     }
 }
 

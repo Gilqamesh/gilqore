@@ -152,6 +152,9 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_POP: {
             return disasm__simple("POP", ip);
         } break ;
+        case INS_POPN: {
+            return disasm__simple("POPN", ip);
+        } break ;
         case INS_DEFINE_GLOBAL: {
             return disasm__simple("DEFG", ip);
         } break ;
