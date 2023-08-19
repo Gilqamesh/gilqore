@@ -42,6 +42,7 @@ static void compiler__emit_var_decl(compiler_t* self);
 static void compiler__emit_stmt(compiler_t* self);
 static void compiler__emit_print_stmt(compiler_t* self);
 static void compiler__emit_if_stmt(compiler_t* self);
+static void compiler__emit_while_stmt(compiler_t* self);
 static void compiler__emit_expr_stmt(compiler_t* self);
 static void compiler__emit_block_stmt(compiler_t* self);
 static void compiler__emit_expr(compiler_t* self);
@@ -575,6 +576,8 @@ static void compiler__emit_stmt(compiler_t* self) {
         compiler__emit_print_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_IF)) {
         compiler__emit_if_stmt(self);
+    } else if (compiler__eat_if(self, TOKEN_WHILE)) {
+        compiler__emit_while_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_LEFT_BRACE)) {
         compiler__begin_scope(self);
         compiler__emit_block_stmt(self);
@@ -594,7 +597,7 @@ static void compiler__emit_if_stmt(compiler_t* self) {
     compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
     // emit condition expr
     compiler__emit_expr(self);
-    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after if condition.");
+    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
     u32 then_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
     // pop condition expr
@@ -611,6 +614,31 @@ static void compiler__emit_if_stmt(compiler_t* self) {
     }
 
     compiler__patch_jump(self, else_ip);
+}
+
+static void compiler__emit_while_stmt(compiler_t* self) {
+    compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
+
+    // jump back before the condition expr at the end of the loop
+    u32 loop_start = self->chunk->instructions_fill;
+    // emit condition expr
+    compiler__emit_expr(self);
+    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+    u32 exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+    // pop condition expr
+    compiler__emit_pop(self, true);
+    compiler__emit_stmt(self);
+
+    // jump back before condition expr
+    compiler__push_imm(self, value__num(loop_start), self->previous);
+    compiler__emit_ins(self, INS_JUMP);
+
+    // exit to here if condition evaluates to false
+    compiler__patch_jump(self, exit_ip);
+
+    // pop condition expr
+    compiler__emit_pop(self, true);
 }
 
 static void compiler__emit_expr_stmt(compiler_t* self) {
