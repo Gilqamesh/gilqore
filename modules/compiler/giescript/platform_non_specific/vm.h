@@ -41,4 +41,8 @@ void vm__destroy(vm_t* self);
 bool vm__run_file(vm_t* self, const char* path);
 bool vm__run_repl(vm_t* self);
 
+// @param ... INS_RETURN terminated sequence of instruction mnemonics
+bool vm__test_source(vm_t* self, const char* script, ...);
+bool vm__vtest_source(vm_t* self, const char* script, va_list ap);
+
 #endif // GIES_VM

@@ -8,7 +8,10 @@
 struct scanner {
     const char*  start;
     const char*  top;
-    u32          line;
+    u32          line_s;
+    u32          line_e;
+    u32          col_s;
+    u32          col_e;
 };
 
 void scanner__init(scanner_t* self, const char* source);
@@ -45,9 +48,12 @@ typedef enum {
 
 struct token {
     const char*  lexeme; // not null-terminated
-    u32          lexeme_len : 28;
-    u32          type : 8;
-    u32          line : 24;
+    u32          lexeme_len;
+    u32          type;
+    u32          line_s;
+    u32          line_e;
+    u32          col_s;
+    u32          col_e;
 };
 
 token_t scanner__scan_token(scanner_t* self);

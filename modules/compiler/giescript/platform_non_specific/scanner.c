@@ -30,11 +30,14 @@ static token_t scanner__make_token(scanner_t* self, token_type type) {
         .lexeme     = self->start,
         .lexeme_len = (u32) (self->top - self->start),
         .type       = type,
-        .line       = self->line
+        .line_s     = self->line_s,
+        .line_e     = self->line_e,
+        .col_s      = self->col_s,
+        .col_e      = self->col_e
     };
 
 #if defined (DEBUG_TOKEN_TRACE)
-    libc__printf("token: line = %d, type = %d, str = [%.*s]\n", result.line, result.type, result.lexeme_len, result.lexeme);
+    libc__printf("token: %u:%u %u:%u, type = %d, str = [%.*s]\n", result.line_s, result.col_s, result.line_e, result.col_e, result.type, result.lexeme_len, result.lexeme);
 #endif
 
     return result;
@@ -45,7 +48,10 @@ static token_t scanner__make_error_token(scanner_t* self, const char* msg) {
         .lexeme     = msg,
         .lexeme_len = libc__strlen(msg),
         .type       = TOKEN_ERROR,
-        .line       = self->line
+        .line_s     = self->line_s,
+        .line_e     = self->line_e,
+        .col_s      = self->col_s,
+        .col_e      = self->col_e
     };
 
     return result;
@@ -60,6 +66,7 @@ static char scanner__peak_next(scanner_t* self) {
 }
 
 static char scanner__eat(scanner_t* self) {
+    ++self->col_e;
     return *self->top++;
 }
 
@@ -89,7 +96,8 @@ static token_t scanner__make_comment(scanner_t* self) {
                 if (c == '*' && scanner__eat_if(self, '/')) {
                     return scanner__make_token(self, TOKEN_COMMENT);
                 } else if (c == '\n') {
-                    ++self->line;
+                    ++self->line_e;
+                    self->col_e = 1;
             }
         } while (!scanner__is_at_end(self));
         } break ;
@@ -108,7 +116,8 @@ static void scanner__skip_whitespaces(scanner_t* self) {
                 scanner__eat(self);
             } break ;
             case '\n': {
-                ++self->line;
+                ++self->line_e;
+                self->col_e = 1;
                 scanner__eat(self);
             } break ;
             default: return;
@@ -119,7 +128,8 @@ static void scanner__skip_whitespaces(scanner_t* self) {
 static token_t scanner__make_string(scanner_t* self) {
     while (scanner__peak(self) != '"' && !scanner__is_at_end(self)) {
         if (scanner__peak(self) == '\n') {
-            ++self->line;
+            ++self->line_e;
+            self->col_e = 1;
         }
         scanner__eat(self);
     }
@@ -222,15 +232,20 @@ static bool is_alpha(char c) {
 }
 
 void scanner__init(scanner_t* self, const char* source) {
-    self->start = source;
-    self->top   = source;
-    self->line  = 1;
+    self->start  = source;
+    self->top    = source;
+    self->line_s = 1;
+    self->line_e = 1;
+    self->col_s  = 1;
+    self->col_e  = 1;
 }
 
 token_t scanner__scan_token(scanner_t* self) {
     scanner__skip_whitespaces(self);
 
-    self->start = self->top;
+    self->start  = self->top;
+    self->line_s = self->line_e;
+    self->col_s  = self->col_e;
 
     if (scanner__is_at_end(self)) {
         return scanner__make_token(self, TOKEN_EOF);

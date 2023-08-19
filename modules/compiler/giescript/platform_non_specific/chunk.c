@@ -1,17 +1,18 @@
 #include "chunk.h"
 #include "vm.h"
+#include "scanner.h"
 
 #include "libc/libc.h"
 #include "types/basic_types/basic_types.h"
 
 static void chunk__init(chunk_t* self);
-static u32  chunk__push(chunk_t* self, ins_mnemonic_t instruction, u32 line);
+static u32  chunk__push(chunk_t* self, ins_mnemonic_t instruction, token_t token);
 
 static void chunk__init(chunk_t* self) {
     libc__memset(self, 0, sizeof(*self));
 }
 
-static u32 chunk__push(chunk_t* self, ins_mnemonic_t instruction, u32 line) {
+static u32 chunk__push(chunk_t* self, ins_mnemonic_t instruction, token_t token) {
     allocator_t* allocator = self->vm->allocator;
 
     if (self->instructions_fill == self->instructions_size) {
@@ -26,22 +27,20 @@ static u32 chunk__push(chunk_t* self, ins_mnemonic_t instruction, u32 line) {
     u32 ip = self->instructions_fill++;
     self->instructions[ip] = instruction;
 
-    ASSERT(self->lines_fill % 2 == 0);
-    if (self->lines_fill > 0 && self->lines[self->lines_fill - 1] == line) {
-        ++self->lines[self->lines_fill - 2];
-    } else {
-        if (self->lines_fill == self->lines_size) {
-            u32 new_size = self->lines_size < 8 ? 8 : self->lines_size * 2;
-            self->lines = allocator__realloc(
-                allocator, self->lines,
-                self->lines_size * sizeof(*self->lines),
-                new_size * sizeof(*self->lines)
-            );
-            self->lines_size = new_size;
-        }
-        self->lines[self->lines_fill++] = 1;
-        self->lines[self->lines_fill++] = line;
+    if (self->token_infos_fill == self->token_infos_size) {
+        u32 new_size = self->token_infos_size < 8 ? 8 : self->token_infos_size * 2;
+        self->token_infos = allocator__realloc(
+            allocator, self->token_infos,
+            self->token_infos_size * sizeof(*self->token_infos),
+            new_size * sizeof(*self->token_infos)
+        );
+        self->token_infos_size = new_size;
     }
+    self->token_infos[self->token_infos_fill].line_s = token.line_s;
+    self->token_infos[self->token_infos_fill].line_e = token.line_e;
+    self->token_infos[self->token_infos_fill].col_s  = token.col_s;
+    self->token_infos[self->token_infos_fill].col_e  = token.col_e;
+    ++self->token_infos_fill;
 
     return ip;
 }
@@ -61,8 +60,8 @@ void chunk__destroy(chunk_t* self) {
         allocator__free(allocator, self->instructions);
     }
 
-    if (self->lines) {
-        allocator__free(allocator, self->lines);
+    if (self->token_infos) {
+        allocator__free(allocator, self->token_infos);
     }
 
     value_arr__destroy(&self->immediates, allocator);
@@ -70,7 +69,7 @@ void chunk__destroy(chunk_t* self) {
     chunk__init(self);
 }
 
-u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, u32 line) {
+u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, token_t token) {
     const s32 stack_delta = self->vm->ins_infos[instruction].stack_delta;
     if (instruction == INS_POPN) {
         ASSERT(self->immediates.values_fill > 0);
@@ -88,19 +87,19 @@ u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, u32 line) {
         self->values_stack_size_watermark = (u32) self->current_stack_size;
     }
 
-    return chunk__push(self, instruction, line);
+    return chunk__push(self, instruction, token);
 }
 
-u32 chunk__push_imm(chunk_t* self, value_t imm, u32 line) {
+u32 chunk__push_imm(chunk_t* self, value_t imm, token_t token) {
     u32 imm_index = chunk__push_value(self, imm);
-    if (imm_index < 256) {
-        chunk__push_ins(self, INS_IMM, line);
-        chunk__push(self, imm_index, line);
+    if (imm_index < 4) {
+        chunk__push_ins(self, INS_IMM, token);
+        chunk__push(self, imm_index, token);
     } else {
-        chunk__push_ins(self, INS_IMM_LONG, line);
-        chunk__push(self, imm_index >> 16, line);
-        chunk__push(self, imm_index >> 8, line);
-        chunk__push(self, imm_index, line);
+        chunk__push_ins(self, INS_IMM_LONG, token);
+        chunk__push(self, imm_index >> 16, token);
+        chunk__push(self, imm_index >> 8, token);
+        chunk__push(self, imm_index, token);
     }
 
     return imm_index;
@@ -110,19 +109,7 @@ u32 chunk__push_value(chunk_t* self, value_t immediate) {
     return value_arr__push(&self->immediates, self->vm->allocator, immediate);
 }
 
-u32 chunk__ins_get_line(chunk_t* self, u32 ip) {
-    u32 lines_index = 0;
-    while (lines_index < self->lines_fill) {
-        u32 n = self->lines[lines_index];
-        u32 line = self->lines[lines_index + 1];
-        if (ip < n) {
-            return line;
-        }
-        ip -= n;
-
-        lines_index += 2;
-    }
-
-    ASSERT(false);
-    return -1;
+token_info_t* chunk__get_token_info(chunk_t* self, u32 ip) {
+    ASSERT(ip < self->token_infos_fill);
+    return &self->token_infos[ip];
 }

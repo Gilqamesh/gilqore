@@ -6,14 +6,21 @@
 # include "common.h"
 # include "value.h"
 
+struct token_info {
+    u32 line_s;
+    u32 line_e;
+    u32 col_s;
+    u32 col_e;
+};
+
 struct chunk {
     u32          instructions_fill;
     u32          instructions_size;
     u8*          instructions;
 
-    u32          lines_fill;
-    u32          lines_size;
-    u32*         lines; // RLE encoded, format: [n, line] [n, line]
+    token_info_t* token_infos;
+    u32           token_infos_fill;
+    u32           token_infos_size;
 
     value_arr_t  immediates;
 
@@ -28,12 +35,11 @@ void chunk__create(chunk_t* self, vm_t* vm);
 void chunk__destroy(chunk_t* self);
 
 // @returns ip of pushed instruction
-u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, u32 line);
+u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, token_t token);
 // @returns index of pushed immediate instruction
-u32 chunk__push_imm(chunk_t* self, value_t imm, u32 line);
+u32 chunk__push_imm(chunk_t* self, value_t imm, token_t token);
 // @returns index of pushed value
 u32 chunk__push_value(chunk_t* self, value_t value);
-// @returns the line in the source code associated with the instruction pointer
-u32 chunk__ins_get_line(chunk_t* self, u32 ip);
+token_info_t* chunk__get_token_info(chunk_t* self, u32 ip);
 
 #endif // GIES_CHUNK_H
