@@ -155,20 +155,22 @@ obj_var_info_t* obj__as_var_info(value_t value) {
     return (obj_var_info_t*) value__as_obj(value);
 }
 
-obj_var_info_t obj__var_info(s32 var_index, bool is_const) {
+obj_var_info_t obj__var_info(s32 var_index, s32 scope_depth, bool is_const) {
     return (obj_var_info_t) {
         .base.next_free = 0,
         .base.type = OBJ_VAR_INFO,
         .is_const = is_const,
+        .scope_depth = scope_depth,
         .var_index = var_index
     };
 }
 
-value_t obj__get_var_info(vm_t* vm, s32 var_index, bool is_const) {
+value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const) {
     obj_var_info_t* obj_var_info = (obj_var_info_t*) obj__allocate(vm, sizeof(*obj_var_info), OBJ_VAR_INFO);
 
-    obj_var_info->is_const = is_const;
     obj_var_info->var_index = var_index;
+    obj_var_info->scope_depth = scope_depth;
+    obj_var_info->is_const = is_const;
 
     return value__obj((obj_t*) obj_var_info);
 }

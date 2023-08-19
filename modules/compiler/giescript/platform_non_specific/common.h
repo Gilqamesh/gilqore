@@ -4,7 +4,7 @@
 # include "compiler/giescript/giescript_defs.h"
 
 # define DEBUG_VM_TRACE
-// # undef DEBUG_VM_TRACE
+# undef DEBUG_VM_TRACE
 
 # define DEBUG_COMPILER_TRACE
 # undef DEBUG_COMPILER_TRACE

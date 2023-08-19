@@ -15,6 +15,8 @@ typedef struct local {
 } local_t;
 
 typedef struct scope {
+    table_t locals;
+
     local_t*  locals_data;
     u32       locals_fill;
     u32       locals_size;
@@ -29,7 +31,12 @@ struct compiler {
     bool had_error;
     bool panic_mode;
 
-    scope_t scope;
+    // scope_t scope;
+
+    table_t* scopes;
+    u32      scopes_fill;
+    u32      scopes_size;
+    u32      scopes_locals_fill;
 
     vm_t* vm;
     chunk_t* chunk;

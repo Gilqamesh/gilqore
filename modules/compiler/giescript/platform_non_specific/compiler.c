@@ -673,21 +673,35 @@ static void compiler__declare_local(compiler_t* self, token_t* ident, token_t* i
 }
 
 static void compiler__add_local(compiler_t* self, token_t* ident, token_t* ident_type) {
-    if (self->scope.locals_fill == self->scope.locals_size) {
-        u32 new_locals_size = self->scope.locals_fill < 8 ? 8 : self->scope.locals_fill * 2;
-        self->scope.locals_data = allocator__realloc(
-            self->vm->allocator, self->scope.locals_data,
-            self->scope.locals_size * sizeof(*self->scope.locals_data),
-            new_locals_size         * sizeof(*self->scope.locals_data)
+    if (self->scopes_fill == self->scopes_size) {
+        u32 new_scopes_size = self->scopes_size < 8 ? 8 : self->scopes_size * 2;
+        self->scopes = allocator__realloc(
+            self->vm->allocator, self->scopes,
+            self->scopes_size * sizeof(*self->scopes),
+            new_scopes_size * sizeof(*self->scopes)
         );
-        self->scope.locals_size = new_locals_size;
+        self->scopes_size = new_scopes_size;
     }
+    // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state, like -1
+    value_t ident_value = obj__get_var_info(self->vm, -1, self->scopes_fill, ident_type->type == TOKEN_CONST);
+    value_t ident_key = obj__copy_str(self->vm, ident->lexeme, ident->lexeme_len);
+    table__insert(&self->scopes[self->scopes_fill], ident_key, ident_value);
 
-    local_t* local = &self->scope.locals_data[self->scope.locals_fill++];
-    local->identifier  = *ident;
-    // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state
-    local->scope_depth = -1;
-    local->is_const = ident_type->type == TOKEN_CONST;
+    // if (self->scope.locals_fill == self->scope.locals_size) {
+    //     u32 new_locals_size = self->scope.locals_fill < 8 ? 8 : self->scope.locals_fill * 2;
+    //     self->scope.locals_data = allocator__realloc(
+    //         self->vm->allocator, self->scope.locals_data,
+    //         self->scope.locals_size * sizeof(*self->scope.locals_data),
+    //         new_locals_size         * sizeof(*self->scope.locals_data)
+    //     );
+    //     self->scope.locals_size = new_locals_size;
+    // }
+
+    // local_t* local = &self->scope.locals_data[self->scope.locals_fill++];
+    // local->identifier  = *ident;
+    // // we have not yet ran the initializer for the local, indicate this by setting it to a temporary state
+    // local->scope_depth = -1;
+    // local->is_const = ident_type->type == TOKEN_CONST;
 }
 
 static obj_var_info_t compiler__find_local(compiler_t* self, token_t* local_name) {

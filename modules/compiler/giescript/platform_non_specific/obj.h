@@ -40,12 +40,13 @@ struct obj_var_info {
     // local:  indexes into locals
     // global: indexes into chunk's values
     s32   var_index;
+    s32   scope_depth;
     bool  is_const;
 };
 bool    obj__is_var_info(value_t value);
-value_t obj__get_var_info(vm_t* vm, s32 var_index, bool is_const);
+value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const);
 
 obj_var_info_t* obj__as_var_info(value_t value);
-obj_var_info_t  obj__var_info(s32 var_index, bool is_const);
+obj_var_info_t  obj__var_info(s32 var_index, s32 scope_depth, bool is_const);
 
 #endif // GIES_OBJ_H
