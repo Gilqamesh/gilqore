@@ -7,7 +7,7 @@
 # undef DEBUG_VM_TRACE
 
 # define DEBUG_COMPILER_TRACE
-# undef DEBUG_COMPILER_TRACE
+// # undef DEBUG_COMPILER_TRACE
 
 # define DEBUG_ALLOCATOR_TRACE
 # undef DEBUG_ALLOCATOR_TRACE
@@ -39,6 +39,8 @@ typedef enum ins_mnemonic {
     INS_SET_GLOBAL,         // [ins]
     INS_GET_LOCAL,          // [ins]
     INS_SET_LOCAL,          // [ins]
+    INS_JUMP,               // [ins]
+    INS_JUMP_ON_FALSE,      // [ins]
 
     _INS_MNEMONIC_SIZE
 } ins_mnemonic_t;
@@ -57,5 +59,6 @@ typedef  struct obj_var_info  obj_var_info_t;
 typedef  struct ins_info      ins_info_t;
 typedef  struct table         table_t;
 typedef  struct entry         entry_t;
+typedef  struct token_info    token_info_t;
 
 #endif // GIES_TYPES_H

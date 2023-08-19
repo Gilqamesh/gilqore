@@ -5,7 +5,6 @@
 #include "libc/libc.h"
 
 #define IP_FORMAT "%04d "
-#define LINE_FORMAT "%04d "
 #define INS_FORMAT "%-16s "
 
 static u32  disasm__simple(const char* instruction, u32 ip);
@@ -91,13 +90,8 @@ void chunk__disasm(chunk_t* self, const char* name) {
 
 u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
     libc__printf(IP_FORMAT, ip);
-    u32 line = chunk__ins_get_line(self, ip);
-    libc__printf(LINE_FORMAT, line);
-    // if (ip > 0 && line == chunk__ins_get_line(self, ip - 1)) {
-    //     libc__printf("   | ");
-    // } else {
-    //     libc__printf(LINE_FORMAT, line);
-    // }
+    token_info_t* token_info = chunk__get_token_info(self, ip);
+    libc__printf("%u:%u %u:%u ", token_info->line_s, token_info->col_s, token_info->line_e, token_info->col_e);
 
     u8 ins = self->instructions[ip];
     switch (ins) {
@@ -166,11 +160,15 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         } break ;
         case INS_GET_LOCAL: {
             return disasm__simple("GETL", ip);
-            // return disasm__local("GETL", self, ip);
         } break ;
         case INS_SET_LOCAL: {
             return disasm__simple("SETL", ip);
-            // return disasm__local("SETL", self, ip);
+        } break ;
+        case INS_JUMP: {
+            return disasm__simple("JMP", ip);
+        } break ;
+        case INS_JUMP_ON_FALSE: {
+            return disasm__simple("JMPF", ip);
         } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);

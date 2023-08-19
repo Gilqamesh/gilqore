@@ -15,7 +15,7 @@ PUBLIC_API seg_t seg__malloc(memory_slice_t memory, size_t data_size_requested);
 // @param size new size of the segment, cannot be 0
 // @brief modifies the size of 'seg' if necessary
 // @returns seg large enough to fulfill the request or NULL on failure
-PUBLIC_API seg_t seg__realloc(memory_slice_t memory, void* data, size_t old_size, size_t data_size_requested);
+PUBLIC_API seg_t seg__realloc(memory_slice_t memory, void* data, size_t data_size_requested);
 // @brief free seg, returns freed seg
 PUBLIC_API seg_t seg__free(memory_slice_t memory, seg_t seg);
 

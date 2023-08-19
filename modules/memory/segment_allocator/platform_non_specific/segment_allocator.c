@@ -558,7 +558,7 @@ seg_t seg__malloc(memory_slice_t memory, size_t data_size_requested) {
     return seg;
 }
 
-seg_t seg__realloc(memory_slice_t memory, void* data, size_t old_size, size_t data_size_requested) {
+seg_t seg__realloc(memory_slice_t memory, void* data, size_t data_size_requested) {
     ASSERT(data_size_requested != 0);
 
     seg_t seg = 0;
@@ -571,8 +571,6 @@ seg_t seg__realloc(memory_slice_t memory, void* data, size_t old_size, size_t da
     ASSERT(!seg__is_available(seg));
 
     size_t old_data_size = seg__data_size(seg);
-    ASSERT(old_size == old_data_size);
-
     if (old_data_size < data_size_requested) {
         // coal if it would satisfy the request
         size_t coal_data_size = seg__seg_size_to_data_size(seg__check_coal_size(memory, seg));

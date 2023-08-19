@@ -45,7 +45,7 @@ void* allocator__realloc(allocator_t* self, void* data, size_t old_size, size_t 
     allocator__print(self);
 #endif
 
-    seg_t seg = seg__realloc(self->memory, data, old_size, new_size);
+    seg_t seg = seg__realloc(self->memory, data, new_size);
 
 #if defined(DEBUG_ALLOCATOR_TRACE)
     libc__printf("--== AFTER allocator__realloc ==--\n");

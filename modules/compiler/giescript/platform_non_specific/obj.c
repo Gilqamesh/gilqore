@@ -62,6 +62,9 @@ void obj__free(vm_t* vm, obj_t* obj) {
         case OBJ_STRING: {
             allocator__free(vm->allocator, obj);
         } break ;
+        case OBJ_VAR_INFO: {
+            allocator__free(vm->allocator, obj);
+        } break ;
         default: ASSERT(false);
     }
 }
@@ -97,14 +100,15 @@ char* obj__as_cstr(value_t value) {
 }
 
 value_t obj__copy_str(vm_t* vm, const char* bytes, u32 len) {
-    u32 hash = hash__fnv_1a(bytes, len, 0);
     // if we already have this str in the interned table, do not create a new one, this way every str address is unique and can be compared
-    obj_str_t* obj_str = table__find_str(&vm->obj_str_table, bytes, len, hash);
-    if (obj_str) {
-        return value__obj((obj_t*) obj_str);
+    table__find_str(&vm->obj_str_table, bytes, len);
+    entry_t* str_entry = table__find_str(&vm->obj_str_table, bytes, len);
+    if (str_entry) {
+        return str_entry->key;
     }
 
-    obj_str = (obj_str_t*) obj__allocate(vm, sizeof(*obj_str) + len + 1, OBJ_STRING);
+    u32 hash = hash__fnv_1a(bytes, len, 0);
+    obj_str_t* obj_str = (obj_str_t*) obj__allocate(vm, sizeof(*obj_str) + len + 1, OBJ_STRING);
     obj_str->len = len;
     libc__memcpy(obj_str->str, bytes, len);
     obj_str->str[len] = '\0';
@@ -118,9 +122,9 @@ value_t obj__copy_str(vm_t* vm, const char* bytes, u32 len) {
 value_t obj__cat_str(vm_t* vm, value_t left, value_t right) {
     ASSERT(obj__is_str(left) && obj__is_str(right));
 
-    obj_str_t* obj_str = table__find_concat_str(&vm->obj_str_table, left, right);
-    if (obj_str) {
-        return value__obj((obj_t*) obj_str);
+    entry_t* str_entry = table__find_concat_str(&vm->obj_str_table, left, right);
+    if (str_entry) {
+        return str_entry->key;
     }
 
     obj_str_t* obj_str_left = obj__as_str(left);
@@ -134,7 +138,7 @@ value_t obj__cat_str(vm_t* vm, value_t left, value_t right) {
 
     u32 len = obj_str_left->len + obj_str_right->len;
 
-    obj_str = (obj_str_t*) obj__allocate(vm, sizeof(*obj_str) + len + 1, OBJ_STRING);
+    obj_str_t* obj_str = (obj_str_t*) obj__allocate(vm, sizeof(*obj_str) + len + 1, OBJ_STRING);
 
     libc__memcpy(obj_str->str, obj_str_left->str, obj_str_left->len);
     libc__memcpy(obj_str->str + obj_str_left->len, obj_str_right->str, obj_str_right->len);
@@ -155,22 +159,24 @@ obj_var_info_t* obj__as_var_info(value_t value) {
     return (obj_var_info_t*) value__as_obj(value);
 }
 
-obj_var_info_t obj__var_info(s32 var_index, s32 scope_depth, bool is_const) {
+obj_var_info_t obj__var_info(s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
     return (obj_var_info_t) {
         .base.next_free = 0,
         .base.type = OBJ_VAR_INFO,
-        .is_const = is_const,
+        .var_index = var_index,
         .scope_depth = scope_depth,
-        .var_index = var_index
+        .is_const = is_const,
+        .is_defined = is_defined
     };
 }
 
-value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const) {
+value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
     obj_var_info_t* obj_var_info = (obj_var_info_t*) obj__allocate(vm, sizeof(*obj_var_info), OBJ_VAR_INFO);
 
     obj_var_info->var_index = var_index;
     obj_var_info->scope_depth = scope_depth;
     obj_var_info->is_const = is_const;
+    obj_var_info->is_defined = is_defined;
 
     return value__obj((obj_t*) obj_var_info);
 }

@@ -204,6 +204,53 @@ bool vm__run_repl(vm_t* self) {
     return true;
 }
 
+bool vm__test_source(vm_t* self, const char* script, ...) {
+    bool result;
+
+    va_list ap;
+    va_start(ap, script);
+    result = vm__vtest_source(self, script, ap);
+    va_end(ap);
+
+    return result;
+}
+
+bool vm__vtest_source(vm_t* self, const char* script, va_list ap) {
+    chunk_t chunk;
+    chunk__create(&chunk, self);
+
+    compiler_t compiler;
+    if (!compiler__create(&compiler, self, &chunk, script)) {
+        chunk__destroy(&chunk);
+        return false;
+    }
+
+    if (!compiler__compile(&compiler)) {
+        compiler__destroy(&compiler);
+        chunk__destroy(&chunk);
+        return false;
+    }
+
+    for (u32 ins_index = 0; ins_index < chunk.instructions_fill; ++ins_index) {
+        ins_mnemonic_t expected_ins = va_arg(ap, ins_mnemonic_t);
+        ins_mnemonic_t ins = chunk.instructions[ins_index];
+        if (ins == INS_IMM) {
+            ++ins_index;
+        } else if (ins == INS_IMM_LONG) {
+            ins_index += 3;
+        }
+        if (expected_ins != ins) {
+            return false;
+        }
+    }
+
+    compiler__destroy(&compiler);
+
+    chunk__destroy(&chunk);
+
+    return true;
+}
+
 static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
     chunk_t chunk;
     chunk__create(&chunk, self);
@@ -238,8 +285,8 @@ static void vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...) {
     libc__printf("\n");
 
     ASSERT(chunk->instructions < self->ip);
-    u32 line = chunk__ins_get_line(chunk, self->ip - chunk->instructions - 1);
-    libc__printf("[line %u] in script.\n", line);
+    token_info_t* token_info = chunk__get_token_info(chunk, self->ip - chunk->instructions - 1);
+    libc__printf("%u:%u %u:%u in script.\n", token_info->line_s, token_info->col_s, token_info->line_e, token_info->col_e);
 
     self->values_stack_top = self->values_stack_data;
 }
@@ -277,6 +324,7 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_SET_GLOBAL].stack_delta = -1;
     self->ins_infos[INS_GET_LOCAL].stack_delta = 0;
     self->ins_infos[INS_SET_LOCAL].stack_delta = -1;
+    self->ins_infos[INS_JUMP_ON_FALSE].stack_delta = -1;
 }
 
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
@@ -441,7 +489,7 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
             case INS_GET_LOCAL: {
                 u32 index = vm__pop_index(self);
 
-                ASSERT(index < self->values_stack_top - self->values_stack_data);
+                ASSERT(self->values_stack_top - index >= self->values_stack_data);
                 value_t value = self->values_stack_data[index];
                 vm__push(self, value);
             } break ;
@@ -451,6 +499,19 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 ASSERT(index < self->values_stack_top - self->values_stack_data);
                 value_t value = vm__peek(self);
                 self->values_stack_data[index] = value;
+            } break ;
+            case INS_JUMP: {
+                u32 ip = vm__pop_index(self);
+                ASSERT(ip < chunk->instructions_fill);
+                self->ip = chunk->instructions + ip;
+            } break ;
+            case INS_JUMP_ON_FALSE: {
+                u32 ip = vm__pop_index(self);
+
+                if (value__is_falsey(vm__peek(self))) {
+                    ASSERT(ip < chunk->instructions_fill);
+                    self->ip = chunk->instructions + ip;
+                }
             } break ;
             default: ASSERT(false);
         }

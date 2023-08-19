@@ -10,6 +10,8 @@
 
 static void table__ensure_size(table_t* self, u32 size);
 static void table__copy(table_t* dst, table_t* src);
+// find an empty entry based on the provided key, can return tombstones as well
+static entry_t* table__find_entry(table_t* self, value_t key);
 
 static void table__ensure_size(table_t* self, u32 size) {
     ASSERT(size > 0);
@@ -18,16 +20,8 @@ static void table__ensure_size(table_t* self, u32 size) {
     table__create(&new_table, self->allocator);
     new_table.size = size;
     new_table.entries = allocator__alloc(self->allocator, size * sizeof(*new_table.entries));
-    entry_t* entry = new_table.entries;
-    entry_t* last_entry = &new_table.entries[new_table.size];
-    while (entry < last_entry) {
-        entry->key = value__empty();
-        entry->value = value__nil();
-        ++entry;
-    }
-
+    table__clear(&new_table);
     table__copy(&new_table, self);
-
     table__destroy(self);
 
     self->allocator = new_table.allocator;
@@ -76,7 +70,7 @@ bool table__insert(table_t* self, value_t key, value_t value) {
     }
 
     bool is_new_entry = false;
-    entry_t* entry = table__find(self, key);
+    entry_t* entry = table__find_entry(self, key);
     ASSERT(entry);
     if (value__is_empty(entry->key)) {
         // don't count tombstones as additional fills
@@ -92,7 +86,7 @@ bool table__insert(table_t* self, value_t key, value_t value) {
     return is_new_entry;
 }
 
-entry_t* table__find(table_t* self, value_t key) {
+static entry_t* table__find_entry(table_t* self, value_t key) {
     ASSERT(self->size > 0);
 
     u32 index = value__hash(key) % self->size;
@@ -119,19 +113,18 @@ entry_t* table__find(table_t* self, value_t key) {
     UNREACHABLE_CODE;
 }
 
-bool table__get(table_t* self, value_t key, value_t* out) {
+entry_t* table__find(table_t* self, value_t key) {
     if (self->fill == 0) {
-        return false;
+        return NULL;
     }
 
-    entry_t* entry = table__find(self, key);
+    entry_t* entry = table__find_entry(self, key);
     if (value__is_empty(entry->key)) {
-        return false;
+        // it's a tombstone
+        return NULL;
     }
 
-    *out = entry->value;
-
-    return true;
+    return entry;
 }
 
 bool table__erase(table_t* self, value_t key) {
@@ -139,7 +132,7 @@ bool table__erase(table_t* self, value_t key) {
         return false;
     }
 
-    entry_t* entry = table__find(self, key);
+    entry_t* entry = table__find_entry(self, key);
     if (value__is_empty(entry->key)) {
         return false;
     }
@@ -151,19 +144,34 @@ bool table__erase(table_t* self, value_t key) {
     return true;
 }
 
-
-obj_str_t* table__find_str(table_t* self, const char* bytes, u32 len, u32 hash) {
-    if (self->fill == 0) {
-        return 0;
+void table__clear(table_t* self) {
+    self->fill = 0;
+    entry_t* entry = &self->entries[0];
+    if (self->size == 0) {
+        return ;
     }
 
+    entry_t* last_entry = &self->entries[self->size - 1];
+    while (entry < last_entry) {
+        entry->key = value__empty();
+        entry->value = value__nil();
+        ++entry;
+    }
+}
+
+entry_t* table__find_str(table_t* self, const char* bytes, u32 len) {
+    if (self->fill == 0) {
+        return NULL;
+    }
+
+    u32 hash = hash__fnv_1a(bytes, len, 0);
     u32 index = hash % self->size;
     while (true) {
         entry_t* cur = &self->entries[index];
         if (value__is_empty(cur->key)) {
             // stop if an empty, non-tombstone entry is found
             if (value__is_nil(cur->value)) {
-                return 0;
+                return NULL;
             }
         } else {
             if (obj__is_str(cur->key)) {
@@ -173,7 +181,7 @@ obj_str_t* table__find_str(table_t* self, const char* bytes, u32 len, u32 hash) 
                     obj_str->hash == hash &&
                     libc__memcmp(obj_str->str, bytes, len) == 0
                 ) {
-                    return obj_str;
+                    return cur;
                 }
             }
         }
@@ -185,10 +193,10 @@ obj_str_t* table__find_str(table_t* self, const char* bytes, u32 len, u32 hash) 
     UNREACHABLE_CODE;
 }
 
-obj_str_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
+entry_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
     ASSERT(obj__is_str(left) && obj__is_str(right));
     if (self->fill == 0) {
-        return 0;
+        return NULL;
     }
 
     obj_str_t* obj_str_left = obj__as_str(left);
@@ -204,7 +212,7 @@ obj_str_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
         if (value__is_empty(cur->key)) {
             // stop if an empty, non-tombstone entry is found
             if (value__is_nil(cur->value)) {
-                return 0;
+                return NULL;
             }
         } else {
             if (obj__is_str(cur->key)) {
@@ -215,7 +223,7 @@ obj_str_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
                     libc__memcmp(obj_str->str, obj_str_left->str, obj_str_left->len) == 0 &&
                     libc__memcmp(obj_str->str + obj_str_left->len, obj_str_right->str, obj_str_right->len) == 0
                 ) {
-                    return obj_str;
+                    return cur;
                 }
             }
         }
