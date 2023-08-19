@@ -325,6 +325,7 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_GET_LOCAL].stack_delta = 0;
     self->ins_infos[INS_SET_LOCAL].stack_delta = -1;
     self->ins_infos[INS_JUMP_ON_FALSE].stack_delta = -1;
+    self->ins_infos[INS_JUMP_ON_TRUE].stack_delta = -1;
 }
 
 vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
@@ -509,6 +510,14 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 u32 ip = vm__pop_index(self);
 
                 if (value__is_falsey(vm__peek(self))) {
+                    ASSERT(ip < chunk->instructions_fill);
+                    self->ip = chunk->instructions + ip;
+                }
+            } break ;
+            case INS_JUMP_ON_TRUE: {
+                u32 ip = vm__pop_index(self);
+
+                if (!value__is_falsey(vm__peek(self))) {
                     ASSERT(ip < chunk->instructions_fill);
                     self->ip = chunk->instructions + ip;
                 }

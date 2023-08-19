@@ -73,6 +73,8 @@ static void compiler__emit_get_global(compiler_t* self, bool can_assign);
 static void compiler__emit_set_global(compiler_t* self, bool can_assign);
 static void compiler__emit_get_local(compiler_t* self, bool can_assign);
 static void compiler__emit_set_local(compiler_t* self, bool can_assign);
+static void compiler__emit_and(compiler_t* self, bool can_assign);
+static void compiler__emit_or(compiler_t* self, bool can_assign);
 
 static void compiler__emit_str(compiler_t* self, bool can_assign);
 static void compiler__emit_identifier(compiler_t* self, bool can_assign);
@@ -128,7 +130,8 @@ static compile_rule compile_rules[] = {
     [TOKEN_IDENTIFIER]    = {compiler__emit_identifier,     NULL,                       PREC_NONE},
     [TOKEN_STRING]        = {compiler__emit_str,            NULL,                       PREC_NONE},
     [TOKEN_NUMBER]        = {compiler__emit_imm,            NULL,                       PREC_NONE},
-    [TOKEN_AND]           = {NULL,                          NULL,                       PREC_NONE},
+    [TOKEN_AND]           = {NULL,                          compiler__emit_and,         PREC_AND},
+    [TOKEN_OR]            = {NULL,                          compiler__emit_or,          PREC_OR},
     [TOKEN_CLASS]         = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_ELSE]          = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_FALSE]         = {compiler__emit_false,          NULL,                       PREC_NONE},
@@ -136,7 +139,6 @@ static compile_rule compile_rules[] = {
     [TOKEN_FUN]           = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_IF]            = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_NIL]           = {compiler__emit_nil,            NULL,                       PREC_NONE},
-    [TOKEN_OR]            = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_PRINT]         = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_RETURN]        = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_SUPER]         = {NULL,                          NULL,                       PREC_NONE},
@@ -391,6 +393,32 @@ static void compiler__emit_set_local(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
     compiler__emit_ins(self, INS_SET_LOCAL);
+}
+
+static void compiler__emit_and(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+
+    u32 ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+
+    // pop left expr
+    compiler__emit_pop(self, true);
+
+    compiler__emit_prec(self, PREC_AND);
+
+    compiler__patch_jump(self, ip);
+}
+
+static void compiler__emit_or(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+
+    u32 ip = compiler__emit_jump(self, INS_JUMP_ON_TRUE);
+
+    // pop left expr
+    compiler__emit_pop(self, true);
+
+    compiler__emit_prec(self, PREC_OR);
+
+    compiler__patch_jump(self, ip);
 }
 
 static void compiler__emit_str(compiler_t* self, bool can_assign) {
