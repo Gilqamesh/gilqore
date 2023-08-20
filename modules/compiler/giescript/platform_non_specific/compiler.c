@@ -43,6 +43,7 @@ static void compiler__emit_stmt(compiler_t* self);
 static void compiler__emit_print_stmt(compiler_t* self);
 static void compiler__emit_if_stmt(compiler_t* self);
 static void compiler__emit_while_stmt(compiler_t* self);
+static void compiler__emit_for_stmt(compiler_t* self);
 static void compiler__emit_expr_stmt(compiler_t* self);
 static void compiler__emit_block_stmt(compiler_t* self);
 static void compiler__emit_expr(compiler_t* self);
@@ -578,6 +579,8 @@ static void compiler__emit_stmt(compiler_t* self) {
         compiler__emit_if_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_WHILE)) {
         compiler__emit_while_stmt(self);
+    } else if (compiler__eat_if(self, TOKEN_FOR)) {
+        compiler__emit_for_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_LEFT_BRACE)) {
         compiler__begin_scope(self);
         compiler__emit_block_stmt(self);
@@ -639,6 +642,77 @@ static void compiler__emit_while_stmt(compiler_t* self) {
 
     // pop condition expr
     compiler__emit_pop(self, true);
+}
+
+static void compiler__emit_for_stmt(compiler_t* self) {
+    compiler__begin_scope(self);
+
+    compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+
+    // Initializer clause
+    switch (compiler__peak(self)) {
+        case TOKEN_SEMICOLON: {
+            compiler__eat(self);
+        } break ;
+        case TOKEN_VAR:
+        case TOKEN_CONST: {
+            compiler__eat(self);
+            compiler__emit_var_decl(self);
+        } break ;
+        default: {
+            compiler__eat(self);
+            compiler__emit_expr_stmt(self);
+        }
+    }
+
+    // Condition clause
+    s32 exit_ip = -1;
+    if (!compiler__eat_if(self, TOKEN_SEMICOLON)) {
+        compiler__emit_expr(self);
+        compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after value.");
+
+        exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+        compiler__emit_pop(self, true);
+    }
+
+    // Increment clause
+    s32 increment_ip = -1;
+    s32 body_ip = -1;
+    if (!compiler__eat_if(self, TOKEN_SEMICOLON)) {
+        // run the body first
+        body_ip = compiler__emit_jump(self, INS_JUMP);
+        // save the ip of the increment clause
+        increment_ip = self->chunk->instructions_fill;
+        // parse increment
+        compiler__emit_expr(self);
+        compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
+    }
+    u32 loop_start = self->chunk->instructions_fill;
+    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
+
+    // parse loop body
+    if (body_ip != -1) {
+        compiler__patch_jump(self, body_ip);
+    }
+    compiler__emit_stmt(self);
+
+    // run increment clause
+    if (increment_ip != -1) {
+        compiler__push_imm(self, value__num(increment_ip), self->previous);    
+        compiler__emit_ins(self, INS_JUMP);
+    }
+
+    // jump back before condition expr
+    compiler__push_imm(self, value__num(loop_start), self->previous);
+    compiler__emit_ins(self, INS_JUMP);
+
+    // exit to here if there was a condition that evaluated to false
+    if (exit_ip != -1) {
+        compiler__patch_jump(self, exit_ip);
+        compiler__emit_pop(self, true);
+    }
+
+    compiler__end_scope(self);
 }
 
 static void compiler__emit_expr_stmt(compiler_t* self) {
