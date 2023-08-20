@@ -44,7 +44,7 @@ static void compiler__emit_print_stmt(compiler_t* self);
 static void compiler__emit_if_stmt(compiler_t* self);
 static void compiler__emit_while_stmt(compiler_t* self);
 static void compiler__emit_for_stmt(compiler_t* self);
-// static void compiler__emit_switch_stmt(compiler_t* self);
+static void compiler__emit_switch_stmt(compiler_t* self);
 static void compiler__emit_expr_stmt(compiler_t* self);
 static void compiler__emit_block_stmt(compiler_t* self);
 static void compiler__emit_expr(compiler_t* self);
@@ -78,6 +78,7 @@ static void compiler__emit_get_local(compiler_t* self, bool can_assign);
 static void compiler__emit_set_local(compiler_t* self, bool can_assign);
 static void compiler__emit_and(compiler_t* self, bool can_assign);
 static void compiler__emit_or(compiler_t* self, bool can_assign);
+static void compiler__emit_dup(compiler_t* self, bool can_assign);
 
 static void compiler__emit_str(compiler_t* self, bool can_assign);
 static void compiler__emit_identifier(compiler_t* self, bool can_assign);
@@ -424,6 +425,12 @@ static void compiler__emit_or(compiler_t* self, bool can_assign) {
     compiler__patch_jump(self, ip);
 }
 
+static void compiler__emit_dup(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+
+    compiler__emit_ins(self, INS_DUP);
+}
+
 static void compiler__emit_str(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
@@ -582,6 +589,8 @@ static void compiler__emit_stmt(compiler_t* self) {
         compiler__emit_while_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_FOR)) {
         compiler__emit_for_stmt(self);
+    } else if (compiler__eat_if(self, TOKEN_SWITCH)) {
+        compiler__emit_switch_stmt(self);
     } else if (compiler__eat_if(self, TOKEN_LEFT_BRACE)) {
         compiler__begin_scope(self);
         compiler__emit_block_stmt(self);
@@ -713,6 +722,77 @@ static void compiler__emit_for_stmt(compiler_t* self) {
         // pop condition expr if there was one and it evaluated to false
         compiler__emit_pop(self, true);
     }
+
+    compiler__end_scope(self);
+}
+
+static void compiler__emit_switch_stmt(compiler_t* self) {
+    /*
+        switch_stmt     -> "switch" "(" expression ")"
+                        "{" switch_case* default_case? "}" ;
+        switch_case     -> "case" expression ":" statement* ;
+        default_case    -> "default" ":" statement* ;
+    */
+    compiler__begin_scope(self);
+
+    compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' before 'switch' condition.");
+    compiler__emit_expr(self);
+    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after 'switch' condition.");
+    compiler__eat_err(self, TOKEN_LEFT_BRACE, "Expect '{' after 'switch'.");
+
+    // jump over exit jump ins
+    u32 switch_ip = compiler__emit_jump(self, INS_JUMP);
+
+    // jump to exit
+    u32 exit_ip_start = self->chunk->instructions_fill;
+    u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
+
+    compiler__patch_jump(self, switch_ip);
+
+    // parse cases
+    while (compiler__eat_if(self, TOKEN_CASE)) {
+        // duplicate condition, so that it's not popped off from eq
+        compiler__emit_dup(self, true);
+        compiler__emit_expr(self);
+        compiler__eat_err(self, TOKEN_COLON, "Expect ':' after 'case' in 'switch'.");
+        compiler__emit_eq(self, true);
+        u32 else_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+        // pop result of eq
+        compiler__emit_pop(self, true);
+
+        while (
+            compiler__peak(self) != TOKEN_RIGHT_BRACE &&
+            compiler__peak(self) != TOKEN_CASE &&
+            compiler__peak(self) != TOKEN_DEFAULT
+        ) {
+            compiler__emit_stmt(self);
+        }
+
+        compiler__push_imm(self, value__num(exit_ip_start), self->previous);
+        compiler__emit_ins(self, INS_JUMP);
+
+        compiler__patch_jump(self, else_ip);
+        // pop bool expr from eq
+        compiler__emit_pop(self, true);
+    }
+
+    // parse default
+    if (compiler__eat_if(self, TOKEN_DEFAULT)) {
+        compiler__eat_err(self, TOKEN_COLON, "Expect ':' after 'default' in 'switch'.");
+        while (compiler__peak(self) != TOKEN_RIGHT_BRACE) {
+            if (compiler__peak(self) == TOKEN_CASE) {
+                compiler__error_at(self, &self->current, "Cannot have a case after default case in switch statement.");
+            }
+            compiler__emit_stmt(self);
+        }
+    }
+
+    compiler__patch_jump(self, exit_ip);
+
+    // pop condition expr
+    compiler__emit_pop(self, true);
+
+    compiler__eat_err(self, TOKEN_RIGHT_BRACE, "Expect '}' after 'switch'.");
 
     compiler__end_scope(self);
 }

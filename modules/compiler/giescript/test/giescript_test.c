@@ -149,6 +149,16 @@ static bool test(main_context_t context) {
         INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
         INS_RETURN
     );
+    test_result &= subtest(
+        context, "switch (2) { case 1: print -5; case 2: print 1; case 3: print 4; default: print 9; }",
+        INS_IMM, INS_IMM, INS_JUMP, INS_IMM, INS_JUMP,
+        INS_DUP, INS_IMM, INS_EQ, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP, INS_IMM_LONG, INS_NEG, INS_PRINT, INS_IMM_LONG, INS_JUMP, INS_POP,
+        INS_DUP, INS_IMM_LONG, INS_EQ, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP, INS_IMM_LONG, INS_PRINT, INS_IMM_LONG, INS_JUMP, INS_POP,
+        INS_DUP, INS_IMM_LONG, INS_EQ, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP, INS_IMM_LONG, INS_PRINT, INS_IMM_LONG, INS_JUMP, INS_POP,
+        INS_IMM_LONG, INS_PRINT,
+        INS_POP,
+        INS_RETURN
+    );
 
     return test_result;
 }

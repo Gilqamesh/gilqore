@@ -173,6 +173,9 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_JUMP_ON_TRUE: {
             return disasm__simple("JMPT", ip);
         } break ;
+        case INS_DUP: {
+            return disasm__simple("DUP", ip);
+        } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);
             return ip + 1;

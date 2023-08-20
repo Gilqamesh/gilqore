@@ -39,6 +39,7 @@ typedef enum {
     TOKEN_PRINT,    TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,                        /*  print     return  super  this   */
     TOKEN_TRUE,     TOKEN_VAR,    TOKEN_WHILE, TOKEN_BREAK,                       /*  true      var     while  break  */
     TOKEN_CONTINUE, TOKEN_OR,     TOKEN_CONST, TOKEN_SWITCH,                      /*  continue  or      const  switch */
+    TOKEN_CASE,     TOKEN_DEFAULT,                                                /*  case      default               */
 
     // Tokens with special meaning
     TOKEN_ERROR,                    /*  encountered an error  */

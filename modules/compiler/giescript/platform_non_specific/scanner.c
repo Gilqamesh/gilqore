@@ -189,6 +189,7 @@ static token_type scanner__identifier_type(scanner_t* self) {
                 switch (*(self->start + 1)) {
                     case 'l': return scanner__identifier_type_helper(self, 2, 3, "ass", TOKEN_CLASS);
                     case 'o': return scanner__identifier_type_helper(self, 2, 3, "nst", TOKEN_CONST);
+                    case 'a': return scanner__identifier_type_helper(self, 2, 2, "se",  TOKEN_CASE);
                 }
             }
         } break ;
@@ -201,13 +202,14 @@ static token_type scanner__identifier_type(scanner_t* self) {
         case 's': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
-                    case 'u': return scanner__identifier_type_helper(self, 2, 3, "per", TOKEN_SUPER);
+                    case 'u': return scanner__identifier_type_helper(self, 2, 3, "per",  TOKEN_SUPER);
                     case 'w': return scanner__identifier_type_helper(self, 2, 4, "itch", TOKEN_SWITCH);
                 }
             }
         } break ;
-        case 'v': return scanner__identifier_type_helper(self, 1, 2, "ar",   TOKEN_VAR);
-        case 'w': return scanner__identifier_type_helper(self, 1, 4, "hile", TOKEN_WHILE);
+        case 'd': return scanner__identifier_type_helper(self, 1, 6, "efault", TOKEN_DEFAULT);
+        case 'v': return scanner__identifier_type_helper(self, 1, 2, "ar",     TOKEN_VAR);
+        case 'w': return scanner__identifier_type_helper(self, 1, 4, "hile",   TOKEN_WHILE);
         case 'f': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
@@ -291,6 +293,7 @@ token_t scanner__scan_token(scanner_t* self) {
         case '<': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_LESS_EQUAL    : TOKEN_LESS);
         case '>': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
         case '"': return scanner__make_string(self);
+        case ':': return scanner__make_token(self, TOKEN_COLON);
     }
 
     return scanner__make_error_token(self, "Unexpected character.");

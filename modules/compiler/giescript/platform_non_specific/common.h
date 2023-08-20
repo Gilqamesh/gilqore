@@ -7,13 +7,13 @@
 # undef DEBUG_VM_TRACE
 
 # define DEBUG_COMPILER_TRACE
-# undef DEBUG_COMPILER_TRACE
+// # undef DEBUG_COMPILER_TRACE
 
 # define DEBUG_ALLOCATOR_TRACE
 # undef DEBUG_ALLOCATOR_TRACE
 
 # define DEBUG_TOKEN_TRACE
-// # undef DEBUG_TOKEN_TRACE
+# undef DEBUG_TOKEN_TRACE
 
 typedef enum ins_mnemonic {
     INS_RETURN,             // [ins]
@@ -42,6 +42,7 @@ typedef enum ins_mnemonic {
     INS_JUMP,               // [ins]
     INS_JUMP_ON_FALSE,      // [ins]
     INS_JUMP_ON_TRUE,       // [ins]
+    INS_DUP,                // [ins]
 
     _INS_MNEMONIC_SIZE
 } ins_mnemonic_t;

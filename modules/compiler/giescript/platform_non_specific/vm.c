@@ -523,6 +523,9 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                     self->ip = chunk->instructions + ip;
                 }
             } break ;
+            case INS_DUP: {
+                vm__push(self, vm__peek(self));
+            } break ;
             default: ASSERT(false);
         }
     }
