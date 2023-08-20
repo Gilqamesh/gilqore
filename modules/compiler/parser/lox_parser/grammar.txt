@@ -10,6 +10,7 @@ statement       -> expr_stmt
                  | if_stmt
                  | print_stmt
                  | while_stmt
+                 | switch_stmt
                  | break_stmt
                  | continue_stmt
                  | block
@@ -24,6 +25,10 @@ if_stmt         -> "if" "(" expression ")" statement
                     ( "else" statement )? ;
 print_stmt      -> "print" expression ";" ;
 while_stmt      -> "while" "(" expression ")" statement ;
+switch_stmt     -> "switch" "(" expression ")"
+                   "{" switch_case* default_case? "}" ;
+switch_case     -> "case" expression ":" statement* ;
+default_case    -> "default" ":" statement* ;
 break_stmt      -> "break" ";" ;
 continue_stmt   -> "continue" ";" ;
 block           -> "{" declaration* "}" ;

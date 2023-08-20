@@ -324,6 +324,7 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_SET_GLOBAL].stack_delta = -1;
     self->ins_infos[INS_GET_LOCAL].stack_delta = 0;
     self->ins_infos[INS_SET_LOCAL].stack_delta = -1;
+    self->ins_infos[INS_JUMP].stack_delta = -1;
     self->ins_infos[INS_JUMP_ON_FALSE].stack_delta = -1;
     self->ins_infos[INS_JUMP_ON_TRUE].stack_delta = -1;
 }

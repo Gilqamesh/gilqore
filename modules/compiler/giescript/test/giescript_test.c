@@ -122,6 +122,33 @@ static bool test(main_context_t context) {
         INS_IMM_LONG, INS_PRINT,
         INS_RETURN
     );
+    test_result &= subtest(
+        context, "for (;;) print 2;",
+        INS_IMM, INS_PRINT,
+        INS_IMM, INS_JUMP,
+        INS_RETURN
+    );
+    test_result &= subtest(
+        context, "for (var a = 2; a >= 0; a = a - 1) print a;",
+        INS_IMM,
+        INS_IMM, INS_GET_LOCAL, INS_IMM, INS_LT, INS_NOT, INS_IMM, INS_JUMP_ON_FALSE, INS_POP,
+        INS_IMM_LONG, INS_JUMP, INS_IMM_LONG, INS_GET_LOCAL, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_SET_LOCAL, INS_POP, INS_IMM_LONG, INS_JUMP,
+        INS_IMM_LONG, INS_GET_LOCAL, INS_PRINT, INS_IMM_LONG, INS_JUMP,
+        INS_POP,
+        INS_POP,
+        INS_RETURN
+    );
+    test_result &= subtest(
+        context, "var a = 1; for (; a >= 0; ) { print a; a = a - 1; } print a;",
+        INS_IMM, INS_IMM, INS_DEFINE_GLOBAL,
+        INS_IMM, INS_GET_GLOBAL, INS_IMM, INS_LT, INS_NOT, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP,
+        INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
+        INS_IMM_LONG, INS_GET_GLOBAL, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_SET_GLOBAL, INS_POP,
+        INS_IMM_LONG, INS_JUMP,
+        INS_POP,
+        INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
+        INS_RETURN
+    );
 
     return test_result;
 }

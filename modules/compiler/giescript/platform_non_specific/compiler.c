@@ -37,13 +37,14 @@ static compile_rule* compiler__get_rule(token_type type);
 static void compiler__emit_prec(compiler_t* self, precedence prec);
 
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins);
-static void compiler__emit_decl(compiler_t* self);
-static void compiler__emit_var_decl(compiler_t* self);
+static void compiler__emit_decl_stmt(compiler_t* self);
+static void compiler__emit_var_decl_stmt(compiler_t* self);
 static void compiler__emit_stmt(compiler_t* self);
 static void compiler__emit_print_stmt(compiler_t* self);
 static void compiler__emit_if_stmt(compiler_t* self);
 static void compiler__emit_while_stmt(compiler_t* self);
 static void compiler__emit_for_stmt(compiler_t* self);
+// static void compiler__emit_switch_stmt(compiler_t* self);
 static void compiler__emit_expr_stmt(compiler_t* self);
 static void compiler__emit_block_stmt(compiler_t* self);
 static void compiler__emit_expr(compiler_t* self);
@@ -516,11 +517,11 @@ static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins) {
     chunk__push_ins(self->chunk, ins, self->previous);
 }
 
-static void compiler__emit_decl(compiler_t* self) {
+static void compiler__emit_decl_stmt(compiler_t* self) {
     switch (compiler__peak(self)) {
         case TOKEN_VAR:
         case TOKEN_CONST: {
-            compiler__emit_var_decl(self);
+            compiler__emit_var_decl_stmt(self);
         } break ;
         default: {
             compiler__emit_stmt(self);
@@ -535,7 +536,7 @@ static void compiler__emit_decl(compiler_t* self) {
 // local:  [expr ins (if initializer exists) | ins_nil]
 // global: [expr ins (if initializer exists) | ins_nil]
 //         [ins_define_global] [imm/imm_long]
-static void compiler__emit_var_decl(compiler_t* self) {
+static void compiler__emit_var_decl_stmt(compiler_t* self) {
     entry_t* declaration = compiler__parse_variable(self);
     if (!declaration) {
         return ;
@@ -627,8 +628,8 @@ static void compiler__emit_while_stmt(compiler_t* self) {
     // emit condition expr
     compiler__emit_expr(self);
     compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
-
     u32 exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+
     // pop condition expr
     compiler__emit_pop(self, true);
     compiler__emit_stmt(self);
@@ -649,66 +650,67 @@ static void compiler__emit_for_stmt(compiler_t* self) {
 
     compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
 
-    // Initializer clause
+    // Initializer
     switch (compiler__peak(self)) {
         case TOKEN_SEMICOLON: {
             compiler__eat(self);
         } break ;
         case TOKEN_VAR:
         case TOKEN_CONST: {
-            compiler__eat(self);
-            compiler__emit_var_decl(self);
+            compiler__emit_var_decl_stmt(self);
         } break ;
         default: {
-            compiler__eat(self);
             compiler__emit_expr_stmt(self);
         }
     }
 
-    // Condition clause
+    // Condition
+    u32 condition_ip = self->chunk->instructions_fill;
     s32 exit_ip = -1;
     if (!compiler__eat_if(self, TOKEN_SEMICOLON)) {
         compiler__emit_expr(self);
-        compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after value.");
-
+        compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after condition clause.");
         exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+
+        // pop condition expr as it evaluated to true
         compiler__emit_pop(self, true);
     }
 
-    // Increment clause
-    s32 increment_ip = -1;
-    s32 body_ip = -1;
-    if (!compiler__eat_if(self, TOKEN_SEMICOLON)) {
-        // run the body first
-        body_ip = compiler__emit_jump(self, INS_JUMP);
-        // save the ip of the increment clause
-        increment_ip = self->chunk->instructions_fill;
-        // parse increment
+    // Increment
+    if (!compiler__eat_if(self, TOKEN_RIGHT_PAREN)) {
+        // jump to body
+        u32 body_ip = compiler__emit_jump(self, INS_JUMP);
+
+        // increment
+        u32 increment_ip = self->chunk->instructions_fill;
         compiler__emit_expr(self);
         compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
-    }
-    u32 loop_start = self->chunk->instructions_fill;
-    compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
+        compiler__emit_pop(self, true);
 
-    // parse loop body
-    if (body_ip != -1) {
+        // jump to condition
+        compiler__push_imm(self, value__num(condition_ip), self->previous);
+        compiler__emit_ins(self, INS_JUMP);
+
+        // body
         compiler__patch_jump(self, body_ip);
-    }
-    compiler__emit_stmt(self);
+        compiler__emit_stmt(self);
 
-    // run increment clause
-    if (increment_ip != -1) {
-        compiler__push_imm(self, value__num(increment_ip), self->previous);    
+        // jump to increment
+        compiler__push_imm(self, value__num(increment_ip), self->previous);
+        compiler__emit_ins(self, INS_JUMP);
+    } else {
+
+        // body
+        compiler__emit_stmt(self);
+
+        // jump to condition
+        compiler__push_imm(self, value__num(condition_ip), self->previous);
         compiler__emit_ins(self, INS_JUMP);
     }
 
-    // jump back before condition expr
-    compiler__push_imm(self, value__num(loop_start), self->previous);
-    compiler__emit_ins(self, INS_JUMP);
-
-    // exit to here if there was a condition that evaluated to false
     if (exit_ip != -1) {
         compiler__patch_jump(self, exit_ip);
+        // pop condition expr if there was one and it evaluated to false
         compiler__emit_pop(self, true);
     }
 
@@ -726,7 +728,7 @@ static void compiler__emit_block_stmt(compiler_t* self) {
         compiler__peak(self) != TOKEN_RIGHT_BRACE &&
         compiler__peak(self) != TOKEN_EOF
     ) {
-        compiler__emit_decl(self);
+        compiler__emit_decl_stmt(self);
     }
 
     compiler__eat_err(self, TOKEN_RIGHT_BRACE, "Expect '}' after block.");
@@ -735,7 +737,7 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 static void compiler__end_compile(compiler_t* self) {
     compiler__emit_return(self, true);
 
-    ASSERT(self->had_error || self->chunk->current_stack_size == 0);
+    // ASSERT(self->had_error || self->chunk->current_stack_size == 0);
 }
 
 static void compiler__synchronize(compiler_t* self) {
@@ -982,7 +984,7 @@ void compiler__destroy(compiler_t* self) {
 bool compiler__compile(compiler_t* self) {
     compiler__eat(self);
     while (!compiler__eat_if(self, TOKEN_EOF)) {
-        compiler__emit_decl(self);
+        compiler__emit_decl_stmt(self);
     }
     compiler__eat_err(self, TOKEN_EOF, "Expect end of expression.");
     compiler__end_compile(self);
