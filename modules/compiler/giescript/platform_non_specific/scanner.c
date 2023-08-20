@@ -169,8 +169,9 @@ static token_t scanner__make_identifier(scanner_t* self) {
     return scanner__make_token(self, scanner__identifier_type(self));
 }
 
-static token_type scanner__identifier_type_helper(scanner_t* self, u32 start, u32 len, const char* rest, token_type type) {
-    if ((u32) (self->top - self->start !=  start + len)) {
+static token_type scanner__identifier_type_helper(scanner_t* self, u32 start, const char* rest, token_type type) {
+    u32 len = libc__strlen(rest);
+    if ((u32) (self->top - self->start != start + len)) {
         return TOKEN_IDENTIFIER;
     }
 
@@ -183,50 +184,64 @@ static token_type scanner__identifier_type_helper(scanner_t* self, u32 start, u3
 
 static token_type scanner__identifier_type(scanner_t* self) {
     switch (*self->start) {
-        case 'a': return scanner__identifier_type_helper(self, 1, 2, "nd",    TOKEN_AND);
+        case 'a': return scanner__identifier_type_helper(self, 1, "nd",   TOKEN_AND);
+        case 'b': return scanner__identifier_type_helper(self, 1, "reak", TOKEN_BREAK);
         case 'c': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
-                    case 'l': return scanner__identifier_type_helper(self, 2, 3, "ass", TOKEN_CLASS);
-                    case 'o': return scanner__identifier_type_helper(self, 2, 3, "nst", TOKEN_CONST);
-                    case 'a': return scanner__identifier_type_helper(self, 2, 2, "se",  TOKEN_CASE);
+                    case 'l': return scanner__identifier_type_helper(self, 2, "ass", TOKEN_CLASS);
+                    case 'o': {
+                        if (self->top - self->start > 2) {
+                            switch (*(self->start + 2)) {
+                                case 'n': {
+                                    if (self->top - self->start > 3) {
+                                        switch (*(self->start + 3)) {
+                                            case 's': return scanner__identifier_type_helper(self, 4, "t",    TOKEN_CONST);
+                                            case 't': return scanner__identifier_type_helper(self, 4, "inue", TOKEN_CONTINUE);
+                                        }
+                                    }
+                                } break ;
+                            }
+                        }
+                    } break ;
+                    case 'a': return scanner__identifier_type_helper(self, 2, "se",  TOKEN_CASE);
                 }
             }
         } break ;
-        case 'e': return scanner__identifier_type_helper(self, 1, 3, "lse",   TOKEN_ELSE);
-        case 'i': return scanner__identifier_type_helper(self, 1, 1, "f",     TOKEN_IF);
-        case 'n': return scanner__identifier_type_helper(self, 1, 2, "il",    TOKEN_NIL);
-        case 'o': return scanner__identifier_type_helper(self, 1, 1, "r",     TOKEN_OR);
-        case 'p': return scanner__identifier_type_helper(self, 1, 4, "rint",  TOKEN_PRINT);
-        case 'r': return scanner__identifier_type_helper(self, 1, 5, "eturn", TOKEN_RETURN);
-        case 's': {
-            if (self->top - self->start > 1) {
-                switch (*(self->start + 1)) {
-                    case 'u': return scanner__identifier_type_helper(self, 2, 3, "per",  TOKEN_SUPER);
-                    case 'w': return scanner__identifier_type_helper(self, 2, 4, "itch", TOKEN_SWITCH);
-                }
-            }
-        } break ;
-        case 'd': return scanner__identifier_type_helper(self, 1, 6, "efault", TOKEN_DEFAULT);
-        case 'v': return scanner__identifier_type_helper(self, 1, 2, "ar",     TOKEN_VAR);
-        case 'w': return scanner__identifier_type_helper(self, 1, 4, "hile",   TOKEN_WHILE);
+        case 'd': return scanner__identifier_type_helper(self, 1, "efault", TOKEN_DEFAULT);
+        case 'e': return scanner__identifier_type_helper(self, 1, "lse",    TOKEN_ELSE);
         case 'f': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
-                    case 'a': return scanner__identifier_type_helper(self, 2, 3, "lse", TOKEN_FALSE);
-                    case 'o': return scanner__identifier_type_helper(self, 2, 1, "r",   TOKEN_FOR);
-                    case 'u': return scanner__identifier_type_helper(self, 2, 1, "n",   TOKEN_FUN);
+                    case 'a': return scanner__identifier_type_helper(self, 2, "lse", TOKEN_FALSE);
+                    case 'o': return scanner__identifier_type_helper(self, 2, "r",   TOKEN_FOR);
+                    case 'u': return scanner__identifier_type_helper(self, 2, "n",   TOKEN_FUN);
                 }
             }
         } break ;
+        case 'i': return scanner__identifier_type_helper(self, 1, "f",     TOKEN_IF);
+        case 'n': return scanner__identifier_type_helper(self, 1, "il",    TOKEN_NIL);
+        case 'o': return scanner__identifier_type_helper(self, 1, "r",     TOKEN_OR);
+        case 'p': return scanner__identifier_type_helper(self, 1, "rint",  TOKEN_PRINT);
+        case 'r': return scanner__identifier_type_helper(self, 1, "eturn", TOKEN_RETURN);
+        case 's': {
         case 't': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
-                    case 'h': return scanner__identifier_type_helper(self, 2, 2, "is", TOKEN_THIS);
-                    case 'r': return scanner__identifier_type_helper(self, 2, 2, "ue", TOKEN_TRUE);
+                    case 'h': return scanner__identifier_type_helper(self, 2, "is", TOKEN_THIS);
+                    case 'r': return scanner__identifier_type_helper(self, 2, "ue", TOKEN_TRUE);
                 }
             }
         } break ;
+            if (self->top - self->start > 1) {
+                switch (*(self->start + 1)) {
+                    case 'u': return scanner__identifier_type_helper(self, 2, "per",  TOKEN_SUPER);
+                    case 'w': return scanner__identifier_type_helper(self, 2, "itch", TOKEN_SWITCH);
+                }
+            }
+        } break ;
+        case 'v': return scanner__identifier_type_helper(self, 1, "ar",     TOKEN_VAR);
+        case 'w': return scanner__identifier_type_helper(self, 1, "hile",   TOKEN_WHILE);
     }
 
     return TOKEN_IDENTIFIER;
@@ -288,12 +303,12 @@ token_t scanner__scan_token(scanner_t* self) {
             }
         } break ;
         case '*': return scanner__make_token(self, TOKEN_STAR);
+        case ':': return scanner__make_token(self, TOKEN_COLON);
         case '!': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_EXCLAM_EQUAL  : TOKEN_EXCLAM);
         case '=': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_EQUAL_EQUAL   : TOKEN_EQUAL);
         case '<': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_LESS_EQUAL    : TOKEN_LESS);
         case '>': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
         case '"': return scanner__make_string(self);
-        case ':': return scanner__make_token(self, TOKEN_COLON);
     }
 
     return scanner__make_error_token(self, "Unexpected character.");

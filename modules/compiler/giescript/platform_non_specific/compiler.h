@@ -19,6 +19,10 @@ struct compiler {
     u32      scopes_size;
     u32      scopes_locals_fill;
 
+    s32 inner_most_loop_start;
+    u32 inner_most_loop_scope_depth;
+    bool skipping_scope;
+
     vm_t*    vm;
     chunk_t* chunk;
 };
