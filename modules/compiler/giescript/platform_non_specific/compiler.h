@@ -19,9 +19,11 @@ struct compiler {
     u32      scopes_size;
     u32      scopes_locals_fill;
 
-    s32 inner_most_loop_start;
-    u32 inner_most_loop_scope_depth;
-    bool skipping_scope;
+    // characteristics for the current loop being compiled, used for break/continue like flow controls
+    s32 ip_loop_start;
+    s32 ip_loop_end;
+    s32 ip_loop_scope_depth;
+    bool loop_did_break;
 
     vm_t*    vm;
     chunk_t* chunk;

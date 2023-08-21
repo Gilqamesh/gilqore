@@ -106,7 +106,6 @@ static entry_t* compiler__find_local(compiler_t* self, token_t* local_name);
 static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign);
 static void compiler__begin_scope(compiler_t* self);
 static void compiler__end_scope(compiler_t* self);
-static void compiler__clear_scope(compiler_t* self);
 static u32  compiler__push_imm(compiler_t* self, value_t value, token_t token);
 static u32 compiler__emit_jump(compiler_t* self, ins_mnemonic_t ins);
 static void compiler__patch_jump(compiler_t* self, u32 ip_index);
@@ -680,20 +679,35 @@ static void compiler__emit_for_stmt(compiler_t* self) {
         }
     }
 
-    // Condition
+
+    // jump over exit jump ins
+    u32 for_begin_ip = compiler__emit_jump(self, INS_JUMP);
+
+    // jump to exit
+    u32 exit_ip_start = self->chunk->instructions_fill;
+    u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
+
+    compiler__patch_jump(self, for_begin_ip);
+
+    // Condition (start of for loop)
     u32 condition_ip = self->chunk->instructions_fill;
 
-    // save loop start and depth, overwrite with current one
-    s32 surrounding_loop_start = self->inner_most_loop_start;
-    u32 surrounding_loop_scope_depth = self->inner_most_loop_scope_depth;
-    self->inner_most_loop_start = condition_ip;
-    self->inner_most_loop_scope_depth = self->scopes_fill;
+    // save loop start/end and depth, overwrite with current one
+    s32 ip_loop_start = self->ip_loop_start;
+    s32 ip_loop_end = self->ip_loop_end;
+    u32 ip_loop_scope_depth = self->ip_loop_scope_depth;
+    bool loop_did_break = self->loop_did_break;
+    self->ip_loop_end = exit_ip_start;
+    self->ip_loop_start = condition_ip;
+    self->ip_loop_scope_depth = self->scopes_fill;
 
-    s32 exit_ip = -1;
+    bool had_condition = false;
     if (!compiler__eat_if(self, TOKEN_SEMICOLON)) {
+        had_condition = true;
         compiler__emit_expr(self);
         compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after condition clause.");
-        exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+        compiler__push_imm(self, value__num(exit_ip_start), self->previous);
+        compiler__emit_ins(self, INS_JUMP_ON_FALSE);
 
         // pop condition expr as it evaluated to true
         compiler__emit_pop(self, true);
@@ -706,6 +720,7 @@ static void compiler__emit_for_stmt(compiler_t* self) {
 
         // increment
         u32 increment_ip = self->chunk->instructions_fill;
+        self->ip_loop_start = increment_ip;
         compiler__emit_expr(self);
         compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
         compiler__emit_pop(self, true);
@@ -718,32 +733,32 @@ static void compiler__emit_for_stmt(compiler_t* self) {
         compiler__patch_jump(self, body_ip);
         compiler__emit_stmt(self);
 
-        self->inner_most_loop_start = increment_ip;
-
         // jump to increment
         compiler__push_imm(self, value__num(increment_ip), self->previous);
         compiler__emit_ins(self, INS_JUMP);
     } else {
+        self->ip_loop_start = condition_ip;
 
         // body
         compiler__emit_stmt(self);
-
-        self->inner_most_loop_start = self->chunk->instructions_fill;
 
         // jump to condition
         compiler__push_imm(self, value__num(condition_ip), self->previous);
         compiler__emit_ins(self, INS_JUMP);
     }
 
-    if (exit_ip != -1) {
-        compiler__patch_jump(self, exit_ip);
-        // pop condition expr if there was one and it evaluated to false
+    compiler__patch_jump(self, exit_ip);
+
+    if (had_condition && !self->loop_did_break) {
+        // pop condition expr if there was one and it is left on the stack (in case we broke out, we don't have it anymore)
         compiler__emit_pop(self, true);
     }
 
     // restore to previous values
-    self->inner_most_loop_start = surrounding_loop_start;
-    self->inner_most_loop_scope_depth = surrounding_loop_scope_depth;
+    self->ip_loop_start = ip_loop_start;
+    self->ip_loop_end = ip_loop_end;
+    self->ip_loop_scope_depth = ip_loop_scope_depth;
+    self->loop_did_break = loop_did_break;
 
     compiler__end_scope(self);
 }
@@ -837,25 +852,54 @@ static void compiler__emit_block_stmt(compiler_t* self) {
 }
 
 static void compiler__emit_continue_stmt(compiler_t* self) {
-    if (self->inner_most_loop_start == -1) {
+    if (self->ip_loop_start == -1) {
         compiler__error_at(self, &self->previous, "Cannot use 'continue' outside of a loop.");
     }
 
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after 'continue'.");
 
-    // skip rest of the scope
-    self->skipping_scope = true;
-
     // discard any locals created inside the loop
-    compiler__clear_scope(self);
+    for (s32 scope_depth = self->scopes_fill - 1; scope_depth > self->ip_loop_scope_depth; --scope_depth) {
+        ASSERT(self->scopes_fill > 0);
+        table_t* scope = &self->scopes[scope_depth];
+        u32 n_of_locals_in_scope = scope->fill;
+        if (n_of_locals_in_scope == 1) {
+            compiler__emit_ins(self, INS_POP);
+        } else if (n_of_locals_in_scope > 1) {
+            compiler__push_imm(self, value__num(n_of_locals_in_scope), self->previous);
+            compiler__emit_ins(self, INS_POPN);
+        }
+    }
 
-    // jump to top of the current innermost loop
-    compiler__push_imm(self, value__num(self->inner_most_loop_start), self->previous);
+    // jump to top of the current loop
+    compiler__push_imm(self, value__num(self->ip_loop_start), self->previous);
     compiler__emit_ins(self, INS_JUMP);
 }
 
 static void compiler__emit_break_stmt(compiler_t* self) {
-    (void) self;
+    if (self->ip_loop_end == -1) {
+        compiler__error_at(self, &self->previous, "Cannot use 'break' outside of a loop.");
+    }
+    self->loop_did_break = true;
+
+    compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after 'break'.");
+
+    // discard any locals created inside the loop
+    for (s32 scope_depth = self->scopes_fill - 1; scope_depth > self->ip_loop_scope_depth; --scope_depth) {
+        ASSERT(self->scopes_fill > 0);
+        table_t* scope = &self->scopes[scope_depth];
+        u32 n_of_locals_in_scope = scope->fill;
+        if (n_of_locals_in_scope == 1) {
+            compiler__emit_ins(self, INS_POP);
+        } else if (n_of_locals_in_scope > 1) {
+            compiler__push_imm(self, value__num(n_of_locals_in_scope), self->previous);
+            compiler__emit_ins(self, INS_POPN);
+        }
+    }
+
+    // jump to end of the current loop
+    compiler__push_imm(self, value__num(self->ip_loop_end), self->previous);
+    compiler__emit_ins(self, INS_JUMP);
 }
 
 static void compiler__end_compile(compiler_t* self) {
@@ -1047,14 +1091,10 @@ static void compiler__begin_scope(compiler_t* self) {
     ++self->scopes_fill;
 }
 
-static void compiler__clear_scope(compiler_t* self) {
+static void compiler__end_scope(compiler_t* self) {
     ASSERT(self->scopes_fill > 0);
-
     table_t* scope = &self->scopes[self->scopes_fill - 1];
     u32 n_of_locals_in_scope = scope->fill;
-    ASSERT(n_of_locals_in_scope <= self->scopes_locals_fill);
-    self->scopes_locals_fill -= n_of_locals_in_scope;
-    table__clear(scope);
     
     if (n_of_locals_in_scope == 1) {
         compiler__emit_ins(self, INS_POP);
@@ -1062,11 +1102,12 @@ static void compiler__clear_scope(compiler_t* self) {
         compiler__push_imm(self, value__num(n_of_locals_in_scope), self->previous);
         compiler__emit_ins(self, INS_POPN);
     }
-}
 
-static void compiler__end_scope(compiler_t* self) {
-    compiler__clear_scope(self);
     --self->scopes_fill;
+
+    ASSERT(n_of_locals_in_scope <= self->scopes_locals_fill);
+    self->scopes_locals_fill -= n_of_locals_in_scope;
+    table__clear(scope);
 }
 
 static u32 compiler__push_imm(compiler_t* self, value_t value, token_t token) {
@@ -1091,7 +1132,8 @@ static void compiler__patch_jump(compiler_t* self, u32 ip_index) {
 
 bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source) {
     libc__memset(self, 0, sizeof(*self));
-    self->inner_most_loop_start = -1;
+    self->ip_loop_start = -1;
+    self->ip_loop_end   = -1;
 
     scanner__init(&self->scanner, source);
 
