@@ -54,7 +54,7 @@ static void compiler__emit_expr(compiler_t* self);
 static void compiler__emit_grouping(compiler_t* self, bool can_assign);
 static void compiler__emit_unary(compiler_t* self, bool can_assign);
 static void compiler__emit_binary(compiler_t* self, bool can_assign);
-static void compiler__emit_conditional(compiler_t* self, bool can_assign);
+static void compiler__emit_ternary(compiler_t* self, bool can_assign);
 
 // these define the instruction stream interface between vm/compiler
 static void compiler__emit_return(compiler_t* self, bool can_assign);
@@ -126,7 +126,7 @@ static compile_rule compile_rules[] = {
     [TOKEN_SLASH]         = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
     [TOKEN_PERCENTAGE]    = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
     [TOKEN_STAR]          = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
-    [TOKEN_QUESTION_MARK] = {compiler__emit_conditional,    NULL,                       PREC_NONE},
+    [TOKEN_QUESTION_MARK] = {NULL,                          compiler__emit_ternary,     PREC_TERNARY},
     [TOKEN_EXCLAM]        = {compiler__emit_unary,          NULL,                       PREC_NONE},
     [TOKEN_EXCLAM_EQUAL]  = {NULL,                          compiler__emit_binary,      PREC_EQUALITY},
     [TOKEN_EQUAL]         = {NULL,                          NULL,                       PREC_NONE},
@@ -177,6 +177,7 @@ static void compiler__emit_prec(compiler_t* self, precedence prec) {
         compiler__eat(self);
         compile_rule* infix_rule = compiler__get_rule(self->previous.type);
         ASSERT(infix_rule);
+        ASSERT(infix_rule->infix);
         infix_rule->infix(self, can_assign);
     }
 
@@ -267,16 +268,24 @@ static void compiler__emit_binary(compiler_t* self, bool can_assign) {
     }
 }
 
-static void compiler__emit_conditional(compiler_t* self, bool can_assign) {
+static void compiler__emit_ternary(compiler_t* self, bool can_assign) {
     (void) can_assign;
 
-    ASSERT(false && "todo: implement emitting the bytecode");
+    u32 then_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
+    // pop condition expr
+    compiler__emit_pop(self, true);
 
-    compiler__emit_prec(self, PREC_TERNARY);
+    compiler__emit_expr(self);
+    compiler__eat_err(self, TOKEN_COLON, "Expect ':' after then branch of ternary operator.");
+    u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
 
-    compiler__eat_err(self, TOKEN_COLON, "Expect ':' after then branch of conditional operator.");
+    compiler__patch_jump(self, then_ip);
+    // pop condition expr
+    compiler__emit_pop(self, true);
 
-    compiler__emit_prec(self, PREC_ASSIGNMENT);
+    compiler__emit_expr(self);
+
+    compiler__patch_jump(self, exit_ip);
 }
 
 static void compiler__emit_return(compiler_t* self, bool can_assign) {
@@ -634,7 +643,7 @@ static void compiler__emit_if_stmt(compiler_t* self) {
     compiler__emit_pop(self, true);
     compiler__emit_stmt(self);
 
-    u32 else_ip = compiler__emit_jump(self, INS_JUMP);
+    u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
     compiler__patch_jump(self, then_ip);
     
     // pop condition expr
@@ -643,7 +652,7 @@ static void compiler__emit_if_stmt(compiler_t* self) {
         compiler__emit_stmt(self);
     }
 
-    compiler__patch_jump(self, else_ip);
+    compiler__patch_jump(self, exit_ip);
 }
 
 static void compiler__emit_while_stmt(compiler_t* self) {
