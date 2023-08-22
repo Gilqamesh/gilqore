@@ -202,9 +202,9 @@ entry_t* table__find_concat_str(table_t* self, value_t left, value_t right) {
     obj_str_t* obj_str_left = obj__as_str(left);
     obj_str_t* obj_str_right = obj__as_str(right);
     u32 left_hash  = obj__hash(left);
-    u32 right_hash = obj__hash(right);
+    // u32 right_hash = obj__hash(right);
     u32 hash       = hash__fnv_1a(obj_str_right->str, obj_str_right->len, left_hash);
-    ASSERT((left_hash ^ right_hash) == hash);
+    // ASSERT((left_hash ^ right_hash) == hash);
     u32 index = hash % self->size;
     u32 len = obj_str_left->len + obj_str_right->len;
     while (true) {

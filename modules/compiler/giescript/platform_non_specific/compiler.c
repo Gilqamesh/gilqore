@@ -67,6 +67,7 @@ static void compiler__emit_add(compiler_t* self, bool can_assign);
 static void compiler__emit_sub(compiler_t* self, bool can_assign);
 static void compiler__emit_mul(compiler_t* self, bool can_assign);
 static void compiler__emit_div(compiler_t* self, bool can_assign);
+static void compiler__emit_mod(compiler_t* self, bool can_assign);
 static void compiler__emit_not(compiler_t* self, bool can_assign);
 static void compiler__emit_eq(compiler_t* self, bool can_assign);
 static void compiler__emit_lt(compiler_t* self, bool can_assign);
@@ -123,6 +124,7 @@ static compile_rule compile_rules[] = {
     [TOKEN_PLUS]          = {NULL,                          compiler__emit_binary,      PREC_TERM},
     [TOKEN_SEMICOLON]     = {NULL,                          NULL,                       PREC_NONE},
     [TOKEN_SLASH]         = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
+    [TOKEN_PERCENTAGE]    = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
     [TOKEN_STAR]          = {NULL,                          compiler__emit_binary,      PREC_FACTOR},
     [TOKEN_QUESTION_MARK] = {compiler__emit_conditional,    NULL,                       PREC_NONE},
     [TOKEN_EXCLAM]        = {compiler__emit_unary,          NULL,                       PREC_NONE},
@@ -237,6 +239,9 @@ static void compiler__emit_binary(compiler_t* self, bool can_assign) {
         case TOKEN_SLASH: {
             compiler__emit_div(self, can_assign);
         } break ;
+        case TOKEN_PERCENTAGE: {
+            compiler__emit_mod(self, can_assign);
+        } break ;
         case TOKEN_EXCLAM_EQUAL: {
             compiler__emit_eq(self, can_assign);
             compiler__emit_not(self, can_assign);
@@ -333,6 +338,12 @@ static void compiler__emit_div(compiler_t* self, bool can_assign) {
     (void) can_assign;
     
     compiler__emit_ins(self, INS_DIV);
+}
+
+static void compiler__emit_mod(compiler_t* self, bool can_assign) {
+    (void) can_assign;
+    
+    compiler__emit_ins(self, INS_MOD);
 }
 
 static void compiler__emit_not(compiler_t* self, bool can_assign) {

@@ -27,6 +27,7 @@ typedef enum ins_mnemonic {
     INS_SUB,                // [ins]
     INS_MUL,                // [ins]
     INS_DIV,                // [ins]
+    INS_MOD,                // [ins]
     INS_NOT,                // [ins]
     INS_EQ,                 // [ins]
     INS_GT,                 // [ins]

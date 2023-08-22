@@ -128,6 +128,9 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_DIV: {
             return disasm__simple("DIV", ip);
         } break ;
+        case INS_MOD: {
+            return disasm__simple("MOD", ip);
+        } break ;
         case INS_NOT: {
             return disasm__simple("NOT", ip);
         } break ;

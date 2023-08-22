@@ -10,4 +10,6 @@ PUBLIC_API r64 r64__nextafter(r64 a, r64 b);
 
 PUBLIC_API bool is_pow_of_2__u32(u32 n);
 
+PUBLIC_API r64 r64__mod(r64 a, r64 b);
+
 #endif // GIL_MATH_H

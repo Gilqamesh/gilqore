@@ -303,6 +303,7 @@ token_t scanner__scan_token(scanner_t* self) {
             }
         } break ;
         case '*': return scanner__make_token(self, TOKEN_STAR);
+        case '%': return scanner__make_token(self, TOKEN_PERCENTAGE);
         case ':': return scanner__make_token(self, TOKEN_COLON);
         case '!': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_EXCLAM_EQUAL  : TOKEN_EXCLAM);
         case '=': return scanner__make_token(self, scanner__eat_if(self, '=') ? TOKEN_EQUAL_EQUAL   : TOKEN_EQUAL);

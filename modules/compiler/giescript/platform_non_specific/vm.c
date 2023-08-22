@@ -10,6 +10,7 @@
 #include "libc/libc.h"
 #include "io/file/file.h"
 #include "io/console/console.h"
+#include "gil_math/gil_math.h"
 
 typedef enum vm_interpret_result {
     VM_OK,
@@ -312,6 +313,7 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_SUB].stack_delta = -1;
     self->ins_infos[INS_MUL].stack_delta = -1;
     self->ins_infos[INS_DIV].stack_delta = -1;
+    self->ins_infos[INS_MOD].stack_delta = -1;
     self->ins_infos[INS_NOT].stack_delta = 0;
     self->ins_infos[INS_EQ].stack_delta = -1;
     self->ins_infos[INS_GT].stack_delta = -1;
@@ -417,6 +419,21 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                     return VM_RUNTIME_ERROR;
                 }
                 vm__push(self, value__num(value__as_num(left) / value__as_num(right)));
+            } break ;
+            case INS_MOD: {
+                value_t right = vm__pop(self);
+                value_t left  = vm__pop(self);
+                if (!value__is_num(left) || !value__is_num(right)) {
+                    vm__error(self, chunk, "Operands must be numbers.");
+                    return VM_RUNTIME_ERROR;
+                }
+                r64 left_num = value__as_num(left);
+                r64 right_num = value__as_num(right);
+                if (right_num == 0.0) {
+                    vm__error(self, chunk, "Cannot divide by 0.");
+                    return VM_RUNTIME_ERROR;
+                }
+                vm__push(self, value__num(r64__mod(left_num, right_num)));
             } break ;
             case INS_NOT: {
                 value_t value = vm__pop(self);
