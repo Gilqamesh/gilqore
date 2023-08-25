@@ -55,11 +55,12 @@ typedef  struct token         token_t;
 typedef  struct compiler      compiler_t;
 typedef  struct obj           obj_t;
 typedef  struct obj_str       obj_str_t;
-typedef  struct obj_var_info  obj_var_info_t;
+typedef  struct obj_decl      obj_decl_t;
 typedef  struct obj_fun       obj_fun_t;
-typedef  struct ins_info      ins_info_t;
+typedef  struct abi           abi_t;
 typedef  struct table         table_t;
 typedef  struct entry         entry_t;
 typedef  struct token_info    token_info_t;
+typedef  struct stack_frame   stack_frame_t;
 
 #endif // GIES_TYPES_H

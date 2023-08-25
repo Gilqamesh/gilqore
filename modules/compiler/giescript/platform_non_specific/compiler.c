@@ -39,6 +39,7 @@ static void compiler__emit_prec(compiler_t* self, precedence prec);
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins);
 static void compiler__emit_decl_stmt(compiler_t* self);
 static void compiler__emit_var_decl_stmt(compiler_t* self);
+static void compiler__emit_fun_decl_stmt(compiler_t* self);
 static void compiler__emit_stmt(compiler_t* self);
 static void compiler__emit_print_stmt(compiler_t* self);
 static void compiler__emit_if_stmt(compiler_t* self);
@@ -90,14 +91,14 @@ static bool compiler__eat_if(compiler_t* self, token_type type);
 static void compiler__eat_err(compiler_t* self, token_type type, const char* err_msg);
 static void compiler__error_at(compiler_t* self, token_t* token, const char* err_msg);
 // static void       compiler__warn_at(compiler_t* self, token_t* token, const char* warn_msg);
-static void compiler__end_compile(compiler_t* self);
+static obj_fun_t* compiler__end_compile(compiler_t* self);
 // skips tokens until a statement boundary is reached
 static void compiler__synchronize(compiler_t* self);
 // parses variable, returns the declaration
-static entry_t* compiler__parse_var(compiler_t* self);
-static entry_t* compiler__declare_var(compiler_t* self, token_t* ident, token_t* ident_type);
-static entry_t* compiler__add_var(compiler_t* self, token_t* ident, token_t* ident_type);
-static entry_t* compiler__find_var(compiler_t* self, token_t* var_name);
+static entry_t* compiler__parse_decl(compiler_t* self);
+static entry_t* compiler__decl(compiler_t* self, token_t* ident, token_t* ident_type);
+static entry_t* compiler__add_decl(compiler_t* self, token_t* ident, token_t* ident_type);
+static entry_t* compiler__find_decl(compiler_t* self, token_t* var_name);
 static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign);
 static void compiler__begin_scope(compiler_t* self);
 static void compiler__end_scope(compiler_t* self);
@@ -182,12 +183,12 @@ static void compiler__emit_prec(compiler_t* self, precedence prec) {
 }
 
 static void compiler__emit_expr(compiler_t* self) {
-    s32 stack_size = self->chunk->current_stack_size;
+    s32 stack_size = self->fn->chunk.current_stack_size;
 
     compiler__emit_prec(self, PREC_ASSIGNMENT);
 
     // expressions always leave a value on top of the stack
-    ASSERT(self->had_error || self->chunk->current_stack_size == stack_size + 1);
+    ASSERT(self->had_error || self->fn->chunk.current_stack_size == stack_size + 1);
 }
 
 static void compiler__emit_grouping(compiler_t* self, bool can_assign) {
@@ -519,7 +520,7 @@ static void compiler__error_at(compiler_t* self, token_t* token, const char* err
 // }
 
 static void compiler__emit_ins(compiler_t* self, ins_mnemonic_t ins) {
-    chunk__push_ins(self->chunk, ins, self->previous);
+    chunk__push_ins(&self->fn->chunk, ins, self->previous);
 }
 
 static void compiler__emit_decl_stmt(compiler_t* self) {
@@ -527,6 +528,9 @@ static void compiler__emit_decl_stmt(compiler_t* self) {
         case TOKEN_VAR:
         case TOKEN_CONST: {
             compiler__emit_var_decl_stmt(self);
+        } break ;
+        case TOKEN_FUN: {
+            compiler__emit_fun_decl_stmt(self);
         } break ;
         default: {
             compiler__emit_stmt(self);
@@ -539,22 +543,22 @@ static void compiler__emit_decl_stmt(compiler_t* self) {
 }
 
 static void compiler__emit_var_decl_stmt(compiler_t* self) {
-    entry_t* declaration = compiler__parse_var(self);
-    if (!declaration) {
+    entry_t* decl_entry = compiler__parse_decl(self);
+    if (!decl_entry) {
         return ;
     }
 
-    ASSERT(obj__is_var_info(declaration->value));
-    obj_var_info_t* var_info = obj__as_var_info(declaration->value);
+    ASSERT(obj__is_decl(decl_entry->value));
+    obj_decl_t* decl = obj__as_decl(decl_entry->value);
 
     if (compiler__eat_if(self, TOKEN_EQUAL)) {
         compiler__emit_expr(self);
     } else {
-        if (var_info->is_const) {
+        if (decl->is_const) {
             compiler__error_at(self, &self->previous, "Constant variable requires an initializer.");
             // erase declaration so repl can keep running
-            ASSERT(var_info->scope_depth - 1 < self->scopes_fill);
-            ASSERT(table__erase(&self->scopes[var_info->scope_depth - 1], declaration->key));
+            ASSERT(decl->scope_depth - 1 < self->scopes_fill);
+            ASSERT(table__erase(&self->scopes[decl->scope_depth - 1], decl_entry->key));
             return ;
         }
         compiler__emit_nil(self, true);
@@ -563,7 +567,17 @@ static void compiler__emit_var_decl_stmt(compiler_t* self) {
     compiler__eat_err(self, TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
 
     // at this point we compiled the initializer, ready to set the state of the declaration to defined
-    var_info->is_defined = true;
+    decl->is_defined = true;
+}
+
+static void compiler__emit_fun_decl_stmt(compiler_t* self) {
+    entry_t* decl_entry = compiler__parse_decl(self);
+    if (!decl_entry) {
+        return ;
+    }
+
+    ASSERT(obj__is_decl(decl_entry->value));
+    // obj_decl_t* decl = obj__as_decl(decl_entry->value);
 }
 
 static void compiler__emit_stmt(compiler_t* self) {
@@ -623,7 +637,7 @@ static void compiler__emit_while_stmt(compiler_t* self) {
     compiler__eat_err(self, TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
 
     // jump back before the condition expr at the end of the loop
-    u32 loop_start = self->chunk->instructions_fill;
+    u32 loop_start = self->fn->chunk.instructions_fill;
     // emit condition expr
     compiler__emit_expr(self);
     compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
@@ -668,13 +682,13 @@ static void compiler__emit_for_stmt(compiler_t* self) {
     u32 for_begin_ip = compiler__emit_jump(self, INS_JUMP);
 
     // jump to exit
-    u32 exit_ip_start = self->chunk->instructions_fill;
+    u32 exit_ip_start = self->fn->chunk.instructions_fill;
     u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
 
     compiler__patch_jump(self, for_begin_ip);
 
     // Condition (start of for loop)
-    u32 condition_ip = self->chunk->instructions_fill;
+    u32 condition_ip = self->fn->chunk.instructions_fill;
 
     // save loop start/end and depth, overwrite with current one
     s32 ip_loop_start = self->ip_loop_start;
@@ -703,7 +717,7 @@ static void compiler__emit_for_stmt(compiler_t* self) {
         u32 body_ip = compiler__emit_jump(self, INS_JUMP);
 
         // increment
-        u32 increment_ip = self->chunk->instructions_fill;
+        u32 increment_ip = self->fn->chunk.instructions_fill;
         self->ip_loop_start = increment_ip;
         compiler__emit_expr(self);
         compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after increment clause.");
@@ -765,7 +779,7 @@ static void compiler__emit_switch_stmt(compiler_t* self) {
     u32 switch_ip = compiler__emit_jump(self, INS_JUMP);
 
     // jump to exit
-    u32 exit_ip_start = self->chunk->instructions_fill;
+    u32 exit_ip_start = self->fn->chunk.instructions_fill;
     u32 exit_ip = compiler__emit_jump(self, INS_JUMP);
 
     compiler__patch_jump(self, switch_ip);
@@ -890,10 +904,12 @@ static void compiler__emit_break_stmt(compiler_t* self) {
     compiler__emit_ins(self, INS_JUMP);
 }
 
-static void compiler__end_compile(compiler_t* self) {
+static obj_fun_t* compiler__end_compile(compiler_t* self) {
     compiler__emit_return(self, true);
 
-    // ASSERT(self->had_error || self->chunk->current_stack_size == 0);
+    // ASSERT(self->had_error || self->fn->chunk->current_stack_size == 0);
+
+    return self->fn;
 }
 
 static void compiler__synchronize(compiler_t* self) {
@@ -921,37 +937,37 @@ static void compiler__synchronize(compiler_t* self) {
     }
 }
 
-static entry_t* compiler__parse_var(compiler_t* self) {
+static entry_t* compiler__parse_decl(compiler_t* self) {
     // check for identifier prefixes that identifies its type (not yet implemented), constness etc
     /* while (!compiler__eat_if(self, identifier)) */
 
     compiler__eat(self);
     token_t identifier_type = self->previous;
 
-    compiler__eat_err(self, TOKEN_IDENTIFIER, "Expect variable name.");
+    compiler__eat_err(self, TOKEN_IDENTIFIER, "Expect declaration.");
     token_t ident = self->previous;
 
-    return compiler__declare_var(self, &ident, &identifier_type);
+    return compiler__decl(self, &ident, &identifier_type);
 }
 
-static entry_t* compiler__declare_var(compiler_t* self, token_t* ident, token_t* ident_type) {
-    // check if var is already stored
+static entry_t* compiler__decl(compiler_t* self, token_t* ident, token_t* ident_type) {
+    // check if declaration already exists
 
     ASSERT(self->scopes_fill > 0);
-    // if var is in an outer scope, allow shadowing
+    // if declaration is in an outer scope, allow shadowing
     table_t* current_scope = &self->scopes[self->scopes_fill - 1];
     if (table__find_str(current_scope, ident->lexeme, ident->lexeme_len)) {
-        compiler__error_at(self, ident, "Variable already declared in this scope.");
+        compiler__error_at(self, ident, "Declaration already exists in current scope.");
         return NULL;
     }
 
-    return compiler__add_var(self, ident, ident_type);
+    return compiler__add_decl(self, ident, ident_type);
 }
 
-static entry_t* compiler__add_var(compiler_t* self, token_t* ident, token_t* ident_type) {
+static entry_t* compiler__add_decl(compiler_t* self, token_t* ident, token_t* ident_type) {
     ASSERT(self->scopes_fill > 0);
     table_t* scope = &self->scopes[self->scopes_fill - 1];
-    value_t ident_value = obj__alloc_var_info(self->vm, self->scopes_var_fill, self->scopes_fill, ident_type->type == TOKEN_CONST, false);
+    value_t ident_value = obj__alloc_decl(self->vm, self->scopes_var_fill, self->scopes_fill, ident_type->type == TOKEN_CONST, false);
     value_t ident_key = obj__copy_str(self->vm, ident->lexeme, ident->lexeme_len);
     table__insert(scope, ident_key, ident_value);
     ++self->scopes_var_fill;
@@ -961,7 +977,7 @@ static entry_t* compiler__add_var(compiler_t* self, token_t* ident, token_t* ide
     return entry;
 }
 
-static entry_t* compiler__find_var(compiler_t* self, token_t* var_name) {
+static entry_t* compiler__find_decl(compiler_t* self, token_t* var_name) {
     if (self->scopes_fill == 0) {
         return NULL;
     }
@@ -970,9 +986,9 @@ static entry_t* compiler__find_var(compiler_t* self, token_t* var_name) {
         table_t* scope = &self->scopes[scopes_index];
         entry_t* entry = table__find_str(scope, var_name->lexeme, var_name->lexeme_len);
         if (entry) {
-            ASSERT(obj__is_var_info(entry->value));
-            obj_var_info_t* var_info = obj__as_var_info(entry->value);
-            if (!var_info->is_defined) {
+            ASSERT(obj__is_decl(entry->value));
+            obj_decl_t* decl = obj__as_decl(entry->value);
+            if (!decl->is_defined) {
                 compiler__error_at(self, var_name, "Cannot read variable in its own initializer.");
             }
             return entry;
@@ -983,28 +999,28 @@ static entry_t* compiler__find_var(compiler_t* self, token_t* var_name) {
 }
 
 static void compiler__emit_named_var(compiler_t* self, token_t var, bool can_assign) {
-    obj_var_info_t* var_info = NULL;
-    entry_t* var_entry = compiler__find_var(self, &var);
+    obj_decl_t* decl = NULL;
+    entry_t* var_entry = compiler__find_decl(self, &var);
     if (!var_entry) {
         compiler__error_at(self, &var, "Variable is not declared.");
         return ;
     }
 
-    ASSERT(obj__is_var_info(var_entry->value));
-    var_info = obj__as_var_info(var_entry->value);
-    ASSERT(var_info->is_defined);
+    ASSERT(obj__is_decl(var_entry->value));
+    decl = obj__as_decl(var_entry->value);
+    ASSERT(decl->is_defined);
     
     if (compiler__eat_if(self, TOKEN_EQUAL)) {
-        if (var_info->is_const) {
+        if (decl->is_const) {
             compiler__error_at(self, &var, "Cannot assign to constant variable.");
             return ;
         } else {
             compiler__emit_expr(self);
-            DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous);
+            DISCARD_RETURN compiler__push_imm(self, value__num((r64) decl->index), self->previous);
             compiler__emit_set_var(self, can_assign);
         }
     } else {
-        DISCARD_RETURN compiler__push_imm(self, value__num((r64) var_info->var_index), self->previous);
+        DISCARD_RETURN compiler__push_imm(self, value__num((r64) decl->index), self->previous);
         compiler__emit_get_var(self, can_assign);
     }
 }
@@ -1046,13 +1062,13 @@ static void compiler__end_scope(compiler_t* self) {
 }
 
 static u32 compiler__push_imm(compiler_t* self, value_t value, token_t token) {
-    u32 value_index = chunk__push_imm(self->chunk, value, token);
+    u32 value_index = chunk__push_imm(&self->fn->chunk, value, token);
 
     return value_index;
 }
 
 static u32 compiler__emit_jump(compiler_t* self, ins_mnemonic_t ins) {
-    value_t ip = value__num(self->chunk->instructions_fill);
+    value_t ip = value__num(self->fn->chunk.instructions_fill);
 
     u32 ip_index = compiler__push_imm(self, ip, self->previous);
     compiler__emit_ins(self, ins);
@@ -1061,20 +1077,19 @@ static u32 compiler__emit_jump(compiler_t* self, ins_mnemonic_t ins) {
 }
 
 static void compiler__patch_jump(compiler_t* self, u32 ip_index) {
-    ASSERT(ip_index < self->chunk->immediates.values_fill);
-    self->chunk->immediates.values[ip_index] = value__num(self->chunk->instructions_fill);
+    ASSERT(ip_index < self->fn->chunk.immediates.values_fill);
+    self->fn->chunk.immediates.values[ip_index] = value__num(self->fn->chunk.instructions_fill);
 }
 
-bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source) {
+bool compiler__create(compiler_t* self, vm_t* vm, const char* source) {
     libc__memset(self, 0, sizeof(*self));
     self->ip_loop_start = -1;
     self->ip_loop_end   = -1;
-    self->current_fn    = obj__alloc_fun(vm, 0, 0, 0);
+    self->fn    = obj__alloc_fun(vm, 0, 0);
 
     scanner__init(&self->scanner, source);
 
     self->vm = vm;
-    self->chunk = chunk;
 
     compiler__begin_scope(self);
 
@@ -1090,19 +1105,21 @@ void compiler__destroy(compiler_t* self) {
     }
 }
 
-bool compiler__compile(compiler_t* self) {
+obj_fun_t* compiler__compile(compiler_t* self) {
     compiler__eat(self);
     while (!compiler__eat_if(self, TOKEN_EOF)) {
         compiler__emit_decl_stmt(self);
     }
     compiler__eat_err(self, TOKEN_EOF, "Expect end of expression.");
-    compiler__end_compile(self);
+    obj_fun_t* result = compiler__end_compile(self);
+    if (self->had_error) {
+        return NULL;
+    }
 
 #if defined(DEBUG_COMPILER_TRACE)
-    if (!self->had_error) {
-        chunk__disasm(self->chunk, "code");
-    }
+    ASSERT(result);
+    chunk__disasm(&self->fn->chunk, "code");
 #endif
 
-    return !self->had_error;
+    return result;
 }

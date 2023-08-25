@@ -25,15 +25,13 @@ struct compiler {
     s32 ip_loop_scope_depth;
     bool loop_did_break;
 
-    vm_t*    vm;
-    obj_fun_t* current_fn;
-
-    chunk_t* chunk;
+    vm_t*      vm;
+    obj_fun_t* fn;
 };
 
-bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source);
+bool compiler__create(compiler_t* self, vm_t* vm, const char* source);
 void compiler__destroy(compiler_t* self);
 
-bool compiler__compile(compiler_t* self);
+obj_fun_t* compiler__compile(compiler_t* self);
 
 #endif // GIES_COMPILER_H

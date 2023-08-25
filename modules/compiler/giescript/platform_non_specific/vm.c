@@ -18,10 +18,10 @@ typedef enum vm_interpret_result {
     VM_RUNTIME_ERROR
 } vm_interpret_result_t;
 
-static void vm__define_ins_infos(vm_t* self);
+static void vm__define_abi(vm_t* self);
 static void vm__free_objs(vm_t* self);
 // executes the chunk and returns the result
-static vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk);
+static vm_interpret_result_t vm__interpret(vm_t* self);
 // compiles, interprets and returns the result
 static vm_interpret_result_t vm__run_source(vm_t* self, const char* source);
 static void    vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...);
@@ -53,7 +53,9 @@ static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
     
     libc__printf("     ins:   ");
     ASSERT(chunk->instructions <= self->ip);
-    chunk__disasm_ins(chunk, (u32) (self->ip - chunk->instructions));
+    ASSERT(self->stack_frames_fill > 0);
+    stack_frame_t* stack_frame = &self->stack_frames[self->stack_frames_fill - 1];
+    chunk__disasm_ins(chunk, (u32) (stack_frame->ip - chunk->instructions));
     libc__printf("\n");
 #else
     (void) self;
@@ -62,7 +64,9 @@ static void vm__interpret_trace(vm_t* self, chunk_t* chunk) {
 }
 
 static u8 vm__eat(vm_t* self) {
-    return *self->ip++;
+    ASSERT(self->stack_frames_fill > 0);
+    stack_frame_t* stack_frame = &self->stack_frames[self->stack_frames_fill - 1];
+    return *stack_frame->ip++;
 }
 
 static value_t vm__eat_imm(vm_t* self, chunk_t* chunk) {
@@ -115,18 +119,16 @@ static value_t vm__popn(vm_t* self, u32 n) {
 }
 
 bool vm__create(vm_t* self, allocator_t* allocator) {
-    vm__define_ins_infos(self);
+    libc__memset(self, 0, sizeof(*self));
 
-    self->ip = 0;
-    self->values_stack_data = 0;
-    self->values_stack_top = 0;
-    self->values_stack_size = 0;
-
-    self->objs = 0;
+    vm__define_abi(self);
 
     table__create(&self->obj_str_table, allocator);
 
     self->allocator = allocator;
+
+    self->values_stack_size = 256;
+    self->values_stack_data = allocator__alloc(allocator, self->values_stack_size * sizeof(*self->values_stack_data));
 
     return true;
 }
@@ -211,64 +213,58 @@ bool vm__test_source(vm_t* self, const char* script, ...) {
 }
 
 bool vm__vtest_source(vm_t* self, const char* script, va_list ap) {
-    chunk_t chunk;
-    chunk__create(&chunk, self);
-
     compiler_t compiler;
-    if (!compiler__create(&compiler, self, &chunk, script)) {
-        chunk__destroy(&chunk);
+    if (!compiler__create(&compiler, self, script)) {
         return false;
     }
 
-    if (!compiler__compile(&compiler)) {
+    obj_fun_t* fn = compiler__compile(&compiler);
+    if (!fn) {
         compiler__destroy(&compiler);
-        chunk__destroy(&chunk);
         return false;
     }
 
-    for (u32 ins_index = 0; ins_index < chunk.instructions_fill; ++ins_index) {
+    chunk_t* chunk = &fn->chunk;
+    bool result = true;
+    for (u32 ins_index = 0; result && ins_index < chunk->instructions_fill; ++ins_index) {
         ins_mnemonic_t expected_ins = va_arg(ap, ins_mnemonic_t);
-        ins_mnemonic_t ins = chunk.instructions[ins_index];
+        ins_mnemonic_t ins = chunk->instructions[ins_index];
         if (ins == INS_IMM) {
             ++ins_index;
         } else if (ins == INS_IMM_LONG) {
             ins_index += 3;
         }
         if (expected_ins != ins) {
-            return false;
+            result = false;
         }
     }
 
     compiler__destroy(&compiler);
 
-    chunk__destroy(&chunk);
-
-    return true;
+    return result;
 }
 
 static vm_interpret_result_t vm__run_source(vm_t* self, const char* source) {
-    chunk_t chunk;
-    chunk__create(&chunk, self);
-
     compiler_t compiler;
-    if (!compiler__create(&compiler, self, &chunk, source)) {
-        chunk__destroy(&chunk);
+    if (!compiler__create(&compiler, self, source)) {
         return VM_COMPILE_ERROR;
     }
 
-    if (!compiler__compile(&compiler)) {
+    obj_fun_t* fn = compiler__compile(&compiler);
+    if (!fn) {
         compiler__destroy(&compiler);
-        chunk__destroy(&chunk);
         return VM_COMPILE_ERROR;
     }
 
     compiler__destroy(&compiler);
 
-    vm_interpret_result_t result = vm__interpret(self, &chunk);
+    ASSERT(self->stack_frames_fill < ARRAY_SIZE(self->stack_frames));
+    stack_frame_t* frame = &self->stack_frames[self->stack_frames_fill++];
+    frame->caller = fn;
+    frame->ip = fn->chunk.instructions;
+    frame->slots = self->values_stack_data;
 
-    chunk__destroy(&chunk);
-
-    return result;
+    return vm__interpret(self);
 }
 
 static void vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...) {
@@ -279,8 +275,10 @@ static void vm__error(vm_t* self, chunk_t* chunk, const char* err_msg, ...) {
     va_end(ap);
     libc__printf("\n");
 
-    ASSERT(chunk->instructions < self->ip);
-    token_info_t* token_info = chunk__get_token_info(chunk, self->ip - chunk->instructions - 1);
+    ASSERT(self->stack_frames_fill > 0);
+    stack_frame_t* stack_frame = &self->stack_frames[self->stack_frames_fill - 1];
+    ASSERT(chunk->instructions < stack_frame->ip);
+    token_info_t* token_info = chunk__get_token_info(chunk, stack_frame->ip - chunk->instructions - 1);
     libc__printf("%u:%u %u:%u in script.\n", token_info->line_s, token_info->col_s, token_info->line_e, token_info->col_e);
 
     self->values_stack_top = self->values_stack_data;
@@ -295,46 +293,48 @@ static void vm__free_objs(vm_t* self) {
     }
 }
 
-static void vm__define_ins_infos(vm_t* self) {
-    self->ins_infos[INS_RETURN].stack_delta = 0;
-    self->ins_infos[INS_IMM].stack_delta = 1;
-    self->ins_infos[INS_IMM_LONG].stack_delta = 1;
-    self->ins_infos[INS_NIL].stack_delta = 1;
-    self->ins_infos[INS_TRUE].stack_delta = 1;
-    self->ins_infos[INS_FALSE].stack_delta = 1;
-    self->ins_infos[INS_NEG].stack_delta = 0;
-    self->ins_infos[INS_ADD].stack_delta = -1;
-    self->ins_infos[INS_SUB].stack_delta = -1;
-    self->ins_infos[INS_MUL].stack_delta = -1;
-    self->ins_infos[INS_DIV].stack_delta = -1;
-    self->ins_infos[INS_MOD].stack_delta = -1;
-    self->ins_infos[INS_NOT].stack_delta = 0;
-    self->ins_infos[INS_EQ].stack_delta = -1;
-    self->ins_infos[INS_GT].stack_delta = -1;
-    self->ins_infos[INS_LT].stack_delta = -1;
-    self->ins_infos[INS_PRINT].stack_delta = -1;
-    self->ins_infos[INS_POP].stack_delta = -1;
-    self->ins_infos[INS_POPN].stack_delta = 0; // hardcoded to check previous imm when pushing this instruction
-    self->ins_infos[INS_LOAD].stack_delta = 0;
-    self->ins_infos[INS_STORE].stack_delta = -1;
-    self->ins_infos[INS_JUMP].stack_delta = -1;
-    self->ins_infos[INS_JUMP_ON_FALSE].stack_delta = -1;
-    self->ins_infos[INS_JUMP_ON_TRUE].stack_delta = -1;
+static void vm__define_abi(vm_t* self) {
+    self->abi.stack_delta[INS_RETURN] = 0;
+    self->abi.stack_delta[INS_IMM] = 1;
+    self->abi.stack_delta[INS_IMM_LONG] = 1;
+    self->abi.stack_delta[INS_NIL] = 1;
+    self->abi.stack_delta[INS_TRUE] = 1;
+    self->abi.stack_delta[INS_FALSE] = 1;
+    self->abi.stack_delta[INS_NEG] = 0;
+    self->abi.stack_delta[INS_ADD] = -1;
+    self->abi.stack_delta[INS_SUB] = -1;
+    self->abi.stack_delta[INS_MUL] = -1;
+    self->abi.stack_delta[INS_DIV] = -1;
+    self->abi.stack_delta[INS_MOD] = -1;
+    self->abi.stack_delta[INS_NOT] = 0;
+    self->abi.stack_delta[INS_EQ] = -1;
+    self->abi.stack_delta[INS_GT] = -1;
+    self->abi.stack_delta[INS_LT] = -1;
+    self->abi.stack_delta[INS_PRINT] = -1;
+    self->abi.stack_delta[INS_POP] = -1;
+    self->abi.stack_delta[INS_POPN] = 0; // hardcoded to check previous imm when pushing this instruction
+    self->abi.stack_delta[INS_LOAD] = 0;
+    self->abi.stack_delta[INS_STORE] = -1;
+    self->abi.stack_delta[INS_JUMP] = -1;
+    self->abi.stack_delta[INS_JUMP_ON_FALSE] = -1;
+    self->abi.stack_delta[INS_JUMP_ON_TRUE] = -1;
 }
 
-vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
-    self->ip = chunk->instructions;
+vm_interpret_result_t vm__interpret(vm_t* self) {
+    ASSERT(self->stack_frames_fill > 0);
+    stack_frame_t* stack_frame = &self->stack_frames[self->stack_frames_fill - 1];
 
-    ASSERT(chunk->values_stack_size_watermark > 0);
-    if (self->values_stack_size < chunk->values_stack_size_watermark) {
-        size_t new_values_stack_size = chunk->values_stack_size_watermark << 1;
-        self->values_stack_data = allocator__realloc(
-            self->allocator, self->values_stack_data,
-            self->values_stack_size * sizeof(*self->values_stack_data),
-            new_values_stack_size   * sizeof(*self->values_stack_data)
-        );
-        self->values_stack_size = new_values_stack_size;
-    }
+    chunk_t* chunk = &stack_frame->caller->chunk;
+    // ASSERT(chunk->values_stack_size_watermark > 0);
+    // if (self->values_stack_size < chunk->values_stack_size_watermark) {
+    //     size_t new_values_stack_size = chunk->values_stack_size_watermark << 1;
+    //     self->values_stack_data = allocator__realloc(
+    //         self->allocator, self->values_stack_data,
+    //         self->values_stack_size * sizeof(*self->values_stack_data),
+    //         new_values_stack_size   * sizeof(*self->values_stack_data)
+    //     );
+    //     self->values_stack_size = new_values_stack_size;
+    // }
     self->values_stack_top = self->values_stack_data;
 
     while (42) {
@@ -469,7 +469,8 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 u32 index = vm__pop_index(self);
 
                 ASSERT(self->values_stack_top - index >= self->values_stack_data);
-                value_t value = self->values_stack_data[index];
+                ASSERT(stack_frame->slots);
+                value_t value = stack_frame->slots[index];
                 vm__push(self, value);
             } break ;
             case INS_STORE: {
@@ -477,19 +478,20 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
 
                 ASSERT(index < self->values_stack_top - self->values_stack_data);
                 value_t value = vm__peek(self);
-                self->values_stack_data[index] = value;
+                ASSERT(stack_frame->slots);
+                stack_frame->slots[index] = value;
             } break ;
             case INS_JUMP: {
                 u32 ip = vm__pop_index(self);
                 ASSERT(ip < chunk->instructions_fill);
-                self->ip = chunk->instructions + ip;
+                stack_frame->ip = chunk->instructions + ip;
             } break ;
             case INS_JUMP_ON_FALSE: {
                 u32 ip = vm__pop_index(self);
 
                 if (value__is_falsey(vm__peek(self))) {
                     ASSERT(ip < chunk->instructions_fill);
-                    self->ip = chunk->instructions + ip;
+                    stack_frame->ip = chunk->instructions + ip;
                 }
             } break ;
             case INS_JUMP_ON_TRUE: {
@@ -497,7 +499,7 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
 
                 if (!value__is_falsey(vm__peek(self))) {
                     ASSERT(ip < chunk->instructions_fill);
-                    self->ip = chunk->instructions + ip;
+                    stack_frame->ip = chunk->instructions + ip;
                 }
             } break ;
             case INS_DUP: {

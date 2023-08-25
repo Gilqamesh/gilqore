@@ -7,15 +7,17 @@
 # include "allocator.h"
 # include "table.h"
 
-// interface between vm/compiler so that compiler knows how the instructions are implemented on the vm side, which is necessary to precompute for example the necessary size of the stack
-struct ins_info
-{
-    s32 stack_delta; // how the instruction affects the stack
+struct abi {
+    s32 stack_delta[_INS_MNEMONIC_SIZE]; // how the instruction affects the stack
+};
+
+struct stack_frame {
+    obj_fun_t* caller;
+    u8*        ip;
+    value_t*   slots;
 };
 
 struct vm {
-    u8* ip;
-
     value_t* values_stack_data;
     value_t* values_stack_top;
     u32      values_stack_size;
@@ -25,7 +27,10 @@ struct vm {
     // intern all strings into here -> == operator is super fast
     table_t  obj_str_table;
 
-    ins_info_t ins_infos[_INS_MNEMONIC_SIZE];
+    abi_t abi;
+
+    stack_frame_t stack_frames[256];
+    u32 stack_frames_fill;
 
     allocator_t* allocator;
 };

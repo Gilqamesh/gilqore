@@ -70,7 +70,7 @@ void chunk__destroy(chunk_t* self) {
 }
 
 u32 chunk__push_ins(chunk_t* self, ins_mnemonic_t instruction, token_t token) {
-    const s32 stack_delta = self->vm->ins_infos[instruction].stack_delta;
+    const s32 stack_delta = self->vm->abi.stack_delta[instruction];
     if (instruction == INS_POPN) {
         ASSERT(self->immediates.values_fill > 0);
         value_t index_value = self->immediates.values[self->immediates.values_fill - 1];

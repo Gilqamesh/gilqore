@@ -39,6 +39,10 @@ void obj__print(value_t value) {
         } break ;
         case OBJ_FUNCTION: {
             obj_fun_t* fn = obj__as_fun(value);
+            if (!fn->name) {
+                libc__printf("<main>");
+                return ;
+            }
             libc__printf("<fn %.*s>", fn->name->len, fn->name->str);
         } break ;
         default: ASSERT(false);
@@ -67,14 +71,12 @@ void obj__free(vm_t* vm, obj_t* obj) {
         case OBJ_STRING: {
             allocator__free(vm->allocator, obj);
         } break ;
-        case OBJ_VAR_INFO: {
+        case OBJ_DECL: {
             allocator__free(vm->allocator, obj);
         } break ;
         case OBJ_FUNCTION: {
             obj_fun_t* fn = (obj_fun_t*) obj;
-            if (fn->chunk) {
-                chunk__destroy(fn->chunk);
-            }
+            chunk__destroy(&fn->chunk);
             allocator__free(vm->allocator, obj);
         } break ;
         default: ASSERT(false);
@@ -163,34 +165,34 @@ value_t obj__cat_str(vm_t* vm, value_t left, value_t right) {
     return value__obj((obj_t*) obj_str);
 }
 
-bool obj__is_var_info(value_t value) {
-    return obj__type(value) == OBJ_VAR_INFO;
+bool obj__is_decl(value_t value) {
+    return obj__type(value) == OBJ_DECL;
 }
 
-obj_var_info_t* obj__as_var_info(value_t value) {
-    return (obj_var_info_t*) value__as_obj(value);
+obj_decl_t* obj__as_decl(value_t value) {
+    return (obj_decl_t*) value__as_obj(value);
 }
 
-obj_var_info_t obj__var_info(s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
-    return (obj_var_info_t) {
+obj_decl_t obj__decl(s32 index, s32 scope_depth, bool is_const, bool is_defined) {
+    return (obj_decl_t) {
         .base.next_free = 0,
-        .base.type = OBJ_VAR_INFO,
-        .var_index = var_index,
+        .base.type = OBJ_DECL,
+        .index = index,
         .scope_depth = scope_depth,
         .is_const = is_const,
         .is_defined = is_defined
     };
 }
 
-value_t obj__alloc_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
-    obj_var_info_t* obj_var_info = (obj_var_info_t*) obj__allocate(vm, sizeof(*obj_var_info), OBJ_VAR_INFO);
+value_t obj__alloc_decl(vm_t* vm, s32 index, s32 scope_depth, bool is_const, bool is_defined) {
+    obj_decl_t* obj_decl = (obj_decl_t*) obj__allocate(vm, sizeof(*obj_decl), OBJ_DECL);
 
-    obj_var_info->var_index = var_index;
-    obj_var_info->scope_depth = scope_depth;
-    obj_var_info->is_const = is_const;
-    obj_var_info->is_defined = is_defined;
+    obj_decl->index = index;
+    obj_decl->scope_depth = scope_depth;
+    obj_decl->is_const = is_const;
+    obj_decl->is_defined = is_defined;
 
-    return value__obj((obj_t*) obj_var_info);
+    return value__obj((obj_t*) obj_decl);
 }
 
 bool obj__is_fun(value_t value) {
@@ -201,12 +203,13 @@ obj_fun_t* obj__as_fun(value_t value) {
     return (obj_fun_t*) value__as_obj(value);
 }
 
-obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name, chunk_t* chunk) {
+obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name) {
     obj_fun_t* result = (obj_fun_t*) obj__allocate(vm, sizeof(struct obj_fun), OBJ_FUNCTION);
 
     result->arity = arity;
-    result->chunk = chunk;
     result->name  = name;
+
+    chunk__create(&result->chunk, vm);
 
     return result;
 }
