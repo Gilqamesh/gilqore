@@ -126,9 +126,6 @@ bool vm__create(vm_t* self, allocator_t* allocator) {
 
     table__create(&self->obj_str_table, allocator);
 
-    table__create(&self->global_names_to_var_infos, allocator);
-    value_arr__create(&self->global_values, allocator);
-
     self->allocator = allocator;
 
     return true;
@@ -141,9 +138,6 @@ void vm__destroy(vm_t* self) {
     vm__free_objs(self);
     
     table__destroy(&self->obj_str_table);
-
-    table__destroy(&self->global_names_to_var_infos);
-    value_arr__destroy(&self->global_values, self->allocator);
 
     libc__memset(self, 0, sizeof(*self));
 }
@@ -321,11 +315,8 @@ static void vm__define_ins_infos(vm_t* self) {
     self->ins_infos[INS_PRINT].stack_delta = -1;
     self->ins_infos[INS_POP].stack_delta = -1;
     self->ins_infos[INS_POPN].stack_delta = 0; // hardcoded to check previous imm when pushing this instruction
-    self->ins_infos[INS_DEFINE_GLOBAL].stack_delta = -2;
-    self->ins_infos[INS_GET_GLOBAL].stack_delta = 0;
-    self->ins_infos[INS_SET_GLOBAL].stack_delta = -1;
-    self->ins_infos[INS_GET_LOCAL].stack_delta = 0;
-    self->ins_infos[INS_SET_LOCAL].stack_delta = -1;
+    self->ins_infos[INS_LOAD].stack_delta = 0;
+    self->ins_infos[INS_STORE].stack_delta = -1;
     self->ins_infos[INS_JUMP].stack_delta = -1;
     self->ins_infos[INS_JUMP_ON_FALSE].stack_delta = -1;
     self->ins_infos[INS_JUMP_ON_TRUE].stack_delta = -1;
@@ -474,45 +465,14 @@ vm_interpret_result_t vm__interpret(vm_t* self, chunk_t* chunk) {
                 u32 index = vm__pop_index(self);
                 DISCARD_RETURN vm__popn(self, index);
             } break ;
-            case INS_DEFINE_GLOBAL: {
-                u32 index = vm__pop_index(self);
-
-                ASSERT(index < self->global_values.values_fill);
-                self->global_values.values[index] = vm__pop(self);
-            } break ;
-            case INS_GET_GLOBAL: {
-                u32 index = vm__pop_index(self);
-
-                ASSERT(index < self->global_values.values_fill);
-                value_t value = self->global_values.values[index];
-
-                if (value__is_undefined(value)) {
-                    vm__error(self, chunk, "Undefined variable.");
-                    return VM_RUNTIME_ERROR;
-                }
-                vm__push(self, value);
-            } break ;
-            case INS_SET_GLOBAL: {
-                u32 index = vm__pop_index(self);
-
-                ASSERT(index < self->global_values.values_fill);
-                value_t identifier = self->global_values.values[index];
-
-                if (value__is_undefined(identifier)) {
-                    vm__error(self, chunk, "Undefined variable.");
-                    return VM_RUNTIME_ERROR;
-                }
-                value_t value = vm__peek(self);
-                self->global_values.values[index] = value;
-            } break ;
-            case INS_GET_LOCAL: {
+            case INS_LOAD: {
                 u32 index = vm__pop_index(self);
 
                 ASSERT(self->values_stack_top - index >= self->values_stack_data);
                 value_t value = self->values_stack_data[index];
                 vm__push(self, value);
             } break ;
-            case INS_SET_LOCAL: {
+            case INS_STORE: {
                 u32 index = vm__pop_index(self);
 
                 ASSERT(index < self->values_stack_top - self->values_stack_data);

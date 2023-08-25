@@ -6,12 +6,6 @@
 # include "scanner.h"
 # include "table.h"
 
-// todo: remove once globals are removed
-typedef enum {
-    TYPE_FUN,
-    TYPE_SCRIPT
-} fn_type_t;
-
 struct compiler {
     token_t current;
     token_t previous;
@@ -23,7 +17,7 @@ struct compiler {
     table_t* scopes;
     u32      scopes_fill;
     u32      scopes_size;
-    u32      scopes_locals_fill;
+    u32      scopes_var_fill;
 
     // characteristics for the current loop being compiled, used for break/continue like flow controls
     s32 ip_loop_start;
@@ -33,9 +27,11 @@ struct compiler {
 
     vm_t*    vm;
     obj_fun_t* current_fn;
+
+    chunk_t* chunk;
 };
 
-bool compiler__create(compiler_t* self, vm_t* vm, const char* source, fn_type_t type);
+bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source);
 void compiler__destroy(compiler_t* self);
 
 bool compiler__compile(compiler_t* self);

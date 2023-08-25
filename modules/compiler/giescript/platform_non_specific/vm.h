@@ -25,11 +25,6 @@ struct vm {
     // intern all strings into here -> == operator is super fast
     table_t  obj_str_table;
 
-    // identifier name -> var infos
-    table_t     global_names_to_var_infos;
-    // identifier initializers
-    value_arr_t global_values;
-
     ins_info_t ins_infos[_INS_MNEMONIC_SIZE];
 
     allocator_t* allocator;

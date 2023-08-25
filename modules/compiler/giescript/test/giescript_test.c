@@ -58,7 +58,7 @@ static bool test(main_context_t context) {
     test_result &= subtest(context, "false;", INS_FALSE, INS_POP, INS_RETURN);
     test_result &= subtest(context, "2;", INS_IMM, INS_POP, INS_RETURN);
     test_result &= subtest(context, "{ var a; }", INS_NIL, INS_POP, INS_RETURN);
-    test_result &= subtest(context, "var a;", INS_NIL, INS_IMM, INS_DEFINE_GLOBAL, INS_RETURN);
+    test_result &= subtest(context, "var a;", INS_NIL, INS_POP, INS_RETURN);
     test_result &= subtest(context, "2 < 3;", INS_IMM, INS_IMM, INS_LT, INS_POP, INS_RETURN);
     test_result &= subtest(context, "2 > 3;", INS_IMM, INS_IMM, INS_GT, INS_POP, INS_RETURN);
     test_result &= subtest(context, "2 <= 3;", INS_IMM, INS_IMM, INS_GT, INS_NOT, INS_POP, INS_RETURN);
@@ -74,42 +74,42 @@ static bool test(main_context_t context) {
     test_result &= subtest(context, "-4;", INS_IMM, INS_NEG, INS_POP, INS_RETURN);
     test_result &= subtest(context, "\"hi\";", INS_IMM, INS_POP, INS_RETURN);
     test_result &= subtest(context, "5 == 5;", INS_IMM, INS_IMM, INS_EQ, INS_POP, INS_RETURN);
-    test_result &= subtest(context, "var a = 5;", INS_IMM, INS_IMM, INS_DEFINE_GLOBAL, INS_RETURN);
+    test_result &= subtest(context, "var a = 5;", INS_IMM, INS_IMM, INS_RETURN);
     test_result &= subtest(context, "{ 4; }", INS_IMM, INS_POP, INS_RETURN);
     test_result &= subtest(context, "{ var a = 4; }", INS_IMM, INS_POP, INS_RETURN);
     test_result &= subtest(context, "{var a; var b;}", INS_NIL, INS_NIL, INS_IMM, INS_POPN, INS_RETURN);
-    test_result &= subtest(context, "var a; { var a = 2; }", INS_NIL, INS_IMM, INS_DEFINE_GLOBAL, INS_IMM, INS_POP, INS_RETURN);
+    test_result &= subtest(context, "var a; { var a = 2; }", INS_NIL, INS_IMM, INS_POP, INS_POP, INS_RETURN);
     test_result &= subtest(context, "{ var a = 2; { var a = 1;} var b = 3;}", INS_IMM, INS_IMM, INS_POP, INS_IMM, INS_IMM, INS_POPN, INS_RETURN);
     test_result &= subtest(
         context, "var a; var b = 3; print a; { var a = 2; print a; a = a * a; print a; } print a;",
-        INS_NIL, INS_IMM, INS_DEFINE_GLOBAL,
-        INS_IMM, INS_IMM, INS_DEFINE_GLOBAL,
-        INS_IMM, INS_GET_GLOBAL, INS_PRINT,
+        INS_NIL, INS_IMM,
+        INS_IMM, INS_IMM,
+        INS_IMM, INS_PRINT,
         INS_IMM_LONG,
-        INS_IMM_LONG, INS_GET_LOCAL, INS_PRINT,
-        INS_IMM_LONG, INS_GET_LOCAL, INS_IMM_LONG, INS_GET_LOCAL, INS_MUL, INS_IMM_LONG, INS_SET_LOCAL, INS_POP,
-        INS_IMM_LONG, INS_GET_LOCAL, INS_PRINT,
+        INS_IMM_LONG, INS_LOAD, INS_PRINT,
+        INS_IMM_LONG, INS_LOAD, INS_IMM_LONG, INS_LOAD, INS_MUL, INS_IMM_LONG, INS_STORE, INS_POP,
+        INS_IMM_LONG, INS_LOAD, INS_PRINT,
         INS_POP,
-        INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
+        INS_IMM_LONG, INS_PRINT,
         INS_RETURN
     );
     test_result &= subtest(
         context, "var a; a = 2;",
-        INS_NIL, INS_IMM, INS_DEFINE_GLOBAL,
-        INS_IMM, INS_IMM, INS_SET_GLOBAL, INS_POP, INS_RETURN
+        INS_NIL, INS_IMM,
+        INS_IMM, INS_IMM, INS_POP, INS_RETURN
     );
-    test_result &= subtest(context, "var a; a;", INS_NIL, INS_IMM, INS_DEFINE_GLOBAL, INS_IMM, INS_GET_GLOBAL, INS_POP, INS_RETURN);
+    test_result &= subtest(context, "var a; a;", INS_NIL, INS_IMM, INS_IMM, INS_POP, INS_RETURN);
     test_result &= subtest(
         context, "{ var a; a; }",
         INS_NIL,
-        INS_IMM, INS_GET_LOCAL, INS_POP,
+        INS_IMM, INS_LOAD, INS_POP,
         INS_POP,
         INS_RETURN
     );
     test_result &= subtest(
         context, "{ var a = 2; a = 3; }",
         INS_IMM,
-        INS_IMM, INS_IMM, INS_SET_LOCAL, INS_POP,
+        INS_IMM, INS_IMM, INS_STORE, INS_POP,
         INS_POP,
         INS_RETURN
     );
@@ -131,22 +131,22 @@ static bool test(main_context_t context) {
     test_result &= subtest(
         context, "for (var a = 2; a >= 0; a = a - 1) print a;",
         INS_IMM,
-        INS_IMM, INS_GET_LOCAL, INS_IMM, INS_LT, INS_NOT, INS_IMM, INS_JUMP_ON_FALSE, INS_POP,
-        INS_IMM_LONG, INS_JUMP, INS_IMM_LONG, INS_GET_LOCAL, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_SET_LOCAL, INS_POP, INS_IMM_LONG, INS_JUMP,
-        INS_IMM_LONG, INS_GET_LOCAL, INS_PRINT, INS_IMM_LONG, INS_JUMP,
+        INS_IMM, INS_LOAD, INS_IMM, INS_LT, INS_NOT, INS_IMM, INS_JUMP_ON_FALSE, INS_POP,
+        INS_IMM_LONG, INS_JUMP, INS_IMM_LONG, INS_LOAD, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_STORE, INS_POP, INS_IMM_LONG, INS_JUMP,
+        INS_IMM_LONG, INS_LOAD, INS_PRINT, INS_IMM_LONG, INS_JUMP,
         INS_POP,
         INS_POP,
         INS_RETURN
     );
     test_result &= subtest(
         context, "var a = 1; for (; a >= 0; ) { print a; a = a - 1; } print a;",
-        INS_IMM, INS_IMM, INS_DEFINE_GLOBAL,
-        INS_IMM, INS_GET_GLOBAL, INS_IMM, INS_LT, INS_NOT, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP,
-        INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
-        INS_IMM_LONG, INS_GET_GLOBAL, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_SET_GLOBAL, INS_POP,
+        INS_IMM, INS_IMM,
+        INS_IMM, INS_IMM, INS_LT, INS_NOT, INS_IMM_LONG, INS_JUMP_ON_FALSE, INS_POP,
+        INS_IMM_LONG, INS_PRINT,
+        INS_IMM_LONG, INS_IMM_LONG, INS_SUB, INS_IMM_LONG, INS_POP,
         INS_IMM_LONG, INS_JUMP,
         INS_POP,
-        INS_IMM_LONG, INS_GET_GLOBAL, INS_PRINT,
+        INS_IMM_LONG, INS_PRINT,
         INS_RETURN
     );
     test_result &= subtest(

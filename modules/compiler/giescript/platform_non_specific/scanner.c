@@ -225,18 +225,18 @@ static token_type scanner__identifier_type(scanner_t* self) {
         case 'p': return scanner__identifier_type_helper(self, 1, "rint",  TOKEN_PRINT);
         case 'r': return scanner__identifier_type_helper(self, 1, "eturn", TOKEN_RETURN);
         case 's': {
+            if (self->top - self->start > 1) {
+                switch (*(self->start + 1)) {
+                    case 'u': return scanner__identifier_type_helper(self, 2, "per",  TOKEN_SUPER);
+                    case 'w': return scanner__identifier_type_helper(self, 2, "itch", TOKEN_SWITCH);
+                }
+            }
+        } break ;
         case 't': {
             if (self->top - self->start > 1) {
                 switch (*(self->start + 1)) {
                     case 'h': return scanner__identifier_type_helper(self, 2, "is", TOKEN_THIS);
                     case 'r': return scanner__identifier_type_helper(self, 2, "ue", TOKEN_TRUE);
-                }
-            }
-        } break ;
-            if (self->top - self->start > 1) {
-                switch (*(self->start + 1)) {
-                    case 'u': return scanner__identifier_type_helper(self, 2, "per",  TOKEN_SUPER);
-                    case 'w': return scanner__identifier_type_helper(self, 2, "itch", TOKEN_SWITCH);
                 }
             }
         } break ;

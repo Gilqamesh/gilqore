@@ -48,7 +48,7 @@ static u32 disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip) {
 
 // static u32 disasm__local(const char* instruction, chunk_t* chunk, u32 ip) {
 //     u32 local_index;
-//     ++ip; // skip INS_GET_LOCAL/INS_SET_LOCAL
+//     ++ip; // skip INS_LOAD/INS_STORE
 //     u32 index_len = disasm__get_index(chunk, ip, &local_index);
 //     libc__printf(INS_FORMAT, instruction);
 //     libc__printf(IP_FORMAT, local_index);
@@ -152,20 +152,11 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         case INS_POPN: {
             return disasm__simple("POPN", ip);
         } break ;
-        case INS_DEFINE_GLOBAL: {
-            return disasm__simple("DEFG", ip);
+        case INS_LOAD: {
+            return disasm__simple("LOAD", ip);
         } break ;
-        case INS_GET_GLOBAL: {
-            return disasm__simple("GETG", ip);
-        } break ;
-        case INS_SET_GLOBAL: {
-            return disasm__simple("SETG", ip);
-        } break ;
-        case INS_GET_LOCAL: {
-            return disasm__simple("GETL", ip);
-        } break ;
-        case INS_SET_LOCAL: {
-            return disasm__simple("SETL", ip);
+        case INS_STORE: {
+            return disasm__simple("STORE", ip);
         } break ;
         case INS_JUMP: {
             return disasm__simple("JMP", ip);
