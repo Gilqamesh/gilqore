@@ -6,6 +6,12 @@
 # include "scanner.h"
 # include "table.h"
 
+// todo: remove once globals are removed
+typedef enum {
+    TYPE_FUN,
+    TYPE_SCRIPT
+} fn_type_t;
+
 struct compiler {
     token_t current;
     token_t previous;
@@ -26,10 +32,10 @@ struct compiler {
     bool loop_did_break;
 
     vm_t*    vm;
-    chunk_t* chunk;
+    obj_fun_t* current_fn;
 };
 
-bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source);
+bool compiler__create(compiler_t* self, vm_t* vm, const char* source, fn_type_t type);
 void compiler__destroy(compiler_t* self);
 
 bool compiler__compile(compiler_t* self);

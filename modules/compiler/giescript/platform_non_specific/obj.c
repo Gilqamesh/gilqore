@@ -1,6 +1,7 @@
 #include "obj.h"
 #include "allocator.h"
 #include "vm.h"
+#include "chunk.h"
 
 #include "libc/libc.h"
 #include "algorithms/hash/hash.h"
@@ -36,6 +37,10 @@ void obj__print(value_t value) {
         case OBJ_STRING: {
             libc__printf("%s", obj__as_cstr(value));
         } break ;
+        case OBJ_FUNCTION: {
+            obj_fun_t* fn = obj__as_fun(value);
+            libc__printf("<fn %.*s>", fn->name->len, fn->name->str);
+        } break ;
         default: ASSERT(false);
     }
 }
@@ -63,6 +68,13 @@ void obj__free(vm_t* vm, obj_t* obj) {
             allocator__free(vm->allocator, obj);
         } break ;
         case OBJ_VAR_INFO: {
+            allocator__free(vm->allocator, obj);
+        } break ;
+        case OBJ_FUNCTION: {
+            obj_fun_t* fn = (obj_fun_t*) obj;
+            if (fn->chunk) {
+                chunk__destroy(fn->chunk);
+            }
             allocator__free(vm->allocator, obj);
         } break ;
         default: ASSERT(false);
@@ -170,7 +182,7 @@ obj_var_info_t obj__var_info(s32 var_index, s32 scope_depth, bool is_const, bool
     };
 }
 
-value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
+value_t obj__alloc_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined) {
     obj_var_info_t* obj_var_info = (obj_var_info_t*) obj__allocate(vm, sizeof(*obj_var_info), OBJ_VAR_INFO);
 
     obj_var_info->var_index = var_index;
@@ -179,4 +191,22 @@ value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_cons
     obj_var_info->is_defined = is_defined;
 
     return value__obj((obj_t*) obj_var_info);
+}
+
+bool obj__is_fun(value_t value) {
+    return obj__type(value) == OBJ_FUNCTION;
+}
+
+obj_fun_t* obj__as_fun(value_t value) {
+    return (obj_fun_t*) value__as_obj(value);
+}
+
+obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name, chunk_t* chunk) {
+    obj_fun_t* result = (obj_fun_t*) obj__allocate(vm, sizeof(struct obj_fun), OBJ_FUNCTION);
+
+    result->arity = arity;
+    result->chunk = chunk;
+    result->name  = name;
+
+    return result;
 }

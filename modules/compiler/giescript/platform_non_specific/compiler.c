@@ -984,7 +984,7 @@ static entry_t* compiler__declare_global(compiler_t* self, token_t* ident, token
 
     // store name -> index
     u32 index = value_arr__push(&vm->global_values, self->vm->allocator, value__undefined());
-    value_t var_info = obj__get_var_info(self->vm, index, 0, ident_type->type == TOKEN_CONST, true);
+    value_t var_info = obj__alloc_var_info(self->vm, index, 0, ident_type->type == TOKEN_CONST, true);
     table__insert(&vm->global_names_to_var_infos, obj_str, var_info);
     entry_t* entry = table__find(&vm->global_names_to_var_infos, obj_str);
 
@@ -1008,7 +1008,7 @@ static entry_t* compiler__declare_local(compiler_t* self, token_t* ident, token_
 static entry_t* compiler__add_local(compiler_t* self, token_t* ident, token_t* ident_type) {
     ASSERT(self->scopes_fill > 0);
     table_t* scope = &self->scopes[self->scopes_fill - 1];
-    value_t ident_value = obj__get_var_info(self->vm, self->scopes_locals_fill, self->scopes_fill, ident_type->type == TOKEN_CONST, false);
+    value_t ident_value = obj__alloc_var_info(self->vm, self->scopes_locals_fill, self->scopes_fill, ident_type->type == TOKEN_CONST, false);
     value_t ident_key = obj__copy_str(self->vm, ident->lexeme, ident->lexeme_len);
     table__insert(scope, ident_key, ident_value);
     ++self->scopes_locals_fill;
@@ -1150,10 +1150,17 @@ static void compiler__patch_jump(compiler_t* self, u32 ip_index) {
     self->chunk->immediates.values[ip_index] = value__num(self->chunk->instructions_fill);
 }
 
-bool compiler__create(compiler_t* self, vm_t* vm, chunk_t* chunk, const char* source) {
+bool compiler__create(compiler_t* self, vm_t* vm, const char* source, fn_type_t type) {
     libc__memset(self, 0, sizeof(*self));
     self->ip_loop_start = -1;
     self->ip_loop_end   = -1;
+    self->current_fn    = obj__alloc_fun(vm, 0, 0, 0);
+
+    compiler__begin_scope(self);
+    self->scopes = allocator__alloc(vm->allocator, 8 * sizeof(*self->scopes));
+    self->scopes_size = 8;
+    table_t* scope = &self->scopes[self->scopes_fill - 1];
+    table__insert(scope, ident_key, ident_value);
 
     scanner__init(&self->scanner, source);
 

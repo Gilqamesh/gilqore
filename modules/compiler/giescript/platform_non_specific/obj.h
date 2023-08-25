@@ -8,6 +8,7 @@
 typedef enum {
     OBJ_STRING,
     OBJ_VAR_INFO,
+    OBJ_FUNCTION,
 } obj_type;
 
 struct obj {
@@ -46,9 +47,20 @@ struct obj_var_info {
     bool  is_defined;
 };
 bool    obj__is_var_info(value_t value);
-value_t obj__get_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined);
+value_t obj__alloc_var_info(vm_t* vm, s32 var_index, s32 scope_depth, bool is_const, bool is_defined);
 
 obj_var_info_t* obj__as_var_info(value_t value);
 obj_var_info_t  obj__var_info(s32 var_index, s32 scope_depth, bool is_const, bool is_defined);
+
+struct obj_fun {
+    obj_t       base;
+
+    u32         arity;
+    obj_str_t*  name;
+    chunk_t*    chunk;
+};
+bool       obj__is_fun(value_t value);
+obj_fun_t* obj__as_fun(value_t value);
+obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name, chunk_t* chunk);
 
 #endif // GIES_OBJ_H
