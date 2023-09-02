@@ -4,7 +4,7 @@
 # include "compiler/giescript/giescript_defs.h"
 
 # define DEBUG_VM_TRACE
-# undef DEBUG_VM_TRACE
+// # undef DEBUG_VM_TRACE
 
 # define DEBUG_COMPILER_TRACE
 // # undef DEBUG_COMPILER_TRACE
@@ -41,6 +41,7 @@ typedef enum ins_mnemonic {
     INS_JUMP_ON_FALSE,      // [ins]
     INS_JUMP_ON_TRUE,       // [ins]
     INS_DUP,                // [ins]
+    INS_CALL,               // [ins]
 
     _INS_MNEMONIC_SIZE
 } ins_mnemonic_t;

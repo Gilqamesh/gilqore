@@ -80,8 +80,9 @@ static u32 disasm__imm_long(const char* instruction, chunk_t* chunk, u32 ip) {
 //     return index_len;
 // }
 
-void chunk__disasm(chunk_t* self, const char* name) {
-    libc__printf("--== %s ==--\n", name);
+void chunk__disasm(chunk_t* self, value_t name) {
+    value__print(name);
+    libc__printf(":\n");
 
     for (u32 ip = 0; ip < self->instructions_fill;) {
         ip = chunk__disasm_ins(self, ip);
@@ -169,6 +170,9 @@ u32 chunk__disasm_ins(chunk_t* self, u32 ip) {
         } break ;
         case INS_DUP: {
             return disasm__simple("DUP", ip);
+        } break ;
+        case INS_CALL: {
+            return disasm__simple("CALL", ip);
         } break ;
         default: {
             libc__printf("Unknown instruction %d\n", ins);

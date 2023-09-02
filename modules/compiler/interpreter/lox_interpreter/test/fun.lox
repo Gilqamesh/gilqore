@@ -1,4 +1,4 @@
-fun print_var(a) {
+fun print_var(var a) {
     print a;
 }
 

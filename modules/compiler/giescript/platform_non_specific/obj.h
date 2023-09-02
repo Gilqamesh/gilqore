@@ -51,14 +51,15 @@ obj_decl_t* obj__as_decl(value_t value);
 obj_decl_t  obj__decl(s32 index, s32 scope_depth, bool is_const, bool is_defined);
 
 struct obj_fun {
-    obj_t       base;
+    obj_t    base;
 
-    u32         arity;
-    obj_str_t*  name;
-    chunk_t     chunk;
+    chunk_t  chunk;
+
+    u32      arity;
+    value_t  name;
 };
 bool       obj__is_fun(value_t value);
 obj_fun_t* obj__as_fun(value_t value);
-obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name);
+obj_fun_t* obj__alloc_fun(vm_t* vm);
 
 #endif // GIES_OBJ_H

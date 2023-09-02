@@ -39,11 +39,9 @@ void obj__print(value_t value) {
         } break ;
         case OBJ_FUNCTION: {
             obj_fun_t* fn = obj__as_fun(value);
-            if (!fn->name) {
-                libc__printf("<main>");
-                return ;
-            }
-            libc__printf("<fn %.*s>", fn->name->len, fn->name->str);
+            ASSERT(obj__is_str(fn->name));
+            obj_str_t* fn_name = obj__as_str(fn->name);
+            libc__printf("%.*s", fn_name->len, fn_name->str);
         } break ;
         default: ASSERT(false);
     }
@@ -196,18 +194,15 @@ value_t obj__alloc_decl(vm_t* vm, s32 index, s32 scope_depth, bool is_const, boo
 }
 
 bool obj__is_fun(value_t value) {
-    return obj__type(value) == OBJ_FUNCTION;
+    return obj__is_type(value, OBJ_FUNCTION);
 }
 
 obj_fun_t* obj__as_fun(value_t value) {
     return (obj_fun_t*) value__as_obj(value);
 }
 
-obj_fun_t* obj__alloc_fun(vm_t* vm, u32 arity, obj_str_t* name) {
+obj_fun_t* obj__alloc_fun(vm_t* vm) {
     obj_fun_t* result = (obj_fun_t*) obj__allocate(vm, sizeof(struct obj_fun), OBJ_FUNCTION);
-
-    result->arity = arity;
-    result->name  = name;
 
     chunk__create(&result->chunk, vm);
 
