@@ -6,6 +6,8 @@
 #include "libc/libc.h"
 #include "common/error_code.h"
 
+#include <x86intrin.h>
+
 bool process__create(struct process* self, const char* path) {
     ZeroMemory(&self->process_info, sizeof(self->process_info));
 

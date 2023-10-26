@@ -17,7 +17,7 @@
 # elif defined(__APPLE__)
 #  define MAC
 # else
-#  error "unknown os"
+#  error "platform unsupported"
 # endif
 
 # if defined(__cplusplus)
@@ -46,13 +46,6 @@
 #  define ASSERT(condition) assert(condition)
 # else
 #  define ASSERT(condition)
-# endif
-
-# if defined(WINDOWS)
-# elif defined(LINUX)
-# elif defined(MAC)
-# else
-#  error "platform not supported, need to defined either WINDOWS, LINUX or MAC"
 # endif
 
 # if defined(COMPILER_GCC)

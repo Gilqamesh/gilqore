@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
     if (process__create(&module_process, command_line) == false) {
         error_code__exit(TEST_FRAMEWORK_ERROR_CODE_PROCESS_CREATE_FAILED);
     }
+
     process__wait_execution(&module_process);
     u32 module_process_exit_code = process__destroy(&module_process);
     char error_code_msg[512];

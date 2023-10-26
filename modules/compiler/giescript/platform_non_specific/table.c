@@ -140,6 +140,7 @@ bool table__erase(table_t* self, value_t key) {
     entry->key = value__empty();
     // mark it as a tombstone
     entry->value = value__bool(true);
+    --self->fill;
 
     return true;
 }

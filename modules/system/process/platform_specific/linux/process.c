@@ -44,6 +44,7 @@ bool process__create(struct process* self, const char* path) {
         }
         ++argc;
     }
+
     argv[argc] = NULL;
     if (argc == ARBITRARY_MAX_ARGC) {
         error_code__exit(PROCESS_ERROR_CODE_LINUX_ARBITRARY_MAX_ARGC);

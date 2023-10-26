@@ -3,11 +3,9 @@
 #include "algorithms/hash/hash.h"
 #include "libc/libc.h"
 
-#include <ctype.h>
-
 void string__to_upper(char* str) {
     while (*str != '\0') {
-        *str = toupper(*str);
+        *str = libc__toupper(*str);
         ++str;
     }
 }
@@ -23,7 +21,7 @@ char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, boo
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
@@ -32,7 +30,7 @@ char* string__search_n(const char* str, u32 str_len, const char* set, u32 n, boo
         n > 0
     ) {
         char c = *str;
-        if (boolean_set[c >> 5] & (0b1 << (c & 0b11111))) {
+        if (boolean_set[c >> 5] & (1 << (c & 0x1f))) {
             --n;
             if ((return_last_occurance == true ||
                 (return_last_occurance == false && n == 0))
@@ -57,13 +55,13 @@ char* string__search_while(const char* str, u32 str_len, const char* set, u32 ma
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
         *str != '\0' &&
         str_len-- > 0 &&
-        (boolean_set[*str >> 5] & (0b1 << (*str & 0b11111))) > 0 &&
+        (boolean_set[*str >> 5] & (1 << (*str & 0x1f))) > 0 &&
         max-- > 0
     ) {
         ++str;
@@ -84,13 +82,13 @@ char* string__search_while_not(const char* str, u32 str_len, const char* set, u3
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
         *str != '\0' &&
         str_len-- > 0 &&
-        (boolean_set[*str >> 5] & (0b1 << (*str & 0b11111))) == 0 &&
+        (boolean_set[*str >> 5] & (1 << (*str & 0x1f))) == 0 &&
         max-- > 0
     ) {
         ++str;
@@ -113,14 +111,14 @@ char* string__rsearch_n(const char* str, u32 str_len, const char* set, u32 n, bo
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
         str_len-- > 0 &&
         n > 0
     ) {
-        if (boolean_set[*p >> 5] & (0b1 << (*p & 0b11111))) {
+        if (boolean_set[*p >> 5] & (1 << (*p & 0x1f))) {
             --n;
             if ((return_last_occurance == true ||
                 (return_last_occurance == false && n == 0))
@@ -146,12 +144,12 @@ char* string__rsearch_while(const char* str, u32 str_len, const char* set, u32 m
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
         str_len-- > 0 &&
-        ((boolean_set[*p >> 5] & (0b1 << (*p & 0b11111)))) > 0 &&
+        ((boolean_set[*p >> 5] & (1 << (*p & 0x1f)))) > 0 &&
         max-- > 0
     ) {
         result = p;
@@ -173,14 +171,14 @@ char* string__rsearch_while_not(const char* str, u32 str_len, const char* set, u
     u32 boolean_set[256 / (sizeof(u32) * 8)] = { 0 };
     while (*set != '\0') {
         char c = *set++;
-        boolean_set[c >> 5] |= 0b1 << (c & 0b11111);
+        boolean_set[c >> 5] |= 1 << (c & 0x1f);
     }
 
     while (
         str_len-- > 0 &&
         max-- > 0
     ) {
-        if (boolean_set[*p >> 5] & (0b1 << (*p & 0b11111))) {
+        if (boolean_set[*p >> 5] & (1 << (*p & 0x1f))) {
             max = 0;
         }
         result = p;

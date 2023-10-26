@@ -10,8 +10,12 @@ enum thread_windows_error_code {
 
 # include "windows.h"
 
-struct thread {
+typedef struct thread {
     HANDLE handle;
-};
+} thread_t;
+
+typedef struct mutex {
+    HANDLE mutex;
+} mutex_t;
 
 #endif

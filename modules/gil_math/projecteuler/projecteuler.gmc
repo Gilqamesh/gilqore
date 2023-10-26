@@ -1,0 +1,5 @@
+unique_error_codes: [
+]
+module_dependencies: file_reader file_writer file segment_allocator compare heap random sqrt thread hash_set hash_map
+test_dependencies: libc
+application_type: CONSOLE

@@ -25,7 +25,7 @@ endif
 8086_test_depends				:= $(patsubst %.c, %.d, $(8086_test_sources))
 8086_depends					:= $(patsubst %.c, %.d, $(8086_sources))
 8086_depends_modules			:=  common
-8086_test_depends_modules     := 8086 test_framework libc common compare process file time system memory random file_reader hash circular_buffer mod 
+8086_test_depends_modules     := 8086 test_framework libc common compare process file time system memory random file_reader hash circular_buffer mod abs 
 8086_test_libdepend_objs      = $(foreach dep_module,$(8086_test_depends_modules),$($(dep_module)_objects))
 8086_clean_files				:=
 8086_clean_files				+= $(8086_install_path_implib)

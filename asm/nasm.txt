@@ -1,0 +1,17 @@
+.data: initialized data and constants
+.bss: uninitialized data
+.text: code
+
+compile: nasm -f win64 -o process.obj process.asm
+    -f - format, win64
+
+link by x64 developer command prompt: link process.obj /subsystem:console /out:process.exe
+/entry:main kernel32.lib msvcrt.lib legacy_stdio_definitions.lib
+
+linux x64 calling convention:
+    arguments: rdi, rsi, rdx, rcx, r8, r9, rest is pushed on the stack
+    return: rax
+windows x64 calling convention:
+    arguments: rcx, rdx, r8, r9, rest is pushed on the stack
+    return: rax
+

@@ -1,5 +1,5 @@
-# CFLAGS_COMMON	:= -O2 -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
-CFLAGS_COMMON	:= -std=c2x -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
+# CFLAGS_COMMON	:= -O2 -std=c11 -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
+CFLAGS_COMMON	:= -std=c11 -g -pedantic-errors -Wall -Wextra -Werror -I$(PATH_MODULES)
 LFLAGS_COMMON	:=
 
 GIL_BUILD_MODE  := GIL_BUILD_MODE_DEBUG

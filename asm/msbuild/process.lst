@@ -1,0 +1,32 @@
+     1                                  bits 64
+     2                                  default rel
+     3                                  
+     4                                  segment .text
+     5                                  global fn
+     6                                  global DllMain
+     7                                  
+     8                                  DllMain:
+     9 00000000 55                          push    rbp
+    10 00000001 4889E5                      mov     rbp, rsp
+    11                                  
+    12 00000004 5D                          pop     rbp
+    13 00000005 C3                          ret
+    14                                  
+    15                                  fn:
+    16 00000006 55                          push    rbp
+    17 00000007 4889E5                      mov     rbp, rsp
+    18                                  
+    19 0000000A B802000000                  mov     rax, 2
+    20                                  
+    21 0000000F 5D                          pop     rbp
+    22 00000010 C3                          ret
+    23                                  
+    24                                  global factorial
+    25                                  
+    26                                  factorial:
+    27 00000011 55                          push    rbp
+    28 00000012 4889E5                      mov     rbp, rsp
+    29 00000015 4883EC20                    sub     rsp, 32
+    30                                  
+    31 00000019 C9                          leave
+    32 0000001A C3                          ret

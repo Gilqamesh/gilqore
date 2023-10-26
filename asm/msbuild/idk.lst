@@ -1,0 +1,32 @@
+     1                                  bits 64
+     2                                  default rel
+     3                                  
+     4                                  segment .data
+     5 00000000 256400                      format db "%d", 0
+     6                                  
+     7                                  segment .text
+     8                                  global main
+     9                                  extern fn
+    10                                  extern factorial
+    11                                  extern ExitProcess
+    12                                  extern _CRT_INIT
+    13                                  
+    14                                  extern printf
+    15                                  
+    16                                  main:
+    17 00000000 55                          push    rbp
+    18 00000001 4889E5                      mov     rbp, rsp
+    19 00000004 4883EC20                    sub     rsp, 32
+    20                                  
+    21 00000008 E8(00000000)                call    _CRT_INIT
+    22                                  
+    23 0000000D E8(00000000)                call    fn
+    24                                  
+    25 00000012 488D0D(00000000)            lea     rcx, [format]
+    26 00000019 4889C2                      mov     rdx, rax
+    27 0000001C E8(00000000)                call    printf
+    28                                  
+    29 00000021 E8(00000000)                call    factorial
+    30                                  
+    31 00000026 4831C0                      xor     rax, rax
+    32 00000029 E8(00000000)                call    ExitProcess

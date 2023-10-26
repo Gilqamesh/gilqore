@@ -8,6 +8,7 @@
 
 #include "common/error_code.h"
 #include "gil_math/compare/compare.h"
+#include "gil_math/mod/mod.h"
 
 #if defined(GIL_DEBUG)
 struct debug_memory_entry {
@@ -22,7 +23,7 @@ static struct debug_memory_entry memory_entries[MAX_NUMBER_OF_MEMORY_ENTRIES];
 
 static void debug__bookkeep_memory_add(void* addr, u32 size_bytes) {
 #if defined(GIL_DEBUG)
-    u64 memory_hash = ((u64) addr * 17) % ARRAY_SIZE(memory_entries);
+    u64 memory_hash = ((size_t) addr * 17) % ARRAY_SIZE(memory_entries);
     bool found = false;
     for (u64 i = memory_hash; i < ARRAY_SIZE(memory_entries) && found == false; ++i) {
         if (memory_entries[i].addr == NULL) {
@@ -48,7 +49,7 @@ static void debug__bookkeep_memory_add(void* addr, u32 size_bytes) {
 
 static void debug__bookkeep_memory_remove(void* addr) {
 #if defined(GIL_DEBUG)
-    u64 memory_hash = ((u64) addr * 1773217) % ARRAY_SIZE(memory_entries);
+    u64 memory_hash = ((size_t) addr * 1773217) % ARRAY_SIZE(memory_entries);
     bool found = false;
     for (u64 i = memory_hash; i < ARRAY_SIZE(memory_entries) && found == false; ++i) {
         if (memory_entries[i].addr == addr) {
@@ -277,42 +278,87 @@ bool libc__isalnum(char c) {
     return libc__isalpha(c) || libc__isdigit(c);
 }
 
+char libc__toupper(char c) {
+    return (char) toupper(c);
+}
+
 s64 libc__atoi(const char* str, u32 radix) {
     (void) radix;
     return atoi(str);
 }
 
-void libc__itoa(s64 n, char* buffer, u32 buffer_size)
-{
-    if (buffer_size == 0) {
-        return ;
+bool libc__itoa(s64 n, char* buffer, u32 buffer_size, u32 radix) {
+    if (radix < 2) {
+        return false;
     }
-    if (n == S64_MIN) {
-        libc__snprintf(buffer, buffer_size, "-9223372036854775808");
-        return ;
+
+    if (buffer_size < 2) {
+        return false;
     }
+    
     s64 cur_n = n;
     u32 n_len = cur_n == 0 ? 1 : 0;
     while (cur_n) {
-        cur_n /= 10;
+        cur_n /= radix;
         ++n_len;
     }
 
-    if (n < 0) {
-        n *= -1;
-        ++n_len;
-        *buffer = '-';
-    }
     if (n == 0) {
-        *buffer = '0';
+        ASSERT(buffer_size > 1);
+        buffer[0] = '0';
+        buffer[1] = '\0';
+
+        return true;
+    } else if (n < 0) {
+        ++n_len;
+
+        if (buffer_size < n_len) {
+            return false;
+        }
+
+        *buffer = '-';
+
+        bool add_one = false;
+        if (n == S64_MIN) {
+            add_one = true;
+            ++n;
+        }
+
+        n *= -1;
+
+        u32 remainder = n % radix;
+        n /= radix;
+
+        if (add_one) {
+            ++remainder;
+            if (remainder == radix) {
+                ++n;
+                remainder = 0;
+            }
+        }
+
+        buffer[n_len] = '\0';
+
+        ASSERT(n_len > 0);
+        if (remainder > 9) {
+            buffer[--n_len] = remainder - 10 + 'a';
+        } else {
+            buffer[--n_len] = remainder + '0';
+        }
+    } else if (buffer_size < n_len) {
+        return false;
+    } else {
+        buffer[n_len] = '\0';
     }
 
-    n_len = max__u32(n_len, buffer_size - 1);
-    *(buffer + n_len) = '\0';
-    while (n && n_len) {
-		*(buffer + --n_len) = n % 10 + '0';
-		n /= 10;
+    while (n != 0) {
+        const u32 remainder = n % radix;
+        ASSERT(n_len > 0);
+        buffer[--n_len] = remainder > 9 ? remainder - 10 + 'a' : remainder + '0';
+		n /= radix;
 	}
+
+    return true;
 }
 
 r64 libc__strtod(const char* str) {

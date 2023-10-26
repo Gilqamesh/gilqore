@@ -3,11 +3,11 @@
 
 # include "random_defs.h"
 
-struct random {
+typedef struct random {
     u64 random_vector[624];
     u32 random_vector_index;
     u32 _reserved;
-};
+} random_t;
 
 PUBLIC_API void random__init(struct random* self, u64 seed);
 

@@ -1,8 +1,6 @@
 #ifndef THREAD_H
 # define THREAD_H
 
-struct thread;
-
 # if defined(WINDOWS)
 #  include "platform_specific/windows/thread_platform_specific_defs.h"
 # elif defined(LINUX)
@@ -12,13 +10,19 @@ struct thread;
 # endif
 
 PUBLIC_API bool thread__create(
-    struct thread* self,
+    thread_t* self,
     u32 (*worker_fn)(void* user_data),
     void* user_data
 );
 
-PUBLIC_API u32 thread__destroy(struct thread* self);
+PUBLIC_API u32 thread__destroy(thread_t* self);
 
-PUBLIC_API void thread__wait_execution(struct thread* self);
+PUBLIC_API void thread__wait_execution(thread_t* self);
+
+PUBLIC_API bool mutex__create(mutex_t* self);
+PUBLIC_API void mutex__destroy(mutex_t* self);
+
+PUBLIC_API void mutex__lock(mutex_t* self);
+PUBLIC_API void mutex__unlock(mutex_t* self);
 
 #endif // THREAD_H

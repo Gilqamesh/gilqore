@@ -5,8 +5,6 @@
 
 # include "memory/memory.h"
 
-struct time;
-
 # if defined(WINDOWS)
 #  include "platform_specific/windows/time_platform_specific_defs.h"
 # elif defined(LINUX)

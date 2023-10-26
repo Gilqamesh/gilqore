@@ -5,11 +5,11 @@
 #include "algorithms/hash/hash.h"
 #include "io/file/file.h"
 #include "memory/memory.h"
-
-#include <stdarg.h>
+#include "gil_math/compare/compare.h"
+#include "gil_math/abs/abs.h"
 
 bool file_reader__create(
-    struct file_reader* self,
+    file_reader_t* self,
     struct file file,
     struct memory_slice internal_buffer
 ) {
@@ -26,17 +26,17 @@ bool file_reader__create(
     return true;
 }
 
-void file_reader__destroy(struct file_reader* self) {
+void file_reader__destroy(file_reader_t* self) {
     circular_buffer__destroy(&self->circular_buffer);
 }
 
-void file_reader__clear(struct file_reader* self, struct file file) {
+void file_reader__clear(file_reader_t* self, struct file file) {
     circular_buffer__clear(&self->circular_buffer);
     self->file = file;
     self->eof_reached = false;
 }
 
-static void file_reader__ensure_fill(struct file_reader* self) {
+static void file_reader__ensure_fill(file_reader_t* self) {
     if (
         self->eof_reached == false &&
         circular_buffer__size_current(&self->circular_buffer) == 0
@@ -61,15 +61,23 @@ static void file_reader__ensure_fill(struct file_reader* self) {
     }
 }
 
-char file_reader__peek(struct file_reader* self) {
-    file_reader__ensure_fill(self);
+bool file_reader__has_reached_eof(file_reader_t* self) {
+    return self->eof_reached == true && circular_buffer__size_current(&self->circular_buffer) == 0;
+}
+
+char file_reader__peek(file_reader_t* self) {
     if (circular_buffer__size_current(&self->circular_buffer) == 0) {
-        // error_code__exit(FILE_READER_ERROR_NOTHING_TO_PEEK);
+        file_reader__ensure_fill(self);
+        if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+            // error_code__exit(FILE_READER_ERROR_NOTHING_TO_PEEK);
+            error_code__exit(23487);
+        }
     }
+
     return *(char*) circular_buffer__tail(&self->circular_buffer);
 }
 
-u32 file_reader__read_one(struct file_reader* self, void* out, u32 size) {
+u32 file_reader__read_one(file_reader_t* self, void* out, u32 size) {
     u32 total_bytes_read = 0;
 
     u32 circular_buffer_cur_size = circular_buffer__size_current(&self->circular_buffer);
@@ -100,7 +108,7 @@ u32 file_reader__read_one(struct file_reader* self, void* out, u32 size) {
     return total_bytes_read;
 }
 
-u32 file_reader__read_while_not(struct file_reader* self, void* out, u32 size, const char* set) {
+u32 file_reader__read_while_not(file_reader_t* self, void* out, u32 size, const char* set) {
     u32 total_bytes_read = 0;
 
     char boolean_set[256];
@@ -138,7 +146,7 @@ u32 file_reader__read_while_not(struct file_reader* self, void* out, u32 size, c
     return total_bytes_read;
 }
 
-u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const char* set) {
+u32 file_reader__read_while(file_reader_t* self, void* out, u32 size, const char* set) {
     u32 total_bytes_read = 0;
 
     char boolean_set[256];
@@ -177,7 +185,7 @@ u32 file_reader__read_while(struct file_reader* self, void* out, u32 size, const
 }
 
 bool file_reader__read_while_not_word(
-    struct file_reader* self,
+    file_reader_t* self,
     void* out,
     u32 size,
     const char* word,
@@ -232,8 +240,71 @@ bool file_reader__read_while_not_word(
     return false;
 }
 
-#if 0
-struct conversion_flags {
+bool file_reader__read_s32(file_reader_t* self, s32* out) {
+    if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+        file_reader__ensure_fill(self);
+        if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+            return false;
+        }
+    }
+
+    if (out) {
+        *out = 0;
+    }
+
+    const bool is_negative = *(char*) circular_buffer__tail(&self->circular_buffer) == '-';
+    if (is_negative) {
+        circular_buffer__advance_tail(&self->circular_buffer, 1);
+    }
+
+    if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+        file_reader__ensure_fill(self);
+        if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+            circular_buffer__advance_tail(&self->circular_buffer, -1);
+            return false;
+        }
+    }
+
+    char c = *(char*) circular_buffer__tail(&self->circular_buffer);
+    if (!libc__isdigit(c)) {
+        circular_buffer__advance_tail(&self->circular_buffer, -1);
+        return false;
+    }
+
+    circular_buffer__advance_tail(&self->circular_buffer, 1);
+
+    if (out) {
+        *out = c - '0';
+    }
+
+    //  2,147,483,647
+    // got most significant digit, do it 9 more times at most
+    for (int i = 0; i <= 9; ++i) {
+        file_reader__ensure_fill(self);
+        if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+            file_reader__ensure_fill(self);
+            if (circular_buffer__size_current(&self->circular_buffer) == 0) {
+                break ;
+            }
+        }
+
+        c = *(char*) circular_buffer__tail(&self->circular_buffer);
+
+        if (!libc__isdigit(c)) {
+            break ;
+        }
+
+        circular_buffer__advance_tail(&self->circular_buffer, 1);
+
+        if (out) {
+            *out = *out * 10 + c - '0';
+        }
+    }
+    
+    return true;
+}
+
+typedef struct conversion_flags {
     bool  is_left_justified;  // '-'
     bool  is_zero_padded;     // '0'
     bool  is_there_precision; // '.'
@@ -242,153 +313,385 @@ struct conversion_flags {
     bool  is_space_prefixed;  // ' '
     bool  is_sign_prefixed;   // '+'
     s32   minimum_field_width;
-};
+} _conversion_flags_t;
 
-// @returns number of bytes moved in format
-static u32 parse_conversion_flags(const char* format, struct conversion_flags* flags) {
-    u32 bytes_parsed = 0;
+static u32 _num_len(u64 a, u32 base) {
+    if (a == 0) {
+        return 1;
+    }
 
-    libc__memset(flags, 0, sizeof(flags));
-    bool found_flag = true;
-    while (found_flag) {
-        found_flag = false;
-        switch (*format) {
-            case '-': {
-                flags->is_left_justified = true;
-                ++bytes_parsed;
-                found_flag = true;
+    u32 result = 0;
+    while (a != 0) {
+        a /= base;
+        ++result;
+    }
+
+    return result;
+}
+
+static bool _file_reader__write_char(file_reader_t* self, char* out, u32* bytes_read) {
+    if (file_reader__has_reached_eof(self)) {
+        return false;
+    }
+
+    ASSERT(file_reader__read_one(self, *out, 1) == 1);
+    ++*bytes_read;
+
+    return true;
+}
+
+static bool _file_reader__write_char_from_if(file_reader_t* self, char* out, u32* bytes_read, const char expected) {
+    if (file_reader__has_reached_eof(self) || file_reader__peek(self) != expected) {
+        return false;
+    }
+
+    ASSERT(file_reader__read_one(self, *out, 1) == 1);
+    ++*bytes_read;
+
+    return true;
+}
+
+static bool _file_reader__write_char_from_set(file_reader_t* self, char** out_cur, const char* out_end, u32* bytes_read, char* char_read, const char* expected) {
+    if (*out_cur == out_end || file_reader__has_reached_eof(self)) {
+        return false;
+    }
+
+    char c = file_reader__peek(self);
+    bool found = false;
+    for (u32 i = 0; expected[i] != '\0'; ++i) {
+        if (expected[i] == c) {
+            found = true;
+            break ;
+        }
+    }
+    if (!found) {
+        return false;
+    }
+
+    ASSERT(file_reader__read_one(self, *char_read, 1) == 1);
+    *out_cur++ = char_read;
+    ++*bytes_read;
+
+    return true;
+}
+
+static bool _file_reader__write_str(file_reader_t* self, char* buffer, u32* bytes_read) {
+    char c;
+    while (_file_reader__write_char(self, buffer, bytes_read, &c)) {
+        if (c == '\0') {
+            break ;
+        }
+    }
+
+    return out_start != *out_cur;
+}
+
+static bool _file_reader__write_hex(file_reader_t* self, char** out_cur, const char* out_end, u32* bytes_read) {
+    char* out_start = *out_cur;
+
+    char c;
+    while (_file_reader__write_char_if(self, out_cur, out_end, bytes_read, &c, "0123456789abcdefABCDEF")) { }
+
+    return out_start != *out_cur;
+}
+
+static bool _file_reader__write_num(file_reader_t* self, char** out_cur, const char* out_end, u32* bytes_read) {
+    char* out_start = *out_cur;
+
+    char c;
+    while (_file_reader__write_char_if(self, out_cur, out_end, bytes_read, &c, "0123456789")) { }
+
+    return out_start != *out_cur;
+}
+
+static bool _file_reader__read_format_dispatch_format_specifier(
+    file_reader_t* self,
+    va_list* ap,
+    const char** format,
+    u32* bytes_matched,
+    char** out_cur, const char* const out_end
+) {
+    bool result = true;
+
+    _conversion_flags_t flags;
+    libc__memset(&flags, 0, sizeof(flags));
+
+    while (true) {
+        bool can_leave = false;
+        switch (**format) {
+            case '#': {
+                flags.is_alternate_form = true;
             } break ;
             case '0': {
-                flags->is_zero_padded = true;
-                ++bytes_parsed;
-                found_flag = true;
+                flags.is_zero_padded = true;
             } break ;
-            case '.': {
-                flags->is_there_precision = true;
-                ++bytes_parsed;
-                found_flag = true;
-            } break ;
-            case '#': {
-                flags->is_alternate_form = true;
-                ++bytes_parsed;
-                found_flag = true;
+            case '-': {
+                flags.is_left_justified = true;
             } break ;
             case ' ': {
-                flags->is_space_prefixed = true;
-                ++bytes_parsed;
-                found_flag = true;
+                flags.is_space_prefixed = true;
             } break ;
             case '+': {
-                flags->is_sign_prefixed = true;
-                ++bytes_parsed;
-                found_flag = true;
+                flags.is_sign_prefixed = true;
             } break ;
-            default: break ;
+            case '\0': {
+                // error_code__exit(WRONG_FORMAT_SPECIFIER);
+                error_code__exit(0xbaadf00d);
+            }
+            default: can_leave = true;
         }
-    }
-    if (libc__isdigit(*(format + bytes_parsed)) == true) {
-        flags->minimum_field_width = libc__atoi(format + bytes_parsed, 10);
-        bytes_parsed += s64__len(flags->minimum_field_width);
-    }
-    if (*(format + bytes_parsed) == '.') {
-        ++bytes_parsed;
-        flags->is_there_precision = true;
-        while (*(format + bytes_parsed) == '0') {
-            ++bytes_parsed;
-        }
-        if (libc__isdigit(*(format + bytes_parsed)) == true) {
-            flags->amount_of_precision = libc__atoi(format + bytes_parsed, 10);
-            bytes_parsed += s64__len(flags->amount_of_precision);
-        }
-    }
-}
 
-// @returns bytes written out
-static u32 dispatch_by_conversion(
-    struct file_reader* self,
-    char conversion_specifier,
-    struct conversion_flags* flags,
-    u8* out,
-    u32 out_size,
-    va_list ap
-) {
-    u32 bytes_written_out = 0;
+        if (can_leave) {
+            break ;
+        }
 
-    switch (conversion_specifier) {
+        ++*format;
+    }
+
+    if (libc__isdigit(**format)) {
+        flags.minimum_field_width = libc__atoi(*format, 10);
+        ASSERT(flags.minimum_field_width > 0);
+        *format += _num_len(flags.minimum_field_width, 10);
+    }
+
+    if (**format == '.') {
+        flags.is_there_precision = true;
+        ++*format;
+        while (**format == '0') {
+            ++*format;
+        }
+        if (libc__isdigit(**format)) {
+            flags.amount_of_precision = libc__atoi(*format, 10);
+            ASSERT(flags.amount_of_precision > 0);
+            *format += _num_len(flags.amount_of_precision, 10);
+        }
+    }
+
+    const char conversion = **format;
+    ++*format;
+    switch (conversion) {
+        case 'c': {
+            char expected = (char) va_arg(*ap, int);
+            result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, expected);
+        } break ;
         case 's': {
+            char* expected = va_arg(*ap, char *);
+            s32 str_len = (s32)  libc__strlen(expected);
+            if (flags.is_there_precision) {
+                str_len = min__s32(str_len, flags.amount_of_precision);
+            }
+            flags.minimum_field_width -= str_len;
+            if (result && flags.is_left_justified) {
+                result = _file_reader__write_str(self, out_cur, out_end, bytes_matched, expected);
+            }
+            while (result && flags.minimum_field_width-- > 0) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+            }
+            if (result && !flags.is_left_justified) {
+                result = _file_reader__write_str(self, out_cur, out_end, bytes_matched, expected);
+            }
         } break ;
-        case 'S': {
+        // case 'S': {
+        //     // todo: implement, only match upper-case letters
+        // } break ;
+        case 'p': {
+            size_t expected = (size_t) va_arg(*ap, void *);
+            s32 hex_len = _num_len(expected, 16);
+            if (result && flags.is_left_justified) {
+                result = _file_reader__write_hex(self, out_cur, out_end, bytes_matched, expected, false);
+                if (result == false) {
+                    break ;
+                }
+            }
+            while (result && flags.minimum_field_width-- - hex_len > 0) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+            }
+            if (result && !flags.is_left_justified) {
+                result = _file_reader__write_hex(self, out_cur, out_end, bytes_matched, expected, false);
+                if (result == false) {
+                    break ;
+                }
+            }
         } break ;
+        case 'd':
+        case 'i': {
+            s32 expected = (s32) va_arg(*ap, s32);
+            if (flags.is_there_precision || flags.is_left_justified) {
+                flags.is_zero_padded = false;
+            }
+            if (flags.is_sign_prefixed) {
+                flags.is_space_prefixed = false;
+            }
+            s32 num_len = _num_len(expected, 10);
+            if (flags.is_there_precision && expected == 0) {
+                num_len = 0;
+            }
+            const char* sign_prefix = expected < 0 ? "-" : flags.is_sign_prefixed ? "+" : flags.is_space_prefixed ? " " : "";
+            s32 zero_padding = max__s32(flags.amount_of_precision - num_len, 0);
+            s32 space_padding = max__s32(flags.minimum_field_width - (s32) libc__strlen(sign_prefix) - zero_padding - num_len, 0);
+            if (flags.is_zero_padded) {
+                zero_padding = space_padding;
+                space_padding = 0;
+            }
+            if (result && !flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+            result = _file_reader__write_str(self, out_cur, out_end, bytes_matched, sign_prefix);
+            while (result && zero_padding-- > 0) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, '0');
+            }
+            if (result && expected == S32_MIN) {
+                result = _file_reader__write_str(self, out_cur, out_end, bytes_matched, "2147483648");
+            } else if (result && num_len > 0) {
+                result =_file_reader__write_num(self, out_cur, out_end, bytes_matched, s32__abs(expected));
+            }
+            if (result && flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+        } break ;
+        case 'u': {
+            unsigned int expected = (unsigned int) va_arg(*ap, unsigned int);
+            if (flags.is_there_precision || flags.is_left_justified) {
+                flags.is_zero_padded = false;
+            }
+            s32 num_len = _num_len(expected, 10);
+            if (flags.is_there_precision && expected == 0) {
+                num_len = 0;
+            }
+            s32 zero_padding = max__s32(flags.amount_of_precision - num_len, 0);
+            s32 space_padding = max__s32(flags.minimum_field_width - zero_padding - num_len, 0);
+            if (flags.is_zero_padded) {
+                zero_padding = max__s32(space_padding, zero_padding);
+                space_padding = 0;
+            }
+            if (result && !flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+            while (result && zero_padding-- > 0) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, '0');
+            }
+            if (result && num_len > 0) {
+                result =_file_reader__write_num(self, out_cur, out_end, bytes_matched, expected);
+            }
+            if (result && flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+        } break ;
+        case 'x':
+        case 'X': {
+            size_t expected = (size_t) va_arg(*ap, size_t);
+            if (flags.is_there_precision || flags.is_left_justified) {
+                flags.is_zero_padded = false;
+            }
+            const char* prefix = flags.is_alternate_form ? conversion == 'x' ? "0x" : "0X" : "";
+            s32 hex_len = _num_len(expected, 16);
+            if (flags.is_there_precision && expected == 0) {
+                prefix = "";
+                hex_len = 0;
+            }
+            s32 zero_padding = max__s32(flags.amount_of_precision - hex_len, 0);
+            s32 space_padding = max__s32(flags.minimum_field_width - (s32) libc__strlen(prefix) - zero_padding - hex_len, 0);
+            if (flags.is_zero_padded) {
+                zero_padding = max__s32(zero_padding, space_padding);
+                space_padding = 0;
+            }
+            if (result && !flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+            if (result) {
+                result = _file_reader__write_str(self, out_cur, out_end, bytes_matched, prefix);
+            }
+            while (result && zero_padding-- > 0) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, '0');
+            }
+            if (result) {
+                result = _file_reader__write_hex(self, out_cur, out_end, bytes_matched, expected, conversion == 'X');
+            }
+            if (result && flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+        } break ;
+        case '%': {
+            if (flags.is_left_justified) {
+                flags.is_zero_padded = false;
+            }
+            s32 zero_padding = 0;
+            s32 space_padding = 0;
+            if (flags.is_zero_padded) {
+                zero_padding = max__s32(flags.minimum_field_width - 1, zero_padding);
+                space_padding = 0;
+            } else {
+                space_padding = max__s32(flags.minimum_field_width - 1, space_padding);
+                zero_padding = 0;
+            }
+            if (result && !flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+            if (result) {
+                while (result && zero_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, '0');
+                }
+            }
+            if (result) {
+                result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, '%');
+            }
+            if (result && flags.is_left_justified) {
+                while (result && space_padding-- > 0) {
+                    result = _file_reader__write_char(self, out_cur, out_end, bytes_matched, ' ');
+                }
+            }
+        } break ;
+        default: {
+            // error_code__exit(WRONG_FORMAT_SPECIFIER);
+            error_code__exit(0xbaadf00d);
+        }
     }
 
-    return bytes_written_out;
+    return result;
 }
 
-u32 file_reader__read_format(struct file_reader* self, void* out, u32 size, const char* format, ...) {
-    u32 bytes_matched = 0;
-
+u32 file_reader__read_formatv(file_reader_t* self, const char* format, ...) {
     va_list ap;
 
     va_start(ap, format);
+    u32 result = file_reader__read_formatv(self, format, ap);
+    va_end(ap);
 
-    char* cur_format = (char*) format;
-    u8* cur_out = out;
+    return result;
+}
 
-    u32 cur_bytes_matched = 1;
-    u32 circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+u32 file_reader__read_formatv(file_reader_t* self, const char* format, va_list ap) {
+    u32 bytes_read = 0;
 
-    while (
-        cur_bytes_matched > 0 &&
-        size > 0 &&
-        (self->eof_reached == false || circular_buffer_cur_size > 0) &&
-        *cur_format != '\0'
-    ) {
-        file_reader__ensure_fill(self);
-        cur_bytes_matched = 0;
-        circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+    while (*format != '\0') {
+        if (*format == '%') {
+            ++format;
 
-        if (circular_buffer_cur_size > 0) {
-            if (*cur_format == '%') {
-                ++cur_format;
-                if (*cur_format == '\0') {
-                    // error_code__exit(WRONG_FORMAT_SPECIFIER);
-                    error_code__exit(999);
-                }
-                struct conversion_flags flags;
-                u32 bytes_parsed = parse_conversion_flags(cur_format, &flags);
-                cur_format += bytes_parsed;
-                if (*cur_format == '\0') {
-                    // error_code__exit(WRONG_FORMAT_SPECIFIER);
-                    error_code__exit(999);
-                }
-                u32 max_bytes_to_match = min__u32(circular_buffer_cur_size, size);
-                cur_bytes_matched = dispatch_by_conversion(self, *cur_format, &flags, cur_out, max_bytes_to_match, ap);
-
-                cur_out += cur_bytes_matched;
-                size -= cur_bytes_matched;
-                bytes_matched += cur_bytes_matched;
-            } else {
-                s8* p_c = circular_buffer__tail(self->circular_buffer);
-                if (*p_c != *cur_format) {
-                    // note: byte is not matched from the format, go to postamble of the routine
-                    cur_bytes_matched = 0;
-                } else {
-                    *cur_out++ = *p_c;
-                    --size;
-                    circular_buffer__advance_tail(self->circular_buffer, 1);
-                    ++bytes_matched;
-
-                    cur_bytes_matched = 1;
-                }
+            if (!_file_reader__read_format_dispatch_format_specifier(self, &format, &bytes_read)) {
+                break ;
             }
-            ++cur_format;
-
-            circular_buffer_cur_size = circular_buffer__size_current(self->circular_buffer);
+        } else {
+            if (!_file_reader__write_char(self, &out_cur, out_end, &bytes_read)) {
+                break ;
+            }
+            
+            ++format;
         }
     }
 
-    va_end(ap);
-
-    return bytes_matched;
+    return bytes_read;
 }
-#endif

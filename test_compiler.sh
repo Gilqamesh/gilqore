@@ -1,1 +1,0 @@
-./modules/compiler/interpreter/test/interpreter.exe ./modules/compiler/interpreter/lox_interpreter/test/$1

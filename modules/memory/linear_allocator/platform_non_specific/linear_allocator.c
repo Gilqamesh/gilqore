@@ -40,7 +40,7 @@ struct memory_slice linear_allocator__push_aligned(struct linear_allocator* self
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_ALIGNMENT_NOT_POW_OF_2);
     }
 
-    u64 modulo = ((u64) memory_slice__memory(&self->memory_slice)) & ((u64) (alignment - 1));
+    u64 modulo = ((size_t) memory_slice__memory(&self->memory_slice)) & ((u64) (alignment - 1));
     u64 offset = modulo != 0 ? (u64) alignment - modulo : 0;
 
     if (size + offset > linear_allocator__available(self)) {
@@ -98,7 +98,7 @@ u64 linear_allocator__available_aligned(struct linear_allocator* self, u32 align
         error_code__exit(LINEAR_ALLOCATOR_ERROR_CODE_ALIGNMENT_NOT_POW_OF_2);
     }
 
-    u64 modulo = ((u64) memory_slice__memory(&self->memory_slice)) & ((u64) alignment - 1);
+    u64 modulo = ((size_t) memory_slice__memory(&self->memory_slice)) & ((u64) alignment - 1);
     u64 offset = modulo != 0 ? (u64) alignment - modulo : 0;
     u64 total_size_left = linear_allocator__available(self);
 

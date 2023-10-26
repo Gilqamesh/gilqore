@@ -115,7 +115,7 @@ r64 random__r64(struct random* self) {
 s64 random__s64_closed(struct random* self, s64 left, s64 right) {
     r64 p = random__r64(self);
 
-    return (s64) ((r64)left + p * ((r64)right - (r64)left));
+    return (s64) ((r64)left + p * ((r64)right - (r64)left + 1.0));
 }
 
 s32 random__s32_closed(struct random* self, s32 left, s32 right) {
@@ -129,7 +129,7 @@ s16 random__s16_closed(struct random* self, s16 left, s16 right) {
 u64 random__u64_closed(struct random* self, u64 left, u64 right) {
     r64 p = random__r64(self);
 
-    return (u64) ((r64)left + p * ((r64)right - (r64)left));
+    return (u64) ((r64)left + p * ((r64)right - (r64)left + 1.0));
 }
 
 u32 random__u32_closed(struct random* self, u32 left, u32 right) {
