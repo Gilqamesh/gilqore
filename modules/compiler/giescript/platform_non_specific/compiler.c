@@ -8,6 +8,8 @@
 #include "libc/libc.h"
 #include "types/basic_types/basic_types.h"
 
+#include <windows.h>
+
 // todo: move to param
 static scanner_t  g_scanner;
 static token_t    g_current;

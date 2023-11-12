@@ -65,7 +65,7 @@ set OutBin=%BuildDir%\%ProjectName%.%BuildExt%
 
 REM TODO: Figure out how to quote the path given to the include path here
 set CommonCompilerFlags=-f win64 -I%~dp0 -l "%BuildDir%\%ProjectName%.lst"
-
+    
 if "%Compiler%"=="msvc" (
    set DebugCompilerFlags=-gcv8
 ) else (

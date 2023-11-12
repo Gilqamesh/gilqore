@@ -1,4 +1,6 @@
 What does this code do? The function has 4 arguments and it is compiled by GCC for Linux x64 ABI (i.e., arguments are passed in registers).
+Solution: Divides each 64-bit element in the array, store the result in another array, returns 0 at the end.
+    Function prototype: int f(uint64_t* in, uint64_t* out, u64 divisor, u64 array_size);
 
 <f>:
    0:                   mov    r8,rdi  ; 1st param in r8
@@ -25,10 +27,3 @@ begin:
   19:                   pop    rbx                      ; restore rbx
   1a:                   mov    rax,rdx                  ; return whatever is in rdx
   1d:                   ret
-
-/*
-    basically, go over the array in the 1st argument and divide each element of it by the 3rd argument, store each result in the 2nd argument,
-    the size of the array is received in the 4th argument
-    the array holds 8-byte size things, for example doubles
-    return 0 at the end
-*/

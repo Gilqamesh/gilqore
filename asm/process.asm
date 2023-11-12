@@ -44,3 +44,10 @@ factorial_for:
 factorial_end:
     leave
     ret
+
+idk:
+    push  rbp
+    mov   rbp, rsp
+
+    pop   rbp
+    ret

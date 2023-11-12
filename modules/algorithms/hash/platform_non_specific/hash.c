@@ -23,14 +23,6 @@ u64 hash__sum_n(const char* str, u32 str_len) {
     return hash_result;
 }
 
-/*
-((((a * C) ^ b * C) ^ c * C) ^ d * C) ^ e * C
-((a * C) ^ b * C) ^ c * C
-(d * C) ^ e * C
-
-(C * C * (a * C) ^ b ^ c ^ e ^ (d * C) * C
-*/
-
 u32 hash__fnv_1a(const char* str, u32 len, u32 prev_hash) {
     // FNV offset basis
     u32 hash_result = prev_hash ? prev_hash : 2166136261U;
