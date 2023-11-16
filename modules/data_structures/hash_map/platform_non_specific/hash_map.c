@@ -18,7 +18,7 @@ typedef struct _hash_map_entry {
     // ... value
 } _hash_map_entry_t;
 
-static u32 hash_map__entry_size(hash_map_t* self);
+static u32 _hash_map__entry_size(hash_map_t* self);
 static _hash_map_entry_t* hash_map__at(hash_map_t* self, u32 index);
 static _hash_map_entry_t* hash_map__key_to_internal_entry(hash_map_key_t* key);
 static _hash_map_entry_t* hash_map__value_to_internal_entry(hash_map_t* self, hash_map_value_t* value);
@@ -26,13 +26,12 @@ static hash_map_key_t* hash_map__internal_entry_to_key(_hash_map_entry_t* _entry
 static hash_map_value_t* hash_map__internal_entry_to_value(hash_map_t* self, _hash_map_entry_t* _entry);
 static _hash_map_entry_t* _hash_map__find(hash_map_t* self, hash_map_key_t* key);
 
-static u32 hash_map__entry_size(hash_map_t* self) {
-    u32 result = sizeof(STRUCT_MEMBER(_hash_map_entry_t, type)) + self->size_of_key + self->size_of_value;
-    return result;
+static u32 _hash_map__entry_size(hash_map_t* self) {
+    return hash_map__entry_size(self->size_of_key, self->size_of_value);
 }
 
 static _hash_map_entry_t* hash_map__at(hash_map_t* self, u32 index) {
-    return (_hash_map_entry_t*) ((char*)memory_slice__memory(&self->memory) + hash_map__entry_size(self) * index);
+    return (_hash_map_entry_t*) ((char*)memory_slice__memory(&self->memory) + _hash_map__entry_size(self) * index);
 }
 
 static _hash_map_entry_t* hash_map__key_to_internal_entry(hash_map_key_t* key) {
@@ -84,6 +83,12 @@ static _hash_map_entry_t* _hash_map__find(hash_map_t* self, hash_map_key_t* key)
 
     ASSERT(false);
     UNREACHABLE_CODE;
+}
+
+u32 hash_map__entry_size(u32 size_of_key, u32 size_of_value) {
+    u32 result = sizeof(STRUCT_MEMBER(_hash_map_entry_t, type)) + size_of_key + size_of_value;
+    
+    return result;
 }
 
 bool hash_map__create(hash_map_t* self, memory_slice_t max_memory, u32 size_of_key, u32 size_of_value, u32 (*hash_fn)(const hash_map_key_t*), bool (*eq_fn)(const hash_map_key_t*, const hash_map_key_t*)) {
@@ -146,7 +151,7 @@ u32 hash_map__size(hash_map_t* self) {
 }
 
 u32 hash_map__capacity(hash_map_t* self) {
-    return memory_slice__size(&self->memory) / hash_map__entry_size(self);
+    return memory_slice__size(&self->memory) / _hash_map__entry_size(self);
 }
 
 void hash_map__clear(hash_map_t* self) {
@@ -184,7 +189,7 @@ hash_map_key_t* hash_map__begin(hash_map_t* self) {
         if (_entry->type == HASH_MAP_ENTRY_TYPE_NON_EMPTY) {
             return hash_map__internal_entry_to_key(_entry);
         }
-        _entry = (_hash_map_entry_t*) ((char*) _entry + hash_map__entry_size(self));
+        _entry = (_hash_map_entry_t*) ((char*) _entry + _hash_map__entry_size(self));
     }
 
     return end;
@@ -196,7 +201,7 @@ hash_map_key_t* hash_map__next(hash_map_t* self, hash_map_key_t* key) {
     _hash_map_entry_t* _entry = hash_map__key_to_internal_entry(key);
 
     while (_entry != _end) {
-        _entry = (_hash_map_entry_t*) ((char*) _entry + hash_map__entry_size(self));
+        _entry = (_hash_map_entry_t*) ((char*) _entry + _hash_map__entry_size(self));
         if (_entry == _end) {
             return end;
         }
