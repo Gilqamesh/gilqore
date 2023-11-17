@@ -17,16 +17,6 @@
 
 #define FIRST_COL_OFFSET 22
 
-#if defined(min)
-# undef min
-#endif
-#define min(x, y) ((x) < (y) ? (x) : (y))
-
-#if defined(max)
-# undef max
-#endif
-#define max(x, y) ((x) < (y) ? (y) : (x))
-
 static inline bool is_pow_of_two(uint64_t a) {
     if (a == 0) {
         return false;
@@ -165,6 +155,7 @@ static void _type_struct__update_member(type_struct_t* self, member_t* new_membe
     // align each member to its alignment
     uint64_t new_member_offset = self->base.size;
     uint64_t pad_for_new_member = 0;
+    assert(new_member->type->alignment > 0);
     uint64_t bytes_to_align = new_member_offset % new_member->type->alignment;
     if (bytes_to_align) {
         uint64_t pad_relative_to_new_member = new_member->type->alignment - bytes_to_align;
@@ -896,7 +887,7 @@ type_builtin_function_t* type_builtin_function__create(const char* name, void (*
     return result;
 }
 
-void type_builtin_function__add_argument(type_builtin_function_t* self, type_t* type) {
+void type_builtin_function__add_argument(type_builtin_function_t* self, const char* name, type_t* type) {
     if (self->arguments_top == self->arguments_size) {
         if (self->arguments_size == 0) {
             self->arguments_size = 8;

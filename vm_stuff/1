@@ -1,0 +1,172 @@
+In file included from state.c:14:
+state.h:1: error: unterminated #ifndef
+    1 | #ifndef STATE_H
+      | 
+state.c: In function ‘type__add’:
+state.c:71:38: warning: passing argument 2 of ‘hash_map__insert’ discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+   71 |     if (!hash_map__insert(types, type->abbreviated_name, type)) {
+      |                                  ~~~~^~~~~~~~~~~~~~~~~~
+In file included from types.h:5,
+                 from state.h:7:
+hash_map.h:32:68: note: expected ‘hash_map_key_t *’ {aka ‘void *’} but argument is of type ‘const char *’
+   32 | hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map_value_t* value);
+      |                                                    ~~~~~~~~~~~~~~~~^~~
+state.c: In function ‘type__find’:
+state.c:77:44: warning: passing argument 2 of ‘hash_map__find’ discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+   77 |     return (type_t*) hash_map__find(types, abbreviated_name);
+      |                                            ^~~~~~~~~~~~~~~~
+hash_map.h:35:68: note: expected ‘hash_map_key_t *’ {aka ‘void *’} but argument is of type ‘const char *’
+   35 | hash_map_value_t* hash_map__find(hash_map_t* self, hash_map_key_t* key);
+      |                                                    ~~~~~~~~~~~~~~~~^~~
+state.c: In function ‘compile__function’:
+state.c:98:5: error: too many arguments to function ‘function->compile_fn’
+   98 |     function->compile_fn(types, function, ip);
+      |     ^~~~~~~~
+state.c: In function ‘state__compile_ret_struct_fn’:
+state.c:187:63: warning: passing argument 1 of ‘type_struct__member’ from incompatible pointer type [-Wincompatible-pointer-types]
+  187 |     member_t* member_array = type_struct__member(type_function->return_type, "member_array");
+      |                                                  ~~~~~~~~~~~~~^~~~~~~~~~~~~
+      |                                                               |
+      |                                                               type_t * {aka struct type *}
+types.h:150:46: note: expected ‘type_struct_t *’ {aka ‘struct type_struct *’} but argument is of type ‘type_t *’ {aka ‘struct type *’}
+  150 | member_t* type_struct__member(type_struct_t* self, const char* name);
+      |                               ~~~~~~~~~~~~~~~^~~~
+state.c: In function ‘state__compile_start’:
+state.c:234:39: warning: passing argument 2 of ‘compile__emit_call’ from incompatible pointer type [-Wincompatible-pointer-types]
+  234 |     compile__emit_call(type_function, main_fn);
+      |                                       ^~~~~~~
+      |                                       |
+      |                                       type_internal_function_t * {aka struct type_internal_function *}
+state.c:211:74: note: expected ‘type_t *’ {aka ‘struct type *’} but argument is of type ‘type_internal_function_t *’ {aka ‘struct type_internal_function *’}
+  211 | void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_call) {
+      |                                                                  ~~~~~~~~^~~~~~~~~~
+state.c: In function ‘state__compile_main’:
+state.c:249:39: warning: passing argument 2 of ‘compile__emit_call’ from incompatible pointer type [-Wincompatible-pointer-types]
+  249 |     compile__emit_call(type_function, fact_fn_decl);
+      |                                       ^~~~~~~~~~~~
+      |                                       |
+      |                                       type_internal_function_t * {aka struct type_internal_function *}
+state.c:211:74: note: expected ‘type_t *’ {aka ‘struct type *’} but argument is of type ‘type_internal_function_t *’ {aka ‘struct type_internal_function *’}
+  211 | void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_call) {
+      |                                                                  ~~~~~~~~^~~~~~~~~~
+state.c: In function ‘state__compile’:
+state.c:262:23: warning: passing argument 1 of ‘compile__function’ from incompatible pointer type [-Wincompatible-pointer-types]
+  262 |     compile__function(self, main_fn, self->code);
+      |                       ^~~~
+      |                       |
+      |                       state_t * {aka struct state *}
+state.c:88:43: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   88 | static void compile__function(hash_map_t* types, type_internal_function_t* function, uint8_t* ip) {
+      |                               ~~~~~~~~~~~~^~~~~
+state.c:266:23: warning: passing argument 1 of ‘compile__function’ from incompatible pointer type [-Wincompatible-pointer-types]
+  266 |     compile__function(self, _start_fn, type_internal_function__end_ip(main_fn));
+      |                       ^~~~
+      |                       |
+      |                       state_t * {aka struct state *}
+state.c:88:43: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   88 | static void compile__function(hash_map_t* types, type_internal_function_t* function, uint8_t* ip) {
+      |                               ~~~~~~~~~~~~^~~~~
+state.c:270:23: warning: passing argument 1 of ‘compile__function’ from incompatible pointer type [-Wincompatible-pointer-types]
+  270 |     compile__function(self, fact_fn, type_internal_function__end_ip(_start_fn));
+      |                       ^~~~
+      |                       |
+      |                       state_t * {aka struct state *}
+state.c:88:43: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   88 | static void compile__function(hash_map_t* types, type_internal_function_t* function, uint8_t* ip) {
+      |                               ~~~~~~~~~~~~^~~~~
+state.c: In function ‘state__create_atom_types’:
+state.c:470:18: error: redefinition of ‘ts8’
+  470 |     type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(int8_t), &_type__print_value_s8);
+      |                  ^~~
+state.c:469:18: note: previous definition of ‘ts8’ with type ‘type_atom_t *’ {aka ‘struct type_atom *’}
+  469 |     type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(int8_t), &_type__print_value_s8);
+      |                  ^~~
+state.c:484:5: warning: implicit declaration of function ‘state__type_add’ [-Wimplicit-function-declaration]
+  484 |     state__type_add(self, (type_t*) ts8 );
+      |     ^~~~~~~~~~~~~~~
+state.c: In function ‘state__create_user_types’:
+state.c:507:31: warning: passing argument 1 of ‘type__find’ from incompatible pointer type [-Wincompatible-pointer-types]
+  507 |     type_t* ts8  = type__find(self, "s8");
+      |                               ^~~~
+      |                               |
+      |                               state_t * {aka struct state *}
+state.c:76:39: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   76 | static type_t* type__find(hash_map_t* types, const char* abbreviated_name) {
+      |                           ~~~~~~~~~~~~^~~~~
+state.c:511:31: warning: passing argument 1 of ‘type__find’ from incompatible pointer type [-Wincompatible-pointer-types]
+  511 |     type_t* tu64 = type__find(self, "u64");
+      |                               ^~~~
+      |                               |
+      |                               state_t * {aka struct state *}
+state.c:76:39: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   76 | static type_t* type__find(hash_map_t* types, const char* abbreviated_name) {
+      |                           ~~~~~~~~~~~~^~~~~
+state.c: In function ‘main’:
+state.c:524:5: warning: implicit declaration of function ‘debug__init’; did you mean ‘debug__create’? [-Wimplicit-function-declaration]
+  524 |     debug__init();
+      |     ^~~~~~~~~~~
+      |     debug__create
+state.c:539:79: warning: passing argument 1 of ‘type__find’ from incompatible pointer type [-Wincompatible-pointer-types]
+  539 |     type_internal_function_t* _start = (type_internal_function_t*) type__find(&state, "_start");
+      |                                                                               ^~~~~~
+      |                                                                               |
+      |                                                                               state_t * {aka struct state *}
+state.c:76:39: note: expected ‘hash_map_t *’ {aka ‘struct hash_map *’} but argument is of type ‘state_t *’ {aka ‘struct state *’}
+   76 | static type_t* type__find(hash_map_t* types, const char* abbreviated_name) {
+      |                           ~~~~~~~~~~~~^~~~~
+In file included from ins.c:1:
+ins.h:30:15: error: expected declaration specifiers or ‘...’ before ‘sizeof’
+   30 | static_assert(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
+      |               ^~~~~~
+ins.h:30:45: error: expected declaration specifiers or ‘...’ before string constant
+   30 | static_assert(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from ins.c:5:
+types.h:32:40: error: unknown type name ‘FILE’
+   32 |     void        (*print_value_at_addr)(FILE* fp, uint8_t* addr);
+      |                                        ^~~~
+types.h:6:1: note: ‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+    5 | # include "hash_map.h"
+  +++ |+#include <stdio.h>
+    6 | 
+types.h:141:36: error: unknown type name ‘FILE’
+  141 | void member__print(member_t* self, FILE* fp);
+      |                                    ^~~~
+types.h:141:36: note: ‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+types.h:146:33: error: unknown type name ‘FILE’
+  146 |     void (*print_value_at_addr)(FILE* fp, uint8_t* addr)
+      |                                 ^~~~
+types.h:146:33: note: ‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+types.h:196:19: error: unknown type name ‘FILE’
+  196 |     type_t* self, FILE* fp,
+      |                   ^~~~
+types.h:196:19: note: ‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+ins.c: In function ‘ins__vadd’:
+ins.h:13:22: warning: implicit declaration of function ‘push_byte_code’ [-Wimplicit-function-declaration]
+   13 |     byte_code_len += push_byte_code(byte_code + byte_code_len, sizeof(byte_code) - byte_code_len, (uint8_t*)&a, sizeof(type)); \
+      |                      ^~~~~~~~~~~~~~
+ins.c:18:13: note: in expansion of macro ‘CODE_PUSH’
+   18 |             CODE_PUSH(ip, reg_t, n);
+      |             ^~~~~~~~~
+ins.c:116:36: warning: implicit declaration of function ‘max’ [-Wimplicit-function-declaration]
+  116 |     const uint32_t byte_code_max = max(sizeof(reg_t), sizeof(regf_t)) * 2 + max(sizeof(reg_t), sizeof(regf_t)) - 1;
+      |                                    ^~~
+ins.c: In function ‘ins__add’:
+ins.c:140:10: warning: implicit declaration of function ‘state__vadd_ins’ [-Wimplicit-function-declaration]
+  140 |     ip = state__vadd_ins(ip, ins, ap);
+      |          ^~~~~~~~~~~~~~~
+ins.c:140:8: warning: assignment to ‘uint8_t *’ {aka ‘unsigned char *’} from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+  140 |     ip = state__vadd_ins(ip, ins, ap);
+      |        ^
+ins.c:138:5: warning: second parameter of ‘va_start’ not last named argument [-Wvarargs]
+  138 |     va_start(ap, ins);
+      |     ^~~~~~~~
+types.c: In function ‘type_external_function__add_argument’:
+types.c:866:22: error: ‘type_external_function_t’ {aka ‘struct type_external_function’} has no member named ‘arguments_to’; did you mean ‘arguments_top’?
+  866 |     } else if (self->arguments_to>p == self->arguments_size) {
+      |                      ^~~~~~~~~~~~
+      |                      arguments_top
+types.c:866:35: error: ‘p’ undeclared (first use in this function)
+  866 |     } else if (self->arguments_to>p == self->arguments_size) {
+      |                                   ^
+types.c:866:35: note: each undeclared identifier is reported only once for each function it appears in

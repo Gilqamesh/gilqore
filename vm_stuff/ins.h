@@ -27,7 +27,7 @@ typedef struct regf {
     double _;
     double __;
 } regf_t;
-static_assert(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
+// static_assert(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
 
 
 /* ABI

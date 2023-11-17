@@ -29,10 +29,10 @@ bool hash_map__create(
     bool (*eq_fn)(const hash_map_key_t*, const hash_map_key_t*)
 );
 
-hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map_value_t* value);
-bool hash_map__remove(hash_map_t* self, hash_map_key_t* key);
+hash_map_key_t* hash_map__insert(hash_map_t* self, const hash_map_key_t* key, const hash_map_value_t* value);
+bool hash_map__remove(hash_map_t* self, const hash_map_key_t* key);
 void hash_map__clear(hash_map_t* self);
-hash_map_value_t* hash_map__find(hash_map_t* self, hash_map_key_t* key);
+hash_map_value_t* hash_map__find(hash_map_t* self, const hash_map_key_t* key);
 
 uint32_t hash_map__size(hash_map_t* self);
 uint32_t hash_map__capacity(hash_map_t* self);

@@ -5,6 +5,29 @@
 #include "types.h"
 #include "debug.h"
 
+static uint32_t push_byte_code(uint8_t* buffer, uint32_t buffer_size, uint8_t* bytes, uint32_t bytes_size) {
+    uint32_t total_bytes_written = 0;
+    for (uint32_t bytes_index = 0; bytes_index < bytes_size; ++bytes_index) {
+        assert(buffer_size > 3);
+        int32_t bytes_written = snprintf(buffer, buffer_size, "%02x", (int32_t) *bytes++);
+        assert(bytes_written == 2);
+        total_bytes_written += 2;
+        buffer += 2;
+        buffer_size -= 2;
+        if (bytes_index < bytes_size - 1) {
+            bytes_written = snprintf(buffer, buffer_size, " ");
+            assert(bytes_written == 1);
+            total_bytes_written += 1;
+            ++buffer;
+            --buffer_size;
+        }
+    }
+    assert(buffer_size > 0);
+    *buffer = '\0';
+
+    return total_bytes_written;
+}
+
 uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
     uint8_t* ins_ip = ip;
     static uint8_t byte_code[256];
@@ -135,9 +158,9 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
 
 uint8_t* ins__add(ins_t ins, uint8_t* ip, ...) {
     va_list ap;
-    va_start(ap, ins);
+    va_start(ap, ip);
 
-    ip = state__vadd_ins(ip, ins, ap);
+    ip = ins__vadd(ins, ip, ap);
 
     va_end(ap);
 

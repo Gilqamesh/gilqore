@@ -5,7 +5,7 @@ typedef struct a {
     uint16_t __;
 } a_t;
 
-__declspec(dllexport) a_t fn (a_t a) {
+a_t fn (a_t a) {
     return (a_t) {
         ._ = a._ + 1,
         .__ = a.__ + 1

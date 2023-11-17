@@ -19,21 +19,21 @@ typedef struct _hash_map_entry {
     // ... value
 } _hash_map_entry_t;
 
-static uint32_t hash_map__entry_size(hash_map_t* self);
+static uint32_t _hash_map__entry_size(hash_map_t* self);
 static _hash_map_entry_t* hash_map__at(hash_map_t* self, uint32_t index);
 static _hash_map_entry_t* hash_map__key_to_internal_entry(hash_map_key_t* key);
 static _hash_map_entry_t* hash_map__value_to_internal_entry(hash_map_t* self, hash_map_value_t* value);
 static hash_map_key_t* hash_map__internal_entry_to_key(_hash_map_entry_t* _entry);
 static hash_map_value_t* hash_map__internal_entry_to_value(hash_map_t* self, _hash_map_entry_t* _entry);
-static _hash_map_entry_t* _hash_map__find(hash_map_t* self, hash_map_key_t* key);
+static _hash_map_entry_t* _hash_map__find(hash_map_t* self, const hash_map_key_t* key);
 
-static uint32_t hash_map__entry_size(hash_map_t* self) {
+static uint32_t _hash_map__entry_size(hash_map_t* self) {
     uint32_t result = sizeof(((_hash_map_entry_t*)(0))->type) + self->size_of_key + self->size_of_value;
     return result;
 }
 
 static _hash_map_entry_t* hash_map__at(hash_map_t* self, uint32_t index) {
-    return (_hash_map_entry_t*) ((char*) self->memory + hash_map__entry_size(self) * index);
+    return (_hash_map_entry_t*) ((char*) self->memory + _hash_map__entry_size(self) * index);
 }
 
 static _hash_map_entry_t* hash_map__key_to_internal_entry(hash_map_key_t* key) {
@@ -52,7 +52,7 @@ static hash_map_value_t* hash_map__internal_entry_to_value(hash_map_t* self, _ha
     return (hash_map_value_t*)((char*) _entry + sizeof(((_hash_map_entry_t*)(0))->type) + self->size_of_key);
 }
 
-static _hash_map_entry_t* _hash_map__find(hash_map_t* self, hash_map_key_t* key) {
+static _hash_map_entry_t* _hash_map__find(hash_map_t* self, const hash_map_key_t* key) {
     const uint32_t capacity = hash_map__capacity(self);
     uint32_t index = self->hash_fn(key) % capacity;
     const uint32_t start_index = index;
@@ -109,7 +109,7 @@ bool hash_map__create(hash_map_t* self, void* memory, uint64_t memory_size, uint
     return true;
 }
 
-hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map_value_t* value) {
+hash_map_key_t* hash_map__insert(hash_map_t* self, const hash_map_key_t* key, const hash_map_value_t* value) {
     _hash_map_entry_t* _entry = _hash_map__find(self, key);
     if (_entry == NULL) {
         // full
@@ -128,7 +128,7 @@ hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map
     return found_key;
 }
 
-bool hash_map__remove(hash_map_t* self, hash_map_key_t* key) {
+bool hash_map__remove(hash_map_t* self, const hash_map_key_t* key) {
     if (self->fill == 0) {
         return false;
     }
@@ -152,7 +152,7 @@ uint32_t hash_map__size(hash_map_t* self) {
 }
 
 uint32_t hash_map__capacity(hash_map_t* self) {
-    return self->memory_size / hash_map__entry_size(self);
+    return self->memory_size / _hash_map__entry_size(self);
 }
 
 void hash_map__clear(hash_map_t* self) {
@@ -164,7 +164,7 @@ void hash_map__clear(hash_map_t* self) {
     }
 }
 
-hash_map_value_t* hash_map__find(hash_map_t* self, hash_map_key_t* key) {
+hash_map_value_t* hash_map__find(hash_map_t* self, const hash_map_key_t* key) {
     if (self->fill == 0) {
         return NULL;
     }
@@ -190,7 +190,7 @@ hash_map_key_t* hash_map__begin(hash_map_t* self) {
         if (_entry->type == HASH_MAP_ENTRY_TYPE_NON_EMPTY) {
             return hash_map__internal_entry_to_key(_entry);
         }
-        _entry = (_hash_map_entry_t*) ((char*) _entry + hash_map__entry_size(self));
+        _entry = (_hash_map_entry_t*) ((char*) _entry + _hash_map__entry_size(self));
     }
 
     return end;
@@ -202,7 +202,7 @@ hash_map_key_t* hash_map__next(hash_map_t* self, hash_map_key_t* key) {
     _hash_map_entry_t* _entry = hash_map__key_to_internal_entry(key);
 
     while (_entry != _end) {
-        _entry = (_hash_map_entry_t*) ((char*) _entry + hash_map__entry_size(self));
+        _entry = (_hash_map_entry_t*) ((char*) _entry + _hash_map__entry_size(self));
         if (_entry == _end) {
             return end;
         }

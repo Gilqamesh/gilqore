@@ -25,9 +25,9 @@ typedef struct state {
 
     reg_t exit_status_code;
 
-    hash_map_t* types;
+    hash_map_t types;
 
     bool     alive;
 } state_t;
 
-// STATE_H
+#endif // STATE_H

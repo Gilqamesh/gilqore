@@ -108,7 +108,7 @@ bool hash_map__create(hash_map_t* self, memory_slice_t max_memory, u32 size_of_k
     return true;
 }
 
-hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map_value_t* value) {
+hash_map_key_t* hash_map__insert(hash_map_t* self, const hash_map_key_t* key, const hash_map_value_t* value) {
     _hash_map_entry_t* _entry = _hash_map__find(self, key);
     if (_entry == NULL) {
         // full
@@ -127,7 +127,7 @@ hash_map_key_t* hash_map__insert(hash_map_t* self, hash_map_key_t* key, hash_map
     return found_key;
 }
 
-bool hash_map__remove(hash_map_t* self, hash_map_key_t* key) {
+bool hash_map__remove(hash_map_t* self, const hash_map_key_t* key) {
     if (self->fill == 0) {
         return false;
     }
@@ -163,7 +163,7 @@ void hash_map__clear(hash_map_t* self) {
     }
 }
 
-hash_map_value_t* hash_map__find(hash_map_t* self, hash_map_key_t* key) {
+hash_map_value_t* hash_map__find(hash_map_t* self, const hash_map_key_t* key) {
     if (self->fill == 0) {
         return NULL;
     }

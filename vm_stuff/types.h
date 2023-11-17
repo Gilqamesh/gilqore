@@ -1,8 +1,20 @@
 #ifndef TYPES_H
 # define TYPES_H
 
+# include <stdio.h>
+
 # include "ins.h"
 # include "hash_map.h"
+
+#if defined(min)
+# undef min
+#endif
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
+#if defined(max)
+# undef max
+#endif
+#define max(x, y) ((x) < (y) ? (y) : (x))
 
 typedef enum type_specifier {
     TYPE_ATOM,
@@ -98,7 +110,7 @@ typedef struct type_internal_function {
     type_t                  base;
 
     const char*             name;
-    void                    (*compile_fn)(hash_map_t* types, type_internal_function_t* type_function);
+    void                    (*compile_fn)(hash_map_t* types, struct type_internal_function* type_function);
 
     uint8_t*                start_ip;
     uint8_t*                end_ip;
@@ -130,7 +142,7 @@ typedef struct type_builtin_function {
     type_t                  base;
 
     const char*             name;
-    void                    (*execute_fn)(type_builtin_function_t* self, void* processor);
+    void                    (*execute_fn)(struct type_builtin_function* self, void* processor);
 
     uint32_t                arguments_size;
     uint32_t                arguments_top;
@@ -178,7 +190,7 @@ void type_external_function__set_return(type_external_function_t* self, type_t* 
 void type_external_function__call(type_external_function_t* self);
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor));
-void type_builtin_function__add_argument(type_builtin_function_t* self, type_t* type);
+void type_builtin_function__add_argument(type_builtin_function_t* self, const char* name, type_t* type);
 void type_builtin_function__set_return(type_builtin_function_t* self, type_t* type);
 void type_builtin_function__call(type_builtin_function_t* self, void* processor);
 int64_t type_builtin__return_offset_from_bp(type_builtin_function_t* self);

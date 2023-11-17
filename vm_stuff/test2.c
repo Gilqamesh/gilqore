@@ -14,18 +14,23 @@ void print(b_t b) {
 }
 
 int main() {
-    // HMODULE test_module = LoadLibrary("test.dll");
-    // DWORD err = GetLastError();
-    // b_t (*fn)(b_t) = (b_t (*)(b_t)) GetProcAddress(test_module, "fn");
-    // err = GetLastError();
+    void *dll_handle = dlopen("./libtest.so", RTLD_LAZY);
+    if (!dll_handle) {
+        printf("%s\n", dlerror());
+        return 1;
+    }
+    b_t (*fn)(b_t) = dlsym(dll_handle, "fn");
+    if (!fn) {
+        return 2;
+    }
 
-    // b_t b = {
-    //     ._ = 1,
-    //     .__ = 2
-    // };
-    // b = fn(b);
+    b_t b = {
+        ._ = 1,
+        .__ = 2
+    };
+    b = fn(b);
 
-    // print(b);
+    print(b);
 
-    // return 0;
+    return 0;
 }
