@@ -7,15 +7,13 @@
 
 #define CODE_PUSH(ip, type, a) do { \
     *(type*) ip = a; \
-    if (byte_code_len > 0) { \
-        byte_code[byte_code_len++] = ' '; \
-    } \
-    byte_code_len += push_byte_code(byte_code + byte_code_len, sizeof(byte_code) - byte_code_len, (uint8_t*)&a, sizeof(type)); \
+    debug__push_code(&debug, (uint8_t*)&a, sizeof(type)); \
     ip += sizeof(type); \
 } while (false)
 #define CODE_POP(ip, type, result) do { \
     (result) = *(type*) (ip); \
     (ip) += sizeof(type); \
+    debug__push_code(&debug, (uint8_t*)&result, sizeof(type)); \
 } while (false)
 
 // todo: change these into types?
@@ -27,7 +25,7 @@ typedef struct regf {
     double _;
     double __;
 } regf_t;
-// static_assert(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
+// static_ASSERT(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
 
 
 /* ABI

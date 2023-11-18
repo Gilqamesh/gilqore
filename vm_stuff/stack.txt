@@ -1,0 +1,13 @@
+<top of stack>
+ 
+...
+temporaries of callee
+locals of callee
+64-bit base pointer of callee
+64-bit return address of callee
+arguments of callee
+return value of callee
+temporaries of caller
+...
+
+<bottom of stack>

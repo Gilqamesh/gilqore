@@ -189,7 +189,7 @@ $LN31@main:
 	jmp	SHORT $LN18@main
 $LN107@main:
 
-; 382  :                         default: assert(false);
+; 382  :                         default: ASSERT(false);
 
 	xor	eax, eax
 	test	eax, eax
@@ -197,7 +197,7 @@ $LN107@main:
 	mov	r8d, 382				; 0000017eH
 	lea	rdx, OFFSET FLAT:$SG75200
 	lea	rcx, OFFSET FLAT:$SG75201
-	call	_wassert
+	call	_wASSERT
 	xor	eax, eax
 $LN127@main:
 $LN18@main:
@@ -840,7 +840,7 @@ $LN124@main:
 	jmp	SHORT $LN7@main
 $LN125@main:
 
-; 499  :                 default: assert(false);
+; 499  :                 default: ASSERT(false);
 
 	xor	eax, eax
 	test	eax, eax
@@ -848,7 +848,7 @@ $LN125@main:
 	mov	r8d, 499				; 000001f3H
 	lea	rdx, OFFSET FLAT:$SG75221
 	lea	rcx, OFFSET FLAT:$SG75222
-	call	_wassert
+	call	_wASSERT
 	xor	eax, eax
 $LN128@main:
 $LN7@main:

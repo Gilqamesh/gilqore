@@ -1,6 +1,6 @@
 #include <time.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <ASSERT.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -73,7 +73,7 @@ static type_t* _type__create(const char* abbreviated_name, uint64_t size) {
 
 static void _type_struct__update_member(type_struct_t* self, member_t* new_member) {
     if (self->base.type_specifier != TYPE_UNION && self->base.type_specifier != TYPE_STRUCT) {
-        assert(false);
+        ASSERT(false);
     }
 
     // alignment number is the biggest amongst all member's alignment
@@ -103,7 +103,7 @@ static void _type_struct__update_member(type_struct_t* self, member_t* new_membe
 
 static void _type_union__update_member(type_union_t* self, member_t* new_member) {
     if (self->biggest_sized_member == NULL) {
-        assert(self->biggest_aligned_member == NULL);
+        ASSERT(self->biggest_aligned_member == NULL);
         self->biggest_sized_member = new_member;
         self->biggest_aligned_member = new_member;
     } else {
@@ -134,8 +134,8 @@ type_atom_t* type_atom__create(const char* abbreviated_name, const char* name, u
 
 void type__set_max_alignment(type_t* self, uint64_t max_alignment) {
     if (max_alignment != UNSET_MAX_ALIGNMENT) {
-        assert(is_pow_of_two(max_alignment));
-        assert(max_alignment <= 16);
+        ASSERT(is_pow_of_two(max_alignment));
+        ASSERT(max_alignment <= 16);
     }
 
     self->max_alignment = max_alignment;
@@ -158,12 +158,12 @@ void type__set_max_alignment(type_t* self, uint64_t max_alignment) {
 void type__set_alignment(type_t* self, uint64_t alignment) {
     if (self->type_specifier == TYPE_ARRAY) {
         if (type__size(self) < alignment) {
-            assert(false && "error: alignment of array elements is greater than element size");
+            ASSERT(false && "error: alignment of array elements is greater than element size");
         }
     }
 
     if (alignment != UNSET_MAX_ALIGNMENT) {
-        assert(is_pow_of_two(alignment));
+        ASSERT(is_pow_of_two(alignment));
     }
 
     self->alignment = alignment;
@@ -244,12 +244,12 @@ void type_struct__add(type_struct_t* self, type_t* member_type, const char* memb
         }
     }
 
-    assert(self->members_top != self->members_size);
+    ASSERT(self->members_top != self->members_size);
     new_member = &self->members[self->members_top++];
     new_member->name = member_name;
     new_member->type = member_type;
     new_member->offset = 0;
-    assert(new_member);
+    ASSERT(new_member);
 
     _type_struct__update_member(self, new_member);
 }
@@ -278,12 +278,12 @@ void type_union__add(type_union_t* self, type_t* member_type, const char* member
         }
     }
 
-    assert(self->members_top != self->members_size);
+    ASSERT(self->members_top != self->members_size);
     new_member = &self->members[self->members_top++];
     new_member->name = member_name;
     new_member->type = member_type;
     new_member->offset = 0;
-    assert(new_member);
+    ASSERT(new_member);
 
     _type_union__update_member(self, new_member);
 }
@@ -325,7 +325,7 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
         return ;
     }
 
-    assert(
+    ASSERT(
         offset % type__alignment(self) == 0 ||
         offset % type__max_alignment(self) == 0
     );
@@ -339,7 +339,7 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             type_struct_t* type_struct = (type_struct_t*) self;
             fprintf(fp, "{");
             for (uint32_t member_index = 0; member_index < type_struct->members_top; ++member_index) {
-                assert(
+                ASSERT(
                     offset % type__alignment(type_struct->members[member_index].type) == 0 ||
                     offset % type__max_alignment(self) == 0
                 );
@@ -382,7 +382,7 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             _type__print_name(type_pointer->pointed_type, fp, number_of_expansions - 1, offset);
             fprintf(fp, "*");
         } break ;
-        default: assert(false);
+        default: ASSERT(false);
     }
 }
 
@@ -434,9 +434,9 @@ typedef uint16_t su16_t;
 typedef uint32_t su32_t;
 typedef uint64_t su64_t;
 typedef float    sr32_t;
-static_assert(sizeof(sr32_t) == 4);
+static_ASSERT(sizeof(sr32_t) == 4);
 typedef double   sr64_t;
-static_assert(sizeof(sr64_t) == 8);
+static_ASSERT(sizeof(sr64_t) == 8);
 
 #define REGULAR_PRINT(type) do { \
     char buffer[256]; \
@@ -462,8 +462,8 @@ static_assert(sizeof(sr64_t) == 8);
 #endif
 
 #define TYPE_SIZE_CHECK(type) do { \
-    assert(sizeof(s ## type ## _t) == type__size((type_t*)(t ## type))); \
-    assert(ALIGNOF(s ## type ## _t) == (t ## type)->base.alignment); \
+    ASSERT(sizeof(s ## type ## _t) == type__size((type_t*)(t ## type))); \
+    ASSERT(ALIGNOF(s ## type ## _t) == (t ## type)->base.alignment); \
 } while (false)
 
 #define TEST_TYPE(fp, type) do { \
@@ -477,9 +477,9 @@ static void _type_struct__add_multiple(type_struct_t* self, ...) {
     va_start(ap, self);
 
     type_t* type = va_arg(ap, type_t*);
-    assert(type);
+    ASSERT(type);
     const char* name = va_arg(ap, const char*);
-    assert(name);
+    ASSERT(name);
     do {
         type_struct__add(self, type, name);
         type = va_arg(ap, type_t*);
@@ -487,7 +487,7 @@ static void _type_struct__add_multiple(type_struct_t* self, ...) {
             break ;
         }
         name = va_arg(ap, const char*);
-        assert(name);
+        ASSERT(name);
     } while (true);
 
     va_end(ap);
@@ -498,9 +498,9 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
     va_start(ap, self);
 
     type_t* type = va_arg(ap, type_t*);
-    assert(type);
+    ASSERT(type);
     const char* name = va_arg(ap, char*);
-    assert(name);
+    ASSERT(name);
     do {
         type_union__add(self, type, name);
         type = va_arg(ap, type_t*);
@@ -508,7 +508,7 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
             break ;
         }
         name = va_arg(ap, char*);
-        assert(name);
+        ASSERT(name);
     } while (true);
 
     va_end(ap);
@@ -530,12 +530,12 @@ instance_t* instance__create(const char* name, type_t* type, uint64_t requested_
     // todo: find suitable memory location in available stack/heap that satisfies the alignment requirement
     // address must be divisible by the alignment number
     uint64_t alignment = type__alignment(type);
-    assert(alignment);
+    ASSERT(alignment);
     uint64_t offset = requested_address % alignment;
     if (offset) {
         requested_address += alignment - offset;
     }
-    assert(requested_address % alignment == 0);
+    ASSERT(requested_address % alignment == 0);
     result->addr = requested_address;
 
     return result;

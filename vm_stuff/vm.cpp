@@ -2,7 +2,7 @@
 #include <stack>
 #include <array>
 #include <windows.h>
-#include <cassert>
+#include <cASSERT>
 #include <intrin.h>
 #include "types2.cpp"
 
@@ -207,10 +207,10 @@ uint32_t push_fact_fn(state& s) {
 
     // patch the jump
     ins_jz* jmp = dynamic_cast<ins_jz*>(s.instructions[start_ip + 1]);
-    assert(jmp);
+    ASSERT(jmp);
     jmp->patch(ip);
     jmp = dynamic_cast<ins_jz*>(s.instructions[start_ip + 8]);
-    assert(jmp);
+    ASSERT(jmp);
     jmp->patch(ip);
     s.instructions[ip++] = new ins_pop();
     s.instructions[ip++] = new ins_reg_store(0);

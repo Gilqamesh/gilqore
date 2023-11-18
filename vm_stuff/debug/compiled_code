@@ -1,50 +1,74 @@
-6e840:                                                       PUSH_BP             
-6e841:    00 01                                              MOV_REG             
-6e844:    08 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00    PUSH_TYPE           
-6e855:    0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e866:    90 7d 57 55 55 55 00 00                            CALL_INTERNAL           fact
-6e86f:                                                       PUSH_BP             
-6e870:    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e881:                                                       ADD                 
-6e882:    08                                                 STACK_LOAD          
-6e884:    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e895:                                                       POP_TYPE            
-6e896:    2a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e8a7:                                                       PUSH_BP             
-6e8a8:    d8 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e8b9:                                                       ADD                 
-6e8ba:    10                                                 STACK_STORE         
-6e8bc:                                                       POP_BP              
-6e8bd:    00 00                                              RET                 
-6e8c0:                                                       PUSH_BP             
-6e8c1:    00 01                                              MOV_REG             
-6e8c4:    10 00 00 00 00 00 00 00 10 00 00 00 00 00 00 00    PUSH_TYPE           
-6e8d5:    a0 7e 57 55 55 55 00 00                            CALL_INTERNAL           main
-6e8de:                                                       EXIT                
-6e8df:                                                       POP_BP              
-6e8e0:    00 00                                              RET                 
-6e8e3:                                                       PUSH_BP             
-6e8e4:    00 01                                              MOV_REG             
-6e8e7:    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e8f8:                                                       PUSH_BP             
-6e8f9:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e90a:                                                       ADD                 
-6e90b:    08                                                 STACK_STORE         
-6e90d:                                                       PUSH_BP             
-6e90e:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e91f:                                                       ADD                 
-6e920:    04                                                 STACK_LOAD          
-6e922:    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                
-6e933:    00 00 00 00 00 00 00 00                            JLE                 
-6e93c:                                                       PUSH_BP             
-6e93d:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e94e:                                                       ADD                 
-6e94f:    08                                                 STACK_LOAD          
-6e951:                                                       PUSH_BP             
-6e952:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e963:                                                       ADD                 
-6e964:    04                                                 STACK_LOAD          
-6e966:                                                       MUL                 
-6e967:                                                       PUSH_BP             
-6e968:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                
-6e979:                                                       A
+
+main:
+    cf2a0:                                                       PUSH_BP                                     
+    cf2a1:    00 01                                              MOV_REG                                     
+    cf2a4:    08 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00    PUSH_TYPE                                   
+    cf2b5:    0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf2c6:    70 8f ed 53 86 55 00 00                            CALL_INTERNAL           fact                
+    cf2cf:                                                       PUSH_BP                                     
+    cf2d0:    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf2e1:                                                       ADD                                         
+    cf2e2:    08                                                 STACK_LOAD                                  
+    cf2e4:    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf2f5:                                                       POP_TYPE                                    
+    cf2f6:    2a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf307:                                                       PUSH_BP                                     
+    cf308:    d8 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf319:                                                       ADD                                         
+    cf31a:    10                                                 STACK_STORE                                 
+    cf31c:                                                       POP_BP                                      
+    cf31d:    00 00                                              RET                                         
+
+_start:
+    cf320:                                                       PUSH_BP                                     
+    cf321:    00 01                                              MOV_REG                                     
+    cf324:    10 00 00 00 00 00 00 00 10 00 00 00 00 00 00 00    PUSH_TYPE                                   
+    cf335:    80 90 ed 53 86 55 00 00                            CALL_INTERNAL           main                
+    cf33e:                                                       EXIT                                        
+    cf33f:                                                       POP_BP                                      
+    cf340:    00 00                                              RET                                         
+
+fact:
+    cf343:                                                       PUSH_BP                                     
+    cf344:    00 01                                              MOV_REG                                     
+    cf347:    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf358:                                                       PUSH_BP                                     
+    cf359:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf36a:                                                       ADD                                         
+    cf36b:    08                                                 STACK_STORE                                 
+    cf36d:                                                       PUSH_BP                                     
+    cf36e:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf37f:                                                       ADD                                         
+    cf380:    04                                                 STACK_LOAD                                  
+    cf382:    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    PUSH                                        
+    cf393:    00 00 00 00 00 00 00 00                            JLE                                         
+    cf39c:                                                       PUSH_BP                                     
+    cf39d:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf3ae:                                                       ADD                                         
+    cf3af:    08                                                 STACK_LOAD                                  
+    cf3b1:                                                       PUSH_BP                                     
+    cf3b2:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf3c3:                                                       ADD                                         
+    cf3c4:    04                                                 STACK_LOAD                                  
+    cf3c6:                                                       MUL                                         
+    cf3c7:                                                       PUSH_BP                                     
+    cf3c8:    dc ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf3d9:                                                       ADD                                         
+    cf3da:    08                                                 STACK_STORE                                 
+    cf3dc:                                                       PUSH_BP                                     
+    cf3dd:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf3ee:                                                       ADD                                         
+    cf3ef:    04                                                 STACK_LOAD                                  
+    cf3f1:                                                       DEC                                         
+    cf3f2:                                                       PUSH_BP                                     
+    cf3f3:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf404:                                                       ADD                                         
+    cf405:    04                                                 STACK_STORE                                 
+    cf407:                                                       PUSH_BP                                     
+    cf408:    e4 ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00    PUSH                                        
+    cf419:                                                       ADD                                         
+    cf41a:    04                                                 STACK_LOAD                                  
+    cf41c:    93 f3 ec 53 86 55 00 00                            JZ                                          
+    cf425:    9c f3 ec 53 86 55 00 00                            JMP                                         
+    cf42e:                                                       POP_BP                                      
+    cf42f:    01 00                                              RET                                         

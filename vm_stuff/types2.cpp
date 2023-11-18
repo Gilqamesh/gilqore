@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdio>
 #include <cstdint>
-#include <cassert>
+#include <cASSERT>
 #include <cstdlib>
 #include <ctime>
 
@@ -118,7 +118,7 @@ public:
     }
     void set_alignment(uint64_t alignment) {
         if (alignment != -1) {
-            assert(is_pow_of_two(alignment));
+            ASSERT(is_pow_of_two(alignment));
         }
 
         _alignment = alignment;
@@ -139,8 +139,8 @@ public:
     }
     void set_max_alignment(uint64_t max_alignment = DEFAULT_MAX_ALIGNMENT) {
         if (max_alignment != -1) {
-            assert(is_pow_of_two(max_alignment));
-            assert(max_alignment <= 16);
+            ASSERT(is_pow_of_two(max_alignment));
+            ASSERT(max_alignment <= 16);
         }
 
         _max_alignment = max_alignment;
@@ -175,7 +175,7 @@ private:
             if (uint64_t r = address() % alignment()) {
                 set_address(address() + (alignment() - r));
             }
-            assert(address() % alignment() == 0);
+            ASSERT(address() % alignment() == 0);
         }
 
         // align each member to its alignment number
@@ -294,7 +294,7 @@ public:
                 biggest_type = t;
             }
         }
-        assert(biggest_type);
+        ASSERT(biggest_type);
         set_sizeof_total(biggest_type->sizeof_total());
         set_alignment(biggest_alignment);
     }
@@ -891,38 +891,38 @@ struct bs {
 //     t.print_all(fp);
 //     fclose(fp);
 
-//     assert(sizeof(sa) == ta->sizeof_total());
-//     assert(alignof(sa) == ta->alignment());
-//     assert(sizeof(sb) == tb->sizeof_total());
-//     assert(alignof(sb) == tb->alignment());
-//     assert(sizeof(sc) == tc->sizeof_total());
-//     assert(alignof(sc) == tc->alignment());
-//     assert(sizeof(sd) == td->sizeof_total());
-//     assert(alignof(sd) == td->alignment());
-//     assert(sizeof(se) == te->sizeof_total());
-//     assert(alignof(se) == te->alignment());
-//     assert(sizeof(sf) == tf->sizeof_total());
-//     assert(alignof(sf) == tf->alignment());
-//     assert(sizeof(sg) == tg->sizeof_total());
-//     assert(alignof(sg) == tg->alignment());
-//     assert(sizeof(sh) == th->sizeof_total());
-//     assert(alignof(sh) == th->alignment());
-//     assert(sizeof(si) == ti->sizeof_total());
-//     assert(alignof(si) == ti->alignment());
-//     assert(sizeof(sj) == tj->sizeof_total());
-//     assert(alignof(sj) == tj->alignment());
-//     assert(sizeof(sk) == tk->sizeof_total());
-//     assert(alignof(sk) == tk->alignment());
-//     assert(sizeof(sl) == tl->sizeof_total());
-//     assert(alignof(sl) == tl->alignment());
-//     assert(sizeof(sm) == tm->sizeof_total());
-//     assert(alignof(sm) == tm->alignment());
-//     assert(sizeof(sn) == tn->sizeof_total());
-//     assert(alignof(sn) == tn->alignment());
-//     assert(sizeof(so) == to->sizeof_total());
-//     assert(alignof(so) == to->alignment());
-//     assert(sizeof(sp) == tp->sizeof_total());
-//     assert(alignof(sp) == tp->alignment());
+//     ASSERT(sizeof(sa) == ta->sizeof_total());
+//     ASSERT(alignof(sa) == ta->alignment());
+//     ASSERT(sizeof(sb) == tb->sizeof_total());
+//     ASSERT(alignof(sb) == tb->alignment());
+//     ASSERT(sizeof(sc) == tc->sizeof_total());
+//     ASSERT(alignof(sc) == tc->alignment());
+//     ASSERT(sizeof(sd) == td->sizeof_total());
+//     ASSERT(alignof(sd) == td->alignment());
+//     ASSERT(sizeof(se) == te->sizeof_total());
+//     ASSERT(alignof(se) == te->alignment());
+//     ASSERT(sizeof(sf) == tf->sizeof_total());
+//     ASSERT(alignof(sf) == tf->alignment());
+//     ASSERT(sizeof(sg) == tg->sizeof_total());
+//     ASSERT(alignof(sg) == tg->alignment());
+//     ASSERT(sizeof(sh) == th->sizeof_total());
+//     ASSERT(alignof(sh) == th->alignment());
+//     ASSERT(sizeof(si) == ti->sizeof_total());
+//     ASSERT(alignof(si) == ti->alignment());
+//     ASSERT(sizeof(sj) == tj->sizeof_total());
+//     ASSERT(alignof(sj) == tj->alignment());
+//     ASSERT(sizeof(sk) == tk->sizeof_total());
+//     ASSERT(alignof(sk) == tk->alignment());
+//     ASSERT(sizeof(sl) == tl->sizeof_total());
+//     ASSERT(alignof(sl) == tl->alignment());
+//     ASSERT(sizeof(sm) == tm->sizeof_total());
+//     ASSERT(alignof(sm) == tm->alignment());
+//     ASSERT(sizeof(sn) == tn->sizeof_total());
+//     ASSERT(alignof(sn) == tn->alignment());
+//     ASSERT(sizeof(so) == to->sizeof_total());
+//     ASSERT(alignof(so) == to->alignment());
+//     ASSERT(sizeof(sp) == tp->sizeof_total());
+//     ASSERT(alignof(sp) == tp->alignment());
 
 //     return 0;
 // }

@@ -71,14 +71,14 @@ static void type__add(hash_map_t* types, type_t* type) {
     uint64_t abbr_name_addr = (uint64_t) type->abbreviated_name;
     uint64_t type_addr = (uint64_t) type;
     if (!hash_map__insert(types, &abbr_name_addr, &type_addr)) {
-        assert(false);
+        ASSERT(false);
     }
 }
 
 static type_t* type__find(hash_map_t* types, const char* abbreviated_name) {
     uint64_t abbr_name_addr = (uint64_t) abbreviated_name;
     type_t** type_addr = hash_map__find(types, &abbr_name_addr);
-    assert(type_addr);
+    ASSERT(type_addr);
 
     return *type_addr;
 }
@@ -92,6 +92,7 @@ static inline void state__patch_call(uint8_t* call_ip, uint8_t* new_addr) {
 }
 
 static void compile__function(hash_map_t* types, type_internal_function_t* function, uint8_t* ip) {
+    debug__set_fn(&debug, function->name);
     type_internal_function__set_ip(function, ip);
     type_internal_function__add_ins(function, INS_PUSH_BP);
     type_internal_function__add_ins(function, INS_MOV_REG, 0, 1);
@@ -108,8 +109,8 @@ static void compile__function(hash_map_t* types, type_internal_function_t* funct
 }
 
 #define STACK_CHECK(state_p, addr) do { \
-    assert((uint8_t*) addr >= (state_p)->stack && "Stack underflow."); \
-    assert((uint8_t*) addr < (state_p)->stack_end && "Stack overflow."); \
+    ASSERT((uint8_t*) addr >= (state_p)->stack && "Stack underflow."); \
+    ASSERT((uint8_t*) addr < (state_p)->stack_end && "Stack overflow."); \
 } while (false)
 #define BP_SET(state_p, n) do { \
     STACK_CHECK(state_p, n); \
@@ -167,13 +168,13 @@ void state__compile_ret_struct_fn(hash_map_t* types, type_internal_function_t* t
     type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 123456789101112, 0});
     type_internal_function__store_return(type_function, "member_3", NULL);
 
-    assert(type_function->return_type->type_specifier == TYPE_STRUCT);
+    ASSERT(type_function->return_type->type_specifier == TYPE_STRUCT);
     type_struct_t* type_struct = (type_struct_t*) type_function->return_type;
     member_t* member_array = type_struct__member(type_struct, "member_array");
-    assert(member_array);
+    ASSERT(member_array);
 
     type_array_t* arr_type = (type_array_t*) member_array->type;
-    assert(member_array->type->type_specifier == TYPE_ARRAY);
+    ASSERT(member_array->type->type_specifier == TYPE_ARRAY);
     for (uint32_t arr_index = 0; arr_index < arr_type->element_size; ++arr_index) {
         type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ arr_index * 13, 0 });
         type_internal_function__store_return(type_function, "member_array", arr_index, NULL);
@@ -204,16 +205,16 @@ void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_c
         case TYPE_FUNCTION_BUILTIN: {
         } break ;
             type_internal_function__add_ins(type_function, INS_CALL_BUILTIN, fn_to_call);
-        default: assert(false);
+        default: ASSERT(false);
     }
 }
 
 void state__compile_start(hash_map_t* types, type_internal_function_t* type_function) {
     type_t* t_reg = type__find(types, "reg");
-    assert(t_reg);
+    ASSERT(t_reg);
 
     type_internal_function_t* main_fn = (type_internal_function_t*) type__find(types, "main");
-    assert(main_fn);
+    ASSERT(main_fn);
 
     type_internal_function__add_ins(type_function, INS_PUSH_TYPE, t_reg);
     compile__emit_call(type_function, (type_t*) main_fn);
@@ -222,13 +223,13 @@ void state__compile_start(hash_map_t* types, type_internal_function_t* type_func
 
 void state__compile_main(hash_map_t* types, type_internal_function_t* type_function) {
     type_t* t_s32 = type__find(types, "s32");
-    assert(t_s32);
+    ASSERT(t_s32);
 
     type_internal_function_t* fact_fn_decl = (type_internal_function_t*) type__find(types, "fact");
-    assert(fact_fn_decl);
+    ASSERT(fact_fn_decl);
 
     type_t* print_fn = type__find(types, "print");
-    assert(print_fn);
+    ASSERT(print_fn);
 
     type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 10, 0 });
     compile__emit_call(type_function, (type_t*) fact_fn_decl);
@@ -243,15 +244,15 @@ void state__compile_main(hash_map_t* types, type_internal_function_t* type_funct
 void state__compile(state_t* self) {
     // _start_fn
     type_internal_function_t* main_fn = (type_internal_function_t*) type__find(&self->types, "main");
-    assert(main_fn);
+    ASSERT(main_fn);
     compile__function(&self->types, main_fn, self->code);
 
     type_internal_function_t* _start_fn = (type_internal_function_t*) type__find(&self->types, "_start");
-    assert(_start_fn);
+    ASSERT(_start_fn);
     compile__function(&self->types, _start_fn, type_internal_function__end_ip(main_fn));
 
     type_internal_function_t* fact_fn = (type_internal_function_t*) type__find(&self->types, "fact");
-    assert(fact_fn);
+    ASSERT(fact_fn);
     compile__function(&self->types, fact_fn, type_internal_function__end_ip(_start_fn));
 
     // 42
@@ -274,7 +275,7 @@ void state__compile(state_t* self) {
 
     // call ret struct
     // type_t* ta = type__find(self, "a");
-    // assert(ta);
+    // ASSERT(ta);
     // fn_decl_t* fn_decl = fn_decl__create("ret_struct", &state__compile_ret_struct_fn, ta);
 
     // uint8_t* ret_struct_fn_ip = ip;
@@ -325,9 +326,9 @@ void state__define_internal_functions(hash_map_t* types) {
     type_t* t_s64 = type__find(types, "s64");
     type_t* t_s32 = type__find(types, "s32");
     type_t* t_a = type__find(types, "a");
-    assert(t_reg);
-    assert(t_s64);
-    assert(t_s64);
+    ASSERT(t_reg);
+    ASSERT(t_s64);
+    ASSERT(t_s64);
 
     type_internal_function_t* ret_struct_fn = type_internal_function__create("fact", &state__compile_ret_struct_fn);
     type_internal_function__set_return(ret_struct_fn, t_a);
@@ -379,9 +380,9 @@ void state__execute_print(type_builtin_function_t* self, void* processor) {
 
 void state__define_builtin_functions(hash_map_t* types) {
     type_t* t_u64 = type__find(types, "u64");
-    assert(t_u64);
+    ASSERT(t_u64);
     type_t* t_void_p = type__find(types, "void_p");
-    assert(t_void_p);
+    ASSERT(t_void_p);
 
     type_builtin_function_t* builtin_malloc = type_builtin_function__create("malloc", &state__execute_malloc);
     type_builtin_function__add_argument(builtin_malloc, "size", t_u64);
@@ -422,7 +423,7 @@ static void _type__print_value_s32(FILE* fp, uint8_t* address) {
 }
 
 static void _type__print_value_s64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lld", *(int64_t*) address);
+    fprintf(fp, "%ld", *(int64_t*) address);
 }
 
 static void _type__print_value_u8(FILE* fp, uint8_t* address) {
@@ -438,7 +439,7 @@ static void _type__print_value_u32(FILE* fp, uint8_t* address) {
 }
 
 static void _type__print_value_u64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%llu", *(uint64_t*) address);
+    fprintf(fp, "%lu", *(uint64_t*) address);
 }
 
 static void _type__print_value_r32(FILE* fp, uint8_t* address) {
@@ -451,8 +452,8 @@ static void _type__print_value_r64(FILE* fp, uint8_t* address) {
 
 static void _type__print_value_reg(FILE* fp, uint8_t* address) {
     reg_t* reg = (reg_t*) address;
-    fprintf(fp, "%llu", reg->_);
-    fprintf(fp, ", %llu", reg->__);
+    fprintf(fp, "%lu", reg->_);
+    fprintf(fp, ", %lu", reg->__);
 }
 
 void state__create_atom_types(hash_map_t* types) {
@@ -501,8 +502,8 @@ void state__create_user_types(hash_map_t* types) {
     type__set_alignment((type_t*) ts16_aligned_4, 4);
 
     type_t* tu64 = type__find(types, "u64");
-    assert(ts8);
-    assert(tu64);
+    ASSERT(ts8);
+    ASSERT(tu64);
     type_struct__add(ta, ts8,  "member_1");
     type_struct__add(ta, (type_t*) ts16_aligned_4, "member_2");
     type_struct__add(ta, tu64, "member_3");
@@ -513,16 +514,16 @@ void state__create_user_types(hash_map_t* types) {
 }
 
 int main() {
-    debug__create();
-
     cache_t cache;
     cache.memory_size = 20 * 1024 * 1024;
     cache.memory = malloc(cache.memory_size);
 
     state_t state;
     if (!state__create(&state)) {
-        assert(false);
+        ASSERT(false);
     }
+
+    debug__create(&debug, &state);
 
     state__create_atom_types(&state.types);
     state__create_user_types(&state.types);
@@ -531,7 +532,7 @@ int main() {
 
     state__compile(&state);
     type_internal_function_t* _start = (type_internal_function_t*) type__find(&state.types, "_start");
-    assert(_start);
+    ASSERT(_start);
 
     uint64_t time_total_virt = 0;
     uint64_t time_total_real = 0;
@@ -544,6 +545,8 @@ int main() {
         // clear_cache(&cache);
 
         while (state.alive) {
+            debug__set_ip(&debug, state.ip);
+            ASSERT(state.ip >= state.code && state.ip < state.code + state.code_size);
             uint8_t ins = *state.ip++;
             switch (ins) {
                 case INS_PUSH: {
@@ -556,7 +559,7 @@ int main() {
                     uint64_t size;
                     CODE_POP(state.ip, uint64_t, alignment);
                     CODE_POP(state.ip, uint64_t, size);
-                    assert(state.stack_aligned_top < state.stack_aligned_size && "Stack aligned metadata overflow");
+                    ASSERT(state.stack_aligned_top < state.stack_aligned_size && "Stack aligned metadata overflow");
                     state.stack_aligned[state.stack_aligned_top++] = state.stack_top;
                     uint64_t remainder = ((uint64_t) state.stack_top) % alignment;
                     if (remainder) {
@@ -587,7 +590,7 @@ int main() {
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
                 } break ;
                 case INS_POP_TYPE: {
-                    assert(state.stack_aligned_top > 0 && "Stack aligned metadata underflow");
+                    ASSERT(state.stack_aligned_top > 0 && "Stack aligned metadata underflow");
                     uint8_t* new_sp = state.stack_aligned[--state.stack_aligned_top];
                     SP_SET(&state, new_sp);
                 } break ;
@@ -949,7 +952,7 @@ int main() {
                     uint8_t bytes;
                     STACK_POP(&state, reg_t, addr);
                     CODE_POP(state.ip, uint8_t, bytes);
-                    assert(bytes <= sizeof(reg_t));
+                    ASSERT(bytes <= sizeof(reg_t));
                     memmove(state.stack_top, (void*) addr._, bytes);
                     if (bytes < sizeof(reg_t)) {
                         // fill remaining bytes with 0s
@@ -962,7 +965,7 @@ int main() {
                     uint8_t bytes;
                     STACK_POP(&state, reg_t, addr);
                     CODE_POP(state.ip, uint8_t, bytes);
-                    assert(bytes <= sizeof(reg_t));
+                    ASSERT(bytes <= sizeof(reg_t));
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
                     memmove((void*) addr._, state.stack_top, bytes);
                 } break ;
@@ -971,24 +974,30 @@ int main() {
                     CODE_POP(state.ip, type_internal_function_t*, internal_function);
                     STACK_PUSH(&state, uint8_t*, state.ip);
                     state.ip = type_internal_function__ip(internal_function);
+ 
+                    debug__push_ins_arg(&debug, internal_function->name);
                 } break ;
                 case INS_CALL_EXTERNAL: {
-                    assert(false && "todo: implement");
+                    ASSERT(false && "todo: implement");
                     type_external_function_t* external_function;
                     CODE_POP(state.ip, type_external_function_t*, external_function);
                     type_external_function__call(external_function);
+ 
+                    debug__push_ins_arg(&debug, external_function->name);
                 } break ;
                 case INS_CALL_BUILTIN: {
                     type_builtin_function_t* builtin_function;
                     CODE_POP(state.ip, type_builtin_function_t*, builtin_function);
                     type_builtin_function__call(builtin_function, &state);
+ 
+                    debug__push_ins_arg(&debug, builtin_function->name);
                 } break ;
                 case INS_RET: {
                     uint8_t* addr;
                     uint16_t number_of_arguments;
                     STACK_POP(&state, uint8_t*, addr);
                     CODE_POP(state.ip, uint16_t, number_of_arguments);
-                    assert(state.stack_aligned_top >= number_of_arguments && "Stack aligned metadata underflow");
+                    ASSERT(state.stack_aligned_top >= number_of_arguments && "Stack aligned metadata underflow");
                     state.stack_aligned_top -= number_of_arguments;
                     if (number_of_arguments > 0) {
                         uint8_t* new_sp = state.stack_aligned[state.stack_aligned_top];
@@ -999,17 +1008,19 @@ int main() {
                 case INS_EXIT: {
                     state.alive = false;
                     STACK_POP(&state, reg_t, state.exit_status_code);
-                    printf("\nExit status code: %llu\n", state.exit_status_code._);
+                    printf("\nExit status code: %lu\n", state.exit_status_code._);
                 } break ;
                 case INS_NOP: {
                 } break ;
-                default: assert(false);
+                default: ASSERT(false);
             }
+
+            debug__dump_line(&debug, debug.runtime_code_file);
         }
     }
 
     state__destroy(&state);
-    debug__destroy();
+    debug__destroy(&debug);
 
     return 0;
 }

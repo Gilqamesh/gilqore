@@ -575,7 +575,7 @@ Disassembly of section .text:
    1400017ab:	48 89 c2             	mov    %rax,%rdx
    1400017ae:	48 8d 05 a3 18 01 00 	lea    0x118a3(%rip),%rax        # 140013058 <.rdata+0x8>
    1400017b5:	48 89 c1             	mov    %rax,%rcx
-   1400017b8:	48 8b 05 81 9b 01 00 	mov    0x19b81(%rip),%rax        # 14001b340 <__imp__assert>
+   1400017b8:	48 8b 05 81 9b 01 00 	mov    0x19b81(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400017bf:	ff d0                	call   *%rax
    1400017c1:	48 8b 45 20          	mov    0x20(%rbp),%rax
    1400017c5:	8b 00                	mov    (%rax),%eax
@@ -644,7 +644,7 @@ Disassembly of section .text:
    1400018b4:	48 89 c2             	mov    %rax,%rdx
    1400018b7:	48 8d 05 0a 18 01 00 	lea    0x1180a(%rip),%rax        # 1400130c8 <.rdata+0x78>
    1400018be:	48 89 c1             	mov    %rax,%rcx
-   1400018c1:	48 8b 05 78 9a 01 00 	mov    0x19a78(%rip),%rax        # 14001b340 <__imp__assert>
+   1400018c1:	48 8b 05 78 9a 01 00 	mov    0x19a78(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400018c8:	ff d0                	call   *%rax
    1400018ca:	8b 45 30             	mov    0x30(%rbp),%eax
    1400018cd:	44 8d 40 ff          	lea    -0x1(%rax),%r8d
@@ -854,7 +854,7 @@ Disassembly of section .text:
    140001bea:	48 89 c2             	mov    %rax,%rdx
    140001bed:	48 8d 05 78 15 01 00 	lea    0x11578(%rip),%rax        # 14001316c <.rdata+0x11c>
    140001bf4:	48 89 c1             	mov    %rax,%rcx
-   140001bf7:	48 8b 05 42 97 01 00 	mov    0x19742(%rip),%rax        # 14001b340 <__imp__assert>
+   140001bf7:	48 8b 05 42 97 01 00 	mov    0x19742(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140001bfe:	ff d0                	call   *%rax
    140001c00:	90                   	nop
    140001c01:	48 83 c4 78          	add    $0x78,%rsp
@@ -928,7 +928,7 @@ Disassembly of section .text:
    140001ccc:	48 89 c2             	mov    %rax,%rdx
    140001ccf:	48 8d 05 96 14 01 00 	lea    0x11496(%rip),%rax        # 14001316c <.rdata+0x11c>
    140001cd6:	48 89 c1             	mov    %rax,%rcx
-   140001cd9:	48 8b 05 60 96 01 00 	mov    0x19660(%rip),%rax        # 14001b340 <__imp__assert>
+   140001cd9:	48 8b 05 60 96 01 00 	mov    0x19660(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140001ce0:	ff d0                	call   *%rax
    140001ce2:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140001ce6:	48 8b 50 10          	mov    0x10(%rax),%rdx
@@ -1022,7 +1022,7 @@ Disassembly of section .text:
    140001e27:	48 89 c2             	mov    %rax,%rdx
    140001e2a:	48 8d 05 5f 13 01 00 	lea    0x1135f(%rip),%rax        # 140013190 <.rdata+0x140>
    140001e31:	48 89 c1             	mov    %rax,%rcx
-   140001e34:	48 8b 05 05 95 01 00 	mov    0x19505(%rip),%rax        # 14001b340 <__imp__assert>
+   140001e34:	48 8b 05 05 95 01 00 	mov    0x19505(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140001e3b:	ff d0                	call   *%rax
    140001e3d:	48 8b 45 20          	mov    0x20(%rbp),%rax
    140001e41:	48 8b 55 28          	mov    0x28(%rbp),%rdx
@@ -1142,7 +1142,7 @@ Disassembly of section .text:
    140001fd2:	48 89 c2             	mov    %rax,%rdx
    140001fd5:	48 8d 05 d9 11 01 00 	lea    0x111d9(%rip),%rax        # 1400131b5 <.rdata+0x165>
    140001fdc:	48 89 c1             	mov    %rax,%rcx
-   140001fdf:	48 8b 05 5a 93 01 00 	mov    0x1935a(%rip),%rax        # 14001b340 <__imp__assert>
+   140001fdf:	48 8b 05 5a 93 01 00 	mov    0x1935a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140001fe6:	ff d0                	call   *%rax
    140001fe8:	48 83 7d 18 10       	cmpq   $0x10,0x18(%rbp)
    140001fed:	76 23                	jbe    140002012 <type__set_max_alignment+0x8e>
@@ -1151,7 +1151,7 @@ Disassembly of section .text:
    140001ffc:	48 89 c2             	mov    %rax,%rdx
    140001fff:	48 8d 05 cc 11 01 00 	lea    0x111cc(%rip),%rax        # 1400131d2 <.rdata+0x182>
    140002006:	48 89 c1             	mov    %rax,%rcx
-   140002009:	48 8b 05 30 93 01 00 	mov    0x19330(%rip),%rax        # 14001b340 <__imp__assert>
+   140002009:	48 8b 05 30 93 01 00 	mov    0x19330(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002010:	ff d0                	call   *%rax
    140002012:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002016:	48 8b 55 18          	mov    0x18(%rbp),%rdx
@@ -1235,7 +1235,7 @@ Disassembly of section .text:
    14000211d:	48 89 c2             	mov    %rax,%rdx
    140002120:	48 8d 05 bf 10 01 00 	lea    0x110bf(%rip),%rax        # 1400131e6 <.rdata+0x196>
    140002127:	48 89 c1             	mov    %rax,%rcx
-   14000212a:	48 8b 05 0f 92 01 00 	mov    0x1920f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000212a:	48 8b 05 0f 92 01 00 	mov    0x1920f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002131:	ff d0                	call   *%rax
    140002133:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002137:	48 8b 55 18          	mov    0x18(%rbp),%rdx
@@ -1322,7 +1322,7 @@ Disassembly of section .text:
    140002227:	48 89 c2             	mov    %rax,%rdx
    14000222a:	48 8d 05 ce 0f 01 00 	lea    0x10fce(%rip),%rax        # 1400131ff <.rdata+0x1af>
    140002231:	48 89 c1             	mov    %rax,%rcx
-   140002234:	48 8b 05 05 91 01 00 	mov    0x19105(%rip),%rax        # 14001b340 <__imp__assert>
+   140002234:	48 8b 05 05 91 01 00 	mov    0x19105(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000223b:	ff d0                	call   *%rax
    14000223d:	48 8b 45 18          	mov    0x18(%rbp),%rax
    140002241:	ba 00 00 00 00       	mov    $0x0,%edx
@@ -1344,7 +1344,7 @@ Disassembly of section .text:
    140002283:	48 89 c2             	mov    %rax,%rdx
    140002286:	48 8d 05 83 0f 01 00 	lea    0x10f83(%rip),%rax        # 140013210 <.rdata+0x1c0>
    14000228d:	48 89 c1             	mov    %rax,%rcx
-   140002290:	48 8b 05 a9 90 01 00 	mov    0x190a9(%rip),%rax        # 14001b340 <__imp__assert>
+   140002290:	48 8b 05 a9 90 01 00 	mov    0x190a9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002297:	ff d0                	call   *%rax
    140002299:	48 8b 45 18          	mov    0x18(%rbp),%rax
    14000229d:	48 83 c4 30          	add    $0x30,%rsp
@@ -1579,7 +1579,7 @@ Disassembly of section .text:
    1400025a8:	48 89 c2             	mov    %rax,%rdx
    1400025ab:	48 8d 05 be 0c 01 00 	lea    0x10cbe(%rip),%rax        # 140013270 <.rdata+0x220>
    1400025b2:	48 89 c1             	mov    %rax,%rcx
-   1400025b5:	48 8b 05 84 8d 01 00 	mov    0x18d84(%rip),%rax        # 14001b340 <__imp__assert>
+   1400025b5:	48 8b 05 84 8d 01 00 	mov    0x18d84(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400025bc:	ff d0                	call   *%rax
    1400025be:	48 8b 45 10          	mov    0x10(%rbp),%rax
    1400025c2:	4c 8b 40 30          	mov    0x30(%rax),%r8
@@ -1611,7 +1611,7 @@ Disassembly of section .text:
    140002624:	48 89 c2             	mov    %rax,%rdx
    140002627:	48 8d 05 6a 0c 01 00 	lea    0x10c6a(%rip),%rax        # 140013298 <.rdata+0x248>
    14000262e:	48 89 c1             	mov    %rax,%rcx
-   140002631:	48 8b 05 08 8d 01 00 	mov    0x18d08(%rip),%rax        # 14001b340 <__imp__assert>
+   140002631:	48 8b 05 08 8d 01 00 	mov    0x18d08(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002638:	ff d0                	call   *%rax
    14000263a:	48 8b 55 f8          	mov    -0x8(%rbp),%rdx
    14000263e:	48 8b 45 10          	mov    0x10(%rbp),%rax
@@ -1712,7 +1712,7 @@ Disassembly of section .text:
    14000277e:	48 89 c2             	mov    %rax,%rdx
    140002781:	48 8d 05 e8 0a 01 00 	lea    0x10ae8(%rip),%rax        # 140013270 <.rdata+0x220>
    140002788:	48 89 c1             	mov    %rax,%rcx
-   14000278b:	48 8b 05 ae 8b 01 00 	mov    0x18bae(%rip),%rax        # 14001b340 <__imp__assert>
+   14000278b:	48 8b 05 ae 8b 01 00 	mov    0x18bae(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002792:	ff d0                	call   *%rax
    140002794:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002798:	4c 8b 40 40          	mov    0x40(%rax),%r8
@@ -1744,7 +1744,7 @@ Disassembly of section .text:
    1400027fa:	48 89 c2             	mov    %rax,%rdx
    1400027fd:	48 8d 05 94 0a 01 00 	lea    0x10a94(%rip),%rax        # 140013298 <.rdata+0x248>
    140002804:	48 89 c1             	mov    %rax,%rcx
-   140002807:	48 8b 05 32 8b 01 00 	mov    0x18b32(%rip),%rax        # 14001b340 <__imp__assert>
+   140002807:	48 8b 05 32 8b 01 00 	mov    0x18b32(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000280e:	ff d0                	call   *%rax
    140002810:	48 8b 55 f8          	mov    -0x8(%rbp),%rdx
    140002814:	48 8b 45 10          	mov    0x10(%rbp),%rax
@@ -1774,7 +1774,7 @@ Disassembly of section .text:
    140002861:	48 89 c2             	mov    %rax,%rdx
    140002864:	48 8d 05 3d 0a 01 00 	lea    0x10a3d(%rip),%rax        # 1400132a8 <.rdata+0x258>
    14000286b:	48 89 c1             	mov    %rax,%rcx
-   14000286e:	48 8b 05 cb 8a 01 00 	mov    0x18acb(%rip),%rax        # 14001b340 <__imp__assert>
+   14000286e:	48 8b 05 cb 8a 01 00 	mov    0x18acb(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002875:	ff d0                	call   *%rax
    140002877:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000287b:	ba 40 00 00 00       	mov    $0x40,%edx
@@ -1920,7 +1920,7 @@ Disassembly of section .text:
    140002a68:	48 89 c2             	mov    %rax,%rdx
    140002a6b:	48 8d 05 86 08 01 00 	lea    0x10886(%rip),%rax        # 1400132f8 <.rdata+0x2a8>
    140002a72:	48 89 c1             	mov    %rax,%rcx
-   140002a75:	48 8b 05 c4 88 01 00 	mov    0x188c4(%rip),%rax        # 14001b340 <__imp__assert>
+   140002a75:	48 8b 05 c4 88 01 00 	mov    0x188c4(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002a7c:	ff d0                	call   *%rax
    140002a7e:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002a82:	48 8b 50 30          	mov    0x30(%rax),%rdx
@@ -1975,7 +1975,7 @@ Disassembly of section .text:
    140002b1e:	48 89 c2             	mov    %rax,%rdx
    140002b21:	48 8d 05 f5 07 01 00 	lea    0x107f5(%rip),%rax        # 14001331d <.rdata+0x2cd>
    140002b28:	48 89 c1             	mov    %rax,%rcx
-   140002b2b:	48 8b 05 0e 88 01 00 	mov    0x1880e(%rip),%rax        # 14001b340 <__imp__assert>
+   140002b2b:	48 8b 05 0e 88 01 00 	mov    0x1880e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002b32:	ff d0                	call   *%rax
    140002b34:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002b38:	48 8b 50 30          	mov    0x30(%rax),%rdx
@@ -2109,7 +2109,7 @@ Disassembly of section .text:
    140002cba:	48 89 c2             	mov    %rax,%rdx
    140002cbd:	48 8d 05 74 06 01 00 	lea    0x10674(%rip),%rax        # 140013338 <.rdata+0x2e8>
    140002cc4:	48 89 c1             	mov    %rax,%rcx
-   140002cc7:	48 8b 05 72 86 01 00 	mov    0x18672(%rip),%rax        # 14001b340 <__imp__assert>
+   140002cc7:	48 8b 05 72 86 01 00 	mov    0x18672(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002cce:	ff d0                	call   *%rax
    140002cd0:	48 8b 45 10          	mov    0x10(%rbp),%rax
    140002cd4:	8b 00                	mov    (%rax),%eax
@@ -2175,7 +2175,7 @@ Disassembly of section .text:
    140002dbb:	48 89 c2             	mov    %rax,%rdx
    140002dbe:	48 8d 05 c3 05 01 00 	lea    0x105c3(%rip),%rax        # 140013388 <.rdata+0x338>
    140002dc5:	48 89 c1             	mov    %rax,%rcx
-   140002dc8:	48 8b 05 71 85 01 00 	mov    0x18571(%rip),%rax        # 14001b340 <__imp__assert>
+   140002dc8:	48 8b 05 71 85 01 00 	mov    0x18571(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140002dcf:	ff d0                	call   *%rax
    140002dd1:	48 8b 55 28          	mov    0x28(%rbp),%rdx
    140002dd5:	48 8b 45 18          	mov    0x18(%rbp),%rax
@@ -2449,7 +2449,7 @@ Disassembly of section .text:
    1400031fa:	48 89 c2             	mov    %rax,%rdx
    1400031fd:	48 8d 05 68 ff 00 00 	lea    0xff68(%rip),%rax        # 14001316c <.rdata+0x11c>
    140003204:	48 89 c1             	mov    %rax,%rcx
-   140003207:	48 8b 05 32 81 01 00 	mov    0x18132(%rip),%rax        # 14001b340 <__imp__assert>
+   140003207:	48 8b 05 32 81 01 00 	mov    0x18132(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000320e:	ff d0                	call   *%rax
    140003210:	90                   	nop
    140003211:	48 83 c4 60          	add    $0x60,%rsp
@@ -2670,7 +2670,7 @@ Disassembly of section .text:
    1400035c0:	48 89 c2             	mov    %rax,%rdx
    1400035c3:	48 8d 05 ca fe 00 00 	lea    0xfeca(%rip),%rax        # 140013494 <.rdata+0x444>
    1400035ca:	48 89 c1             	mov    %rax,%rcx
-   1400035cd:	48 8b 05 6c 7d 01 00 	mov    0x17d6c(%rip),%rax        # 14001b340 <__imp__assert>
+   1400035cd:	48 8b 05 6c 7d 01 00 	mov    0x17d6c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400035d4:	ff d0                	call   *%rax
    1400035d6:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
    1400035da:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -2684,7 +2684,7 @@ Disassembly of section .text:
    1400035fd:	48 89 c2             	mov    %rax,%rdx
    140003600:	48 8d 05 92 fe 00 00 	lea    0xfe92(%rip),%rax        # 140013499 <.rdata+0x449>
    140003607:	48 89 c1             	mov    %rax,%rcx
-   14000360a:	48 8b 05 2f 7d 01 00 	mov    0x17d2f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000360a:	48 8b 05 2f 7d 01 00 	mov    0x17d2f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140003611:	ff d0                	call   *%rax
    140003613:	90                   	nop
    140003614:	48 8b 4d f0          	mov    -0x10(%rbp),%rcx
@@ -2712,7 +2712,7 @@ Disassembly of section .text:
    14000366c:	48 89 c2             	mov    %rax,%rdx
    14000366f:	48 8d 05 23 fe 00 00 	lea    0xfe23(%rip),%rax        # 140013499 <.rdata+0x449>
    140003676:	48 89 c1             	mov    %rax,%rcx
-   140003679:	48 8b 05 c0 7c 01 00 	mov    0x17cc0(%rip),%rax        # 14001b340 <__imp__assert>
+   140003679:	48 8b 05 c0 7c 01 00 	mov    0x17cc0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140003680:	ff d0                	call   *%rax
    140003682:	eb 90                	jmp    140003614 <_type_struct__add_multiple+0x9b>
    140003684:	90                   	nop
@@ -2743,7 +2743,7 @@ Disassembly of section .text:
    1400036d3:	48 89 c2             	mov    %rax,%rdx
    1400036d6:	48 8d 05 b7 fd 00 00 	lea    0xfdb7(%rip),%rax        # 140013494 <.rdata+0x444>
    1400036dd:	48 89 c1             	mov    %rax,%rcx
-   1400036e0:	48 8b 05 59 7c 01 00 	mov    0x17c59(%rip),%rax        # 14001b340 <__imp__assert>
+   1400036e0:	48 8b 05 59 7c 01 00 	mov    0x17c59(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400036e7:	ff d0                	call   *%rax
    1400036e9:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
    1400036ed:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -2757,7 +2757,7 @@ Disassembly of section .text:
    140003710:	48 89 c2             	mov    %rax,%rdx
    140003713:	48 8d 05 7f fd 00 00 	lea    0xfd7f(%rip),%rax        # 140013499 <.rdata+0x449>
    14000371a:	48 89 c1             	mov    %rax,%rcx
-   14000371d:	48 8b 05 1c 7c 01 00 	mov    0x17c1c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000371d:	48 8b 05 1c 7c 01 00 	mov    0x17c1c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140003724:	ff d0                	call   *%rax
    140003726:	90                   	nop
    140003727:	48 8b 4d f0          	mov    -0x10(%rbp),%rcx
@@ -2785,7 +2785,7 @@ Disassembly of section .text:
    14000377f:	48 89 c2             	mov    %rax,%rdx
    140003782:	48 8d 05 10 fd 00 00 	lea    0xfd10(%rip),%rax        # 140013499 <.rdata+0x449>
    140003789:	48 89 c1             	mov    %rax,%rcx
-   14000378c:	48 8b 05 ad 7b 01 00 	mov    0x17bad(%rip),%rax        # 14001b340 <__imp__assert>
+   14000378c:	48 8b 05 ad 7b 01 00 	mov    0x17bad(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140003793:	ff d0                	call   *%rax
    140003795:	eb 90                	jmp    140003727 <_type_union__add_multiple+0x9b>
    140003797:	90                   	nop
@@ -3948,7 +3948,7 @@ Disassembly of section .text:
    140004e4a:	48 89 c2             	mov    %rax,%rdx
    140004e4d:	48 8d 05 c4 e7 00 00 	lea    0xe7c4(%rip),%rax        # 140013618 <.rdata+0x5c8>
    140004e54:	48 89 c1             	mov    %rax,%rcx
-   140004e57:	48 8b 05 e2 64 01 00 	mov    0x164e2(%rip),%rax        # 14001b340 <__imp__assert>
+   140004e57:	48 8b 05 e2 64 01 00 	mov    0x164e2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140004e5e:	ff d0                	call   *%rax
    140004e60:	48 8b 85 b8 03 00 00 	mov    0x3b8(%rbp),%rax
    140004e67:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -3959,7 +3959,7 @@ Disassembly of section .text:
    140004e7e:	48 89 c2             	mov    %rax,%rdx
    140004e81:	48 8d 05 c0 e7 00 00 	lea    0xe7c0(%rip),%rax        # 140013648 <.rdata+0x5f8>
    140004e88:	48 89 c1             	mov    %rax,%rcx
-   140004e8b:	48 8b 05 ae 64 01 00 	mov    0x164ae(%rip),%rax        # 14001b340 <__imp__assert>
+   140004e8b:	48 8b 05 ae 64 01 00 	mov    0x164ae(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140004e92:	ff d0                	call   *%rax
    140004e94:	b9 01 00 00 00       	mov    $0x1,%ecx
    140004e99:	48 8b 05 28 64 01 00 	mov    0x16428(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4014,7 +4014,7 @@ Disassembly of section .text:
    140004f87:	48 89 c2             	mov    %rax,%rdx
    140004f8a:	48 8d 05 df e6 00 00 	lea    0xe6df(%rip),%rax        # 140013670 <.rdata+0x620>
    140004f91:	48 89 c1             	mov    %rax,%rcx
-   140004f94:	48 8b 05 a5 63 01 00 	mov    0x163a5(%rip),%rax        # 14001b340 <__imp__assert>
+   140004f94:	48 8b 05 a5 63 01 00 	mov    0x163a5(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140004f9b:	ff d0                	call   *%rax
    140004f9d:	48 8b 85 b0 03 00 00 	mov    0x3b0(%rbp),%rax
    140004fa4:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4025,7 +4025,7 @@ Disassembly of section .text:
    140004fbb:	48 89 c2             	mov    %rax,%rdx
    140004fbe:	48 8d 05 db e6 00 00 	lea    0xe6db(%rip),%rax        # 1400136a0 <.rdata+0x650>
    140004fc5:	48 89 c1             	mov    %rax,%rcx
-   140004fc8:	48 8b 05 71 63 01 00 	mov    0x16371(%rip),%rax        # 14001b340 <__imp__assert>
+   140004fc8:	48 8b 05 71 63 01 00 	mov    0x16371(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140004fcf:	ff d0                	call   *%rax
    140004fd1:	b9 01 00 00 00       	mov    $0x1,%ecx
    140004fd6:	48 8b 05 eb 62 01 00 	mov    0x162eb(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4080,7 +4080,7 @@ Disassembly of section .text:
    1400050c4:	48 89 c2             	mov    %rax,%rdx
    1400050c7:	48 8d 05 02 e6 00 00 	lea    0xe602(%rip),%rax        # 1400136d0 <.rdata+0x680>
    1400050ce:	48 89 c1             	mov    %rax,%rcx
-   1400050d1:	48 8b 05 68 62 01 00 	mov    0x16268(%rip),%rax        # 14001b340 <__imp__assert>
+   1400050d1:	48 8b 05 68 62 01 00 	mov    0x16268(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400050d8:	ff d0                	call   *%rax
    1400050da:	48 8b 85 a8 03 00 00 	mov    0x3a8(%rbp),%rax
    1400050e1:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4091,7 +4091,7 @@ Disassembly of section .text:
    1400050f8:	48 89 c2             	mov    %rax,%rdx
    1400050fb:	48 8d 05 fe e5 00 00 	lea    0xe5fe(%rip),%rax        # 140013700 <.rdata+0x6b0>
    140005102:	48 89 c1             	mov    %rax,%rcx
-   140005105:	48 8b 05 34 62 01 00 	mov    0x16234(%rip),%rax        # 14001b340 <__imp__assert>
+   140005105:	48 8b 05 34 62 01 00 	mov    0x16234(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000510c:	ff d0                	call   *%rax
    14000510e:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005113:	48 8b 05 ae 61 01 00 	mov    0x161ae(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4146,7 +4146,7 @@ Disassembly of section .text:
    140005201:	48 89 c2             	mov    %rax,%rdx
    140005204:	48 8d 05 25 e5 00 00 	lea    0xe525(%rip),%rax        # 140013730 <.rdata+0x6e0>
    14000520b:	48 89 c1             	mov    %rax,%rcx
-   14000520e:	48 8b 05 2b 61 01 00 	mov    0x1612b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000520e:	48 8b 05 2b 61 01 00 	mov    0x1612b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005215:	ff d0                	call   *%rax
    140005217:	48 8b 85 a0 03 00 00 	mov    0x3a0(%rbp),%rax
    14000521e:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4157,7 +4157,7 @@ Disassembly of section .text:
    140005235:	48 89 c2             	mov    %rax,%rdx
    140005238:	48 8d 05 21 e5 00 00 	lea    0xe521(%rip),%rax        # 140013760 <.rdata+0x710>
    14000523f:	48 89 c1             	mov    %rax,%rcx
-   140005242:	48 8b 05 f7 60 01 00 	mov    0x160f7(%rip),%rax        # 14001b340 <__imp__assert>
+   140005242:	48 8b 05 f7 60 01 00 	mov    0x160f7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005249:	ff d0                	call   *%rax
    14000524b:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005250:	48 8b 05 71 60 01 00 	mov    0x16071(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4212,7 +4212,7 @@ Disassembly of section .text:
    14000533e:	48 89 c2             	mov    %rax,%rdx
    140005341:	48 8d 05 48 e4 00 00 	lea    0xe448(%rip),%rax        # 140013790 <.rdata+0x740>
    140005348:	48 89 c1             	mov    %rax,%rcx
-   14000534b:	48 8b 05 ee 5f 01 00 	mov    0x15fee(%rip),%rax        # 14001b340 <__imp__assert>
+   14000534b:	48 8b 05 ee 5f 01 00 	mov    0x15fee(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005352:	ff d0                	call   *%rax
    140005354:	48 8b 85 98 03 00 00 	mov    0x398(%rbp),%rax
    14000535b:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4223,7 +4223,7 @@ Disassembly of section .text:
    140005372:	48 89 c2             	mov    %rax,%rdx
    140005375:	48 8d 05 44 e4 00 00 	lea    0xe444(%rip),%rax        # 1400137c0 <.rdata+0x770>
    14000537c:	48 89 c1             	mov    %rax,%rcx
-   14000537f:	48 8b 05 ba 5f 01 00 	mov    0x15fba(%rip),%rax        # 14001b340 <__imp__assert>
+   14000537f:	48 8b 05 ba 5f 01 00 	mov    0x15fba(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005386:	ff d0                	call   *%rax
    140005388:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000538d:	48 8b 05 34 5f 01 00 	mov    0x15f34(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4278,7 +4278,7 @@ Disassembly of section .text:
    14000547b:	48 89 c2             	mov    %rax,%rdx
    14000547e:	48 8d 05 63 e3 00 00 	lea    0xe363(%rip),%rax        # 1400137e8 <.rdata+0x798>
    140005485:	48 89 c1             	mov    %rax,%rcx
-   140005488:	48 8b 05 b1 5e 01 00 	mov    0x15eb1(%rip),%rax        # 14001b340 <__imp__assert>
+   140005488:	48 8b 05 b1 5e 01 00 	mov    0x15eb1(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000548f:	ff d0                	call   *%rax
    140005491:	48 8b 85 90 03 00 00 	mov    0x390(%rbp),%rax
    140005498:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4289,7 +4289,7 @@ Disassembly of section .text:
    1400054af:	48 89 c2             	mov    %rax,%rdx
    1400054b2:	48 8d 05 5f e3 00 00 	lea    0xe35f(%rip),%rax        # 140013818 <.rdata+0x7c8>
    1400054b9:	48 89 c1             	mov    %rax,%rcx
-   1400054bc:	48 8b 05 7d 5e 01 00 	mov    0x15e7d(%rip),%rax        # 14001b340 <__imp__assert>
+   1400054bc:	48 8b 05 7d 5e 01 00 	mov    0x15e7d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400054c3:	ff d0                	call   *%rax
    1400054c5:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400054ca:	48 8b 05 f7 5d 01 00 	mov    0x15df7(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4344,7 +4344,7 @@ Disassembly of section .text:
    1400055b8:	48 89 c2             	mov    %rax,%rdx
    1400055bb:	48 8d 05 86 e2 00 00 	lea    0xe286(%rip),%rax        # 140013848 <.rdata+0x7f8>
    1400055c2:	48 89 c1             	mov    %rax,%rcx
-   1400055c5:	48 8b 05 74 5d 01 00 	mov    0x15d74(%rip),%rax        # 14001b340 <__imp__assert>
+   1400055c5:	48 8b 05 74 5d 01 00 	mov    0x15d74(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400055cc:	ff d0                	call   *%rax
    1400055ce:	48 8b 85 88 03 00 00 	mov    0x388(%rbp),%rax
    1400055d5:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4355,7 +4355,7 @@ Disassembly of section .text:
    1400055ec:	48 89 c2             	mov    %rax,%rdx
    1400055ef:	48 8d 05 82 e2 00 00 	lea    0xe282(%rip),%rax        # 140013878 <.rdata+0x828>
    1400055f6:	48 89 c1             	mov    %rax,%rcx
-   1400055f9:	48 8b 05 40 5d 01 00 	mov    0x15d40(%rip),%rax        # 14001b340 <__imp__assert>
+   1400055f9:	48 8b 05 40 5d 01 00 	mov    0x15d40(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005600:	ff d0                	call   *%rax
    140005602:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005607:	48 8b 05 ba 5c 01 00 	mov    0x15cba(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4410,7 +4410,7 @@ Disassembly of section .text:
    1400056f5:	48 89 c2             	mov    %rax,%rdx
    1400056f8:	48 8d 05 a9 e1 00 00 	lea    0xe1a9(%rip),%rax        # 1400138a8 <.rdata+0x858>
    1400056ff:	48 89 c1             	mov    %rax,%rcx
-   140005702:	48 8b 05 37 5c 01 00 	mov    0x15c37(%rip),%rax        # 14001b340 <__imp__assert>
+   140005702:	48 8b 05 37 5c 01 00 	mov    0x15c37(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005709:	ff d0                	call   *%rax
    14000570b:	48 8b 85 80 03 00 00 	mov    0x380(%rbp),%rax
    140005712:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4421,7 +4421,7 @@ Disassembly of section .text:
    140005729:	48 89 c2             	mov    %rax,%rdx
    14000572c:	48 8d 05 a5 e1 00 00 	lea    0xe1a5(%rip),%rax        # 1400138d8 <.rdata+0x888>
    140005733:	48 89 c1             	mov    %rax,%rcx
-   140005736:	48 8b 05 03 5c 01 00 	mov    0x15c03(%rip),%rax        # 14001b340 <__imp__assert>
+   140005736:	48 8b 05 03 5c 01 00 	mov    0x15c03(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000573d:	ff d0                	call   *%rax
    14000573f:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005744:	48 8b 05 7d 5b 01 00 	mov    0x15b7d(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4476,7 +4476,7 @@ Disassembly of section .text:
    140005832:	48 89 c2             	mov    %rax,%rdx
    140005835:	48 8d 05 cc e0 00 00 	lea    0xe0cc(%rip),%rax        # 140013908 <.rdata+0x8b8>
    14000583c:	48 89 c1             	mov    %rax,%rcx
-   14000583f:	48 8b 05 fa 5a 01 00 	mov    0x15afa(%rip),%rax        # 14001b340 <__imp__assert>
+   14000583f:	48 8b 05 fa 5a 01 00 	mov    0x15afa(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005846:	ff d0                	call   *%rax
    140005848:	48 8b 85 78 03 00 00 	mov    0x378(%rbp),%rax
    14000584f:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4487,7 +4487,7 @@ Disassembly of section .text:
    140005866:	48 89 c2             	mov    %rax,%rdx
    140005869:	48 8d 05 c8 e0 00 00 	lea    0xe0c8(%rip),%rax        # 140013938 <.rdata+0x8e8>
    140005870:	48 89 c1             	mov    %rax,%rcx
-   140005873:	48 8b 05 c6 5a 01 00 	mov    0x15ac6(%rip),%rax        # 14001b340 <__imp__assert>
+   140005873:	48 8b 05 c6 5a 01 00 	mov    0x15ac6(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000587a:	ff d0                	call   *%rax
    14000587c:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005881:	48 8b 05 40 5a 01 00 	mov    0x15a40(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4542,7 +4542,7 @@ Disassembly of section .text:
    14000596f:	48 89 c2             	mov    %rax,%rdx
    140005972:	48 8d 05 ef df 00 00 	lea    0xdfef(%rip),%rax        # 140013968 <.rdata+0x918>
    140005979:	48 89 c1             	mov    %rax,%rcx
-   14000597c:	48 8b 05 bd 59 01 00 	mov    0x159bd(%rip),%rax        # 14001b340 <__imp__assert>
+   14000597c:	48 8b 05 bd 59 01 00 	mov    0x159bd(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005983:	ff d0                	call   *%rax
    140005985:	48 8b 85 70 03 00 00 	mov    0x370(%rbp),%rax
    14000598c:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4553,7 +4553,7 @@ Disassembly of section .text:
    1400059a3:	48 89 c2             	mov    %rax,%rdx
    1400059a6:	48 8d 05 eb df 00 00 	lea    0xdfeb(%rip),%rax        # 140013998 <.rdata+0x948>
    1400059ad:	48 89 c1             	mov    %rax,%rcx
-   1400059b0:	48 8b 05 89 59 01 00 	mov    0x15989(%rip),%rax        # 14001b340 <__imp__assert>
+   1400059b0:	48 8b 05 89 59 01 00 	mov    0x15989(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400059b7:	ff d0                	call   *%rax
    1400059b9:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400059be:	48 8b 05 03 59 01 00 	mov    0x15903(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4608,7 +4608,7 @@ Disassembly of section .text:
    140005aac:	48 89 c2             	mov    %rax,%rdx
    140005aaf:	48 8d 05 12 df 00 00 	lea    0xdf12(%rip),%rax        # 1400139c8 <.rdata+0x978>
    140005ab6:	48 89 c1             	mov    %rax,%rcx
-   140005ab9:	48 8b 05 80 58 01 00 	mov    0x15880(%rip),%rax        # 14001b340 <__imp__assert>
+   140005ab9:	48 8b 05 80 58 01 00 	mov    0x15880(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005ac0:	ff d0                	call   *%rax
    140005ac2:	48 8b 85 68 03 00 00 	mov    0x368(%rbp),%rax
    140005ac9:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4619,7 +4619,7 @@ Disassembly of section .text:
    140005ae0:	48 89 c2             	mov    %rax,%rdx
    140005ae3:	48 8d 05 0e df 00 00 	lea    0xdf0e(%rip),%rax        # 1400139f8 <.rdata+0x9a8>
    140005aea:	48 89 c1             	mov    %rax,%rcx
-   140005aed:	48 8b 05 4c 58 01 00 	mov    0x1584c(%rip),%rax        # 14001b340 <__imp__assert>
+   140005aed:	48 8b 05 4c 58 01 00 	mov    0x1584c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005af4:	ff d0                	call   *%rax
    140005af6:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005afb:	48 8b 05 c6 57 01 00 	mov    0x157c6(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4674,7 +4674,7 @@ Disassembly of section .text:
    140005be9:	48 89 c2             	mov    %rax,%rdx
    140005bec:	48 8d 05 2d de 00 00 	lea    0xde2d(%rip),%rax        # 140013a20 <.rdata+0x9d0>
    140005bf3:	48 89 c1             	mov    %rax,%rcx
-   140005bf6:	48 8b 05 43 57 01 00 	mov    0x15743(%rip),%rax        # 14001b340 <__imp__assert>
+   140005bf6:	48 8b 05 43 57 01 00 	mov    0x15743(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005bfd:	ff d0                	call   *%rax
    140005bff:	48 8b 85 60 03 00 00 	mov    0x360(%rbp),%rax
    140005c06:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4685,7 +4685,7 @@ Disassembly of section .text:
    140005c1d:	48 89 c2             	mov    %rax,%rdx
    140005c20:	48 8d 05 29 de 00 00 	lea    0xde29(%rip),%rax        # 140013a50 <.rdata+0xa00>
    140005c27:	48 89 c1             	mov    %rax,%rcx
-   140005c2a:	48 8b 05 0f 57 01 00 	mov    0x1570f(%rip),%rax        # 14001b340 <__imp__assert>
+   140005c2a:	48 8b 05 0f 57 01 00 	mov    0x1570f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005c31:	ff d0                	call   *%rax
    140005c33:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005c38:	48 8b 05 89 56 01 00 	mov    0x15689(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4740,7 +4740,7 @@ Disassembly of section .text:
    140005d26:	48 89 c2             	mov    %rax,%rdx
    140005d29:	48 8d 05 48 dd 00 00 	lea    0xdd48(%rip),%rax        # 140013a78 <.rdata+0xa28>
    140005d30:	48 89 c1             	mov    %rax,%rcx
-   140005d33:	48 8b 05 06 56 01 00 	mov    0x15606(%rip),%rax        # 14001b340 <__imp__assert>
+   140005d33:	48 8b 05 06 56 01 00 	mov    0x15606(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005d3a:	ff d0                	call   *%rax
    140005d3c:	48 8b 85 58 03 00 00 	mov    0x358(%rbp),%rax
    140005d43:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4751,7 +4751,7 @@ Disassembly of section .text:
    140005d5a:	48 89 c2             	mov    %rax,%rdx
    140005d5d:	48 8d 05 44 dd 00 00 	lea    0xdd44(%rip),%rax        # 140013aa8 <.rdata+0xa58>
    140005d64:	48 89 c1             	mov    %rax,%rcx
-   140005d67:	48 8b 05 d2 55 01 00 	mov    0x155d2(%rip),%rax        # 14001b340 <__imp__assert>
+   140005d67:	48 8b 05 d2 55 01 00 	mov    0x155d2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005d6e:	ff d0                	call   *%rax
    140005d70:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005d75:	48 8b 05 4c 55 01 00 	mov    0x1554c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4806,7 +4806,7 @@ Disassembly of section .text:
    140005e63:	48 89 c2             	mov    %rax,%rdx
    140005e66:	48 8d 05 63 dc 00 00 	lea    0xdc63(%rip),%rax        # 140013ad0 <.rdata+0xa80>
    140005e6d:	48 89 c1             	mov    %rax,%rcx
-   140005e70:	48 8b 05 c9 54 01 00 	mov    0x154c9(%rip),%rax        # 14001b340 <__imp__assert>
+   140005e70:	48 8b 05 c9 54 01 00 	mov    0x154c9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005e77:	ff d0                	call   *%rax
    140005e79:	48 8b 85 50 03 00 00 	mov    0x350(%rbp),%rax
    140005e80:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4817,7 +4817,7 @@ Disassembly of section .text:
    140005e97:	48 89 c2             	mov    %rax,%rdx
    140005e9a:	48 8d 05 5f dc 00 00 	lea    0xdc5f(%rip),%rax        # 140013b00 <.rdata+0xab0>
    140005ea1:	48 89 c1             	mov    %rax,%rcx
-   140005ea4:	48 8b 05 95 54 01 00 	mov    0x15495(%rip),%rax        # 14001b340 <__imp__assert>
+   140005ea4:	48 8b 05 95 54 01 00 	mov    0x15495(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005eab:	ff d0                	call   *%rax
    140005ead:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005eb2:	48 8b 05 0f 54 01 00 	mov    0x1540f(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4872,7 +4872,7 @@ Disassembly of section .text:
    140005fa0:	48 89 c2             	mov    %rax,%rdx
    140005fa3:	48 8d 05 7e db 00 00 	lea    0xdb7e(%rip),%rax        # 140013b28 <.rdata+0xad8>
    140005faa:	48 89 c1             	mov    %rax,%rcx
-   140005fad:	48 8b 05 8c 53 01 00 	mov    0x1538c(%rip),%rax        # 14001b340 <__imp__assert>
+   140005fad:	48 8b 05 8c 53 01 00 	mov    0x1538c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005fb4:	ff d0                	call   *%rax
    140005fb6:	48 8b 85 48 03 00 00 	mov    0x348(%rbp),%rax
    140005fbd:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4883,7 +4883,7 @@ Disassembly of section .text:
    140005fd4:	48 89 c2             	mov    %rax,%rdx
    140005fd7:	48 8d 05 7a db 00 00 	lea    0xdb7a(%rip),%rax        # 140013b58 <.rdata+0xb08>
    140005fde:	48 89 c1             	mov    %rax,%rcx
-   140005fe1:	48 8b 05 58 53 01 00 	mov    0x15358(%rip),%rax        # 14001b340 <__imp__assert>
+   140005fe1:	48 8b 05 58 53 01 00 	mov    0x15358(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140005fe8:	ff d0                	call   *%rax
    140005fea:	b9 01 00 00 00       	mov    $0x1,%ecx
    140005fef:	48 8b 05 d2 52 01 00 	mov    0x152d2(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -4938,7 +4938,7 @@ Disassembly of section .text:
    1400060dd:	48 89 c2             	mov    %rax,%rdx
    1400060e0:	48 8d 05 99 da 00 00 	lea    0xda99(%rip),%rax        # 140013b80 <.rdata+0xb30>
    1400060e7:	48 89 c1             	mov    %rax,%rcx
-   1400060ea:	48 8b 05 4f 52 01 00 	mov    0x1524f(%rip),%rax        # 14001b340 <__imp__assert>
+   1400060ea:	48 8b 05 4f 52 01 00 	mov    0x1524f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400060f1:	ff d0                	call   *%rax
    1400060f3:	48 8b 85 40 03 00 00 	mov    0x340(%rbp),%rax
    1400060fa:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -4949,7 +4949,7 @@ Disassembly of section .text:
    140006111:	48 89 c2             	mov    %rax,%rdx
    140006114:	48 8d 05 95 da 00 00 	lea    0xda95(%rip),%rax        # 140013bb0 <.rdata+0xb60>
    14000611b:	48 89 c1             	mov    %rax,%rcx
-   14000611e:	48 8b 05 1b 52 01 00 	mov    0x1521b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000611e:	48 8b 05 1b 52 01 00 	mov    0x1521b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006125:	ff d0                	call   *%rax
    140006127:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000612c:	48 8b 05 95 51 01 00 	mov    0x15195(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5004,7 +5004,7 @@ Disassembly of section .text:
    14000621a:	48 89 c2             	mov    %rax,%rdx
    14000621d:	48 8d 05 b4 d9 00 00 	lea    0xd9b4(%rip),%rax        # 140013bd8 <.rdata+0xb88>
    140006224:	48 89 c1             	mov    %rax,%rcx
-   140006227:	48 8b 05 12 51 01 00 	mov    0x15112(%rip),%rax        # 14001b340 <__imp__assert>
+   140006227:	48 8b 05 12 51 01 00 	mov    0x15112(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000622e:	ff d0                	call   *%rax
    140006230:	48 8b 85 38 03 00 00 	mov    0x338(%rbp),%rax
    140006237:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5015,7 +5015,7 @@ Disassembly of section .text:
    14000624e:	48 89 c2             	mov    %rax,%rdx
    140006251:	48 8d 05 b0 d9 00 00 	lea    0xd9b0(%rip),%rax        # 140013c08 <.rdata+0xbb8>
    140006258:	48 89 c1             	mov    %rax,%rcx
-   14000625b:	48 8b 05 de 50 01 00 	mov    0x150de(%rip),%rax        # 14001b340 <__imp__assert>
+   14000625b:	48 8b 05 de 50 01 00 	mov    0x150de(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006262:	ff d0                	call   *%rax
    140006264:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006269:	48 8b 05 58 50 01 00 	mov    0x15058(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5070,7 +5070,7 @@ Disassembly of section .text:
    140006359:	48 89 c2             	mov    %rax,%rdx
    14000635c:	48 8d 05 cd d8 00 00 	lea    0xd8cd(%rip),%rax        # 140013c30 <.rdata+0xbe0>
    140006363:	48 89 c1             	mov    %rax,%rcx
-   140006366:	48 8b 05 d3 4f 01 00 	mov    0x14fd3(%rip),%rax        # 14001b340 <__imp__assert>
+   140006366:	48 8b 05 d3 4f 01 00 	mov    0x14fd3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000636d:	ff d0                	call   *%rax
    14000636f:	48 8b 85 30 03 00 00 	mov    0x330(%rbp),%rax
    140006376:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5081,7 +5081,7 @@ Disassembly of section .text:
    14000638d:	48 89 c2             	mov    %rax,%rdx
    140006390:	48 8d 05 c9 d8 00 00 	lea    0xd8c9(%rip),%rax        # 140013c60 <.rdata+0xc10>
    140006397:	48 89 c1             	mov    %rax,%rcx
-   14000639a:	48 8b 05 9f 4f 01 00 	mov    0x14f9f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000639a:	48 8b 05 9f 4f 01 00 	mov    0x14f9f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400063a1:	ff d0                	call   *%rax
    1400063a3:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400063a8:	48 8b 05 19 4f 01 00 	mov    0x14f19(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5136,7 +5136,7 @@ Disassembly of section .text:
    140006498:	48 89 c2             	mov    %rax,%rdx
    14000649b:	48 8d 05 e6 d7 00 00 	lea    0xd7e6(%rip),%rax        # 140013c88 <.rdata+0xc38>
    1400064a2:	48 89 c1             	mov    %rax,%rcx
-   1400064a5:	48 8b 05 94 4e 01 00 	mov    0x14e94(%rip),%rax        # 14001b340 <__imp__assert>
+   1400064a5:	48 8b 05 94 4e 01 00 	mov    0x14e94(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400064ac:	ff d0                	call   *%rax
    1400064ae:	48 8b 85 28 03 00 00 	mov    0x328(%rbp),%rax
    1400064b5:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5147,7 +5147,7 @@ Disassembly of section .text:
    1400064cc:	48 89 c2             	mov    %rax,%rdx
    1400064cf:	48 8d 05 e2 d7 00 00 	lea    0xd7e2(%rip),%rax        # 140013cb8 <.rdata+0xc68>
    1400064d6:	48 89 c1             	mov    %rax,%rcx
-   1400064d9:	48 8b 05 60 4e 01 00 	mov    0x14e60(%rip),%rax        # 14001b340 <__imp__assert>
+   1400064d9:	48 8b 05 60 4e 01 00 	mov    0x14e60(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400064e0:	ff d0                	call   *%rax
    1400064e2:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400064e7:	48 8b 05 da 4d 01 00 	mov    0x14dda(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5202,7 +5202,7 @@ Disassembly of section .text:
    1400065d5:	48 89 c2             	mov    %rax,%rdx
    1400065d8:	48 8d 05 01 d7 00 00 	lea    0xd701(%rip),%rax        # 140013ce0 <.rdata+0xc90>
    1400065df:	48 89 c1             	mov    %rax,%rcx
-   1400065e2:	48 8b 05 57 4d 01 00 	mov    0x14d57(%rip),%rax        # 14001b340 <__imp__assert>
+   1400065e2:	48 8b 05 57 4d 01 00 	mov    0x14d57(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400065e9:	ff d0                	call   *%rax
    1400065eb:	48 8b 85 20 03 00 00 	mov    0x320(%rbp),%rax
    1400065f2:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5213,7 +5213,7 @@ Disassembly of section .text:
    140006609:	48 89 c2             	mov    %rax,%rdx
    14000660c:	48 8d 05 fd d6 00 00 	lea    0xd6fd(%rip),%rax        # 140013d10 <.rdata+0xcc0>
    140006613:	48 89 c1             	mov    %rax,%rcx
-   140006616:	48 8b 05 23 4d 01 00 	mov    0x14d23(%rip),%rax        # 14001b340 <__imp__assert>
+   140006616:	48 8b 05 23 4d 01 00 	mov    0x14d23(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000661d:	ff d0                	call   *%rax
    14000661f:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006624:	48 8b 05 9d 4c 01 00 	mov    0x14c9d(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5268,7 +5268,7 @@ Disassembly of section .text:
    140006714:	48 89 c2             	mov    %rax,%rdx
    140006717:	48 8d 05 1a d6 00 00 	lea    0xd61a(%rip),%rax        # 140013d38 <.rdata+0xce8>
    14000671e:	48 89 c1             	mov    %rax,%rcx
-   140006721:	48 8b 05 18 4c 01 00 	mov    0x14c18(%rip),%rax        # 14001b340 <__imp__assert>
+   140006721:	48 8b 05 18 4c 01 00 	mov    0x14c18(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006728:	ff d0                	call   *%rax
    14000672a:	48 8b 85 18 03 00 00 	mov    0x318(%rbp),%rax
    140006731:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5279,7 +5279,7 @@ Disassembly of section .text:
    14000674a:	48 89 c2             	mov    %rax,%rdx
    14000674d:	48 8d 05 14 d6 00 00 	lea    0xd614(%rip),%rax        # 140013d68 <.rdata+0xd18>
    140006754:	48 89 c1             	mov    %rax,%rcx
-   140006757:	48 8b 05 e2 4b 01 00 	mov    0x14be2(%rip),%rax        # 14001b340 <__imp__assert>
+   140006757:	48 8b 05 e2 4b 01 00 	mov    0x14be2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000675e:	ff d0                	call   *%rax
    140006760:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006765:	48 8b 05 5c 4b 01 00 	mov    0x14b5c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5334,7 +5334,7 @@ Disassembly of section .text:
    140006855:	48 89 c2             	mov    %rax,%rdx
    140006858:	48 8d 05 31 d5 00 00 	lea    0xd531(%rip),%rax        # 140013d90 <.rdata+0xd40>
    14000685f:	48 89 c1             	mov    %rax,%rcx
-   140006862:	48 8b 05 d7 4a 01 00 	mov    0x14ad7(%rip),%rax        # 14001b340 <__imp__assert>
+   140006862:	48 8b 05 d7 4a 01 00 	mov    0x14ad7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006869:	ff d0                	call   *%rax
    14000686b:	48 8b 85 10 03 00 00 	mov    0x310(%rbp),%rax
    140006872:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5345,7 +5345,7 @@ Disassembly of section .text:
    140006889:	48 89 c2             	mov    %rax,%rdx
    14000688c:	48 8d 05 2d d5 00 00 	lea    0xd52d(%rip),%rax        # 140013dc0 <.rdata+0xd70>
    140006893:	48 89 c1             	mov    %rax,%rcx
-   140006896:	48 8b 05 a3 4a 01 00 	mov    0x14aa3(%rip),%rax        # 14001b340 <__imp__assert>
+   140006896:	48 8b 05 a3 4a 01 00 	mov    0x14aa3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000689d:	ff d0                	call   *%rax
    14000689f:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400068a4:	48 8b 05 1d 4a 01 00 	mov    0x14a1d(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5400,7 +5400,7 @@ Disassembly of section .text:
    140006992:	48 89 c2             	mov    %rax,%rdx
    140006995:	48 8d 05 4c d4 00 00 	lea    0xd44c(%rip),%rax        # 140013de8 <.rdata+0xd98>
    14000699c:	48 89 c1             	mov    %rax,%rcx
-   14000699f:	48 8b 05 9a 49 01 00 	mov    0x1499a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000699f:	48 8b 05 9a 49 01 00 	mov    0x1499a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400069a6:	ff d0                	call   *%rax
    1400069a8:	48 8b 85 08 03 00 00 	mov    0x308(%rbp),%rax
    1400069af:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5411,7 +5411,7 @@ Disassembly of section .text:
    1400069c6:	48 89 c2             	mov    %rax,%rdx
    1400069c9:	48 8d 05 48 d4 00 00 	lea    0xd448(%rip),%rax        # 140013e18 <.rdata+0xdc8>
    1400069d0:	48 89 c1             	mov    %rax,%rcx
-   1400069d3:	48 8b 05 66 49 01 00 	mov    0x14966(%rip),%rax        # 14001b340 <__imp__assert>
+   1400069d3:	48 8b 05 66 49 01 00 	mov    0x14966(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400069da:	ff d0                	call   *%rax
    1400069dc:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400069e1:	48 8b 05 e0 48 01 00 	mov    0x148e0(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5466,7 +5466,7 @@ Disassembly of section .text:
    140006acf:	48 89 c2             	mov    %rax,%rdx
    140006ad2:	48 8d 05 67 d3 00 00 	lea    0xd367(%rip),%rax        # 140013e40 <.rdata+0xdf0>
    140006ad9:	48 89 c1             	mov    %rax,%rcx
-   140006adc:	48 8b 05 5d 48 01 00 	mov    0x1485d(%rip),%rax        # 14001b340 <__imp__assert>
+   140006adc:	48 8b 05 5d 48 01 00 	mov    0x1485d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006ae3:	ff d0                	call   *%rax
    140006ae5:	48 8b 85 00 03 00 00 	mov    0x300(%rbp),%rax
    140006aec:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5477,7 +5477,7 @@ Disassembly of section .text:
    140006b03:	48 89 c2             	mov    %rax,%rdx
    140006b06:	48 8d 05 63 d3 00 00 	lea    0xd363(%rip),%rax        # 140013e70 <.rdata+0xe20>
    140006b0d:	48 89 c1             	mov    %rax,%rcx
-   140006b10:	48 8b 05 29 48 01 00 	mov    0x14829(%rip),%rax        # 14001b340 <__imp__assert>
+   140006b10:	48 8b 05 29 48 01 00 	mov    0x14829(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006b17:	ff d0                	call   *%rax
    140006b19:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006b1e:	48 8b 05 a3 47 01 00 	mov    0x147a3(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5532,7 +5532,7 @@ Disassembly of section .text:
    140006c0c:	48 89 c2             	mov    %rax,%rdx
    140006c0f:	48 8d 05 82 d2 00 00 	lea    0xd282(%rip),%rax        # 140013e98 <.rdata+0xe48>
    140006c16:	48 89 c1             	mov    %rax,%rcx
-   140006c19:	48 8b 05 20 47 01 00 	mov    0x14720(%rip),%rax        # 14001b340 <__imp__assert>
+   140006c19:	48 8b 05 20 47 01 00 	mov    0x14720(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006c20:	ff d0                	call   *%rax
    140006c22:	48 8b 85 f8 02 00 00 	mov    0x2f8(%rbp),%rax
    140006c29:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5543,7 +5543,7 @@ Disassembly of section .text:
    140006c40:	48 89 c2             	mov    %rax,%rdx
    140006c43:	48 8d 05 7e d2 00 00 	lea    0xd27e(%rip),%rax        # 140013ec8 <.rdata+0xe78>
    140006c4a:	48 89 c1             	mov    %rax,%rcx
-   140006c4d:	48 8b 05 ec 46 01 00 	mov    0x146ec(%rip),%rax        # 14001b340 <__imp__assert>
+   140006c4d:	48 8b 05 ec 46 01 00 	mov    0x146ec(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006c54:	ff d0                	call   *%rax
    140006c56:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006c5b:	48 8b 05 66 46 01 00 	mov    0x14666(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5598,7 +5598,7 @@ Disassembly of section .text:
    140006d49:	48 89 c2             	mov    %rax,%rdx
    140006d4c:	48 8d 05 9d d1 00 00 	lea    0xd19d(%rip),%rax        # 140013ef0 <.rdata+0xea0>
    140006d53:	48 89 c1             	mov    %rax,%rcx
-   140006d56:	48 8b 05 e3 45 01 00 	mov    0x145e3(%rip),%rax        # 14001b340 <__imp__assert>
+   140006d56:	48 8b 05 e3 45 01 00 	mov    0x145e3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006d5d:	ff d0                	call   *%rax
    140006d5f:	48 8b 85 f0 02 00 00 	mov    0x2f0(%rbp),%rax
    140006d66:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5609,7 +5609,7 @@ Disassembly of section .text:
    140006d7d:	48 89 c2             	mov    %rax,%rdx
    140006d80:	48 8d 05 99 d1 00 00 	lea    0xd199(%rip),%rax        # 140013f20 <.rdata+0xed0>
    140006d87:	48 89 c1             	mov    %rax,%rcx
-   140006d8a:	48 8b 05 af 45 01 00 	mov    0x145af(%rip),%rax        # 14001b340 <__imp__assert>
+   140006d8a:	48 8b 05 af 45 01 00 	mov    0x145af(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006d91:	ff d0                	call   *%rax
    140006d93:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006d98:	48 8b 05 29 45 01 00 	mov    0x14529(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5664,7 +5664,7 @@ Disassembly of section .text:
    140006e88:	48 89 c2             	mov    %rax,%rdx
    140006e8b:	48 8d 05 b6 d0 00 00 	lea    0xd0b6(%rip),%rax        # 140013f48 <.rdata+0xef8>
    140006e92:	48 89 c1             	mov    %rax,%rcx
-   140006e95:	48 8b 05 a4 44 01 00 	mov    0x144a4(%rip),%rax        # 14001b340 <__imp__assert>
+   140006e95:	48 8b 05 a4 44 01 00 	mov    0x144a4(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006e9c:	ff d0                	call   *%rax
    140006e9e:	48 8b 85 e8 02 00 00 	mov    0x2e8(%rbp),%rax
    140006ea5:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5675,7 +5675,7 @@ Disassembly of section .text:
    140006ebc:	48 89 c2             	mov    %rax,%rdx
    140006ebf:	48 8d 05 b2 d0 00 00 	lea    0xd0b2(%rip),%rax        # 140013f78 <.rdata+0xf28>
    140006ec6:	48 89 c1             	mov    %rax,%rcx
-   140006ec9:	48 8b 05 70 44 01 00 	mov    0x14470(%rip),%rax        # 14001b340 <__imp__assert>
+   140006ec9:	48 8b 05 70 44 01 00 	mov    0x14470(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006ed0:	ff d0                	call   *%rax
    140006ed2:	b9 01 00 00 00       	mov    $0x1,%ecx
    140006ed7:	48 8b 05 ea 43 01 00 	mov    0x143ea(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5730,7 +5730,7 @@ Disassembly of section .text:
    140006fc7:	48 89 c2             	mov    %rax,%rdx
    140006fca:	48 8d 05 cf cf 00 00 	lea    0xcfcf(%rip),%rax        # 140013fa0 <.rdata+0xf50>
    140006fd1:	48 89 c1             	mov    %rax,%rcx
-   140006fd4:	48 8b 05 65 43 01 00 	mov    0x14365(%rip),%rax        # 14001b340 <__imp__assert>
+   140006fd4:	48 8b 05 65 43 01 00 	mov    0x14365(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140006fdb:	ff d0                	call   *%rax
    140006fdd:	48 8b 85 e0 02 00 00 	mov    0x2e0(%rbp),%rax
    140006fe4:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5741,7 +5741,7 @@ Disassembly of section .text:
    140006ffb:	48 89 c2             	mov    %rax,%rdx
    140006ffe:	48 8d 05 cb cf 00 00 	lea    0xcfcb(%rip),%rax        # 140013fd0 <.rdata+0xf80>
    140007005:	48 89 c1             	mov    %rax,%rcx
-   140007008:	48 8b 05 31 43 01 00 	mov    0x14331(%rip),%rax        # 14001b340 <__imp__assert>
+   140007008:	48 8b 05 31 43 01 00 	mov    0x14331(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000700f:	ff d0                	call   *%rax
    140007011:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007016:	48 8b 05 ab 42 01 00 	mov    0x142ab(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5796,7 +5796,7 @@ Disassembly of section .text:
    140007106:	48 89 c2             	mov    %rax,%rdx
    140007109:	48 8d 05 e8 ce 00 00 	lea    0xcee8(%rip),%rax        # 140013ff8 <.rdata+0xfa8>
    140007110:	48 89 c1             	mov    %rax,%rcx
-   140007113:	48 8b 05 26 42 01 00 	mov    0x14226(%rip),%rax        # 14001b340 <__imp__assert>
+   140007113:	48 8b 05 26 42 01 00 	mov    0x14226(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000711a:	ff d0                	call   *%rax
    14000711c:	48 8b 85 d8 02 00 00 	mov    0x2d8(%rbp),%rax
    140007123:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5807,7 +5807,7 @@ Disassembly of section .text:
    14000713a:	48 89 c2             	mov    %rax,%rdx
    14000713d:	48 8d 05 e4 ce 00 00 	lea    0xcee4(%rip),%rax        # 140014028 <.rdata+0xfd8>
    140007144:	48 89 c1             	mov    %rax,%rcx
-   140007147:	48 8b 05 f2 41 01 00 	mov    0x141f2(%rip),%rax        # 14001b340 <__imp__assert>
+   140007147:	48 8b 05 f2 41 01 00 	mov    0x141f2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000714e:	ff d0                	call   *%rax
    140007150:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007155:	48 8b 05 6c 41 01 00 	mov    0x1416c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5862,7 +5862,7 @@ Disassembly of section .text:
    140007243:	48 89 c2             	mov    %rax,%rdx
    140007246:	48 8d 05 03 ce 00 00 	lea    0xce03(%rip),%rax        # 140014050 <.rdata+0x1000>
    14000724d:	48 89 c1             	mov    %rax,%rcx
-   140007250:	48 8b 05 e9 40 01 00 	mov    0x140e9(%rip),%rax        # 14001b340 <__imp__assert>
+   140007250:	48 8b 05 e9 40 01 00 	mov    0x140e9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007257:	ff d0                	call   *%rax
    140007259:	48 8b 85 d0 02 00 00 	mov    0x2d0(%rbp),%rax
    140007260:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5873,7 +5873,7 @@ Disassembly of section .text:
    140007277:	48 89 c2             	mov    %rax,%rdx
    14000727a:	48 8d 05 ff cd 00 00 	lea    0xcdff(%rip),%rax        # 140014080 <.rdata+0x1030>
    140007281:	48 89 c1             	mov    %rax,%rcx
-   140007284:	48 8b 05 b5 40 01 00 	mov    0x140b5(%rip),%rax        # 14001b340 <__imp__assert>
+   140007284:	48 8b 05 b5 40 01 00 	mov    0x140b5(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000728b:	ff d0                	call   *%rax
    14000728d:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007292:	48 8b 05 2f 40 01 00 	mov    0x1402f(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5928,7 +5928,7 @@ Disassembly of section .text:
    140007382:	48 89 c2             	mov    %rax,%rdx
    140007385:	48 8d 05 1c cd 00 00 	lea    0xcd1c(%rip),%rax        # 1400140a8 <.rdata+0x1058>
    14000738c:	48 89 c1             	mov    %rax,%rcx
-   14000738f:	48 8b 05 aa 3f 01 00 	mov    0x13faa(%rip),%rax        # 14001b340 <__imp__assert>
+   14000738f:	48 8b 05 aa 3f 01 00 	mov    0x13faa(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007396:	ff d0                	call   *%rax
    140007398:	48 8b 85 c8 02 00 00 	mov    0x2c8(%rbp),%rax
    14000739f:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -5939,7 +5939,7 @@ Disassembly of section .text:
    1400073b6:	48 89 c2             	mov    %rax,%rdx
    1400073b9:	48 8d 05 18 cd 00 00 	lea    0xcd18(%rip),%rax        # 1400140d8 <.rdata+0x1088>
    1400073c0:	48 89 c1             	mov    %rax,%rcx
-   1400073c3:	48 8b 05 76 3f 01 00 	mov    0x13f76(%rip),%rax        # 14001b340 <__imp__assert>
+   1400073c3:	48 8b 05 76 3f 01 00 	mov    0x13f76(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400073ca:	ff d0                	call   *%rax
    1400073cc:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400073d1:	48 8b 05 f0 3e 01 00 	mov    0x13ef0(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -5994,7 +5994,7 @@ Disassembly of section .text:
    1400074c1:	48 89 c2             	mov    %rax,%rdx
    1400074c4:	48 8d 05 35 cc 00 00 	lea    0xcc35(%rip),%rax        # 140014100 <.rdata+0x10b0>
    1400074cb:	48 89 c1             	mov    %rax,%rcx
-   1400074ce:	48 8b 05 6b 3e 01 00 	mov    0x13e6b(%rip),%rax        # 14001b340 <__imp__assert>
+   1400074ce:	48 8b 05 6b 3e 01 00 	mov    0x13e6b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400074d5:	ff d0                	call   *%rax
    1400074d7:	48 8b 85 c0 02 00 00 	mov    0x2c0(%rbp),%rax
    1400074de:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6005,7 +6005,7 @@ Disassembly of section .text:
    1400074f5:	48 89 c2             	mov    %rax,%rdx
    1400074f8:	48 8d 05 31 cc 00 00 	lea    0xcc31(%rip),%rax        # 140014130 <.rdata+0x10e0>
    1400074ff:	48 89 c1             	mov    %rax,%rcx
-   140007502:	48 8b 05 37 3e 01 00 	mov    0x13e37(%rip),%rax        # 14001b340 <__imp__assert>
+   140007502:	48 8b 05 37 3e 01 00 	mov    0x13e37(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007509:	ff d0                	call   *%rax
    14000750b:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007510:	48 8b 05 b1 3d 01 00 	mov    0x13db1(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6060,7 +6060,7 @@ Disassembly of section .text:
    140007600:	48 89 c2             	mov    %rax,%rdx
    140007603:	48 8d 05 4e cb 00 00 	lea    0xcb4e(%rip),%rax        # 140014158 <.rdata+0x1108>
    14000760a:	48 89 c1             	mov    %rax,%rcx
-   14000760d:	48 8b 05 2c 3d 01 00 	mov    0x13d2c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000760d:	48 8b 05 2c 3d 01 00 	mov    0x13d2c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007614:	ff d0                	call   *%rax
    140007616:	48 8b 85 b8 02 00 00 	mov    0x2b8(%rbp),%rax
    14000761d:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6071,7 +6071,7 @@ Disassembly of section .text:
    140007634:	48 89 c2             	mov    %rax,%rdx
    140007637:	48 8d 05 4a cb 00 00 	lea    0xcb4a(%rip),%rax        # 140014188 <.rdata+0x1138>
    14000763e:	48 89 c1             	mov    %rax,%rcx
-   140007641:	48 8b 05 f8 3c 01 00 	mov    0x13cf8(%rip),%rax        # 14001b340 <__imp__assert>
+   140007641:	48 8b 05 f8 3c 01 00 	mov    0x13cf8(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007648:	ff d0                	call   *%rax
    14000764a:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000764f:	48 8b 05 72 3c 01 00 	mov    0x13c72(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6126,7 +6126,7 @@ Disassembly of section .text:
    14000773d:	48 89 c2             	mov    %rax,%rdx
    140007740:	48 8d 05 69 ca 00 00 	lea    0xca69(%rip),%rax        # 1400141b0 <.rdata+0x1160>
    140007747:	48 89 c1             	mov    %rax,%rcx
-   14000774a:	48 8b 05 ef 3b 01 00 	mov    0x13bef(%rip),%rax        # 14001b340 <__imp__assert>
+   14000774a:	48 8b 05 ef 3b 01 00 	mov    0x13bef(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007751:	ff d0                	call   *%rax
    140007753:	48 8b 85 b0 02 00 00 	mov    0x2b0(%rbp),%rax
    14000775a:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6137,7 +6137,7 @@ Disassembly of section .text:
    140007771:	48 89 c2             	mov    %rax,%rdx
    140007774:	48 8d 05 65 ca 00 00 	lea    0xca65(%rip),%rax        # 1400141e0 <.rdata+0x1190>
    14000777b:	48 89 c1             	mov    %rax,%rcx
-   14000777e:	48 8b 05 bb 3b 01 00 	mov    0x13bbb(%rip),%rax        # 14001b340 <__imp__assert>
+   14000777e:	48 8b 05 bb 3b 01 00 	mov    0x13bbb(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007785:	ff d0                	call   *%rax
    140007787:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000778c:	48 8b 05 35 3b 01 00 	mov    0x13b35(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6192,7 +6192,7 @@ Disassembly of section .text:
    14000787c:	48 89 c2             	mov    %rax,%rdx
    14000787f:	48 8d 05 82 c9 00 00 	lea    0xc982(%rip),%rax        # 140014208 <.rdata+0x11b8>
    140007886:	48 89 c1             	mov    %rax,%rcx
-   140007889:	48 8b 05 b0 3a 01 00 	mov    0x13ab0(%rip),%rax        # 14001b340 <__imp__assert>
+   140007889:	48 8b 05 b0 3a 01 00 	mov    0x13ab0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007890:	ff d0                	call   *%rax
    140007892:	48 8b 85 a8 02 00 00 	mov    0x2a8(%rbp),%rax
    140007899:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6203,7 +6203,7 @@ Disassembly of section .text:
    1400078b0:	48 89 c2             	mov    %rax,%rdx
    1400078b3:	48 8d 05 7e c9 00 00 	lea    0xc97e(%rip),%rax        # 140014238 <.rdata+0x11e8>
    1400078ba:	48 89 c1             	mov    %rax,%rcx
-   1400078bd:	48 8b 05 7c 3a 01 00 	mov    0x13a7c(%rip),%rax        # 14001b340 <__imp__assert>
+   1400078bd:	48 8b 05 7c 3a 01 00 	mov    0x13a7c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400078c4:	ff d0                	call   *%rax
    1400078c6:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400078cb:	48 8b 05 f6 39 01 00 	mov    0x139f6(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6258,7 +6258,7 @@ Disassembly of section .text:
    1400079bb:	48 89 c2             	mov    %rax,%rdx
    1400079be:	48 8d 05 9b c8 00 00 	lea    0xc89b(%rip),%rax        # 140014260 <.rdata+0x1210>
    1400079c5:	48 89 c1             	mov    %rax,%rcx
-   1400079c8:	48 8b 05 71 39 01 00 	mov    0x13971(%rip),%rax        # 14001b340 <__imp__assert>
+   1400079c8:	48 8b 05 71 39 01 00 	mov    0x13971(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400079cf:	ff d0                	call   *%rax
    1400079d1:	48 8b 85 a0 02 00 00 	mov    0x2a0(%rbp),%rax
    1400079d8:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6269,7 +6269,7 @@ Disassembly of section .text:
    1400079ef:	48 89 c2             	mov    %rax,%rdx
    1400079f2:	48 8d 05 97 c8 00 00 	lea    0xc897(%rip),%rax        # 140014290 <.rdata+0x1240>
    1400079f9:	48 89 c1             	mov    %rax,%rcx
-   1400079fc:	48 8b 05 3d 39 01 00 	mov    0x1393d(%rip),%rax        # 14001b340 <__imp__assert>
+   1400079fc:	48 8b 05 3d 39 01 00 	mov    0x1393d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007a03:	ff d0                	call   *%rax
    140007a05:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007a0a:	48 8b 05 b7 38 01 00 	mov    0x138b7(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6324,7 +6324,7 @@ Disassembly of section .text:
    140007afa:	48 89 c2             	mov    %rax,%rdx
    140007afd:	48 8d 05 b4 c7 00 00 	lea    0xc7b4(%rip),%rax        # 1400142b8 <.rdata+0x1268>
    140007b04:	48 89 c1             	mov    %rax,%rcx
-   140007b07:	48 8b 05 32 38 01 00 	mov    0x13832(%rip),%rax        # 14001b340 <__imp__assert>
+   140007b07:	48 8b 05 32 38 01 00 	mov    0x13832(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007b0e:	ff d0                	call   *%rax
    140007b10:	48 8b 85 98 02 00 00 	mov    0x298(%rbp),%rax
    140007b17:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6335,7 +6335,7 @@ Disassembly of section .text:
    140007b2e:	48 89 c2             	mov    %rax,%rdx
    140007b31:	48 8d 05 b0 c7 00 00 	lea    0xc7b0(%rip),%rax        # 1400142e8 <.rdata+0x1298>
    140007b38:	48 89 c1             	mov    %rax,%rcx
-   140007b3b:	48 8b 05 fe 37 01 00 	mov    0x137fe(%rip),%rax        # 14001b340 <__imp__assert>
+   140007b3b:	48 8b 05 fe 37 01 00 	mov    0x137fe(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007b42:	ff d0                	call   *%rax
    140007b44:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007b49:	48 8b 05 78 37 01 00 	mov    0x13778(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6390,7 +6390,7 @@ Disassembly of section .text:
    140007c39:	48 89 c2             	mov    %rax,%rdx
    140007c3c:	48 8d 05 cd c6 00 00 	lea    0xc6cd(%rip),%rax        # 140014310 <.rdata+0x12c0>
    140007c43:	48 89 c1             	mov    %rax,%rcx
-   140007c46:	48 8b 05 f3 36 01 00 	mov    0x136f3(%rip),%rax        # 14001b340 <__imp__assert>
+   140007c46:	48 8b 05 f3 36 01 00 	mov    0x136f3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007c4d:	ff d0                	call   *%rax
    140007c4f:	48 8b 85 90 02 00 00 	mov    0x290(%rbp),%rax
    140007c56:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6401,7 +6401,7 @@ Disassembly of section .text:
    140007c6d:	48 89 c2             	mov    %rax,%rdx
    140007c70:	48 8d 05 c9 c6 00 00 	lea    0xc6c9(%rip),%rax        # 140014340 <.rdata+0x12f0>
    140007c77:	48 89 c1             	mov    %rax,%rcx
-   140007c7a:	48 8b 05 bf 36 01 00 	mov    0x136bf(%rip),%rax        # 14001b340 <__imp__assert>
+   140007c7a:	48 8b 05 bf 36 01 00 	mov    0x136bf(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007c81:	ff d0                	call   *%rax
    140007c83:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007c88:	48 8b 05 39 36 01 00 	mov    0x13639(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6456,7 +6456,7 @@ Disassembly of section .text:
    140007d78:	48 89 c2             	mov    %rax,%rdx
    140007d7b:	48 8d 05 e6 c5 00 00 	lea    0xc5e6(%rip),%rax        # 140014368 <.rdata+0x1318>
    140007d82:	48 89 c1             	mov    %rax,%rcx
-   140007d85:	48 8b 05 b4 35 01 00 	mov    0x135b4(%rip),%rax        # 14001b340 <__imp__assert>
+   140007d85:	48 8b 05 b4 35 01 00 	mov    0x135b4(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007d8c:	ff d0                	call   *%rax
    140007d8e:	48 8b 85 88 02 00 00 	mov    0x288(%rbp),%rax
    140007d95:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6467,7 +6467,7 @@ Disassembly of section .text:
    140007dac:	48 89 c2             	mov    %rax,%rdx
    140007daf:	48 8d 05 e2 c5 00 00 	lea    0xc5e2(%rip),%rax        # 140014398 <.rdata+0x1348>
    140007db6:	48 89 c1             	mov    %rax,%rcx
-   140007db9:	48 8b 05 80 35 01 00 	mov    0x13580(%rip),%rax        # 14001b340 <__imp__assert>
+   140007db9:	48 8b 05 80 35 01 00 	mov    0x13580(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007dc0:	ff d0                	call   *%rax
    140007dc2:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007dc7:	48 8b 05 fa 34 01 00 	mov    0x134fa(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6522,7 +6522,7 @@ Disassembly of section .text:
    140007eb7:	48 89 c2             	mov    %rax,%rdx
    140007eba:	48 8d 05 ff c4 00 00 	lea    0xc4ff(%rip),%rax        # 1400143c0 <.rdata+0x1370>
    140007ec1:	48 89 c1             	mov    %rax,%rcx
-   140007ec4:	48 8b 05 75 34 01 00 	mov    0x13475(%rip),%rax        # 14001b340 <__imp__assert>
+   140007ec4:	48 8b 05 75 34 01 00 	mov    0x13475(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007ecb:	ff d0                	call   *%rax
    140007ecd:	48 8b 85 80 02 00 00 	mov    0x280(%rbp),%rax
    140007ed4:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6533,7 +6533,7 @@ Disassembly of section .text:
    140007eeb:	48 89 c2             	mov    %rax,%rdx
    140007eee:	48 8d 05 fb c4 00 00 	lea    0xc4fb(%rip),%rax        # 1400143f0 <.rdata+0x13a0>
    140007ef5:	48 89 c1             	mov    %rax,%rcx
-   140007ef8:	48 8b 05 41 34 01 00 	mov    0x13441(%rip),%rax        # 14001b340 <__imp__assert>
+   140007ef8:	48 8b 05 41 34 01 00 	mov    0x13441(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140007eff:	ff d0                	call   *%rax
    140007f01:	b9 01 00 00 00       	mov    $0x1,%ecx
    140007f06:	48 8b 05 bb 33 01 00 	mov    0x133bb(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6588,7 +6588,7 @@ Disassembly of section .text:
    140007ff6:	48 89 c2             	mov    %rax,%rdx
    140007ff9:	48 8d 05 18 c4 00 00 	lea    0xc418(%rip),%rax        # 140014418 <.rdata+0x13c8>
    140008000:	48 89 c1             	mov    %rax,%rcx
-   140008003:	48 8b 05 36 33 01 00 	mov    0x13336(%rip),%rax        # 14001b340 <__imp__assert>
+   140008003:	48 8b 05 36 33 01 00 	mov    0x13336(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000800a:	ff d0                	call   *%rax
    14000800c:	48 8b 85 78 02 00 00 	mov    0x278(%rbp),%rax
    140008013:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6599,7 +6599,7 @@ Disassembly of section .text:
    14000802a:	48 89 c2             	mov    %rax,%rdx
    14000802d:	48 8d 05 14 c4 00 00 	lea    0xc414(%rip),%rax        # 140014448 <.rdata+0x13f8>
    140008034:	48 89 c1             	mov    %rax,%rcx
-   140008037:	48 8b 05 02 33 01 00 	mov    0x13302(%rip),%rax        # 14001b340 <__imp__assert>
+   140008037:	48 8b 05 02 33 01 00 	mov    0x13302(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000803e:	ff d0                	call   *%rax
    140008040:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008045:	48 8b 05 7c 32 01 00 	mov    0x1327c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6654,7 +6654,7 @@ Disassembly of section .text:
    140008135:	48 89 c2             	mov    %rax,%rdx
    140008138:	48 8d 05 31 c3 00 00 	lea    0xc331(%rip),%rax        # 140014470 <.rdata+0x1420>
    14000813f:	48 89 c1             	mov    %rax,%rcx
-   140008142:	48 8b 05 f7 31 01 00 	mov    0x131f7(%rip),%rax        # 14001b340 <__imp__assert>
+   140008142:	48 8b 05 f7 31 01 00 	mov    0x131f7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008149:	ff d0                	call   *%rax
    14000814b:	48 8b 85 70 02 00 00 	mov    0x270(%rbp),%rax
    140008152:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6665,7 +6665,7 @@ Disassembly of section .text:
    140008169:	48 89 c2             	mov    %rax,%rdx
    14000816c:	48 8d 05 2d c3 00 00 	lea    0xc32d(%rip),%rax        # 1400144a0 <.rdata+0x1450>
    140008173:	48 89 c1             	mov    %rax,%rcx
-   140008176:	48 8b 05 c3 31 01 00 	mov    0x131c3(%rip),%rax        # 14001b340 <__imp__assert>
+   140008176:	48 8b 05 c3 31 01 00 	mov    0x131c3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000817d:	ff d0                	call   *%rax
    14000817f:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008184:	48 8b 05 3d 31 01 00 	mov    0x1313d(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6720,7 +6720,7 @@ Disassembly of section .text:
    140008274:	48 89 c2             	mov    %rax,%rdx
    140008277:	48 8d 05 4a c2 00 00 	lea    0xc24a(%rip),%rax        # 1400144c8 <.rdata+0x1478>
    14000827e:	48 89 c1             	mov    %rax,%rcx
-   140008281:	48 8b 05 b8 30 01 00 	mov    0x130b8(%rip),%rax        # 14001b340 <__imp__assert>
+   140008281:	48 8b 05 b8 30 01 00 	mov    0x130b8(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008288:	ff d0                	call   *%rax
    14000828a:	48 8b 85 68 02 00 00 	mov    0x268(%rbp),%rax
    140008291:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6731,7 +6731,7 @@ Disassembly of section .text:
    1400082a8:	48 89 c2             	mov    %rax,%rdx
    1400082ab:	48 8d 05 46 c2 00 00 	lea    0xc246(%rip),%rax        # 1400144f8 <.rdata+0x14a8>
    1400082b2:	48 89 c1             	mov    %rax,%rcx
-   1400082b5:	48 8b 05 84 30 01 00 	mov    0x13084(%rip),%rax        # 14001b340 <__imp__assert>
+   1400082b5:	48 8b 05 84 30 01 00 	mov    0x13084(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400082bc:	ff d0                	call   *%rax
    1400082be:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400082c3:	48 8b 05 fe 2f 01 00 	mov    0x12ffe(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6786,7 +6786,7 @@ Disassembly of section .text:
    1400083b3:	48 89 c2             	mov    %rax,%rdx
    1400083b6:	48 8d 05 63 c1 00 00 	lea    0xc163(%rip),%rax        # 140014520 <.rdata+0x14d0>
    1400083bd:	48 89 c1             	mov    %rax,%rcx
-   1400083c0:	48 8b 05 79 2f 01 00 	mov    0x12f79(%rip),%rax        # 14001b340 <__imp__assert>
+   1400083c0:	48 8b 05 79 2f 01 00 	mov    0x12f79(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400083c7:	ff d0                	call   *%rax
    1400083c9:	48 8b 85 60 02 00 00 	mov    0x260(%rbp),%rax
    1400083d0:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6797,7 +6797,7 @@ Disassembly of section .text:
    1400083e7:	48 89 c2             	mov    %rax,%rdx
    1400083ea:	48 8d 05 5f c1 00 00 	lea    0xc15f(%rip),%rax        # 140014550 <.rdata+0x1500>
    1400083f1:	48 89 c1             	mov    %rax,%rcx
-   1400083f4:	48 8b 05 45 2f 01 00 	mov    0x12f45(%rip),%rax        # 14001b340 <__imp__assert>
+   1400083f4:	48 8b 05 45 2f 01 00 	mov    0x12f45(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400083fb:	ff d0                	call   *%rax
    1400083fd:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008402:	48 8b 05 bf 2e 01 00 	mov    0x12ebf(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6852,7 +6852,7 @@ Disassembly of section .text:
    1400084f2:	48 89 c2             	mov    %rax,%rdx
    1400084f5:	48 8d 05 7c c0 00 00 	lea    0xc07c(%rip),%rax        # 140014578 <.rdata+0x1528>
    1400084fc:	48 89 c1             	mov    %rax,%rcx
-   1400084ff:	48 8b 05 3a 2e 01 00 	mov    0x12e3a(%rip),%rax        # 14001b340 <__imp__assert>
+   1400084ff:	48 8b 05 3a 2e 01 00 	mov    0x12e3a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008506:	ff d0                	call   *%rax
    140008508:	48 8b 85 58 02 00 00 	mov    0x258(%rbp),%rax
    14000850f:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6863,7 +6863,7 @@ Disassembly of section .text:
    140008526:	48 89 c2             	mov    %rax,%rdx
    140008529:	48 8d 05 78 c0 00 00 	lea    0xc078(%rip),%rax        # 1400145a8 <.rdata+0x1558>
    140008530:	48 89 c1             	mov    %rax,%rcx
-   140008533:	48 8b 05 06 2e 01 00 	mov    0x12e06(%rip),%rax        # 14001b340 <__imp__assert>
+   140008533:	48 8b 05 06 2e 01 00 	mov    0x12e06(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000853a:	ff d0                	call   *%rax
    14000853c:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008541:	48 8b 05 80 2d 01 00 	mov    0x12d80(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6918,7 +6918,7 @@ Disassembly of section .text:
    140008631:	48 89 c2             	mov    %rax,%rdx
    140008634:	48 8d 05 95 bf 00 00 	lea    0xbf95(%rip),%rax        # 1400145d0 <.rdata+0x1580>
    14000863b:	48 89 c1             	mov    %rax,%rcx
-   14000863e:	48 8b 05 fb 2c 01 00 	mov    0x12cfb(%rip),%rax        # 14001b340 <__imp__assert>
+   14000863e:	48 8b 05 fb 2c 01 00 	mov    0x12cfb(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008645:	ff d0                	call   *%rax
    140008647:	48 8b 85 50 02 00 00 	mov    0x250(%rbp),%rax
    14000864e:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6929,7 +6929,7 @@ Disassembly of section .text:
    140008665:	48 89 c2             	mov    %rax,%rdx
    140008668:	48 8d 05 91 bf 00 00 	lea    0xbf91(%rip),%rax        # 140014600 <.rdata+0x15b0>
    14000866f:	48 89 c1             	mov    %rax,%rcx
-   140008672:	48 8b 05 c7 2c 01 00 	mov    0x12cc7(%rip),%rax        # 14001b340 <__imp__assert>
+   140008672:	48 8b 05 c7 2c 01 00 	mov    0x12cc7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008679:	ff d0                	call   *%rax
    14000867b:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008680:	48 8b 05 41 2c 01 00 	mov    0x12c41(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -6984,7 +6984,7 @@ Disassembly of section .text:
    140008770:	48 89 c2             	mov    %rax,%rdx
    140008773:	48 8d 05 ae be 00 00 	lea    0xbeae(%rip),%rax        # 140014628 <.rdata+0x15d8>
    14000877a:	48 89 c1             	mov    %rax,%rcx
-   14000877d:	48 8b 05 bc 2b 01 00 	mov    0x12bbc(%rip),%rax        # 14001b340 <__imp__assert>
+   14000877d:	48 8b 05 bc 2b 01 00 	mov    0x12bbc(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008784:	ff d0                	call   *%rax
    140008786:	48 8b 85 48 02 00 00 	mov    0x248(%rbp),%rax
    14000878d:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -6995,7 +6995,7 @@ Disassembly of section .text:
    1400087a4:	48 89 c2             	mov    %rax,%rdx
    1400087a7:	48 8d 05 aa be 00 00 	lea    0xbeaa(%rip),%rax        # 140014658 <.rdata+0x1608>
    1400087ae:	48 89 c1             	mov    %rax,%rcx
-   1400087b1:	48 8b 05 88 2b 01 00 	mov    0x12b88(%rip),%rax        # 14001b340 <__imp__assert>
+   1400087b1:	48 8b 05 88 2b 01 00 	mov    0x12b88(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400087b8:	ff d0                	call   *%rax
    1400087ba:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400087bf:	48 8b 05 02 2b 01 00 	mov    0x12b02(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7050,7 +7050,7 @@ Disassembly of section .text:
    1400088af:	48 89 c2             	mov    %rax,%rdx
    1400088b2:	48 8d 05 c7 bd 00 00 	lea    0xbdc7(%rip),%rax        # 140014680 <.rdata+0x1630>
    1400088b9:	48 89 c1             	mov    %rax,%rcx
-   1400088bc:	48 8b 05 7d 2a 01 00 	mov    0x12a7d(%rip),%rax        # 14001b340 <__imp__assert>
+   1400088bc:	48 8b 05 7d 2a 01 00 	mov    0x12a7d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400088c3:	ff d0                	call   *%rax
    1400088c5:	48 8b 85 40 02 00 00 	mov    0x240(%rbp),%rax
    1400088cc:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7061,7 +7061,7 @@ Disassembly of section .text:
    1400088e3:	48 89 c2             	mov    %rax,%rdx
    1400088e6:	48 8d 05 c3 bd 00 00 	lea    0xbdc3(%rip),%rax        # 1400146b0 <.rdata+0x1660>
    1400088ed:	48 89 c1             	mov    %rax,%rcx
-   1400088f0:	48 8b 05 49 2a 01 00 	mov    0x12a49(%rip),%rax        # 14001b340 <__imp__assert>
+   1400088f0:	48 8b 05 49 2a 01 00 	mov    0x12a49(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400088f7:	ff d0                	call   *%rax
    1400088f9:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400088fe:	48 8b 05 c3 29 01 00 	mov    0x129c3(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7116,7 +7116,7 @@ Disassembly of section .text:
    1400089ee:	48 89 c2             	mov    %rax,%rdx
    1400089f1:	48 8d 05 e0 bc 00 00 	lea    0xbce0(%rip),%rax        # 1400146d8 <.rdata+0x1688>
    1400089f8:	48 89 c1             	mov    %rax,%rcx
-   1400089fb:	48 8b 05 3e 29 01 00 	mov    0x1293e(%rip),%rax        # 14001b340 <__imp__assert>
+   1400089fb:	48 8b 05 3e 29 01 00 	mov    0x1293e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008a02:	ff d0                	call   *%rax
    140008a04:	48 8b 85 38 02 00 00 	mov    0x238(%rbp),%rax
    140008a0b:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7127,7 +7127,7 @@ Disassembly of section .text:
    140008a22:	48 89 c2             	mov    %rax,%rdx
    140008a25:	48 8d 05 dc bc 00 00 	lea    0xbcdc(%rip),%rax        # 140014708 <.rdata+0x16b8>
    140008a2c:	48 89 c1             	mov    %rax,%rcx
-   140008a2f:	48 8b 05 0a 29 01 00 	mov    0x1290a(%rip),%rax        # 14001b340 <__imp__assert>
+   140008a2f:	48 8b 05 0a 29 01 00 	mov    0x1290a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008a36:	ff d0                	call   *%rax
    140008a38:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008a3d:	48 8b 05 84 28 01 00 	mov    0x12884(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7182,7 +7182,7 @@ Disassembly of section .text:
    140008b2d:	48 89 c2             	mov    %rax,%rdx
    140008b30:	48 8d 05 f9 bb 00 00 	lea    0xbbf9(%rip),%rax        # 140014730 <.rdata+0x16e0>
    140008b37:	48 89 c1             	mov    %rax,%rcx
-   140008b3a:	48 8b 05 ff 27 01 00 	mov    0x127ff(%rip),%rax        # 14001b340 <__imp__assert>
+   140008b3a:	48 8b 05 ff 27 01 00 	mov    0x127ff(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008b41:	ff d0                	call   *%rax
    140008b43:	48 8b 85 30 02 00 00 	mov    0x230(%rbp),%rax
    140008b4a:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7193,7 +7193,7 @@ Disassembly of section .text:
    140008b63:	48 89 c2             	mov    %rax,%rdx
    140008b66:	48 8d 05 f3 bb 00 00 	lea    0xbbf3(%rip),%rax        # 140014760 <.rdata+0x1710>
    140008b6d:	48 89 c1             	mov    %rax,%rcx
-   140008b70:	48 8b 05 c9 27 01 00 	mov    0x127c9(%rip),%rax        # 14001b340 <__imp__assert>
+   140008b70:	48 8b 05 c9 27 01 00 	mov    0x127c9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008b77:	ff d0                	call   *%rax
    140008b79:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008b7e:	48 8b 05 43 27 01 00 	mov    0x12743(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7248,7 +7248,7 @@ Disassembly of section .text:
    140008c6c:	48 89 c2             	mov    %rax,%rdx
    140008c6f:	48 8d 05 12 bb 00 00 	lea    0xbb12(%rip),%rax        # 140014788 <.rdata+0x1738>
    140008c76:	48 89 c1             	mov    %rax,%rcx
-   140008c79:	48 8b 05 c0 26 01 00 	mov    0x126c0(%rip),%rax        # 14001b340 <__imp__assert>
+   140008c79:	48 8b 05 c0 26 01 00 	mov    0x126c0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008c80:	ff d0                	call   *%rax
    140008c82:	48 8b 85 28 02 00 00 	mov    0x228(%rbp),%rax
    140008c89:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7259,7 +7259,7 @@ Disassembly of section .text:
    140008ca0:	48 89 c2             	mov    %rax,%rdx
    140008ca3:	48 8d 05 0e bb 00 00 	lea    0xbb0e(%rip),%rax        # 1400147b8 <.rdata+0x1768>
    140008caa:	48 89 c1             	mov    %rax,%rcx
-   140008cad:	48 8b 05 8c 26 01 00 	mov    0x1268c(%rip),%rax        # 14001b340 <__imp__assert>
+   140008cad:	48 8b 05 8c 26 01 00 	mov    0x1268c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008cb4:	ff d0                	call   *%rax
    140008cb6:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008cbb:	48 8b 05 06 26 01 00 	mov    0x12606(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7314,7 +7314,7 @@ Disassembly of section .text:
    140008da9:	48 89 c2             	mov    %rax,%rdx
    140008dac:	48 8d 05 2d ba 00 00 	lea    0xba2d(%rip),%rax        # 1400147e0 <.rdata+0x1790>
    140008db3:	48 89 c1             	mov    %rax,%rcx
-   140008db6:	48 8b 05 83 25 01 00 	mov    0x12583(%rip),%rax        # 14001b340 <__imp__assert>
+   140008db6:	48 8b 05 83 25 01 00 	mov    0x12583(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008dbd:	ff d0                	call   *%rax
    140008dbf:	48 8b 85 20 02 00 00 	mov    0x220(%rbp),%rax
    140008dc6:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7325,7 +7325,7 @@ Disassembly of section .text:
    140008ddd:	48 89 c2             	mov    %rax,%rdx
    140008de0:	48 8d 05 29 ba 00 00 	lea    0xba29(%rip),%rax        # 140014810 <.rdata+0x17c0>
    140008de7:	48 89 c1             	mov    %rax,%rcx
-   140008dea:	48 8b 05 4f 25 01 00 	mov    0x1254f(%rip),%rax        # 14001b340 <__imp__assert>
+   140008dea:	48 8b 05 4f 25 01 00 	mov    0x1254f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008df1:	ff d0                	call   *%rax
    140008df3:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008df8:	48 8b 05 c9 24 01 00 	mov    0x124c9(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7380,7 +7380,7 @@ Disassembly of section .text:
    140008ee6:	48 89 c2             	mov    %rax,%rdx
    140008ee9:	48 8d 05 48 b9 00 00 	lea    0xb948(%rip),%rax        # 140014838 <.rdata+0x17e8>
    140008ef0:	48 89 c1             	mov    %rax,%rcx
-   140008ef3:	48 8b 05 46 24 01 00 	mov    0x12446(%rip),%rax        # 14001b340 <__imp__assert>
+   140008ef3:	48 8b 05 46 24 01 00 	mov    0x12446(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008efa:	ff d0                	call   *%rax
    140008efc:	48 8b 85 18 02 00 00 	mov    0x218(%rbp),%rax
    140008f03:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7391,7 +7391,7 @@ Disassembly of section .text:
    140008f1a:	48 89 c2             	mov    %rax,%rdx
    140008f1d:	48 8d 05 44 b9 00 00 	lea    0xb944(%rip),%rax        # 140014868 <.rdata+0x1818>
    140008f24:	48 89 c1             	mov    %rax,%rcx
-   140008f27:	48 8b 05 12 24 01 00 	mov    0x12412(%rip),%rax        # 14001b340 <__imp__assert>
+   140008f27:	48 8b 05 12 24 01 00 	mov    0x12412(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140008f2e:	ff d0                	call   *%rax
    140008f30:	b9 01 00 00 00       	mov    $0x1,%ecx
    140008f35:	48 8b 05 8c 23 01 00 	mov    0x1238c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7446,7 +7446,7 @@ Disassembly of section .text:
    140009025:	48 89 c2             	mov    %rax,%rdx
    140009028:	48 8d 05 61 b8 00 00 	lea    0xb861(%rip),%rax        # 140014890 <.rdata+0x1840>
    14000902f:	48 89 c1             	mov    %rax,%rcx
-   140009032:	48 8b 05 07 23 01 00 	mov    0x12307(%rip),%rax        # 14001b340 <__imp__assert>
+   140009032:	48 8b 05 07 23 01 00 	mov    0x12307(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009039:	ff d0                	call   *%rax
    14000903b:	48 8b 85 10 02 00 00 	mov    0x210(%rbp),%rax
    140009042:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7457,7 +7457,7 @@ Disassembly of section .text:
    140009059:	48 89 c2             	mov    %rax,%rdx
    14000905c:	48 8d 05 5d b8 00 00 	lea    0xb85d(%rip),%rax        # 1400148c0 <.rdata+0x1870>
    140009063:	48 89 c1             	mov    %rax,%rcx
-   140009066:	48 8b 05 d3 22 01 00 	mov    0x122d3(%rip),%rax        # 14001b340 <__imp__assert>
+   140009066:	48 8b 05 d3 22 01 00 	mov    0x122d3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000906d:	ff d0                	call   *%rax
    14000906f:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009074:	48 8b 05 4d 22 01 00 	mov    0x1224d(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7512,7 +7512,7 @@ Disassembly of section .text:
    140009164:	48 89 c2             	mov    %rax,%rdx
    140009167:	48 8d 05 7a b7 00 00 	lea    0xb77a(%rip),%rax        # 1400148e8 <.rdata+0x1898>
    14000916e:	48 89 c1             	mov    %rax,%rcx
-   140009171:	48 8b 05 c8 21 01 00 	mov    0x121c8(%rip),%rax        # 14001b340 <__imp__assert>
+   140009171:	48 8b 05 c8 21 01 00 	mov    0x121c8(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009178:	ff d0                	call   *%rax
    14000917a:	48 8b 85 08 02 00 00 	mov    0x208(%rbp),%rax
    140009181:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7523,7 +7523,7 @@ Disassembly of section .text:
    140009198:	48 89 c2             	mov    %rax,%rdx
    14000919b:	48 8d 05 76 b7 00 00 	lea    0xb776(%rip),%rax        # 140014918 <.rdata+0x18c8>
    1400091a2:	48 89 c1             	mov    %rax,%rcx
-   1400091a5:	48 8b 05 94 21 01 00 	mov    0x12194(%rip),%rax        # 14001b340 <__imp__assert>
+   1400091a5:	48 8b 05 94 21 01 00 	mov    0x12194(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400091ac:	ff d0                	call   *%rax
    1400091ae:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400091b3:	48 8b 05 0e 21 01 00 	mov    0x1210e(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7578,7 +7578,7 @@ Disassembly of section .text:
    1400092a3:	48 89 c2             	mov    %rax,%rdx
    1400092a6:	48 8d 05 93 b6 00 00 	lea    0xb693(%rip),%rax        # 140014940 <.rdata+0x18f0>
    1400092ad:	48 89 c1             	mov    %rax,%rcx
-   1400092b0:	48 8b 05 89 20 01 00 	mov    0x12089(%rip),%rax        # 14001b340 <__imp__assert>
+   1400092b0:	48 8b 05 89 20 01 00 	mov    0x12089(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400092b7:	ff d0                	call   *%rax
    1400092b9:	48 8b 85 00 02 00 00 	mov    0x200(%rbp),%rax
    1400092c0:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7589,7 +7589,7 @@ Disassembly of section .text:
    1400092d7:	48 89 c2             	mov    %rax,%rdx
    1400092da:	48 8d 05 8f b6 00 00 	lea    0xb68f(%rip),%rax        # 140014970 <.rdata+0x1920>
    1400092e1:	48 89 c1             	mov    %rax,%rcx
-   1400092e4:	48 8b 05 55 20 01 00 	mov    0x12055(%rip),%rax        # 14001b340 <__imp__assert>
+   1400092e4:	48 8b 05 55 20 01 00 	mov    0x12055(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400092eb:	ff d0                	call   *%rax
    1400092ed:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400092f2:	48 8b 05 cf 1f 01 00 	mov    0x11fcf(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7644,7 +7644,7 @@ Disassembly of section .text:
    1400093e2:	48 89 c2             	mov    %rax,%rdx
    1400093e5:	48 8d 05 ac b5 00 00 	lea    0xb5ac(%rip),%rax        # 140014998 <.rdata+0x1948>
    1400093ec:	48 89 c1             	mov    %rax,%rcx
-   1400093ef:	48 8b 05 4a 1f 01 00 	mov    0x11f4a(%rip),%rax        # 14001b340 <__imp__assert>
+   1400093ef:	48 8b 05 4a 1f 01 00 	mov    0x11f4a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400093f6:	ff d0                	call   *%rax
    1400093f8:	48 8b 85 f8 01 00 00 	mov    0x1f8(%rbp),%rax
    1400093ff:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7655,7 +7655,7 @@ Disassembly of section .text:
    140009416:	48 89 c2             	mov    %rax,%rdx
    140009419:	48 8d 05 a8 b5 00 00 	lea    0xb5a8(%rip),%rax        # 1400149c8 <.rdata+0x1978>
    140009420:	48 89 c1             	mov    %rax,%rcx
-   140009423:	48 8b 05 16 1f 01 00 	mov    0x11f16(%rip),%rax        # 14001b340 <__imp__assert>
+   140009423:	48 8b 05 16 1f 01 00 	mov    0x11f16(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000942a:	ff d0                	call   *%rax
    14000942c:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009431:	48 8b 05 90 1e 01 00 	mov    0x11e90(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7710,7 +7710,7 @@ Disassembly of section .text:
    140009521:	48 89 c2             	mov    %rax,%rdx
    140009524:	48 8d 05 c5 b4 00 00 	lea    0xb4c5(%rip),%rax        # 1400149f0 <.rdata+0x19a0>
    14000952b:	48 89 c1             	mov    %rax,%rcx
-   14000952e:	48 8b 05 0b 1e 01 00 	mov    0x11e0b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000952e:	48 8b 05 0b 1e 01 00 	mov    0x11e0b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009535:	ff d0                	call   *%rax
    140009537:	48 8b 85 f0 01 00 00 	mov    0x1f0(%rbp),%rax
    14000953e:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7721,7 +7721,7 @@ Disassembly of section .text:
    140009555:	48 89 c2             	mov    %rax,%rdx
    140009558:	48 8d 05 c1 b4 00 00 	lea    0xb4c1(%rip),%rax        # 140014a20 <.rdata+0x19d0>
    14000955f:	48 89 c1             	mov    %rax,%rcx
-   140009562:	48 8b 05 d7 1d 01 00 	mov    0x11dd7(%rip),%rax        # 14001b340 <__imp__assert>
+   140009562:	48 8b 05 d7 1d 01 00 	mov    0x11dd7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009569:	ff d0                	call   *%rax
    14000956b:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009570:	48 8b 05 51 1d 01 00 	mov    0x11d51(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7776,7 +7776,7 @@ Disassembly of section .text:
    140009660:	48 89 c2             	mov    %rax,%rdx
    140009663:	48 8d 05 de b3 00 00 	lea    0xb3de(%rip),%rax        # 140014a48 <.rdata+0x19f8>
    14000966a:	48 89 c1             	mov    %rax,%rcx
-   14000966d:	48 8b 05 cc 1c 01 00 	mov    0x11ccc(%rip),%rax        # 14001b340 <__imp__assert>
+   14000966d:	48 8b 05 cc 1c 01 00 	mov    0x11ccc(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009674:	ff d0                	call   *%rax
    140009676:	48 8b 85 e8 01 00 00 	mov    0x1e8(%rbp),%rax
    14000967d:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7787,7 +7787,7 @@ Disassembly of section .text:
    140009694:	48 89 c2             	mov    %rax,%rdx
    140009697:	48 8d 05 da b3 00 00 	lea    0xb3da(%rip),%rax        # 140014a78 <.rdata+0x1a28>
    14000969e:	48 89 c1             	mov    %rax,%rcx
-   1400096a1:	48 8b 05 98 1c 01 00 	mov    0x11c98(%rip),%rax        # 14001b340 <__imp__assert>
+   1400096a1:	48 8b 05 98 1c 01 00 	mov    0x11c98(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400096a8:	ff d0                	call   *%rax
    1400096aa:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400096af:	48 8b 05 12 1c 01 00 	mov    0x11c12(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7842,7 +7842,7 @@ Disassembly of section .text:
    14000979f:	48 89 c2             	mov    %rax,%rdx
    1400097a2:	48 8d 05 f7 b2 00 00 	lea    0xb2f7(%rip),%rax        # 140014aa0 <.rdata+0x1a50>
    1400097a9:	48 89 c1             	mov    %rax,%rcx
-   1400097ac:	48 8b 05 8d 1b 01 00 	mov    0x11b8d(%rip),%rax        # 14001b340 <__imp__assert>
+   1400097ac:	48 8b 05 8d 1b 01 00 	mov    0x11b8d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400097b3:	ff d0                	call   *%rax
    1400097b5:	48 8b 85 e0 01 00 00 	mov    0x1e0(%rbp),%rax
    1400097bc:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7853,7 +7853,7 @@ Disassembly of section .text:
    1400097d3:	48 89 c2             	mov    %rax,%rdx
    1400097d6:	48 8d 05 f3 b2 00 00 	lea    0xb2f3(%rip),%rax        # 140014ad0 <.rdata+0x1a80>
    1400097dd:	48 89 c1             	mov    %rax,%rcx
-   1400097e0:	48 8b 05 59 1b 01 00 	mov    0x11b59(%rip),%rax        # 14001b340 <__imp__assert>
+   1400097e0:	48 8b 05 59 1b 01 00 	mov    0x11b59(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400097e7:	ff d0                	call   *%rax
    1400097e9:	b9 01 00 00 00       	mov    $0x1,%ecx
    1400097ee:	48 8b 05 d3 1a 01 00 	mov    0x11ad3(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7908,7 +7908,7 @@ Disassembly of section .text:
    1400098de:	48 89 c2             	mov    %rax,%rdx
    1400098e1:	48 8d 05 10 b2 00 00 	lea    0xb210(%rip),%rax        # 140014af8 <.rdata+0x1aa8>
    1400098e8:	48 89 c1             	mov    %rax,%rcx
-   1400098eb:	48 8b 05 4e 1a 01 00 	mov    0x11a4e(%rip),%rax        # 14001b340 <__imp__assert>
+   1400098eb:	48 8b 05 4e 1a 01 00 	mov    0x11a4e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    1400098f2:	ff d0                	call   *%rax
    1400098f4:	48 8b 85 d8 01 00 00 	mov    0x1d8(%rbp),%rax
    1400098fb:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7919,7 +7919,7 @@ Disassembly of section .text:
    140009912:	48 89 c2             	mov    %rax,%rdx
    140009915:	48 8d 05 0c b2 00 00 	lea    0xb20c(%rip),%rax        # 140014b28 <.rdata+0x1ad8>
    14000991c:	48 89 c1             	mov    %rax,%rcx
-   14000991f:	48 8b 05 1a 1a 01 00 	mov    0x11a1a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000991f:	48 8b 05 1a 1a 01 00 	mov    0x11a1a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009926:	ff d0                	call   *%rax
    140009928:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000992d:	48 8b 05 94 19 01 00 	mov    0x11994(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -7974,7 +7974,7 @@ Disassembly of section .text:
    140009a1d:	48 89 c2             	mov    %rax,%rdx
    140009a20:	48 8d 05 29 b1 00 00 	lea    0xb129(%rip),%rax        # 140014b50 <.rdata+0x1b00>
    140009a27:	48 89 c1             	mov    %rax,%rcx
-   140009a2a:	48 8b 05 0f 19 01 00 	mov    0x1190f(%rip),%rax        # 14001b340 <__imp__assert>
+   140009a2a:	48 8b 05 0f 19 01 00 	mov    0x1190f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009a31:	ff d0                	call   *%rax
    140009a33:	48 8b 85 d0 01 00 00 	mov    0x1d0(%rbp),%rax
    140009a3a:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -7985,7 +7985,7 @@ Disassembly of section .text:
    140009a51:	48 89 c2             	mov    %rax,%rdx
    140009a54:	48 8d 05 25 b1 00 00 	lea    0xb125(%rip),%rax        # 140014b80 <.rdata+0x1b30>
    140009a5b:	48 89 c1             	mov    %rax,%rcx
-   140009a5e:	48 8b 05 db 18 01 00 	mov    0x118db(%rip),%rax        # 14001b340 <__imp__assert>
+   140009a5e:	48 8b 05 db 18 01 00 	mov    0x118db(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009a65:	ff d0                	call   *%rax
    140009a67:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009a6c:	48 8b 05 55 18 01 00 	mov    0x11855(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8040,7 +8040,7 @@ Disassembly of section .text:
    140009b5c:	48 89 c2             	mov    %rax,%rdx
    140009b5f:	48 8d 05 42 b0 00 00 	lea    0xb042(%rip),%rax        # 140014ba8 <.rdata+0x1b58>
    140009b66:	48 89 c1             	mov    %rax,%rcx
-   140009b69:	48 8b 05 d0 17 01 00 	mov    0x117d0(%rip),%rax        # 14001b340 <__imp__assert>
+   140009b69:	48 8b 05 d0 17 01 00 	mov    0x117d0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009b70:	ff d0                	call   *%rax
    140009b72:	48 8b 85 c8 01 00 00 	mov    0x1c8(%rbp),%rax
    140009b79:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8051,7 +8051,7 @@ Disassembly of section .text:
    140009b92:	48 89 c2             	mov    %rax,%rdx
    140009b95:	48 8d 05 3c b0 00 00 	lea    0xb03c(%rip),%rax        # 140014bd8 <.rdata+0x1b88>
    140009b9c:	48 89 c1             	mov    %rax,%rcx
-   140009b9f:	48 8b 05 9a 17 01 00 	mov    0x1179a(%rip),%rax        # 14001b340 <__imp__assert>
+   140009b9f:	48 8b 05 9a 17 01 00 	mov    0x1179a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009ba6:	ff d0                	call   *%rax
    140009ba8:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009bad:	48 8b 05 14 17 01 00 	mov    0x11714(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8106,7 +8106,7 @@ Disassembly of section .text:
    140009c9d:	48 89 c2             	mov    %rax,%rdx
    140009ca0:	48 8d 05 59 af 00 00 	lea    0xaf59(%rip),%rax        # 140014c00 <.rdata+0x1bb0>
    140009ca7:	48 89 c1             	mov    %rax,%rcx
-   140009caa:	48 8b 05 8f 16 01 00 	mov    0x1168f(%rip),%rax        # 14001b340 <__imp__assert>
+   140009caa:	48 8b 05 8f 16 01 00 	mov    0x1168f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009cb1:	ff d0                	call   *%rax
    140009cb3:	48 8b 85 c0 01 00 00 	mov    0x1c0(%rbp),%rax
    140009cba:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8117,7 +8117,7 @@ Disassembly of section .text:
    140009cd3:	48 89 c2             	mov    %rax,%rdx
    140009cd6:	48 8d 05 53 af 00 00 	lea    0xaf53(%rip),%rax        # 140014c30 <.rdata+0x1be0>
    140009cdd:	48 89 c1             	mov    %rax,%rcx
-   140009ce0:	48 8b 05 59 16 01 00 	mov    0x11659(%rip),%rax        # 14001b340 <__imp__assert>
+   140009ce0:	48 8b 05 59 16 01 00 	mov    0x11659(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009ce7:	ff d0                	call   *%rax
    140009ce9:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009cee:	48 8b 05 d3 15 01 00 	mov    0x115d3(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8172,7 +8172,7 @@ Disassembly of section .text:
    140009ddc:	48 89 c2             	mov    %rax,%rdx
    140009ddf:	48 8d 05 72 ae 00 00 	lea    0xae72(%rip),%rax        # 140014c58 <.rdata+0x1c08>
    140009de6:	48 89 c1             	mov    %rax,%rcx
-   140009de9:	48 8b 05 50 15 01 00 	mov    0x11550(%rip),%rax        # 14001b340 <__imp__assert>
+   140009de9:	48 8b 05 50 15 01 00 	mov    0x11550(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009df0:	ff d0                	call   *%rax
    140009df2:	48 8b 85 b8 01 00 00 	mov    0x1b8(%rbp),%rax
    140009df9:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8183,7 +8183,7 @@ Disassembly of section .text:
    140009e10:	48 89 c2             	mov    %rax,%rdx
    140009e13:	48 8d 05 6e ae 00 00 	lea    0xae6e(%rip),%rax        # 140014c88 <.rdata+0x1c38>
    140009e1a:	48 89 c1             	mov    %rax,%rcx
-   140009e1d:	48 8b 05 1c 15 01 00 	mov    0x1151c(%rip),%rax        # 14001b340 <__imp__assert>
+   140009e1d:	48 8b 05 1c 15 01 00 	mov    0x1151c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009e24:	ff d0                	call   *%rax
    140009e26:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009e2b:	48 8b 05 96 14 01 00 	mov    0x11496(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8238,7 +8238,7 @@ Disassembly of section .text:
    140009f19:	48 89 c2             	mov    %rax,%rdx
    140009f1c:	48 8d 05 8d ad 00 00 	lea    0xad8d(%rip),%rax        # 140014cb0 <.rdata+0x1c60>
    140009f23:	48 89 c1             	mov    %rax,%rcx
-   140009f26:	48 8b 05 13 14 01 00 	mov    0x11413(%rip),%rax        # 14001b340 <__imp__assert>
+   140009f26:	48 8b 05 13 14 01 00 	mov    0x11413(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009f2d:	ff d0                	call   *%rax
    140009f2f:	48 8b 85 b0 01 00 00 	mov    0x1b0(%rbp),%rax
    140009f36:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8249,7 +8249,7 @@ Disassembly of section .text:
    140009f4d:	48 89 c2             	mov    %rax,%rdx
    140009f50:	48 8d 05 89 ad 00 00 	lea    0xad89(%rip),%rax        # 140014ce0 <.rdata+0x1c90>
    140009f57:	48 89 c1             	mov    %rax,%rcx
-   140009f5a:	48 8b 05 df 13 01 00 	mov    0x113df(%rip),%rax        # 14001b340 <__imp__assert>
+   140009f5a:	48 8b 05 df 13 01 00 	mov    0x113df(%rip),%rax        # 14001b340 <__imp__ASSERT>
    140009f61:	ff d0                	call   *%rax
    140009f63:	b9 01 00 00 00       	mov    $0x1,%ecx
    140009f68:	48 8b 05 59 13 01 00 	mov    0x11359(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8304,7 +8304,7 @@ Disassembly of section .text:
    14000a056:	48 89 c2             	mov    %rax,%rdx
    14000a059:	48 8d 05 a8 ac 00 00 	lea    0xaca8(%rip),%rax        # 140014d08 <.rdata+0x1cb8>
    14000a060:	48 89 c1             	mov    %rax,%rcx
-   14000a063:	48 8b 05 d6 12 01 00 	mov    0x112d6(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a063:	48 8b 05 d6 12 01 00 	mov    0x112d6(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a06a:	ff d0                	call   *%rax
    14000a06c:	48 8b 85 a8 01 00 00 	mov    0x1a8(%rbp),%rax
    14000a073:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8315,7 +8315,7 @@ Disassembly of section .text:
    14000a08a:	48 89 c2             	mov    %rax,%rdx
    14000a08d:	48 8d 05 a4 ac 00 00 	lea    0xaca4(%rip),%rax        # 140014d38 <.rdata+0x1ce8>
    14000a094:	48 89 c1             	mov    %rax,%rcx
-   14000a097:	48 8b 05 a2 12 01 00 	mov    0x112a2(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a097:	48 8b 05 a2 12 01 00 	mov    0x112a2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a09e:	ff d0                	call   *%rax
    14000a0a0:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000a0a5:	48 8b 05 1c 12 01 00 	mov    0x1121c(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8370,7 +8370,7 @@ Disassembly of section .text:
    14000a195:	48 89 c2             	mov    %rax,%rdx
    14000a198:	48 8d 05 c1 ab 00 00 	lea    0xabc1(%rip),%rax        # 140014d60 <.rdata+0x1d10>
    14000a19f:	48 89 c1             	mov    %rax,%rcx
-   14000a1a2:	48 8b 05 97 11 01 00 	mov    0x11197(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a1a2:	48 8b 05 97 11 01 00 	mov    0x11197(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a1a9:	ff d0                	call   *%rax
    14000a1ab:	48 8b 85 a0 01 00 00 	mov    0x1a0(%rbp),%rax
    14000a1b2:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8381,7 +8381,7 @@ Disassembly of section .text:
    14000a1cb:	48 89 c2             	mov    %rax,%rdx
    14000a1ce:	48 8d 05 bb ab 00 00 	lea    0xabbb(%rip),%rax        # 140014d90 <.rdata+0x1d40>
    14000a1d5:	48 89 c1             	mov    %rax,%rcx
-   14000a1d8:	48 8b 05 61 11 01 00 	mov    0x11161(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a1d8:	48 8b 05 61 11 01 00 	mov    0x11161(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a1df:	ff d0                	call   *%rax
    14000a1e1:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000a1e6:	48 8b 05 db 10 01 00 	mov    0x110db(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8436,7 +8436,7 @@ Disassembly of section .text:
    14000a2d4:	48 89 c2             	mov    %rax,%rdx
    14000a2d7:	48 8d 05 da aa 00 00 	lea    0xaada(%rip),%rax        # 140014db8 <.rdata+0x1d68>
    14000a2de:	48 89 c1             	mov    %rax,%rcx
-   14000a2e1:	48 8b 05 58 10 01 00 	mov    0x11058(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a2e1:	48 8b 05 58 10 01 00 	mov    0x11058(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a2e8:	ff d0                	call   *%rax
    14000a2ea:	48 8b 85 98 01 00 00 	mov    0x198(%rbp),%rax
    14000a2f1:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8447,7 +8447,7 @@ Disassembly of section .text:
    14000a308:	48 89 c2             	mov    %rax,%rdx
    14000a30b:	48 8d 05 d6 aa 00 00 	lea    0xaad6(%rip),%rax        # 140014de8 <.rdata+0x1d98>
    14000a312:	48 89 c1             	mov    %rax,%rcx
-   14000a315:	48 8b 05 24 10 01 00 	mov    0x11024(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a315:	48 8b 05 24 10 01 00 	mov    0x11024(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a31c:	ff d0                	call   *%rax
    14000a31e:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000a323:	48 8b 05 9e 0f 01 00 	mov    0x10f9e(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8502,7 +8502,7 @@ Disassembly of section .text:
    14000a411:	48 89 c2             	mov    %rax,%rdx
    14000a414:	48 8d 05 f5 a9 00 00 	lea    0xa9f5(%rip),%rax        # 140014e10 <.rdata+0x1dc0>
    14000a41b:	48 89 c1             	mov    %rax,%rcx
-   14000a41e:	48 8b 05 1b 0f 01 00 	mov    0x10f1b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a41e:	48 8b 05 1b 0f 01 00 	mov    0x10f1b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a425:	ff d0                	call   *%rax
    14000a427:	48 8b 85 90 01 00 00 	mov    0x190(%rbp),%rax
    14000a42e:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8513,7 +8513,7 @@ Disassembly of section .text:
    14000a445:	48 89 c2             	mov    %rax,%rdx
    14000a448:	48 8d 05 f1 a9 00 00 	lea    0xa9f1(%rip),%rax        # 140014e40 <.rdata+0x1df0>
    14000a44f:	48 89 c1             	mov    %rax,%rcx
-   14000a452:	48 8b 05 e7 0e 01 00 	mov    0x10ee7(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a452:	48 8b 05 e7 0e 01 00 	mov    0x10ee7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a459:	ff d0                	call   *%rax
    14000a45b:	b9 01 00 00 00       	mov    $0x1,%ecx
    14000a460:	48 8b 05 61 0e 01 00 	mov    0x10e61(%rip),%rax        # 14001b2c8 <__imp___acrt_iob_func>
@@ -8568,7 +8568,7 @@ Disassembly of section .text:
    14000a54e:	48 89 c2             	mov    %rax,%rdx
    14000a551:	48 8d 05 10 a9 00 00 	lea    0xa910(%rip),%rax        # 140014e68 <.rdata+0x1e18>
    14000a558:	48 89 c1             	mov    %rax,%rcx
-   14000a55b:	48 8b 05 de 0d 01 00 	mov    0x10dde(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a55b:	48 8b 05 de 0d 01 00 	mov    0x10dde(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a562:	ff d0                	call   *%rax
    14000a564:	48 8b 85 88 01 00 00 	mov    0x188(%rbp),%rax
    14000a56b:	48 8b 40 10          	mov    0x10(%rax),%rax
@@ -8579,7 +8579,7 @@ Disassembly of section .text:
    14000a584:	48 89 c2             	mov    %rax,%rdx
    14000a587:	48 8d 05 0a a9 00 00 	lea    0xa90a(%rip),%rax        # 140014e98 <.rdata+0x1e48>
    14000a58e:	48 89 c1             	mov    %rax,%rcx
-   14000a591:	48 8b 05 a8 0d 01 00 	mov    0x10da8(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a591:	48 8b 05 a8 0d 01 00 	mov    0x10da8(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a598:	ff d0                	call   *%rax
    14000a59a:	c6 85 80 01 00 00 03 	movb   $0x3,0x180(%rbp)
    14000a5a1:	c7 85 84 01 00 00 5d 	movl   $0xffff695d,0x184(%rbp)
@@ -8712,7 +8712,7 @@ Disassembly of section .text:
    14000a793:	48 89 c2             	mov    %rax,%rdx
    14000a796:	48 8d 05 3b a7 00 00 	lea    0xa73b(%rip),%rax        # 140014ed8 <.rdata+0x8>
    14000a79d:	48 89 c1             	mov    %rax,%rcx
-   14000a7a0:	48 8b 05 99 0b 01 00 	mov    0x10b99(%rip),%rax        # 14001b340 <__imp__assert>
+   14000a7a0:	48 8b 05 99 0b 01 00 	mov    0x10b99(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000a7a7:	ff d0                	call   *%rax
    14000a7a9:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000a7ad:	4c 8b 40 58          	mov    0x58(%rax),%r8
@@ -8955,7 +8955,7 @@ Disassembly of section .text:
    14000aae9:	48 89 c2             	mov    %rax,%rdx
    14000aaec:	48 8d 05 08 a4 00 00 	lea    0xa408(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000aaf3:	48 89 c1             	mov    %rax,%rcx
-   14000aaf6:	48 8b 05 43 08 01 00 	mov    0x10843(%rip),%rax        # 14001b340 <__imp__assert>
+   14000aaf6:	48 8b 05 43 08 01 00 	mov    0x10843(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000aafd:	ff d0                	call   *%rax
    14000aaff:	90                   	nop
    14000ab00:	48 8b 45 18          	mov    0x18(%rbp),%rax
@@ -9022,7 +9022,7 @@ Disassembly of section .text:
    14000abc3:	48 89 c2             	mov    %rax,%rdx
    14000abc6:	48 8d 05 03 a4 00 00 	lea    0xa403(%rip),%rax        # 140014fd0 <.rdata+0x100>
    14000abcd:	48 89 c1             	mov    %rax,%rcx
-   14000abd0:	48 8b 05 69 07 01 00 	mov    0x10769(%rip),%rax        # 14001b340 <__imp__assert>
+   14000abd0:	48 8b 05 69 07 01 00 	mov    0x10769(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000abd7:	ff d0                	call   *%rax
    14000abd9:	48 c7 45 f8 00 00 00 	movq   $0x0,-0x8(%rbp)
    14000abe0:	00 
@@ -9107,7 +9107,7 @@ Disassembly of section .text:
    14000ad0c:	48 89 c2             	mov    %rax,%rdx
    14000ad0f:	48 8d 05 e5 a1 00 00 	lea    0xa1e5(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000ad16:	48 89 c1             	mov    %rax,%rcx
-   14000ad19:	48 8b 05 20 06 01 00 	mov    0x10620(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ad19:	48 8b 05 20 06 01 00 	mov    0x10620(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ad20:	ff d0                	call   *%rax
    14000ad22:	48 8b 45 18          	mov    0x18(%rbp),%rax
    14000ad26:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9153,7 +9153,7 @@ Disassembly of section .text:
    14000adb7:	48 89 c2             	mov    %rax,%rdx
    14000adba:	48 8d 05 3a a1 00 00 	lea    0xa13a(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000adc1:	48 89 c1             	mov    %rax,%rcx
-   14000adc4:	48 8b 05 75 05 01 00 	mov    0x10575(%rip),%rax        # 14001b340 <__imp__assert>
+   14000adc4:	48 8b 05 75 05 01 00 	mov    0x10575(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000adcb:	ff d0                	call   *%rax
    14000adcd:	48 8b 45 d8          	mov    -0x28(%rbp),%rax
    14000add1:	48 89 c1             	mov    %rax,%rcx
@@ -9213,7 +9213,7 @@ Disassembly of section .text:
    14000aea3:	48 89 c2             	mov    %rax,%rdx
    14000aea6:	48 8d 05 4e a0 00 00 	lea    0xa04e(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000aead:	48 89 c1             	mov    %rax,%rcx
-   14000aeb0:	48 8b 05 89 04 01 00 	mov    0x10489(%rip),%rax        # 14001b340 <__imp__assert>
+   14000aeb0:	48 8b 05 89 04 01 00 	mov    0x10489(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000aeb7:	ff d0                	call   *%rax
    14000aeb9:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000aebd:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9310,7 +9310,7 @@ Disassembly of section .text:
    14000b012:	48 89 c2             	mov    %rax,%rdx
    14000b015:	48 8d 05 df 9e 00 00 	lea    0x9edf(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000b01c:	48 89 c1             	mov    %rax,%rcx
-   14000b01f:	48 8b 05 1a 03 01 00 	mov    0x1031a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b01f:	48 8b 05 1a 03 01 00 	mov    0x1031a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b026:	ff d0                	call   *%rax
    14000b028:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000b02c:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9339,7 +9339,7 @@ Disassembly of section .text:
    14000b08a:	48 89 c2             	mov    %rax,%rdx
    14000b08d:	48 8d 05 4e 9f 00 00 	lea    0x9f4e(%rip),%rax        # 140014fe2 <.rdata+0x112>
    14000b094:	48 89 c1             	mov    %rax,%rcx
-   14000b097:	48 8b 05 a2 02 01 00 	mov    0x102a2(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b097:	48 8b 05 a2 02 01 00 	mov    0x102a2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b09e:	ff d0                	call   *%rax
    14000b0a0:	48 8b 45 f8          	mov    -0x8(%rbp),%rax
    14000b0a4:	48 83 c4 60          	add    $0x60,%rsp
@@ -9401,7 +9401,7 @@ Disassembly of section .text:
    14000b15d:	48 89 c2             	mov    %rax,%rdx
    14000b160:	48 8d 05 81 9e 00 00 	lea    0x9e81(%rip),%rax        # 140014fe8 <.rdata+0x118>
    14000b167:	48 89 c1             	mov    %rax,%rcx
-   14000b16a:	48 8b 05 cf 01 01 00 	mov    0x101cf(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b16a:	48 8b 05 cf 01 01 00 	mov    0x101cf(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b171:	ff d0                	call   *%rax
    14000b173:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000b177:	4c 8b 40 20          	mov    0x20(%rax),%r8
@@ -9486,7 +9486,7 @@ Disassembly of section .text:
    14000b285:	48 89 c2             	mov    %rax,%rdx
    14000b288:	48 8d 05 89 9d 00 00 	lea    0x9d89(%rip),%rax        # 140015018 <.rdata+0x148>
    14000b28f:	48 89 c1             	mov    %rax,%rcx
-   14000b292:	48 8b 05 a7 00 01 00 	mov    0x100a7(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b292:	48 8b 05 a7 00 01 00 	mov    0x100a7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b299:	ff d0                	call   *%rax
    14000b29b:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000b29f:	4c 8b 40 38          	mov    0x38(%rax),%r8
@@ -9521,7 +9521,7 @@ Disassembly of section .text:
    14000b2f8:	48 89 c2             	mov    %rax,%rdx
    14000b2fb:	48 8d 05 3e 9d 00 00 	lea    0x9d3e(%rip),%rax        # 140015040 <.rdata+0x170>
    14000b302:	48 89 c1             	mov    %rax,%rcx
-   14000b305:	48 8b 05 34 00 01 00 	mov    0x10034(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b305:	48 8b 05 34 00 01 00 	mov    0x10034(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b30c:	ff d0                	call   *%rax
    14000b30e:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000b312:	48 8b 40 20          	mov    0x20(%rax),%rax
@@ -9569,7 +9569,7 @@ Disassembly of section .text:
    14000b3b1:	48 89 c2             	mov    %rax,%rdx
    14000b3b4:	48 8d 05 40 9b 00 00 	lea    0x9b40(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000b3bb:	48 89 c1             	mov    %rax,%rcx
-   14000b3be:	48 8b 05 7b ff 00 00 	mov    0xff7b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b3be:	48 8b 05 7b ff 00 00 	mov    0xff7b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b3c5:	ff d0                	call   *%rax
    14000b3c7:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000b3cb:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9600,7 +9600,7 @@ Disassembly of section .text:
    14000b421:	48 89 c2             	mov    %rax,%rdx
    14000b424:	48 8d 05 a5 9b 00 00 	lea    0x9ba5(%rip),%rax        # 140014fd0 <.rdata+0x100>
    14000b42b:	48 89 c1             	mov    %rax,%rcx
-   14000b42e:	48 8b 05 0b ff 00 00 	mov    0xff0b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b42e:	48 8b 05 0b ff 00 00 	mov    0xff0b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b435:	ff d0                	call   *%rax
    14000b437:	48 8b 45 10          	mov    0x10(%rbp),%rax
    14000b43b:	48 8b 40 18          	mov    0x18(%rax),%rax
@@ -9644,7 +9644,7 @@ Disassembly of section .text:
    14000b4cd:	48 89 c2             	mov    %rax,%rdx
    14000b4d0:	48 8d 05 24 9a 00 00 	lea    0x9a24(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000b4d7:	48 89 c1             	mov    %rax,%rcx
-   14000b4da:	48 8b 05 5f fe 00 00 	mov    0xfe5f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b4da:	48 8b 05 5f fe 00 00 	mov    0xfe5f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b4e1:	ff d0                	call   *%rax
    14000b4e3:	48 8b 45 18          	mov    0x18(%rbp),%rax
    14000b4e7:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9725,7 +9725,7 @@ Disassembly of section .text:
    14000b5fd:	48 89 c2             	mov    %rax,%rdx
    14000b600:	48 8d 05 f4 98 00 00 	lea    0x98f4(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000b607:	48 89 c1             	mov    %rax,%rcx
-   14000b60a:	48 8b 05 2f fd 00 00 	mov    0xfd2f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b60a:	48 8b 05 2f fd 00 00 	mov    0xfd2f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b611:	ff d0                	call   *%rax
    14000b613:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000b617:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -9748,7 +9748,7 @@ Disassembly of section .text:
    14000b660:	48 89 c2             	mov    %rax,%rdx
    14000b663:	48 8d 05 91 98 00 00 	lea    0x9891(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000b66a:	48 89 c1             	mov    %rax,%rcx
-   14000b66d:	48 8b 05 cc fc 00 00 	mov    0xfccc(%rip),%rax        # 14001b340 <__imp__assert>
+   14000b66d:	48 8b 05 cc fc 00 00 	mov    0xfccc(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000b674:	ff d0                	call   *%rax
    14000b676:	48 83 c4 60          	add    $0x60,%rsp
    14000b67a:	5d                   	pop    %rbp
@@ -10395,7 +10395,7 @@ Disassembly of section .text:
    14000bfd9:	48 89 c2             	mov    %rax,%rdx
    14000bfdc:	48 8d 05 9a 90 00 00 	lea    0x909a(%rip),%rax        # 14001507d <.rdata+0x1ad>
    14000bfe3:	48 89 c1             	mov    %rax,%rcx
-   14000bfe6:	48 8b 05 53 f3 00 00 	mov    0xf353(%rip),%rax        # 14001b340 <__imp__assert>
+   14000bfe6:	48 8b 05 53 f3 00 00 	mov    0xf353(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000bfed:	ff d0                	call   *%rax
    14000bfef:	48 8b 45 f0          	mov    -0x10(%rbp),%rax
    14000bff3:	48 8d 15 8c 90 00 00 	lea    0x908c(%rip),%rdx        # 140015086 <.rdata+0x1b6>
@@ -10409,7 +10409,7 @@ Disassembly of section .text:
    14000c01a:	48 89 c2             	mov    %rax,%rdx
    14000c01d:	48 8d 05 62 90 00 00 	lea    0x9062(%rip),%rax        # 140015086 <.rdata+0x1b6>
    14000c024:	48 89 c1             	mov    %rax,%rcx
-   14000c027:	48 8b 05 12 f3 00 00 	mov    0xf312(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c027:	48 8b 05 12 f3 00 00 	mov    0xf312(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c02e:	ff d0                	call   *%rax
    14000c030:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
    14000c034:	48 8b 40 08          	mov    0x8(%rax),%rax
@@ -10424,7 +10424,7 @@ Disassembly of section .text:
    14000c058:	48 89 c2             	mov    %rax,%rdx
    14000c05b:	48 8d 05 36 90 00 00 	lea    0x9036(%rip),%rax        # 140015098 <.rdata+0x1c8>
    14000c062:	48 89 c1             	mov    %rax,%rcx
-   14000c065:	48 8b 05 d4 f2 00 00 	mov    0xf2d4(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c065:	48 8b 05 d4 f2 00 00 	mov    0xf2d4(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c06c:	ff d0                	call   *%rax
    14000c06e:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%rbp)
    14000c075:	eb 75                	jmp    14000c0ec <state__compile_ret_struct_fn+0x283>
@@ -10579,7 +10579,7 @@ Disassembly of section .text:
    14000c27a:	48 89 c2             	mov    %rax,%rdx
    14000c27d:	48 8d 05 4d 8e 00 00 	lea    0x8e4d(%rip),%rax        # 1400150d1 <.rdata+0x201>
    14000c284:	48 89 c1             	mov    %rax,%rcx
-   14000c287:	48 8b 05 b2 f0 00 00 	mov    0xf0b2(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c287:	48 8b 05 b2 f0 00 00 	mov    0xf0b2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c28e:	ff d0                	call   *%rax
    14000c290:	48 83 7d f8 00       	cmpq   $0x0,-0x8(%rbp)
    14000c295:	75 23                	jne    14000c2ba <state__compile_main_fn+0xa3>
@@ -10588,7 +10588,7 @@ Disassembly of section .text:
    14000c2a4:	48 89 c2             	mov    %rax,%rdx
    14000c2a7:	48 8d 05 29 8e 00 00 	lea    0x8e29(%rip),%rax        # 1400150d7 <.rdata+0x207>
    14000c2ae:	48 89 c1             	mov    %rax,%rcx
-   14000c2b1:	48 8b 05 88 f0 00 00 	mov    0xf088(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c2b1:	48 8b 05 88 f0 00 00 	mov    0xf088(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c2b8:	ff d0                	call   *%rax
    14000c2ba:	48 8b 45 f8          	mov    -0x8(%rbp),%rax
    14000c2be:	49 89 c0             	mov    %rax,%r8
@@ -10781,7 +10781,7 @@ Disassembly of section .text:
    14000c5a9:	48 89 c2             	mov    %rax,%rdx
    14000c5ac:	48 8d 05 3f 8b 00 00 	lea    0x8b3f(%rip),%rax        # 1400150f2 <.rdata+0x222>
    14000c5b3:	48 89 c1             	mov    %rax,%rcx
-   14000c5b6:	48 8b 05 83 ed 00 00 	mov    0xed83(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c5b6:	48 8b 05 83 ed 00 00 	mov    0xed83(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c5bd:	ff d0                	call   *%rax
    14000c5bf:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
    14000c5c3:	49 89 c0             	mov    %rax,%r8
@@ -10949,7 +10949,7 @@ Disassembly of section .text:
    14000c80e:	48 89 c2             	mov    %rax,%rdx
    14000c811:	48 8d 05 f8 88 00 00 	lea    0x88f8(%rip),%rax        # 140015110 <.rdata+0x240>
    14000c818:	48 89 c1             	mov    %rax,%rcx
-   14000c81b:	48 8b 05 1e eb 00 00 	mov    0xeb1e(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c81b:	48 8b 05 1e eb 00 00 	mov    0xeb1e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c822:	ff d0                	call   *%rax
    14000c824:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000c828:	48 8b 40 18          	mov    0x18(%rax),%rax
@@ -10963,7 +10963,7 @@ Disassembly of section .text:
    14000c84a:	48 89 c2             	mov    %rax,%rdx
    14000c84d:	48 8d 05 14 89 00 00 	lea    0x8914(%rip),%rax        # 140015168 <.rdata+0x298>
    14000c854:	48 89 c1             	mov    %rax,%rcx
-   14000c857:	48 8b 05 e2 ea 00 00 	mov    0xeae2(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c857:	48 8b 05 e2 ea 00 00 	mov    0xeae2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c85e:	ff d0                	call   *%rax
    14000c860:	48 8b 45 20          	mov    0x20(%rbp),%rax
    14000c864:	48 8b 40 18          	mov    0x18(%rax),%rax
@@ -11040,14 +11040,14 @@ Disassembly of section .text:
    14000c984:	48 89 c2             	mov    %rax,%rdx
    14000c987:	48 8d 05 33 88 00 00 	lea    0x8833(%rip),%rax        # 1400151c1 <.rdata+0x2f1>
    14000c98e:	48 89 c1             	mov    %rax,%rcx
-   14000c991:	48 8b 05 a8 e9 00 00 	mov    0xe9a8(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c991:	48 8b 05 a8 e9 00 00 	mov    0xe9a8(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c998:	ff d0                	call   *%rax
    14000c99a:	41 b8 c4 03 00 00    	mov    $0x3c4,%r8d
    14000c9a0:	48 8d 05 29 85 00 00 	lea    0x8529(%rip),%rax        # 140014ed0 <.rdata>
    14000c9a7:	48 89 c2             	mov    %rax,%rdx
    14000c9aa:	48 8d 05 4a 85 00 00 	lea    0x854a(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000c9b1:	48 89 c1             	mov    %rax,%rcx
-   14000c9b4:	48 8b 05 85 e9 00 00 	mov    0xe985(%rip),%rax        # 14001b340 <__imp__assert>
+   14000c9b4:	48 8b 05 85 e9 00 00 	mov    0xe985(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000c9bb:	ff d0                	call   *%rax
    14000c9bd:	90                   	nop
    14000c9be:	90                   	nop
@@ -11462,7 +11462,7 @@ Disassembly of section .text:
    14000cfa0:	48 89 c2             	mov    %rax,%rdx
    14000cfa3:	48 8d 05 6c 82 00 00 	lea    0x826c(%rip),%rax        # 140015216 <.rdata+0x346>
    14000cfaa:	48 89 c1             	mov    %rax,%rcx
-   14000cfad:	48 8b 05 8c e3 00 00 	mov    0xe38c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000cfad:	48 8b 05 8c e3 00 00 	mov    0xe38c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000cfb4:	ff d0                	call   *%rax
    14000cfb6:	48 83 7d e0 00       	cmpq   $0x0,-0x20(%rbp)
    14000cfbb:	75 23                	jne    14000cfe0 <state__create_user_types+0xec>
@@ -11471,7 +11471,7 @@ Disassembly of section .text:
    14000cfca:	48 89 c2             	mov    %rax,%rdx
    14000cfcd:	48 8d 05 46 82 00 00 	lea    0x8246(%rip),%rax        # 14001521a <.rdata+0x34a>
    14000cfd4:	48 89 c1             	mov    %rax,%rcx
-   14000cfd7:	48 8b 05 62 e3 00 00 	mov    0xe362(%rip),%rax        # 14001b340 <__imp__assert>
+   14000cfd7:	48 8b 05 62 e3 00 00 	mov    0xe362(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000cfde:	ff d0                	call   *%rax
    14000cfe0:	48 8b 55 f0          	mov    -0x10(%rbp),%rdx
    14000cfe4:	48 8b 45 f8          	mov    -0x8(%rbp),%rax
@@ -11626,7 +11626,7 @@ Disassembly of section .text:
    14000d2bf:	48 89 c2             	mov    %rax,%rdx
    14000d2c2:	48 8d 05 5f 7f 00 00 	lea    0x7f5f(%rip),%rax        # 140015228 <.rdata+0x358>
    14000d2c9:	48 89 c1             	mov    %rax,%rcx
-   14000d2cc:	48 8b 05 6d e0 00 00 	mov    0xe06d(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d2cc:	48 8b 05 6d e0 00 00 	mov    0xe06d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d2d3:	ff d0                	call   *%rax
    14000d2d5:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d2dc:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -11638,7 +11638,7 @@ Disassembly of section .text:
    14000d2f9:	48 89 c2             	mov    %rax,%rdx
    14000d2fc:	48 8d 05 7d 7f 00 00 	lea    0x7f7d(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000d303:	48 89 c1             	mov    %rax,%rcx
-   14000d306:	48 8b 05 33 e0 00 00 	mov    0xe033(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d306:	48 8b 05 33 e0 00 00 	mov    0xe033(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d30d:	ff d0                	call   *%rax
    14000d30f:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d316:	48 83 c0 10          	add    $0x10,%rax
@@ -11665,7 +11665,7 @@ Disassembly of section .text:
    14000d389:	48 89 c2             	mov    %rax,%rdx
    14000d38c:	48 8d 05 4d 7f 00 00 	lea    0x7f4d(%rip),%rax        # 1400152e0 <.rdata+0x410>
    14000d393:	48 89 c1             	mov    %rax,%rcx
-   14000d396:	48 8b 05 a3 df 00 00 	mov    0xdfa3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d396:	48 8b 05 a3 df 00 00 	mov    0xdfa3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d39d:	ff d0                	call   *%rax
    14000d39f:	48 8b 8d b8 04 00 00 	mov    0x4b8(%rbp),%rcx
    14000d3a6:	8b 85 c0 04 00 00    	mov    0x4c0(%rbp),%eax
@@ -11695,7 +11695,7 @@ Disassembly of section .text:
    14000d422:	48 89 c2             	mov    %rax,%rdx
    14000d425:	48 8d 05 0c 7f 00 00 	lea    0x7f0c(%rip),%rax        # 140015338 <.rdata+0x468>
    14000d42c:	48 89 c1             	mov    %rax,%rcx
-   14000d42f:	48 8b 05 0a df 00 00 	mov    0xdf0a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d42f:	48 8b 05 0a df 00 00 	mov    0xdf0a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d436:	ff d0                	call   *%rax
    14000d438:	48 8b 95 98 04 00 00 	mov    0x498(%rbp),%rdx
    14000d43f:	48 8b 85 10 05 00 00 	mov    0x510(%rbp),%rax
@@ -11709,7 +11709,7 @@ Disassembly of section .text:
    14000d469:	48 89 c2             	mov    %rax,%rdx
    14000d46c:	48 8d 05 25 7f 00 00 	lea    0x7f25(%rip),%rax        # 140015398 <.rdata+0x4c8>
    14000d473:	48 89 c1             	mov    %rax,%rcx
-   14000d476:	48 8b 05 c3 de 00 00 	mov    0xdec3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d476:	48 8b 05 c3 de 00 00 	mov    0xdec3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d47d:	ff d0                	call   *%rax
    14000d47f:	48 8b 95 98 04 00 00 	mov    0x498(%rbp),%rdx
    14000d486:	48 8b 85 10 05 00 00 	mov    0x510(%rbp),%rax
@@ -11727,7 +11727,7 @@ Disassembly of section .text:
    14000d4c8:	48 89 c2             	mov    %rax,%rdx
    14000d4cb:	48 8d 05 2e 7f 00 00 	lea    0x7f2e(%rip),%rax        # 140015400 <.rdata+0x530>
    14000d4d2:	48 89 c1             	mov    %rax,%rcx
-   14000d4d5:	48 8b 05 64 de 00 00 	mov    0xde64(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d4d5:	48 8b 05 64 de 00 00 	mov    0xde64(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d4dc:	ff d0                	call   *%rax
    14000d4de:	48 8b 95 98 04 00 00 	mov    0x498(%rbp),%rdx
    14000d4e5:	48 8b 85 08 05 00 00 	mov    0x508(%rbp),%rax
@@ -11740,7 +11740,7 @@ Disassembly of section .text:
    14000d508:	48 89 c2             	mov    %rax,%rdx
    14000d50b:	48 8d 05 3e 7f 00 00 	lea    0x7f3e(%rip),%rax        # 140015450 <.rdata+0x580>
    14000d512:	48 89 c1             	mov    %rax,%rcx
-   14000d515:	48 8b 05 24 de 00 00 	mov    0xde24(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d515:	48 8b 05 24 de 00 00 	mov    0xde24(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d51c:	ff d0                	call   *%rax
    14000d51e:	48 8b 95 98 04 00 00 	mov    0x498(%rbp),%rdx
    14000d525:	48 8b 85 08 05 00 00 	mov    0x508(%rbp),%rax
@@ -11770,7 +11770,7 @@ Disassembly of section .text:
    14000d5a9:	48 89 c2             	mov    %rax,%rdx
    14000d5ac:	48 8d 05 f5 7e 00 00 	lea    0x7ef5(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000d5b3:	48 89 c1             	mov    %rax,%rcx
-   14000d5b6:	48 8b 05 83 dd 00 00 	mov    0xdd83(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d5b6:	48 8b 05 83 dd 00 00 	mov    0xdd83(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d5bd:	ff d0                	call   *%rax
    14000d5bf:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d5c6:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -11782,7 +11782,7 @@ Disassembly of section .text:
    14000d5e3:	48 89 c2             	mov    %rax,%rdx
    14000d5e6:	48 8d 05 1b 7f 00 00 	lea    0x7f1b(%rip),%rax        # 140015508 <.rdata+0x638>
    14000d5ed:	48 89 c1             	mov    %rax,%rcx
-   14000d5f0:	48 8b 05 49 dd 00 00 	mov    0xdd49(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d5f0:	48 8b 05 49 dd 00 00 	mov    0xdd49(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d5f7:	ff d0                	call   *%rax
    14000d5f9:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d600:	48 83 c0 10          	add    $0x10,%rax
@@ -11807,7 +11807,7 @@ Disassembly of section .text:
    14000d669:	48 89 c2             	mov    %rax,%rdx
    14000d66c:	48 8d 05 b5 7b 00 00 	lea    0x7bb5(%rip),%rax        # 140015228 <.rdata+0x358>
    14000d673:	48 89 c1             	mov    %rax,%rcx
-   14000d676:	48 8b 05 c3 dc 00 00 	mov    0xdcc3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d676:	48 8b 05 c3 dc 00 00 	mov    0xdcc3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d67d:	ff d0                	call   *%rax
    14000d67f:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d686:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -11819,7 +11819,7 @@ Disassembly of section .text:
    14000d6a3:	48 89 c2             	mov    %rax,%rdx
    14000d6a6:	48 8d 05 d3 7b 00 00 	lea    0x7bd3(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000d6ad:	48 89 c1             	mov    %rax,%rcx
-   14000d6b0:	48 8b 05 89 dc 00 00 	mov    0xdc89(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d6b0:	48 8b 05 89 dc 00 00 	mov    0xdc89(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d6b7:	ff d0                	call   *%rax
    14000d6b9:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d6c0:	48 83 c0 10          	add    $0x10,%rax
@@ -11844,7 +11844,7 @@ Disassembly of section .text:
    14000d729:	48 89 c2             	mov    %rax,%rdx
    14000d72c:	48 8d 05 f5 7a 00 00 	lea    0x7af5(%rip),%rax        # 140015228 <.rdata+0x358>
    14000d733:	48 89 c1             	mov    %rax,%rcx
-   14000d736:	48 8b 05 03 dc 00 00 	mov    0xdc03(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d736:	48 8b 05 03 dc 00 00 	mov    0xdc03(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d73d:	ff d0                	call   *%rax
    14000d73f:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d746:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -11856,7 +11856,7 @@ Disassembly of section .text:
    14000d763:	48 89 c2             	mov    %rax,%rdx
    14000d766:	48 8d 05 13 7b 00 00 	lea    0x7b13(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000d76d:	48 89 c1             	mov    %rax,%rcx
-   14000d770:	48 8b 05 c9 db 00 00 	mov    0xdbc9(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d770:	48 8b 05 c9 db 00 00 	mov    0xdbc9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d777:	ff d0                	call   *%rax
    14000d779:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d780:	48 83 c0 10          	add    $0x10,%rax
@@ -11872,7 +11872,7 @@ Disassembly of section .text:
    14000d7b4:	48 89 c2             	mov    %rax,%rdx
    14000d7b7:	48 8d 05 aa 7d 00 00 	lea    0x7daa(%rip),%rax        # 140015568 <.rdata+0x698>
    14000d7be:	48 89 c1             	mov    %rax,%rcx
-   14000d7c1:	48 8b 05 78 db 00 00 	mov    0xdb78(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d7c1:	48 8b 05 78 db 00 00 	mov    0xdb78(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d7c8:	ff d0                	call   *%rax
    14000d7ca:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d7d1:	48 8d 50 f0          	lea    -0x10(%rax),%rdx
@@ -11884,7 +11884,7 @@ Disassembly of section .text:
    14000d7ee:	48 89 c2             	mov    %rax,%rdx
    14000d7f1:	48 8d 05 d8 7d 00 00 	lea    0x7dd8(%rip),%rax        # 1400155d0 <.rdata+0x700>
    14000d7f8:	48 89 c1             	mov    %rax,%rcx
-   14000d7fb:	48 8b 05 3e db 00 00 	mov    0xdb3e(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d7fb:	48 8b 05 3e db 00 00 	mov    0xdb3e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d802:	ff d0                	call   *%rax
    14000d804:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d80b:	48 83 e8 10          	sub    $0x10,%rax
@@ -11898,7 +11898,7 @@ Disassembly of section .text:
    14000d832:	48 89 c2             	mov    %rax,%rdx
    14000d835:	48 8d 05 fc 7d 00 00 	lea    0x7dfc(%rip),%rax        # 140015638 <.rdata+0x768>
    14000d83c:	48 89 c1             	mov    %rax,%rcx
-   14000d83f:	48 8b 05 fa da 00 00 	mov    0xdafa(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d83f:	48 8b 05 fa da 00 00 	mov    0xdafa(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d846:	ff d0                	call   *%rax
    14000d848:	48 8b 85 b8 04 00 00 	mov    0x4b8(%rbp),%rax
    14000d84f:	8b 95 c0 04 00 00    	mov    0x4c0(%rbp),%edx
@@ -11918,7 +11918,7 @@ Disassembly of section .text:
    14000d894:	48 89 c2             	mov    %rax,%rdx
    14000d897:	48 8d 05 e2 7d 00 00 	lea    0x7de2(%rip),%rax        # 140015680 <.rdata+0x7b0>
    14000d89e:	48 89 c1             	mov    %rax,%rcx
-   14000d8a1:	48 8b 05 98 da 00 00 	mov    0xda98(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d8a1:	48 8b 05 98 da 00 00 	mov    0xda98(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d8a8:	ff d0                	call   *%rax
    14000d8aa:	48 8b 85 a8 04 00 00 	mov    0x4a8(%rbp),%rax
    14000d8b1:	48 39 85 18 05 00 00 	cmp    %rax,0x518(%rbp)
@@ -11928,7 +11928,7 @@ Disassembly of section .text:
    14000d8c7:	48 89 c2             	mov    %rax,%rdx
    14000d8ca:	48 8d 05 ef 7d 00 00 	lea    0x7def(%rip),%rax        # 1400156c0 <.rdata+0x7f0>
    14000d8d1:	48 89 c1             	mov    %rax,%rcx
-   14000d8d4:	48 8b 05 65 da 00 00 	mov    0xda65(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d8d4:	48 8b 05 65 da 00 00 	mov    0xda65(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d8db:	ff d0                	call   *%rax
    14000d8dd:	48 8b 85 18 05 00 00 	mov    0x518(%rbp),%rax
    14000d8e4:	48 89 85 98 04 00 00 	mov    %rax,0x498(%rbp)
@@ -11943,7 +11943,7 @@ Disassembly of section .text:
    14000d914:	48 89 c2             	mov    %rax,%rdx
    14000d917:	48 8d 05 e2 7d 00 00 	lea    0x7de2(%rip),%rax        # 140015700 <.rdata+0x830>
    14000d91e:	48 89 c1             	mov    %rax,%rcx
-   14000d921:	48 8b 05 18 da 00 00 	mov    0xda18(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d921:	48 8b 05 18 da 00 00 	mov    0xda18(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d928:	ff d0                	call   *%rax
    14000d92a:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d931:	48 8d 50 f0          	lea    -0x10(%rax),%rdx
@@ -11955,7 +11955,7 @@ Disassembly of section .text:
    14000d94e:	48 89 c2             	mov    %rax,%rdx
    14000d951:	48 8d 05 10 7e 00 00 	lea    0x7e10(%rip),%rax        # 140015768 <.rdata+0x898>
    14000d958:	48 89 c1             	mov    %rax,%rcx
-   14000d95b:	48 8b 05 de d9 00 00 	mov    0xd9de(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d95b:	48 8b 05 de d9 00 00 	mov    0xd9de(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d962:	ff d0                	call   *%rax
    14000d964:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000d96b:	48 83 e8 10          	sub    $0x10,%rax
@@ -11979,7 +11979,7 @@ Disassembly of section .text:
    14000d9cd:	48 89 c2             	mov    %rax,%rdx
    14000d9d0:	48 8d 05 f9 7d 00 00 	lea    0x7df9(%rip),%rax        # 1400157d0 <.rdata+0x900>
    14000d9d7:	48 89 c1             	mov    %rax,%rcx
-   14000d9da:	48 8b 05 5f d9 00 00 	mov    0xd95f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000d9da:	48 8b 05 5f d9 00 00 	mov    0xd95f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000d9e1:	ff d0                	call   *%rax
    14000d9e3:	48 8b 85 30 04 00 00 	mov    0x430(%rbp),%rax
    14000d9ea:	48 89 c2             	mov    %rax,%rdx
@@ -11991,7 +11991,7 @@ Disassembly of section .text:
    14000da06:	48 89 c2             	mov    %rax,%rdx
    14000da09:	48 8d 05 08 7e 00 00 	lea    0x7e08(%rip),%rax        # 140015818 <.rdata+0x948>
    14000da10:	48 89 c1             	mov    %rax,%rcx
-   14000da13:	48 8b 05 26 d9 00 00 	mov    0xd926(%rip),%rax        # 14001b340 <__imp__assert>
+   14000da13:	48 8b 05 26 d9 00 00 	mov    0xd926(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000da1a:	ff d0                	call   *%rax
    14000da1c:	48 8b 85 30 04 00 00 	mov    0x430(%rbp),%rax
    14000da23:	48 89 85 98 04 00 00 	mov    %rax,0x498(%rbp)
@@ -12014,7 +12014,7 @@ Disassembly of section .text:
    14000da81:	48 89 c2             	mov    %rax,%rdx
    14000da84:	48 8d 05 45 7d 00 00 	lea    0x7d45(%rip),%rax        # 1400157d0 <.rdata+0x900>
    14000da8b:	48 89 c1             	mov    %rax,%rcx
-   14000da8e:	48 8b 05 ab d8 00 00 	mov    0xd8ab(%rip),%rax        # 14001b340 <__imp__assert>
+   14000da8e:	48 8b 05 ab d8 00 00 	mov    0xd8ab(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000da95:	ff d0                	call   *%rax
    14000da97:	48 8b 85 20 04 00 00 	mov    0x420(%rbp),%rax
    14000da9e:	48 89 c2             	mov    %rax,%rdx
@@ -12026,7 +12026,7 @@ Disassembly of section .text:
    14000daba:	48 89 c2             	mov    %rax,%rdx
    14000dabd:	48 8d 05 54 7d 00 00 	lea    0x7d54(%rip),%rax        # 140015818 <.rdata+0x948>
    14000dac4:	48 89 c1             	mov    %rax,%rcx
-   14000dac7:	48 8b 05 72 d8 00 00 	mov    0xd872(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dac7:	48 8b 05 72 d8 00 00 	mov    0xd872(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dace:	ff d0                	call   *%rax
    14000dad0:	48 8b 85 20 04 00 00 	mov    0x420(%rbp),%rax
    14000dad7:	48 89 85 b0 04 00 00 	mov    %rax,0x4b0(%rbp)
@@ -12052,7 +12052,7 @@ Disassembly of section .text:
    14000db47:	48 89 c2             	mov    %rax,%rdx
    14000db4a:	48 8d 05 17 7d 00 00 	lea    0x7d17(%rip),%rax        # 140015868 <.rdata+0x998>
    14000db51:	48 89 c1             	mov    %rax,%rcx
-   14000db54:	48 8b 05 e5 d7 00 00 	mov    0xd7e5(%rip),%rax        # 14001b340 <__imp__assert>
+   14000db54:	48 8b 05 e5 d7 00 00 	mov    0xd7e5(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000db5b:	ff d0                	call   *%rax
    14000db5d:	48 8b 95 98 04 00 00 	mov    0x498(%rbp),%rdx
    14000db64:	48 8b 85 a8 04 00 00 	mov    0x4a8(%rbp),%rax
@@ -12063,7 +12063,7 @@ Disassembly of section .text:
    14000db7d:	48 89 c2             	mov    %rax,%rdx
    14000db80:	48 8d 05 29 7d 00 00 	lea    0x7d29(%rip),%rax        # 1400158b0 <.rdata+0x9e0>
    14000db87:	48 89 c1             	mov    %rax,%rcx
-   14000db8a:	48 8b 05 af d7 00 00 	mov    0xd7af(%rip),%rax        # 14001b340 <__imp__assert>
+   14000db8a:	48 8b 05 af d7 00 00 	mov    0xd7af(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000db91:	ff d0                	call   *%rax
    14000db93:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000db9a:	48 89 85 b0 04 00 00 	mov    %rax,0x4b0(%rbp)
@@ -12105,7 +12105,7 @@ Disassembly of section .text:
    14000dc67:	48 89 c2             	mov    %rax,%rdx
    14000dc6a:	48 8d 05 b7 75 00 00 	lea    0x75b7(%rip),%rax        # 140015228 <.rdata+0x358>
    14000dc71:	48 89 c1             	mov    %rax,%rcx
-   14000dc74:	48 8b 05 c5 d6 00 00 	mov    0xd6c5(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dc74:	48 8b 05 c5 d6 00 00 	mov    0xd6c5(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dc7b:	ff d0                	call   *%rax
    14000dc7d:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000dc84:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12117,7 +12117,7 @@ Disassembly of section .text:
    14000dca1:	48 89 c2             	mov    %rax,%rdx
    14000dca4:	48 8d 05 d5 75 00 00 	lea    0x75d5(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000dcab:	48 89 c1             	mov    %rax,%rcx
-   14000dcae:	48 8b 05 8b d6 00 00 	mov    0xd68b(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dcae:	48 8b 05 8b d6 00 00 	mov    0xd68b(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dcb5:	ff d0                	call   *%rax
    14000dcb7:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000dcbe:	48 83 c0 10          	add    $0x10,%rax
@@ -12164,7 +12164,7 @@ Disassembly of section .text:
    14000dd94:	48 89 c2             	mov    %rax,%rdx
    14000dd97:	48 8d 05 0a 77 00 00 	lea    0x770a(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000dd9e:	48 89 c1             	mov    %rax,%rcx
-   14000dda1:	48 8b 05 98 d5 00 00 	mov    0xd598(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dda1:	48 8b 05 98 d5 00 00 	mov    0xd598(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dda8:	ff d0                	call   *%rax
    14000ddaa:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ddb1:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12176,7 +12176,7 @@ Disassembly of section .text:
    14000ddce:	48 89 c2             	mov    %rax,%rdx
    14000ddd1:	48 8d 05 30 77 00 00 	lea    0x7730(%rip),%rax        # 140015508 <.rdata+0x638>
    14000ddd8:	48 89 c1             	mov    %rax,%rcx
-   14000dddb:	48 8b 05 5e d5 00 00 	mov    0xd55e(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dddb:	48 8b 05 5e d5 00 00 	mov    0xd55e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dde2:	ff d0                	call   *%rax
    14000dde4:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ddeb:	48 83 c0 10          	add    $0x10,%rax
@@ -12219,7 +12219,7 @@ Disassembly of section .text:
    14000debc:	48 89 c2             	mov    %rax,%rdx
    14000debf:	48 8d 05 62 73 00 00 	lea    0x7362(%rip),%rax        # 140015228 <.rdata+0x358>
    14000dec6:	48 89 c1             	mov    %rax,%rcx
-   14000dec9:	48 8b 05 70 d4 00 00 	mov    0xd470(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dec9:	48 8b 05 70 d4 00 00 	mov    0xd470(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ded0:	ff d0                	call   *%rax
    14000ded2:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ded9:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12231,7 +12231,7 @@ Disassembly of section .text:
    14000def6:	48 89 c2             	mov    %rax,%rdx
    14000def9:	48 8d 05 80 73 00 00 	lea    0x7380(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000df00:	48 89 c1             	mov    %rax,%rcx
-   14000df03:	48 8b 05 36 d4 00 00 	mov    0xd436(%rip),%rax        # 14001b340 <__imp__assert>
+   14000df03:	48 8b 05 36 d4 00 00 	mov    0xd436(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000df0a:	ff d0                	call   *%rax
    14000df0c:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000df13:	48 83 c0 10          	add    $0x10,%rax
@@ -12278,7 +12278,7 @@ Disassembly of section .text:
    14000dfe9:	48 89 c2             	mov    %rax,%rdx
    14000dfec:	48 8d 05 b5 74 00 00 	lea    0x74b5(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000dff3:	48 89 c1             	mov    %rax,%rcx
-   14000dff6:	48 8b 05 43 d3 00 00 	mov    0xd343(%rip),%rax        # 14001b340 <__imp__assert>
+   14000dff6:	48 8b 05 43 d3 00 00 	mov    0xd343(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000dffd:	ff d0                	call   *%rax
    14000dfff:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e006:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12290,7 +12290,7 @@ Disassembly of section .text:
    14000e023:	48 89 c2             	mov    %rax,%rdx
    14000e026:	48 8d 05 db 74 00 00 	lea    0x74db(%rip),%rax        # 140015508 <.rdata+0x638>
    14000e02d:	48 89 c1             	mov    %rax,%rcx
-   14000e030:	48 8b 05 09 d3 00 00 	mov    0xd309(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e030:	48 8b 05 09 d3 00 00 	mov    0xd309(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e037:	ff d0                	call   *%rax
    14000e039:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e040:	48 83 c0 10          	add    $0x10,%rax
@@ -12333,7 +12333,7 @@ Disassembly of section .text:
    14000e112:	48 89 c2             	mov    %rax,%rdx
    14000e115:	48 8d 05 0c 71 00 00 	lea    0x710c(%rip),%rax        # 140015228 <.rdata+0x358>
    14000e11c:	48 89 c1             	mov    %rax,%rcx
-   14000e11f:	48 8b 05 1a d2 00 00 	mov    0xd21a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e11f:	48 8b 05 1a d2 00 00 	mov    0xd21a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e126:	ff d0                	call   *%rax
    14000e128:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e12f:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12345,7 +12345,7 @@ Disassembly of section .text:
    14000e14c:	48 89 c2             	mov    %rax,%rdx
    14000e14f:	48 8d 05 2a 71 00 00 	lea    0x712a(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000e156:	48 89 c1             	mov    %rax,%rcx
-   14000e159:	48 8b 05 e0 d1 00 00 	mov    0xd1e0(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e159:	48 8b 05 e0 d1 00 00 	mov    0xd1e0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e160:	ff d0                	call   *%rax
    14000e162:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e169:	48 83 c0 10          	add    $0x10,%rax
@@ -12392,7 +12392,7 @@ Disassembly of section .text:
    14000e23f:	48 89 c2             	mov    %rax,%rdx
    14000e242:	48 8d 05 5f 72 00 00 	lea    0x725f(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000e249:	48 89 c1             	mov    %rax,%rcx
-   14000e24c:	48 8b 05 ed d0 00 00 	mov    0xd0ed(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e24c:	48 8b 05 ed d0 00 00 	mov    0xd0ed(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e253:	ff d0                	call   *%rax
    14000e255:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e25c:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12404,7 +12404,7 @@ Disassembly of section .text:
    14000e279:	48 89 c2             	mov    %rax,%rdx
    14000e27c:	48 8d 05 85 72 00 00 	lea    0x7285(%rip),%rax        # 140015508 <.rdata+0x638>
    14000e283:	48 89 c1             	mov    %rax,%rcx
-   14000e286:	48 8b 05 b3 d0 00 00 	mov    0xd0b3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e286:	48 8b 05 b3 d0 00 00 	mov    0xd0b3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e28d:	ff d0                	call   *%rax
    14000e28f:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e296:	48 83 c0 10          	add    $0x10,%rax
@@ -12448,7 +12448,7 @@ Disassembly of section .text:
    14000e36c:	48 89 c2             	mov    %rax,%rdx
    14000e36f:	48 8d 05 b2 6e 00 00 	lea    0x6eb2(%rip),%rax        # 140015228 <.rdata+0x358>
    14000e376:	48 89 c1             	mov    %rax,%rcx
-   14000e379:	48 8b 05 c0 cf 00 00 	mov    0xcfc0(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e379:	48 8b 05 c0 cf 00 00 	mov    0xcfc0(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e380:	ff d0                	call   *%rax
    14000e382:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e389:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12460,7 +12460,7 @@ Disassembly of section .text:
    14000e3a6:	48 89 c2             	mov    %rax,%rdx
    14000e3a9:	48 8d 05 d0 6e 00 00 	lea    0x6ed0(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000e3b0:	48 89 c1             	mov    %rax,%rcx
-   14000e3b3:	48 8b 05 86 cf 00 00 	mov    0xcf86(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e3b3:	48 8b 05 86 cf 00 00 	mov    0xcf86(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e3ba:	ff d0                	call   *%rax
    14000e3bc:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e3c3:	48 83 c0 10          	add    $0x10,%rax
@@ -12507,7 +12507,7 @@ Disassembly of section .text:
    14000e499:	48 89 c2             	mov    %rax,%rdx
    14000e49c:	48 8d 05 05 70 00 00 	lea    0x7005(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000e4a3:	48 89 c1             	mov    %rax,%rcx
-   14000e4a6:	48 8b 05 93 ce 00 00 	mov    0xce93(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e4a6:	48 8b 05 93 ce 00 00 	mov    0xce93(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e4ad:	ff d0                	call   *%rax
    14000e4af:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e4b6:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12519,7 +12519,7 @@ Disassembly of section .text:
    14000e4d3:	48 89 c2             	mov    %rax,%rdx
    14000e4d6:	48 8d 05 2b 70 00 00 	lea    0x702b(%rip),%rax        # 140015508 <.rdata+0x638>
    14000e4dd:	48 89 c1             	mov    %rax,%rcx
-   14000e4e0:	48 8b 05 59 ce 00 00 	mov    0xce59(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e4e0:	48 8b 05 59 ce 00 00 	mov    0xce59(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e4e7:	ff d0                	call   *%rax
    14000e4e9:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e4f0:	48 83 c0 10          	add    $0x10,%rax
@@ -12565,7 +12565,7 @@ Disassembly of section .text:
    14000e5cc:	48 89 c2             	mov    %rax,%rdx
    14000e5cf:	48 8d 05 52 6c 00 00 	lea    0x6c52(%rip),%rax        # 140015228 <.rdata+0x358>
    14000e5d6:	48 89 c1             	mov    %rax,%rcx
-   14000e5d9:	48 8b 05 60 cd 00 00 	mov    0xcd60(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e5d9:	48 8b 05 60 cd 00 00 	mov    0xcd60(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e5e0:	ff d0                	call   *%rax
    14000e5e2:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e5e9:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12577,7 +12577,7 @@ Disassembly of section .text:
    14000e606:	48 89 c2             	mov    %rax,%rdx
    14000e609:	48 8d 05 70 6c 00 00 	lea    0x6c70(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000e610:	48 89 c1             	mov    %rax,%rcx
-   14000e613:	48 8b 05 26 cd 00 00 	mov    0xcd26(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e613:	48 8b 05 26 cd 00 00 	mov    0xcd26(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e61a:	ff d0                	call   *%rax
    14000e61c:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e623:	48 83 c0 10          	add    $0x10,%rax
@@ -12625,7 +12625,7 @@ Disassembly of section .text:
    14000e706:	48 89 c2             	mov    %rax,%rdx
    14000e709:	48 8d 05 98 6d 00 00 	lea    0x6d98(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000e710:	48 89 c1             	mov    %rax,%rcx
-   14000e713:	48 8b 05 26 cc 00 00 	mov    0xcc26(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e713:	48 8b 05 26 cc 00 00 	mov    0xcc26(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e71a:	ff d0                	call   *%rax
    14000e71c:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e723:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12637,7 +12637,7 @@ Disassembly of section .text:
    14000e740:	48 89 c2             	mov    %rax,%rdx
    14000e743:	48 8d 05 be 6d 00 00 	lea    0x6dbe(%rip),%rax        # 140015508 <.rdata+0x638>
    14000e74a:	48 89 c1             	mov    %rax,%rcx
-   14000e74d:	48 8b 05 ec cb 00 00 	mov    0xcbec(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e74d:	48 8b 05 ec cb 00 00 	mov    0xcbec(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e754:	ff d0                	call   *%rax
    14000e756:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e75d:	48 83 c0 10          	add    $0x10,%rax
@@ -12663,7 +12663,7 @@ Disassembly of section .text:
    14000e7ca:	48 89 c2             	mov    %rax,%rdx
    14000e7cd:	48 8d 05 54 6a 00 00 	lea    0x6a54(%rip),%rax        # 140015228 <.rdata+0x358>
    14000e7d4:	48 89 c1             	mov    %rax,%rcx
-   14000e7d7:	48 8b 05 62 cb 00 00 	mov    0xcb62(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e7d7:	48 8b 05 62 cb 00 00 	mov    0xcb62(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e7de:	ff d0                	call   *%rax
    14000e7e0:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e7e7:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12675,7 +12675,7 @@ Disassembly of section .text:
    14000e804:	48 89 c2             	mov    %rax,%rdx
    14000e807:	48 8d 05 72 6a 00 00 	lea    0x6a72(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000e80e:	48 89 c1             	mov    %rax,%rcx
-   14000e811:	48 8b 05 28 cb 00 00 	mov    0xcb28(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e811:	48 8b 05 28 cb 00 00 	mov    0xcb28(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e818:	ff d0                	call   *%rax
    14000e81a:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e821:	48 83 c0 10          	add    $0x10,%rax
@@ -12701,7 +12701,7 @@ Disassembly of section .text:
    14000e88e:	48 89 c2             	mov    %rax,%rdx
    14000e891:	48 8d 05 10 6c 00 00 	lea    0x6c10(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000e898:	48 89 c1             	mov    %rax,%rcx
-   14000e89b:	48 8b 05 9e ca 00 00 	mov    0xca9e(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e89b:	48 8b 05 9e ca 00 00 	mov    0xca9e(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e8a2:	ff d0                	call   *%rax
    14000e8a4:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e8ab:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12713,7 +12713,7 @@ Disassembly of section .text:
    14000e8c8:	48 89 c2             	mov    %rax,%rdx
    14000e8cb:	48 8d 05 36 6c 00 00 	lea    0x6c36(%rip),%rax        # 140015508 <.rdata+0x638>
    14000e8d2:	48 89 c1             	mov    %rax,%rcx
-   14000e8d5:	48 8b 05 64 ca 00 00 	mov    0xca64(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e8d5:	48 8b 05 64 ca 00 00 	mov    0xca64(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e8dc:	ff d0                	call   *%rax
    14000e8de:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e8e5:	48 83 c0 10          	add    $0x10,%rax
@@ -12745,7 +12745,7 @@ Disassembly of section .text:
    14000e975:	48 89 c2             	mov    %rax,%rdx
    14000e978:	48 8d 05 a9 68 00 00 	lea    0x68a9(%rip),%rax        # 140015228 <.rdata+0x358>
    14000e97f:	48 89 c1             	mov    %rax,%rcx
-   14000e982:	48 8b 05 b7 c9 00 00 	mov    0xc9b7(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e982:	48 8b 05 b7 c9 00 00 	mov    0xc9b7(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e989:	ff d0                	call   *%rax
    14000e98b:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e992:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12757,7 +12757,7 @@ Disassembly of section .text:
    14000e9af:	48 89 c2             	mov    %rax,%rdx
    14000e9b2:	48 8d 05 c7 68 00 00 	lea    0x68c7(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000e9b9:	48 89 c1             	mov    %rax,%rcx
-   14000e9bc:	48 8b 05 7d c9 00 00 	mov    0xc97d(%rip),%rax        # 14001b340 <__imp__assert>
+   14000e9bc:	48 8b 05 7d c9 00 00 	mov    0xc97d(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000e9c3:	ff d0                	call   *%rax
    14000e9c5:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000e9cc:	48 83 c0 10          	add    $0x10,%rax
@@ -12800,7 +12800,7 @@ Disassembly of section .text:
    14000ea83:	48 89 c2             	mov    %rax,%rdx
    14000ea86:	48 8d 05 1b 6a 00 00 	lea    0x6a1b(%rip),%rax        # 1400154a8 <.rdata+0x5d8>
    14000ea8d:	48 89 c1             	mov    %rax,%rcx
-   14000ea90:	48 8b 05 a9 c8 00 00 	mov    0xc8a9(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ea90:	48 8b 05 a9 c8 00 00 	mov    0xc8a9(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ea97:	ff d0                	call   *%rax
    14000ea99:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eaa0:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12812,7 +12812,7 @@ Disassembly of section .text:
    14000eabd:	48 89 c2             	mov    %rax,%rdx
    14000eac0:	48 8d 05 41 6a 00 00 	lea    0x6a41(%rip),%rax        # 140015508 <.rdata+0x638>
    14000eac7:	48 89 c1             	mov    %rax,%rcx
-   14000eaca:	48 8b 05 6f c8 00 00 	mov    0xc86f(%rip),%rax        # 14001b340 <__imp__assert>
+   14000eaca:	48 8b 05 6f c8 00 00 	mov    0xc86f(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ead1:	ff d0                	call   *%rax
    14000ead3:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eada:	48 83 c0 10          	add    $0x10,%rax
@@ -12846,7 +12846,7 @@ Disassembly of section .text:
    14000eb76:	48 89 c2             	mov    %rax,%rdx
    14000eb79:	48 8d 05 a8 66 00 00 	lea    0x66a8(%rip),%rax        # 140015228 <.rdata+0x358>
    14000eb80:	48 89 c1             	mov    %rax,%rcx
-   14000eb83:	48 8b 05 b6 c7 00 00 	mov    0xc7b6(%rip),%rax        # 14001b340 <__imp__assert>
+   14000eb83:	48 8b 05 b6 c7 00 00 	mov    0xc7b6(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000eb8a:	ff d0                	call   *%rax
    14000eb8c:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eb93:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12858,7 +12858,7 @@ Disassembly of section .text:
    14000ebb0:	48 89 c2             	mov    %rax,%rdx
    14000ebb3:	48 8d 05 c6 66 00 00 	lea    0x66c6(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000ebba:	48 89 c1             	mov    %rax,%rcx
-   14000ebbd:	48 8b 05 7c c7 00 00 	mov    0xc77c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ebbd:	48 8b 05 7c c7 00 00 	mov    0xc77c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ebc4:	ff d0                	call   *%rax
    14000ebc6:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ebcd:	48 83 c0 10          	add    $0x10,%rax
@@ -12892,7 +12892,7 @@ Disassembly of section .text:
    14000ec69:	48 89 c2             	mov    %rax,%rdx
    14000ec6c:	48 8d 05 b5 65 00 00 	lea    0x65b5(%rip),%rax        # 140015228 <.rdata+0x358>
    14000ec73:	48 89 c1             	mov    %rax,%rcx
-   14000ec76:	48 8b 05 c3 c6 00 00 	mov    0xc6c3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ec76:	48 8b 05 c3 c6 00 00 	mov    0xc6c3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ec7d:	ff d0                	call   *%rax
    14000ec7f:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ec86:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12904,7 +12904,7 @@ Disassembly of section .text:
    14000eca3:	48 89 c2             	mov    %rax,%rdx
    14000eca6:	48 8d 05 d3 65 00 00 	lea    0x65d3(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000ecad:	48 89 c1             	mov    %rax,%rcx
-   14000ecb0:	48 8b 05 89 c6 00 00 	mov    0xc689(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ecb0:	48 8b 05 89 c6 00 00 	mov    0xc689(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ecb7:	ff d0                	call   *%rax
    14000ecb9:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ecc0:	48 83 c0 10          	add    $0x10,%rax
@@ -12936,7 +12936,7 @@ Disassembly of section .text:
    14000ed50:	48 89 c2             	mov    %rax,%rdx
    14000ed53:	48 8d 05 ce 64 00 00 	lea    0x64ce(%rip),%rax        # 140015228 <.rdata+0x358>
    14000ed5a:	48 89 c1             	mov    %rax,%rcx
-   14000ed5d:	48 8b 05 dc c5 00 00 	mov    0xc5dc(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ed5d:	48 8b 05 dc c5 00 00 	mov    0xc5dc(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ed64:	ff d0                	call   *%rax
    14000ed66:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ed6d:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -12948,7 +12948,7 @@ Disassembly of section .text:
    14000ed8a:	48 89 c2             	mov    %rax,%rdx
    14000ed8d:	48 8d 05 ec 64 00 00 	lea    0x64ec(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000ed94:	48 89 c1             	mov    %rax,%rcx
-   14000ed97:	48 8b 05 a2 c5 00 00 	mov    0xc5a2(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ed97:	48 8b 05 a2 c5 00 00 	mov    0xc5a2(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ed9e:	ff d0                	call   *%rax
    14000eda0:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eda7:	48 83 c0 10          	add    $0x10,%rax
@@ -12991,7 +12991,7 @@ Disassembly of section .text:
    14000ee78:	48 89 c2             	mov    %rax,%rdx
    14000ee7b:	48 8d 05 a6 63 00 00 	lea    0x63a6(%rip),%rax        # 140015228 <.rdata+0x358>
    14000ee82:	48 89 c1             	mov    %rax,%rcx
-   14000ee85:	48 8b 05 b4 c4 00 00 	mov    0xc4b4(%rip),%rax        # 14001b340 <__imp__assert>
+   14000ee85:	48 8b 05 b4 c4 00 00 	mov    0xc4b4(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000ee8c:	ff d0                	call   *%rax
    14000ee8e:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000ee95:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -13003,7 +13003,7 @@ Disassembly of section .text:
    14000eeb2:	48 89 c2             	mov    %rax,%rdx
    14000eeb5:	48 8d 05 c4 63 00 00 	lea    0x63c4(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000eebc:	48 89 c1             	mov    %rax,%rcx
-   14000eebf:	48 8b 05 7a c4 00 00 	mov    0xc47a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000eebf:	48 8b 05 7a c4 00 00 	mov    0xc47a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000eec6:	ff d0                	call   *%rax
    14000eec8:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eecf:	48 83 c0 10          	add    $0x10,%rax
@@ -13046,7 +13046,7 @@ Disassembly of section .text:
    14000efa0:	48 89 c2             	mov    %rax,%rdx
    14000efa3:	48 8d 05 7e 62 00 00 	lea    0x627e(%rip),%rax        # 140015228 <.rdata+0x358>
    14000efaa:	48 89 c1             	mov    %rax,%rcx
-   14000efad:	48 8b 05 8c c3 00 00 	mov    0xc38c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000efad:	48 8b 05 8c c3 00 00 	mov    0xc38c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000efb4:	ff d0                	call   *%rax
    14000efb6:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000efbd:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -13058,7 +13058,7 @@ Disassembly of section .text:
    14000efda:	48 89 c2             	mov    %rax,%rdx
    14000efdd:	48 8d 05 9c 62 00 00 	lea    0x629c(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000efe4:	48 89 c1             	mov    %rax,%rcx
-   14000efe7:	48 8b 05 52 c3 00 00 	mov    0xc352(%rip),%rax        # 14001b340 <__imp__assert>
+   14000efe7:	48 8b 05 52 c3 00 00 	mov    0xc352(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000efee:	ff d0                	call   *%rax
    14000eff0:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000eff7:	48 83 c0 10          	add    $0x10,%rax
@@ -13101,7 +13101,7 @@ Disassembly of section .text:
    14000f0c8:	48 89 c2             	mov    %rax,%rdx
    14000f0cb:	48 8d 05 56 61 00 00 	lea    0x6156(%rip),%rax        # 140015228 <.rdata+0x358>
    14000f0d2:	48 89 c1             	mov    %rax,%rcx
-   14000f0d5:	48 8b 05 64 c2 00 00 	mov    0xc264(%rip),%rax        # 14001b340 <__imp__assert>
+   14000f0d5:	48 8b 05 64 c2 00 00 	mov    0xc264(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000f0dc:	ff d0                	call   *%rax
    14000f0de:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000f0e5:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -13113,7 +13113,7 @@ Disassembly of section .text:
    14000f102:	48 89 c2             	mov    %rax,%rdx
    14000f105:	48 8d 05 74 61 00 00 	lea    0x6174(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000f10c:	48 89 c1             	mov    %rax,%rcx
-   14000f10f:	48 8b 05 2a c2 00 00 	mov    0xc22a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000f10f:	48 8b 05 2a c2 00 00 	mov    0xc22a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000f116:	ff d0                	call   *%rax
    14000f118:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000f11f:	48 83 c0 10          	add    $0x10,%rax
@@ -13504,7 +13504,7 @@ Disassembly of section .text:
    14000f941:	48 89 c2             	mov    %rax,%rdx
    14000f944:	48 8d 05 ab 5f 00 00 	lea    0x5fab(%rip),%rax        # 1400158f6 <.rdata+0xa26>
    14000f94b:	48 89 c1             	mov    %rax,%rcx
-   14000f94e:	48 8b 05 eb b9 00 00 	mov    0xb9eb(%rip),%rax        # 14001b340 <__imp__assert>
+   14000f94e:	48 8b 05 eb b9 00 00 	mov    0xb9eb(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000f955:	ff d0                	call   *%rax
    14000f957:	0f b6 95 96 05 00 00 	movzbl 0x596(%rbp),%edx
    14000f95e:	48 8b 45 b0          	mov    -0x50(%rbp),%rax
@@ -13537,7 +13537,7 @@ Disassembly of section .text:
    14000f9da:	48 89 c2             	mov    %rax,%rdx
    14000f9dd:	48 8d 05 44 58 00 00 	lea    0x5844(%rip),%rax        # 140015228 <.rdata+0x358>
    14000f9e4:	48 89 c1             	mov    %rax,%rcx
-   14000f9e7:	48 8b 05 52 b9 00 00 	mov    0xb952(%rip),%rax        # 14001b340 <__imp__assert>
+   14000f9e7:	48 8b 05 52 b9 00 00 	mov    0xb952(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000f9ee:	ff d0                	call   *%rax
    14000f9f0:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000f9f7:	48 8d 50 10          	lea    0x10(%rax),%rdx
@@ -13549,7 +13549,7 @@ Disassembly of section .text:
    14000fa14:	48 89 c2             	mov    %rax,%rdx
    14000fa17:	48 8d 05 62 58 00 00 	lea    0x5862(%rip),%rax        # 140015280 <.rdata+0x3b0>
    14000fa1e:	48 89 c1             	mov    %rax,%rcx
-   14000fa21:	48 8b 05 18 b9 00 00 	mov    0xb918(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fa21:	48 8b 05 18 b9 00 00 	mov    0xb918(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fa28:	ff d0                	call   *%rax
    14000fa2a:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000fa31:	48 83 c0 10          	add    $0x10,%rax
@@ -13576,7 +13576,7 @@ Disassembly of section .text:
    14000faa2:	48 89 c2             	mov    %rax,%rdx
    14000faa5:	48 8d 05 4a 5e 00 00 	lea    0x5e4a(%rip),%rax        # 1400158f6 <.rdata+0xa26>
    14000faac:	48 89 c1             	mov    %rax,%rcx
-   14000faaf:	48 8b 05 8a b8 00 00 	mov    0xb88a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000faaf:	48 8b 05 8a b8 00 00 	mov    0xb88a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fab6:	ff d0                	call   *%rax
    14000fab8:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000fabf:	48 8d 50 f0          	lea    -0x10(%rax),%rdx
@@ -13588,7 +13588,7 @@ Disassembly of section .text:
    14000fadc:	48 89 c2             	mov    %rax,%rdx
    14000fadf:	48 8d 05 82 5a 00 00 	lea    0x5a82(%rip),%rax        # 140015568 <.rdata+0x698>
    14000fae6:	48 89 c1             	mov    %rax,%rcx
-   14000fae9:	48 8b 05 50 b8 00 00 	mov    0xb850(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fae9:	48 8b 05 50 b8 00 00 	mov    0xb850(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000faf0:	ff d0                	call   *%rax
    14000faf2:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000faf9:	48 8d 50 f0          	lea    -0x10(%rax),%rdx
@@ -13600,7 +13600,7 @@ Disassembly of section .text:
    14000fb16:	48 89 c2             	mov    %rax,%rdx
    14000fb19:	48 8d 05 b0 5a 00 00 	lea    0x5ab0(%rip),%rax        # 1400155d0 <.rdata+0x700>
    14000fb20:	48 89 c1             	mov    %rax,%rcx
-   14000fb23:	48 8b 05 16 b8 00 00 	mov    0xb816(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fb23:	48 8b 05 16 b8 00 00 	mov    0xb816(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fb2a:	ff d0                	call   *%rax
    14000fb2c:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000fb33:	48 83 e8 10          	sub    $0x10,%rax
@@ -13631,7 +13631,7 @@ Disassembly of section .text:
    14000fbb8:	48 89 c2             	mov    %rax,%rdx
    14000fbbb:	48 8d 05 4e 5d 00 00 	lea    0x5d4e(%rip),%rax        # 140015910 <.rdata+0xa40>
    14000fbc2:	48 89 c1             	mov    %rax,%rcx
-   14000fbc5:	48 8b 05 74 b7 00 00 	mov    0xb774(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fbc5:	48 8b 05 74 b7 00 00 	mov    0xb774(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fbcc:	ff d0                	call   *%rax
    14000fbce:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000fbd5:	48 8d 50 08          	lea    0x8(%rax),%rdx
@@ -13643,7 +13643,7 @@ Disassembly of section .text:
    14000fbf2:	48 89 c2             	mov    %rax,%rdx
    14000fbf5:	48 8d 05 74 5d 00 00 	lea    0x5d74(%rip),%rax        # 140015970 <.rdata+0xaa0>
    14000fbfc:	48 89 c1             	mov    %rax,%rcx
-   14000fbff:	48 8b 05 3a b7 00 00 	mov    0xb73a(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fbff:	48 8b 05 3a b7 00 00 	mov    0xb73a(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fc06:	ff d0                	call   *%rax
    14000fc08:	48 8b 85 98 04 00 00 	mov    0x498(%rbp),%rax
    14000fc0f:	48 83 c0 08          	add    $0x8,%rax
@@ -13683,7 +13683,7 @@ Disassembly of section .text:
    14000fcd0:	48 89 c2             	mov    %rax,%rdx
    14000fcd3:	48 8d 05 f6 5c 00 00 	lea    0x5cf6(%rip),%rax        # 1400159d0 <.rdata+0xb00>
    14000fcda:	48 89 c1             	mov    %rax,%rcx
-   14000fcdd:	48 8b 05 5c b6 00 00 	mov    0xb65c(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fcdd:	48 8b 05 5c b6 00 00 	mov    0xb65c(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fce4:	ff d0                	call   *%rax
    14000fce6:	8b 95 c0 04 00 00    	mov    0x4c0(%rbp),%edx
    14000fcec:	0f b7 85 b6 05 00 00 	movzwl 0x5b6(%rbp),%eax
@@ -13707,7 +13707,7 @@ Disassembly of section .text:
    14000fd46:	48 89 c2             	mov    %rax,%rdx
    14000fd49:	48 8d 05 30 59 00 00 	lea    0x5930(%rip),%rax        # 140015680 <.rdata+0x7b0>
    14000fd50:	48 89 c1             	mov    %rax,%rcx
-   14000fd53:	48 8b 05 e6 b5 00 00 	mov    0xb5e6(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fd53:	48 8b 05 e6 b5 00 00 	mov    0xb5e6(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fd5a:	ff d0                	call   *%rax
    14000fd5c:	48 8b 85 a8 04 00 00 	mov    0x4a8(%rbp),%rax
    14000fd63:	48 39 85 a8 05 00 00 	cmp    %rax,0x5a8(%rbp)
@@ -13717,7 +13717,7 @@ Disassembly of section .text:
    14000fd79:	48 89 c2             	mov    %rax,%rdx
    14000fd7c:	48 8d 05 3d 59 00 00 	lea    0x593d(%rip),%rax        # 1400156c0 <.rdata+0x7f0>
    14000fd83:	48 89 c1             	mov    %rax,%rcx
-   14000fd86:	48 8b 05 b3 b5 00 00 	mov    0xb5b3(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fd86:	48 8b 05 b3 b5 00 00 	mov    0xb5b3(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fd8d:	ff d0                	call   *%rax
    14000fd8f:	48 8b 85 a8 05 00 00 	mov    0x5a8(%rbp),%rax
    14000fd96:	48 89 85 98 04 00 00 	mov    %rax,0x498(%rbp)
@@ -13744,7 +13744,7 @@ Disassembly of section .text:
    14000fe0b:	48 89 c2             	mov    %rax,%rdx
    14000fe0e:	48 8d 05 e6 50 00 00 	lea    0x50e6(%rip),%rax        # 140014efb <.rdata+0x2b>
    14000fe15:	48 89 c1             	mov    %rax,%rcx
-   14000fe18:	48 8b 05 21 b5 00 00 	mov    0xb521(%rip),%rax        # 14001b340 <__imp__assert>
+   14000fe18:	48 8b 05 21 b5 00 00 	mov    0xb521(%rip),%rax        # 14001b340 <__imp__ASSERT>
    14000fe1f:	ff d0                	call   *%rax
    14000fe21:	0f b6 85 e8 04 00 00 	movzbl 0x4e8(%rbp),%eax
    14000fe28:	84 c0                	test   %al,%al
@@ -15932,8 +15932,8 @@ Disassembly of section .text:
    1400119be:	90                   	nop
    1400119bf:	90                   	nop
 
-00000001400119c0 <_assert>:
-   1400119c0:	ff 25 7a 99 00 00    	jmp    *0x997a(%rip)        # 14001b340 <__imp__assert>
+00000001400119c0 <_ASSERT>:
+   1400119c0:	ff 25 7a 99 00 00    	jmp    *0x997a(%rip)        # 14001b340 <__imp__ASSERT>
    1400119c6:	90                   	nop
    1400119c7:	90                   	nop
 

@@ -8,6 +8,7 @@
 #include <stdarg.h>
 
 #include "types.h"
+#include "debug.h"
 
 // 8  for x86, ARM, and ARM64
 // 16 for x64 native and ARM64EC
@@ -67,7 +68,7 @@ static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expan
         return ;
     }
 
-    assert(
+    ASSERT(
         ((uint64_t) address) % type__alignment(self) == 0 ||
         ((uint64_t) address) % type__max_alignment(self) == 0
     );
@@ -81,7 +82,7 @@ static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expan
             type_struct_t* type_struct = (type_struct_t*) self;
             fprintf(fp, "{");
             for (uint32_t member_index = 0; member_index < type_struct->members_top; ++member_index) {
-                assert(
+                ASSERT(
                     ((uint64_t) address) % type__alignment(type_struct->members[member_index].type) == 0 ||
                     ((uint64_t) address) % type__max_alignment(self) == 0
                 );
@@ -109,7 +110,7 @@ static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expan
         } break ;
         case TYPE_ARRAY: {
             type_array_t* type_array = (type_array_t*) self;
-            fprintf(fp, "[%llu: ", type_array->element_size);
+            fprintf(fp, "[%lu: ", type_array->element_size);
             uint64_t cur_offet = 0;
             for (uint64_t element_index = 0; element_index < type_array->element_size; ++element_index) {
                 _type__print_value(type_array->element_type, fp, n_of_value_expansions - 1, address + cur_offet);
@@ -132,7 +133,7 @@ static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expan
             type_enum_t* type_enum = (type_enum_t*) self;
             fprintf(fp, "<%d>", *(int32_t*) address);
         } break ;
-        default: assert(false);
+        default: ASSERT(false);
     }
 }
 
@@ -146,7 +147,7 @@ static type_t* _type__create(const char* abbreviated_name, uint64_t size) {
 
 static void _type_struct__update_member(type_struct_t* self, member_t* new_member) {
     if (self->base.type_specifier != TYPE_UNION && self->base.type_specifier != TYPE_STRUCT) {
-        assert(false);
+        ASSERT(false);
     }
 
     // alignment number is the biggest amongst all member's alignment
@@ -155,7 +156,7 @@ static void _type_struct__update_member(type_struct_t* self, member_t* new_membe
     // align each member to its alignment
     uint64_t new_member_offset = self->base.size;
     uint64_t pad_for_new_member = 0;
-    assert(new_member->type->alignment > 0);
+    ASSERT(new_member->type->alignment > 0);
     uint64_t bytes_to_align = new_member_offset % new_member->type->alignment;
     if (bytes_to_align) {
         uint64_t pad_relative_to_new_member = new_member->type->alignment - bytes_to_align;
@@ -177,7 +178,7 @@ static void _type_struct__update_member(type_struct_t* self, member_t* new_membe
 
 static void _type_union__update_member(type_union_t* self, member_t* new_member) {
     if (self->biggest_sized_member == NULL) {
-        assert(self->biggest_aligned_member == NULL);
+        ASSERT(self->biggest_aligned_member == NULL);
         self->biggest_sized_member = new_member;
         self->biggest_aligned_member = new_member;
     } else {
@@ -215,8 +216,8 @@ void type__set_max_alignment(type_t* self, uint64_t max_alignment) {
     }
 
     if (max_alignment != UNSET_MAX_ALIGNMENT) {
-        assert(is_pow_of_two(max_alignment));
-        assert(max_alignment <= 16);
+        ASSERT(is_pow_of_two(max_alignment));
+        ASSERT(max_alignment <= 16);
     }
 
     self->max_alignment = max_alignment;
@@ -242,7 +243,7 @@ void type__set_alignment(type_t* self, uint64_t alignment) {
     //   - cannot be more than the max alignment
 
     if (alignment != UNSET_MAX_ALIGNMENT) {
-        assert(is_pow_of_two(alignment));
+        ASSERT(is_pow_of_two(alignment));
     }
 
     self->alignment = alignment;
@@ -277,12 +278,12 @@ const char* type__abbreviated_name(type_t* self) {
 uint8_t* type__address(type_t* self, uint8_t* requested_address) {
     // address must be divisible by the alignment number
     uint64_t alignment = type__alignment(self);
-    assert(alignment);
+    ASSERT(alignment);
     uint64_t offset = ((uint64_t) requested_address) % alignment;
     if (offset) {
         requested_address += alignment - offset;
     }
-    assert(((uint64_t) requested_address) % alignment == 0);
+    ASSERT(((uint64_t) requested_address) % alignment == 0);
 
     return requested_address;
 }
@@ -310,7 +311,7 @@ member_t* type_union__member(type_union_t* self, const char* name) {
 void member__print(member_t* self, FILE* fp) {
     fprintf(fp, "%-*.*s%s\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, "name: ", self->name);
 
-    fprintf(fp, "%-*.*s%llu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, "offset: ", self->offset);
+    fprintf(fp, "%-*.*s%lu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, "offset: ", self->offset);
 
     fprintf(fp, "%-*.*s%s\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, "type: ", type__abbreviated_name(self->type));
 }
@@ -343,12 +344,12 @@ void type_struct__add(type_struct_t* self, type_t* member_type, const char* memb
         }
     }
 
-    assert(self->members_top != self->members_size);
+    ASSERT(self->members_top != self->members_size);
     new_member = &self->members[self->members_top++];
     new_member->name = member_name;
     new_member->type = member_type;
     new_member->offset = 0;
-    assert(new_member);
+    ASSERT(new_member);
 
     _type_struct__update_member(self, new_member);
 }
@@ -377,19 +378,19 @@ void type_union__add(type_union_t* self, type_t* member_type, const char* member
         }
     }
 
-    assert(self->members_top != self->members_size);
+    ASSERT(self->members_top != self->members_size);
     new_member = &self->members[self->members_top++];
     new_member->name = member_name;
     new_member->type = member_type;
     new_member->offset = 0;
-    assert(new_member);
+    ASSERT(new_member);
 
     _type_union__update_member(self, new_member);
 }
 
 type_array_t* type_array__create(const char* abbreviated_name, type_t* member, uint64_t n) {
     if (type__alignment(member) > member->size) {
-        assert(false && "error: alignment of array elements is greater than element size");
+        ASSERT(false && "error: alignment of array elements is greater than element size");
     }
 
     type_array_t* result = (type_array_t*) _type__create(abbreviated_name, sizeof(*result));
@@ -440,7 +441,7 @@ void _type_enum__add(type_enum_t* self, const char* name, int32_t value) {
         }
     }
 
-    assert(self->values_top < self->values_size);
+    ASSERT(self->values_top < self->values_size);
     self->values[self->values_top].name  = name;
     self->values[self->values_top].value = value;
     ++self->values_top;
@@ -450,7 +451,7 @@ void type_enum__add(type_enum_t* self, const char* name) {
     if (self->values_size == 0) {
         _type_enum__add(self, name, 0);
     } else {
-        assert(self->values_top > 0);
+        ASSERT(self->values_top > 0);
         _type_enum__add(self, name, self->values[self->values_top - 1].value + 1);
     }
 }
@@ -482,7 +483,7 @@ void type_internal_function__add_argument(type_internal_function_t* self, const 
         self->arguments = realloc(self->arguments, self->arguments_size * sizeof(*self->arguments));
     }
 
-    assert(self->arguments_top != self->arguments_size);
+    ASSERT(self->arguments_top != self->arguments_size);
     self->arguments[self->arguments_top].name = name;
     self->arguments[self->arguments_top].type = type;
     ++self->arguments_top;
@@ -497,7 +498,7 @@ void type_internal_function__add_local(type_internal_function_t* self, const cha
         self->locals = realloc(self->locals, self->locals_size * sizeof(*self->locals));
     }
 
-    assert(self->locals_top != self->locals_size);
+    ASSERT(self->locals_top != self->locals_size);
     self->locals[self->locals_top].name = name;
     self->locals[self->locals_top].type = type;
     ++self->locals_top;
@@ -558,14 +559,14 @@ static int64_t function__argument_offset_from_bp(
                     }
                     parent = member->type;
                 } else {
-                    assert(false);
+                    ASSERT(false);
                 }
                 member_name = va_arg(ap, const char*);
             }
             break ;
         }
     }
-    assert(found_argument);
+    ASSERT(found_argument);
 
     return result;
 }
@@ -584,7 +585,7 @@ static uint64_t function__size_of_arg(
             break ;
         }
     }
-    assert(found_argument);
+    ASSERT(found_argument);
 
     type_t* member_type = function_argument->type;
     const char* member_name = va_arg(ap, const char*);
@@ -600,7 +601,7 @@ static uint64_t function__size_of_arg(
                 member_type = member->type;
             }
         } else {
-            assert(false);
+            ASSERT(false);
         }
         member_name = va_arg(ap, const char*);
     }
@@ -613,7 +614,7 @@ static int64_t function__return_offset_from_bp(
     type_t* return_type,
     va_list ap
 ) {
-    assert(return_type);
+    ASSERT(return_type);
 
     int64_t result = 0;
     result -= sizeof(reg_t); // BP register on stack
@@ -638,7 +639,7 @@ static int64_t function__return_offset_from_bp(
             }
             type = member->type;
         } else {
-            assert(false);
+            ASSERT(false);
         }
         member_name = va_arg(ap, const char*);
     }
@@ -647,7 +648,7 @@ static int64_t function__return_offset_from_bp(
 }
 
 static uint64_t function__size_of_ret(type_t* return_type, va_list ap) {
-    assert(return_type);
+    ASSERT(return_type);
 
     type_t* member_type = return_type;
     const char* member_name = va_arg(ap, const char*);
@@ -663,7 +664,7 @@ static uint64_t function__size_of_ret(type_t* return_type, va_list ap) {
                 member_type = member->type;
             }
         } else {
-            assert(false);
+            ASSERT(false);
         }
         member_name = va_arg(ap, const char*);
     }
@@ -694,7 +695,7 @@ static int64_t function__local_offset_from_bp(
                     }
                     parent = member->type;
                 } else {
-                    assert(false);
+                    ASSERT(false);
                 }
                 member_name = va_arg(ap, const char*);
             }
@@ -702,7 +703,7 @@ static int64_t function__local_offset_from_bp(
         }
         result += type__size(local->type);
     }
-    assert(found);
+    ASSERT(found);
 
     return result;
 }
@@ -728,7 +729,7 @@ static uint64_t type_internal_function__size_of_local(
                         member_type = member->type;
                     }
                 } else {
-                    assert(false);
+                    ASSERT(false);
                 }
                 member_name = va_arg(ap, const char*);
             }
@@ -736,7 +737,7 @@ static uint64_t type_internal_function__size_of_local(
         }
     }
 
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 
@@ -859,7 +860,7 @@ void type_external_function__add_argument(type_external_function_t* self, const 
         self->arguments = realloc(self->arguments, self->arguments_size * sizeof(*self->arguments));
     }
 
-    assert(self->arguments_top != self->arguments_size);
+    ASSERT(self->arguments_top != self->arguments_size);
     self->arguments[self->arguments_top].name = name;
     self->arguments[self->arguments_top].type = type;
     ++self->arguments_top;
@@ -870,7 +871,7 @@ void type_external_function__set_return(type_external_function_t* self, type_t* 
 }
 
 void type_external_function__call(type_external_function_t* self) {
-    assert(false && "implement");
+    ASSERT(false && "implement");
 }
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor)) {
@@ -898,7 +899,7 @@ void type_builtin_function__add_argument(type_builtin_function_t* self, const ch
         }
     }
 
-    assert(self->arguments_top < self->arguments_size);
+    ASSERT(self->arguments_top < self->arguments_size);
     self->arguments_offsets[self->arguments_top] = -(int64_t) type__size(type);
     self->return_offset += self->arguments_offsets[self->arguments_top];
     ++self->arguments_top;
@@ -923,7 +924,7 @@ int64_t type_builtin__return_offset_from_bp(type_builtin_function_t* self) {
 }
 
 int64_t type_builtin__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index) {
-    assert(argument_index < self->arguments_top);
+    ASSERT(argument_index < self->arguments_top);
     return self->arguments_offsets[argument_index];
 }
 
@@ -943,11 +944,11 @@ uint64_t type__max_alignment(type_t* self) {
 
 static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansions, uint64_t offset) {
     if (number_of_expansions == 0) {
-        fprintf(fp, "%s", self->abbreviated_name, offset);
+        fprintf(fp, "%s %lu", self->abbreviated_name, offset);
         return ;
     }
 
-    assert(
+    ASSERT(
         offset % type__alignment(self) == 0 ||
         offset % type__max_alignment(self) == 0
     );
@@ -961,12 +962,12 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             type_struct_t* type_struct = (type_struct_t*) self;
             fprintf(fp, "{");
             for (uint32_t member_index = 0; member_index < type_struct->members_top; ++member_index) {
-                assert(
+                ASSERT(
                     offset % type__alignment(type_struct->members[member_index].type) == 0 ||
                     offset % type__max_alignment(self) == 0
                 );
 
-                fprintf(fp, "@%llu ", offset);
+                fprintf(fp, "@%lu ", offset);
                 _type__print_name(type_struct->members[member_index].type, fp, number_of_expansions - 1, offset);
                 fprintf(fp, " %s", type_struct->members[member_index].name);
                 if (member_index < type_struct->members_top - 1) {
@@ -982,7 +983,7 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             for (uint32_t member_index = 0; member_index < type_union->members_top; ++member_index) {
                 _type__print_name(type_union->members[member_index].type, fp, number_of_expansions - 1, offset);
                 fprintf(fp, " %s", type_union->members[member_index].name);
-                fprintf(fp, " %llu", offset);
+                fprintf(fp, " %lu", offset);
                 if (member_index < type_union->members_top - 1) {
                     fprintf(fp, ", ");
                 }
@@ -990,12 +991,12 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             fprintf(fp, " === ");
             _type__print_name(type_union->biggest_sized_member->type, fp, number_of_expansions - 1, offset);
             fprintf(fp, " %s", type_union->biggest_sized_member->name);
-            fprintf(fp, " %llu", offset);
+            fprintf(fp, " %lu", offset);
             fprintf(fp, "|");
         } break ;
         case TYPE_ARRAY: {
             type_array_t* type_array = (type_array_t*) self;
-            fprintf(fp, "[%llu, ", type_array->element_size);
+            fprintf(fp, "[%lu, ", type_array->element_size);
             _type__print_name(type_array->element_type, fp, number_of_expansions - 1, offset /* + type__size(self) */);
             fprintf(fp, "]");
         } break ;
@@ -1020,23 +1021,23 @@ static void _type__print_name(type_t* self, FILE* fp, uint32_t number_of_expansi
             }
             fprintf(fp, ">");
         } break ;
-        default: assert(false);
+        default: ASSERT(false);
     }
 }
 
 static void _type__print_size(type_t* self, FILE* fp) {
-    fprintf(fp, "%llu", type__size(self));
+    fprintf(fp, "%lu", type__size(self));
 }
 
 static void _type__print_alignment(type_t* self, FILE* fp) {
-    fprintf(fp, "%llu", self->alignment);
+    fprintf(fp, "%lu", self->alignment);
 }
 
 static void _type__print_max_alignment(type_t* self, FILE* fp) {
     if (self->max_alignment == UNSET_MAX_ALIGNMENT) {
         fprintf(fp, "-");
     } else {
-        fprintf(fp, "%llu", self->max_alignment);
+        fprintf(fp, "%lu", self->max_alignment);
     }
 }
 
@@ -1047,7 +1048,7 @@ void type__print(
 ) {
     for (uint32_t name_expansions = 0; name_expansions <= n_of_name_expansions; ++name_expansions) {
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "name (%llu expansions): ", name_expansions);
+        snprintf(buffer, sizeof(buffer), "name (%u expansions): ", name_expansions);
         fprintf(fp, "%-*.*s", FIRST_COL_OFFSET, FIRST_COL_OFFSET, buffer);
         _type__print_name(self, fp, name_expansions, 0);
         fprintf(fp, "\n");
@@ -1090,9 +1091,9 @@ static_assert(sizeof(sr64_t) == 8);
 #define REGULAR_PRINT(type) do { \
     char buffer[256]; \
     snprintf(buffer, sizeof(buffer), "sizeof(%s): ", #type); \
-    printf("%-*.*s%llu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, buffer, sizeof(s ## type ## _t)); \
+    printf("%-*.*s%lu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, buffer, sizeof(s ## type ## _t)); \
     snprintf(buffer, sizeof(buffer), "alignof(%s): ", #type); \
-    printf("%-*.*s%llu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, buffer, __alignof__(s ## type ## _t)); \
+    printf("%-*.*s%lu\n", FIRST_COL_OFFSET, FIRST_COL_OFFSET, buffer, __alignof__(s ## type ## _t)); \
     printf("\n"); \
 } while (false)
 
@@ -1111,8 +1112,8 @@ static_assert(sizeof(sr64_t) == 8);
 #endif
 
 #define TYPE_SIZE_CHECK(type) do { \
-    assert(sizeof(s ## type ## _t) == type__size((type_t*)(t ## type))); \
-    assert(ALIGNOF(s ## type ## _t) == (t ## type)->base.alignment); \
+    ASSERT(sizeof(s ## type ## _t) == type__size((type_t*)(t ## type))); \
+    ASSERT(ALIGNOF(s ## type ## _t) == (t ## type)->base.alignment); \
 } while (false)
 
 #define TEST_TYPE(fp, type) do { \
@@ -1126,9 +1127,9 @@ static void _type_struct__add_multiple(type_struct_t* self, ...) {
     va_start(ap, self);
 
     type_t* type = va_arg(ap, type_t*);
-    assert(type);
+    ASSERT(type);
     const char* name = va_arg(ap, const char*);
-    assert(name);
+    ASSERT(name);
     do {
         type_struct__add(self, type, name);
         type = va_arg(ap, type_t*);
@@ -1136,7 +1137,7 @@ static void _type_struct__add_multiple(type_struct_t* self, ...) {
             break ;
         }
         name = va_arg(ap, const char*);
-        assert(name);
+        ASSERT(name);
     } while (true);
 
     va_end(ap);
@@ -1147,9 +1148,9 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
     va_start(ap, self);
 
     type_t* type = va_arg(ap, type_t*);
-    assert(type);
+    ASSERT(type);
     const char* name = va_arg(ap, char*);
-    assert(name);
+    ASSERT(name);
     do {
         type_union__add(self, type, name);
         type = va_arg(ap, type_t*);
@@ -1157,7 +1158,7 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
             break ;
         }
         name = va_arg(ap, char*);
-        assert(name);
+        ASSERT(name);
     } while (true);
 
     va_end(ap);
@@ -1183,7 +1184,7 @@ static void _type__print_value_s32(FILE* fp, uint8_t* address) {
 }
 
 static void _type__print_value_s64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lld", *(ss64_t*) address);
+    fprintf(fp, "%ld", *(ss64_t*) address);
 }
 
 static void _type__print_value_u8(FILE* fp, uint8_t* address) {
@@ -1199,7 +1200,7 @@ static void _type__print_value_u32(FILE* fp, uint8_t* address) {
 }
 
 static void _type__print_value_u64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%llu", *(su64_t*) address);
+    fprintf(fp, "%lu", *(su64_t*) address);
 }
 
 static void _type__print_value_r32(FILE* fp, uint8_t* address) {

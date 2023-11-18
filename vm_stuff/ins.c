@@ -5,35 +5,9 @@
 #include "types.h"
 #include "debug.h"
 
-static uint32_t push_byte_code(uint8_t* buffer, uint32_t buffer_size, uint8_t* bytes, uint32_t bytes_size) {
-    uint32_t total_bytes_written = 0;
-    for (uint32_t bytes_index = 0; bytes_index < bytes_size; ++bytes_index) {
-        assert(buffer_size > 3);
-        int32_t bytes_written = snprintf(buffer, buffer_size, "%02x", (int32_t) *bytes++);
-        assert(bytes_written == 2);
-        total_bytes_written += 2;
-        buffer += 2;
-        buffer_size -= 2;
-        if (bytes_index < bytes_size - 1) {
-            bytes_written = snprintf(buffer, buffer_size, " ");
-            assert(bytes_written == 1);
-            total_bytes_written += 1;
-            ++buffer;
-            --buffer_size;
-        }
-    }
-    assert(buffer_size > 0);
-    *buffer = '\0';
-
-    return total_bytes_written;
-}
-
 uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
-    uint8_t* ins_ip = ip;
-    static uint8_t byte_code[256];
-    static char ins_operand[256];
-    uint32_t byte_code_len = 0;
-    ins_operand[0] = '\0';
+    debug__set_ip(&debug, ip);
+
     *ip++ = (uint8_t) ins;
     switch (ins) {
         case INS_PUSH: {
@@ -116,16 +90,21 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
         } break ;
         case INS_CALL_INTERNAL: {
             type_internal_function_t* internal_function = va_arg(ap, type_internal_function_t*);
-            snprintf(ins_operand, sizeof(ins_operand), "%s", internal_function->name);
             CODE_PUSH(ip, type_internal_function_t*, internal_function);
+
+            debug__push_ins_arg(&debug, internal_function->name);
         } break ;
         case INS_CALL_EXTERNAL: {
             type_external_function_t* external_function = va_arg(ap, type_external_function_t*);
             CODE_PUSH(ip, type_external_function_t*, external_function);
+
+            debug__push_ins_arg(&debug, external_function->name);
         } break ;
         case INS_CALL_BUILTIN: {
             type_builtin_function_t* builtin_function = va_arg(ap, type_builtin_function_t*);
             CODE_PUSH(ip, type_builtin_function_t*, builtin_function);
+
+            debug__push_ins_arg(&debug, builtin_function->name);
         } break ;
         case INS_RET: {
             uint16_t number_of_arguments = va_arg(ap, uint32_t); // int is minimum va_arg can work with
@@ -133,25 +112,10 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
         } break ;
         case INS_EXIT: {
         } break ;
-        default: assert(false);
+        default: ASSERT(false);
     }
 
-    const uint32_t byte_code_max = max(sizeof(reg_t), sizeof(regf_t)) * 2 + max(sizeof(reg_t), sizeof(regf_t)) - 1;
-    assert(byte_code_len <= byte_code_max);
-    uint32_t byte_code_index = 0;
-    fprintf(compiled_code_file, "%05x:", (uint64_t) ins_ip % 1048576 /* 16^5 */);
-    fprintf(compiled_code_file, "    ");
-    while (byte_code_index < byte_code_len) {
-        fprintf(compiled_code_file, "%c", byte_code[byte_code_index++]);
-    }
-    if (byte_code_index < byte_code_max) {
-        fprintf(compiled_code_file, "%*c", byte_code_max - byte_code_index, ' ');
-    }
-    fprintf(compiled_code_file, "    %-20s", enum_ins__to_str(ins));
-    if (ins_operand[0] != '\0') {
-        fprintf(compiled_code_file, "    %-s", ins_operand);
-    }
-    fprintf(compiled_code_file, "\n");
+    debug__dump_line(&debug, debug.compiled_code_file);
 
     return ip;
 }
@@ -222,6 +186,6 @@ const char* enum_ins__to_str(ins_t ins) {
     case INS_RET: return "RET";
     case INS_EXIT: return "EXIT";
     case INS_NOP: return "NOP";
-    default: assert(false);
+    default: ASSERT(false);
     }
 }

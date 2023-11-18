@@ -1,5 +1,7 @@
 #include "hash_map.h"
 
+#include "debug.h"
+
 #include <assert.h>
 #include <string.h>
 
@@ -73,7 +75,7 @@ static _hash_map_entry_t* _hash_map__find(hash_map_t* self, const hash_map_key_t
                     return _entry;
                 }
             } break ;
-            default: assert(false);
+            default: ASSERT(false);
         }
         
         index = (index + 1) % capacity;
@@ -83,7 +85,7 @@ static _hash_map_entry_t* _hash_map__find(hash_map_t* self, const hash_map_key_t
         }
     }
 
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 
@@ -139,7 +141,7 @@ bool hash_map__remove(hash_map_t* self, const hash_map_key_t* key) {
     }
 
     _hash_map_entry_t* _entry = hash_map__value_to_internal_entry(self, found_value);
-    assert(_entry->type == HASH_MAP_ENTRY_TYPE_NON_EMPTY);
+    ASSERT(_entry->type == HASH_MAP_ENTRY_TYPE_NON_EMPTY);
 
     _entry->type = HASH_MAP_ENTRY_TYPE_TOMBSTONE;
     --self->fill;
