@@ -899,18 +899,24 @@ void type_builtin_function__add_argument(type_builtin_function_t* self, const ch
         }
     }
 
+    if (self->arguments_top == 0) {
+        self->arguments_offsets[self->arguments_top] = -sizeof(reg_t); // bp
+    } else {
+        self->arguments_offsets[self->arguments_top] = self->arguments_offsets[self->arguments_top - 1];
+    }
+
     ASSERT(self->arguments_top < self->arguments_size);
-    self->arguments_offsets[self->arguments_top] = -(int64_t) type__size(type);
-    self->return_offset += self->arguments_offsets[self->arguments_top];
+    self->arguments_offsets[self->arguments_top] += -(int64_t) type__size(type);
+    self->return_offset += -(int64_t) type__size(type);
     ++self->arguments_top;
 }
 
 void type_builtin_function__set_return(type_builtin_function_t* self, type_t* type) {
     self->return_offset = 0;
-    self->return_offset -= sizeof(reg_t); // BP register on stack
-    self->return_offset -= sizeof(uint8_t*); // return address
-    for (uint32_t argument_index = 0; argument_index < self->arguments_top; ++argument_index) {
-        self->return_offset += self->arguments_offsets[argument_index];
+    if (self->arguments_top > 0) {
+        self->return_offset -= self->arguments_offsets[self->arguments_top - 1];
+    } else {
+        self->return_offset -= sizeof(reg_t); // BP register on stack
     }
     self->return_offset -= type__size(type);
 }
@@ -924,6 +930,7 @@ int64_t type_builtin__return_offset_from_bp(type_builtin_function_t* self) {
 }
 
 int64_t type_builtin__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index) {
+    argument_index = self->arguments_top - argument_index - 1;
     ASSERT(argument_index < self->arguments_top);
     return self->arguments_offsets[argument_index];
 }

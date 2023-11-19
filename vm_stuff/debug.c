@@ -15,11 +15,11 @@ static const char* forth_col  = "stack bytecode";
 static const char* fifth_col  = "base pointer";
 
 static const uint32_t col_padding = 4;
-static const uint32_t first_col_len  = max(sizeof(uint64_t) * 2 + 1 /* : */, sizeof(first_col));
-static const uint32_t second_col_len = max(2 * (3 * max(sizeof(reg_t), sizeof(regf_t))) - 1, sizeof(second_col));
-static const uint32_t third_col_len  = max(20, sizeof(third_col));
-static const uint32_t forth_col_len  = max(3 * (3 * max(sizeof(reg_t), sizeof(regf_t))) - 1, sizeof(forth_col));
-static const uint32_t fifth_col_len  = max(sizeof(uint64_t) * 2, sizeof(fifth_col));
+static const uint32_t first_col_len  = max(sizeof(first_col),  sizeof(uint64_t) * 2 + 1 /* : */);
+static const uint32_t second_col_len = max(sizeof(second_col), 2 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 2) - 1);
+static const uint32_t third_col_len  = max(sizeof(third_col),  20);
+static const uint32_t forth_col_len  = max(sizeof(forth_col),  3 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 3) - 1);
+static const uint32_t fifth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
 
 static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size);
 
@@ -158,37 +158,35 @@ void debug__dump_line(debug_t* self, FILE* fp) {
     }
 
     // first col
-    const uint32_t byte_code_max = 2 * (3 * max(sizeof(reg_t), sizeof(regf_t))) - 1;
-    ASSERT(self->byte_code_top <= byte_code_max);
     uint32_t byte_code_index = 0;
-    fprintf(fp, "%016lx:", (uint64_t) self->ip);
+    fprintf(fp, "%0*lx:", first_col_len - 1, (uint64_t) self->ip);
     
     // second col
     fprintf(fp, "    ");
+    ASSERT(self->byte_code_top <= second_col_len);
     while (byte_code_index < self->byte_code_top) {
         fprintf(fp, "%c", self->byte_code[byte_code_index++]);
     }
-    if (byte_code_index < byte_code_max) {
-        fprintf(fp, "%*c", byte_code_max - byte_code_index, ' ');
+    if (byte_code_index < second_col_len) {
+        fprintf(fp, "%*c", second_col_len - byte_code_index, ' ');
     }
 
     // third col
     fprintf(fp, "    ");
-    fprintf(fp, "%-20s", enum_ins__to_str((ins_t) *self->ip));
+    fprintf(fp, "%-*s", third_col_len, enum_ins__to_str((ins_t) *self->ip));
 
     // forth col
     fprintf(fp, "    ");
-    const uint32_t instruction_operand_len_max = 3 * (3 * max(sizeof(reg_t), sizeof(regf_t))) - 1;
     if (self->instruction_operand_top > 0) {
-        fprintf(fp, "%-*s", instruction_operand_len_max, self->instruction_operand);
+        fprintf(fp, "%-*s", forth_col_len, self->instruction_operand);
     } else {
-        fprintf(fp, "%*c", instruction_operand_len_max, ' ');
+        fprintf(fp, "%*c", forth_col_len, ' ');
     }
 
     // fifth col
     if (self->state->alive) {
         fprintf(fp, "    ");
-        fprintf(fp, "%016lx", (uint64_t) self->state->base_pointer);
+        fprintf(fp, "%0*lx", fifth_col_len, (uint64_t) self->state->base_pointer);
     }
 
     // uint8_t* sp = self->state->stack_top;

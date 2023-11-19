@@ -1,0 +1,79 @@
+ip                   ins bytecode                           instruction mnemonic    stack bytecode                                              base pointer    
+
+main:
+0000562a9d0d22a0:                                           PUSH_BP                                                                         
+0000562a9d0d22a1:    00 01                                  MOV_REG                                                                         
+0000562a9d0d22a4:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+0000562a9d0d22b5:    0000000000000004 0000000000000004      PUSH_TYPE                                                                       
+0000562a9d0d22c6:                                           PUSH_SP                                                                         
+0000562a9d0d22c7:    000000000000000a                       PUSH                                                                            
+0000562a9d0d22d0:                                           ADD                                                                             
+0000562a9d0d22d1:    04                                     STACK_STORE                                                                     
+0000562a9d0d22d3:    0000562a9d0dbe10                       CALL_INTERNAL           fact                                                    
+0000562a9d0d22dc:                                           PUSH_BP                                                                         
+0000562a9d0d22dd:    0000000000000000                       PUSH                                                                            
+0000562a9d0d22e6:                                           ADD                                                                             
+0000562a9d0d22e7:    08                                     STACK_LOAD                                                                      
+0000562a9d0d22e9:    0000000000000000                       PUSH                                                                            
+0000562a9d0d22f2:                                           POP_TYPE                                                                        
+0000562a9d0d22f3:    000000000000002a                       PUSH                                                                            
+0000562a9d0d22fc:                                           PUSH_BP                                                                         
+0000562a9d0d22fd:    ffffffffffffffe8                       PUSH                                                                            
+0000562a9d0d2306:                                           ADD                                                                             
+0000562a9d0d2307:    08                                     STACK_STORE                                                                     
+0000562a9d0d2309:                                           POP_BP                                                                          
+0000562a9d0d230a:    0000                                   RET                                                                             
+
+_start:
+0000562a9d0d230d:                                           PUSH_BP                                                                         
+0000562a9d0d230e:    00 01                                  MOV_REG                                                                         
+0000562a9d0d2311:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+0000562a9d0d2322:    0000562a9d0dbf20                       CALL_INTERNAL           main                                                    
+0000562a9d0d232b:                                           EXIT                                                                            
+0000562a9d0d232c:                                           POP_BP                                                                          
+0000562a9d0d232d:    0000                                   RET                                                                             
+
+fact:
+0000562a9d0d2330:                                           PUSH_BP                                                                         
+0000562a9d0d2331:    00 01                                  MOV_REG                                                                         
+0000562a9d0d2334:    0000000000000001                       PUSH                                                                            
+0000562a9d0d233d:                                           PUSH_BP                                                                         
+0000562a9d0d233e:    ffffffffffffffe4                       PUSH                                                                            
+0000562a9d0d2347:                                           ADD                                                                             
+0000562a9d0d2348:    08                                     STACK_STORE                                                                     
+0000562a9d0d234a:                                           PUSH_BP                                                                         
+0000562a9d0d234b:    ffffffffffffffec                       PUSH                                                                            
+0000562a9d0d2354:                                           ADD                                                                             
+0000562a9d0d2355:    04                                     STACK_LOAD                                                                      
+0000562a9d0d2357:    0000000000000001                       PUSH                                                                            
+0000562a9d0d2360:    0000000000000000                       JLE                                                                             
+0000562a9d0d2369:                                           PUSH_BP                                                                         
+0000562a9d0d236a:    ffffffffffffffe4                       PUSH                                                                            
+0000562a9d0d2373:                                           ADD                                                                             
+0000562a9d0d2374:    08                                     STACK_LOAD                                                                      
+0000562a9d0d2376:                                           PUSH_BP                                                                         
+0000562a9d0d2377:    ffffffffffffffec                       PUSH                                                                            
+0000562a9d0d2380:                                           ADD                                                                             
+0000562a9d0d2381:    04                                     STACK_LOAD                                                                      
+0000562a9d0d2383:                                           MUL                                                                             
+0000562a9d0d2384:                                           PUSH_BP                                                                         
+0000562a9d0d2385:    ffffffffffffffe4                       PUSH                                                                            
+0000562a9d0d238e:                                           ADD                                                                             
+0000562a9d0d238f:    08                                     STACK_STORE                                                                     
+0000562a9d0d2391:                                           PUSH_BP                                                                         
+0000562a9d0d2392:    ffffffffffffffec                       PUSH                                                                            
+0000562a9d0d239b:                                           ADD                                                                             
+0000562a9d0d239c:    04                                     STACK_LOAD                                                                      
+0000562a9d0d239e:                                           DEC                                                                             
+0000562a9d0d239f:                                           PUSH_BP                                                                         
+0000562a9d0d23a0:    ffffffffffffffec                       PUSH                                                                            
+0000562a9d0d23a9:                                           ADD                                                                             
+0000562a9d0d23aa:    04                                     STACK_STORE                                                                     
+0000562a9d0d23ac:                                           PUSH_BP                                                                         
+0000562a9d0d23ad:    ffffffffffffffec                       PUSH                                                                            
+0000562a9d0d23b6:                                           ADD                                                                             
+0000562a9d0d23b7:    04                                     STACK_LOAD                                                                      
+0000562a9d0d23b9:    0000562a9d0d2360                       JZ                                                                              
+0000562a9d0d23c2:    0000562a9d0d2369                       JMP                                                                             
+0000562a9d0d23cb:                                           POP_BP                                                                          
+0000562a9d0d23cc:    0001                                   RET                                                                             

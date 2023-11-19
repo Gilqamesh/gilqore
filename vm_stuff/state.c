@@ -196,6 +196,45 @@ uint64_t fact(uint64_t a) {
     return result;
 }
 
+void compile__emit_type(type_internal_function_t* type_function, type_t* type, ...) {
+    va_list ap;
+    va_start(ap, type);
+
+    type_internal_function__add_ins(type_function, INS_PUSH_TYPE, type);
+
+    int64_t sp_offset = 0;
+    sp_offset -= type__size(type);
+
+    const char* member_name = va_arg(ap, const char*);
+    while (member_name) {
+        member_t* member = type__member(type, member_name);
+        if (member) {
+            sp_offset += (int64_t) member->offset;
+            if (member->type->type_specifier == TYPE_ARRAY) {
+                type_array_t* type_array = (type_array_t*) member->type;
+                uint64_t element_index = va_arg(ap, uint64_t);
+                sp_offset += (int64_t) element_index * type__size(type_array->element_type);
+            }
+            type = member->type;
+        } else {
+            ASSERT(false);
+        }
+        member_name = va_arg(ap, const char*);
+    }
+
+    ASSERT(type);
+
+    uint64_t value = va_arg(ap, uint64_t);
+
+    type_internal_function__add_ins(type_function, INS_PUSH, value);
+    type_internal_function__add_ins(type_function, INS_PUSH_SP);
+    type_internal_function__add_ins(type_function, INS_PUSH, sp_offset - 8 /* "INS_PUSH, value" 2 lines ago*/);
+    type_internal_function__add_ins(type_function, INS_ADD);
+    type_internal_function__add_ins(type_function, INS_STACK_STORE, type__size(type));
+
+    va_end(ap);
+}
+
 void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_call) {
     switch (fn_to_call->type_specifier) {
         case TYPE_FUNCTION_INTERNAL: {
@@ -205,8 +244,8 @@ void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_c
             type_internal_function__add_ins(type_function, INS_CALL_EXTERNAL, fn_to_call);
         } break ;
         case TYPE_FUNCTION_BUILTIN: {
-        } break ;
             type_internal_function__add_ins(type_function, INS_CALL_BUILTIN, fn_to_call);
+        } break ;
         default: ASSERT(false);
     }
 }
@@ -227,17 +266,20 @@ void state__compile_main(hash_map_t* types, type_internal_function_t* type_funct
     type_t* t_s32 = type__find(types, "s32");
     ASSERT(t_s32);
 
-    type_internal_function_t* fact_fn_decl = (type_internal_function_t*) type__find(types, "fact");
+    type_t* fact_fn_decl = type__find(types, "fact");
     ASSERT(fact_fn_decl);
 
     type_t* print_fn = type__find(types, "print");
     ASSERT(print_fn);
 
-    type_internal_function__add_ins(type_function, INS_PUSH, 10);
-    compile__emit_call(type_function, (type_t*) fact_fn_decl);
-    type_internal_function__load_local(type_function, "fact_result", NULL);
+    compile__emit_type(type_function, t_s32, NULL, 10);
+    compile__emit_call(type_function, fact_fn_decl);
+
+    // type_internal_function__load_local(type_function, "fact_result", NULL);
     type_internal_function__add_ins(type_function, INS_PUSH, *(uint64_t*) type_function->locals[0].type);
-    compile__emit_call(type_function, (type_t*) print_fn);
+    type_internal_function__add_ins(type_function, INS_PUSH_BP);
+
+    compile__emit_call(type_function, print_fn);
     type_internal_function__add_ins(type_function, INS_POP_TYPE);
     type_internal_function__add_ins(type_function, INS_PUSH, 42);
     type_internal_function__store_return(type_function, NULL);
@@ -369,14 +411,11 @@ void state__execute_free(type_builtin_function_t* self, void* processor) {
     free(free_arg);
 }
 
-// void print(type*, uint8_t*)
 void state__execute_print(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    uint8_t* type_sp = state->base_pointer + type_builtin__argument_offset_from_bp(self, 0);
-    type_t* type = (type_t*) (type_sp - sizeof(type_t*));
-    uint8_t* addr_sp = state->base_pointer + type_builtin__argument_offset_from_bp(self, 1);
-    uint8_t* addr = addr_sp - sizeof(uint8_t*);
+    type_t* type = (type_t*) (state->base_pointer + type_builtin__argument_offset_from_bp(self, 0));
+    uint8_t* addr = state->base_pointer + type_builtin__argument_offset_from_bp(self, 1);
     type__print(type, stdout, 3, -1, addr);
 }
 
@@ -395,6 +434,7 @@ void state__define_builtin_functions(hash_map_t* types) {
 
     type_builtin_function_t* builtin_print = type_builtin_function__create("print", &state__execute_print);
     type_builtin_function__add_argument(builtin_print, "type", t_void_p);
+    type_builtin_function__add_argument(builtin_print, "addr", t_void_p);
 
     type__add(types, (type_t*) builtin_malloc);
     type__add(types, (type_t*) builtin_free);
@@ -903,6 +943,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t, bytes);
                     ASSERT(bytes <= sizeof(reg_t));
                     memmove(state.stack_top, (void*) addr, bytes);
+                    debug__push_ins_arg_bytes(&debug, (uint8_t*) addr, bytes);
                     if (bytes < sizeof(reg_t)) {
                         // fill remaining bytes with 0s
                         memset(state.stack_top + bytes, 0, sizeof(reg_t) - bytes);
@@ -917,6 +958,7 @@ int main() {
                     ASSERT(bytes <= sizeof(reg_t));
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
                     memmove((void*) addr, state.stack_top, bytes);
+                    debug__push_ins_arg_bytes(&debug, (uint8_t*) state.stack_top, bytes);
                 } break ;
                 case INS_CALL_INTERNAL: {
                     type_internal_function_t* internal_function;
