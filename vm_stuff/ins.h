@@ -16,17 +16,17 @@
     debug__push_code(&debug, (uint8_t*)&result, sizeof(type)); \
 } while (false)
 
-// todo: change these into types?
-typedef struct reg {
-    uint64_t _;
-    uint64_t __;
-} reg_t;
-typedef struct regf {
-    double _;
-    double __;
-} regf_t;
-// static_ASSERT(sizeof(reg_t) <= (uint8_t)-1, "instructions such as INS_STACK_LOAD takes in the number of bytes to load, which couldn't be more than size of reg_t");
-
+// // todo: change these into types?
+// typedef struct reg {
+//     uint64_t _;
+//     // uint64_t __;
+// } reg_t;
+typedef uint64_t reg_t;
+// typedef struct regf {
+//     double _;
+//     // double __;
+// } regf_t;
+typedef double regf_t;
 
 /* ABI
 <reg_t>                     push

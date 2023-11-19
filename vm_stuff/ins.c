@@ -92,19 +92,19 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
             type_internal_function_t* internal_function = va_arg(ap, type_internal_function_t*);
             CODE_PUSH(ip, type_internal_function_t*, internal_function);
 
-            debug__push_ins_arg(&debug, internal_function->name);
+            debug__push_ins_arg_str(&debug, internal_function->name);
         } break ;
         case INS_CALL_EXTERNAL: {
             type_external_function_t* external_function = va_arg(ap, type_external_function_t*);
             CODE_PUSH(ip, type_external_function_t*, external_function);
 
-            debug__push_ins_arg(&debug, external_function->name);
+            debug__push_ins_arg_str(&debug, external_function->name);
         } break ;
         case INS_CALL_BUILTIN: {
             type_builtin_function_t* builtin_function = va_arg(ap, type_builtin_function_t*);
             CODE_PUSH(ip, type_builtin_function_t*, builtin_function);
 
-            debug__push_ins_arg(&debug, builtin_function->name);
+            debug__push_ins_arg_str(&debug, builtin_function->name);
         } break ;
         case INS_RET: {
             uint16_t number_of_arguments = va_arg(ap, uint32_t); // int is minimum va_arg can work with

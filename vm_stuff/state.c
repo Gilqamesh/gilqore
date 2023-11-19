@@ -124,21 +124,23 @@ static void compile__function(hash_map_t* types, type_internal_function_t* funct
     SP_SET(state_p, (state_p)->stack_top + n); \
 } while (false)
 #define STACK_PUSH(state_p, type, a) do { \
+    debug__push_ins_arg_bytes(&debug, (uint8_t*)&a, sizeof(type)); \
     *(type*) ((state_p)->stack_top) = a; \
     STACK_GROW(state_p, sizeof(type)); \
 } while (false)
 #define STACK_TOP(state_p, type, minus) (*(type*) ((state_p)->stack_top - sizeof(type) - minus))
 #define STACK_POP(state_p, type, result) do { \
     result = *(type*) ((state_p)->stack_top - sizeof(type)); \
+    debug__push_ins_arg_bytes(&debug, (uint8_t*)&result, sizeof(type)); \
     (state_p)->stack_top -= sizeof(type); \
 } while (false)
 
 void state__compile_fact(hash_map_t* types, type_internal_function_t* type_function) {
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 1, 0 });
+    type_internal_function__add_ins(type_function, INS_PUSH, 1);
     type_internal_function__store_return(type_function, NULL);
 
     type_internal_function__load_argument(type_function, "arg1", NULL);
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 1, 0 });
+    type_internal_function__add_ins(type_function, INS_PUSH, 1);
     uint8_t* fact_end = type_internal_function__end_ip(type_function);
     type_internal_function__add_ins(type_function, INS_JLE, NULL);
     uint8_t* loop_start = type_internal_function__end_ip(type_function);
@@ -159,13 +161,13 @@ void state__compile_fact(hash_map_t* types, type_internal_function_t* type_funct
 }
 
 void state__compile_ret_struct_fn(hash_map_t* types, type_internal_function_t* type_function) {
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ -120, 0});
+    type_internal_function__add_ins(type_function, INS_PUSH, -120);
     type_internal_function__store_return(type_function, "member_1", NULL);
 
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ -12345, 0});
+    type_internal_function__add_ins(type_function, INS_PUSH, -12345);
     type_internal_function__store_return(type_function, "member_2", NULL);
 
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 123456789101112, 0});
+    type_internal_function__add_ins(type_function, INS_PUSH, 123456789101112);
     type_internal_function__store_return(type_function, "member_3", NULL);
 
     ASSERT(type_function->return_type->type_specifier == TYPE_STRUCT);
@@ -176,7 +178,7 @@ void state__compile_ret_struct_fn(hash_map_t* types, type_internal_function_t* t
     type_array_t* arr_type = (type_array_t*) member_array->type;
     ASSERT(member_array->type->type_specifier == TYPE_ARRAY);
     for (uint32_t arr_index = 0; arr_index < arr_type->element_size; ++arr_index) {
-        type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ arr_index * 13, 0 });
+        type_internal_function__add_ins(type_function, INS_PUSH, arr_index * 13);
         type_internal_function__store_return(type_function, "member_array", arr_index, NULL);
     }
 }
@@ -231,13 +233,13 @@ void state__compile_main(hash_map_t* types, type_internal_function_t* type_funct
     type_t* print_fn = type__find(types, "print");
     ASSERT(print_fn);
 
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 10, 0 });
+    type_internal_function__add_ins(type_function, INS_PUSH, 10);
     compile__emit_call(type_function, (type_t*) fact_fn_decl);
     type_internal_function__load_local(type_function, "fact_result", NULL);
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ *(uint64_t*) type_function->locals[0].type, 0 });
+    type_internal_function__add_ins(type_function, INS_PUSH, *(uint64_t*) type_function->locals[0].type);
     compile__emit_call(type_function, (type_t*) print_fn);
     type_internal_function__add_ins(type_function, INS_POP_TYPE);
-    type_internal_function__add_ins(type_function, INS_PUSH, (reg_t){ 42, 0 });
+    type_internal_function__add_ins(type_function, INS_PUSH, 42);
     type_internal_function__store_return(type_function, NULL);
 }
 
@@ -452,8 +454,7 @@ static void _type__print_value_r64(FILE* fp, uint8_t* address) {
 
 static void _type__print_value_reg(FILE* fp, uint8_t* address) {
     reg_t* reg = (reg_t*) address;
-    fprintf(fp, "%lu", reg->_);
-    fprintf(fp, ", %lu", reg->__);
+    fprintf(fp, "%lu", *reg);
 }
 
 void state__create_atom_types(hash_map_t* types) {
@@ -573,17 +574,11 @@ int main() {
                     STACK_PUSH(&state, regf_t, n);
                 } break ;
                 case INS_PUSH_SP: {
-                    reg_t result = {
-                        ._ = (uint64_t) state.stack_top,
-                        .__ = 0
-                    };
+                    reg_t result = (uint64_t) state.stack_top;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_PUSH_BP: {
-                    reg_t result = {
-                        ._ = (uint64_t) state.base_pointer,
-                        .__ = 0
-                    };
+                    reg_t result = (uint64_t) state.base_pointer;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_POP: {
@@ -600,12 +595,12 @@ int main() {
                 case INS_POP_SP: {
                     reg_t result;
                     STACK_POP(&state, reg_t, result);
-                    SP_SET(&state, (uint8_t*) result._);
+                    SP_SET(&state, (uint8_t*) result);
                 } break ;
                 case INS_POP_BP: {
                     reg_t result;
                     STACK_POP(&state, reg_t, result);
-                    BP_SET(&state, (uint8_t*) result._);
+                    BP_SET(&state, (uint8_t*) result);
                 } break ;
                 case INS_MOV_REG: {
                     uint8_t dst_reg;
@@ -619,10 +614,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ + b._,
-                        .__ = 0
-                    };
+                    reg_t result = a + b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_ADDF: {
@@ -630,10 +622,7 @@ int main() {
                     regf_t b;
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    regf_t result = {
-                        ._ = a._ + b._,
-                        .__ = 0.0
-                    };
+                    regf_t result = a + b;
                     STACK_PUSH(&state, regf_t, result);
                 } break ;
                 case INS_SUB: {
@@ -641,10 +630,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ - b._,
-                        .__ = 0
-                    };
+                    reg_t result = a - b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_SUBF: {
@@ -652,10 +638,7 @@ int main() {
                     regf_t b;
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    regf_t result = {
-                        ._ = a._ - b._,
-                        .__ = 0.0
-                    };
+                    regf_t result = a - b;
                     STACK_PUSH(&state, regf_t, result);
                 } break ;
                 case INS_MUL: {
@@ -663,10 +646,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ * b._,
-                        .__ = 0
-                    };
+                    reg_t result = a * b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_MULF: {
@@ -674,10 +654,7 @@ int main() {
                     regf_t b;
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    regf_t result = {
-                        ._ = a._ * b._,
-                        .__ = 0
-                    };
+                    regf_t result = a * b;
                     STACK_PUSH(&state, regf_t, result);
                 } break ;
                 case INS_DIV: {
@@ -685,10 +662,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ / b._,
-                        .__ = 0.0
-                    };
+                    reg_t result = a / b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_DIVF: {
@@ -696,10 +670,7 @@ int main() {
                     regf_t b;
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    regf_t result = {
-                        ._ = a._ / b._,
-                        .__ = 0.0
-                    };
+                    regf_t result = a / b;
                     STACK_PUSH(&state, regf_t, result);
                 } break ;
                 case INS_MOD: {
@@ -707,10 +678,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ % b._,
-                        .__ = 0
-                    };
+                    reg_t result = a % b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_MODF: {
@@ -718,10 +686,7 @@ int main() {
                     regf_t b;
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    regf_t result = {
-                        ._ = fmod(a._, b._),
-                        .__ = 0.0
-                    };
+                    regf_t result = fmod(a, b);
                     STACK_PUSH(&state, regf_t, result);
                 } break ;
                 case INS_DUP: {
@@ -735,38 +700,31 @@ int main() {
                 case INS_NEG: {
                     reg_t a;
                     STACK_POP(&state, reg_t, a);
-                    a._ = -a._;
+                    a = -a;
                     STACK_PUSH(&state, reg_t, a);
                 } break ;
                 case INS_NEGF: {
                     regf_t a;
                     STACK_POP(&state, regf_t, a);
-                    a._ = -a._;
-                    a.__ = -a.__;
+                    a = -a;
                     STACK_PUSH(&state, regf_t, a);
                 } break ;
                 case INS_INC: {
                     reg_t a;
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ + 1,
-                        .__ = 0
-                    };
+                    reg_t result = a + 1;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_DEC: {
                     reg_t a;
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ - 1,
-                        .__ = 0
-                    };
+                    reg_t result = a - 1;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_NOT: {
                     reg_t a;
                     STACK_POP(&state, reg_t, a);
-                    a._ = ~a._;
+                    a = ~a;
                     STACK_PUSH(&state, reg_t, a);
                 } break ;
                 case INS_XOR: {
@@ -774,10 +732,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ ^ b._,
-                        .__ = 0
-                    };
+                    reg_t result = a ^ b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_AND: {
@@ -785,10 +740,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ & b._,
-                        .__ = 0
-                    };
+                    reg_t result = a & b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_OR: {
@@ -796,10 +748,7 @@ int main() {
                     reg_t b;
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    reg_t result = {
-                        ._ = a._ | b._,
-                        .__ = 0
-                    };
+                    reg_t result = a | b;
                     STACK_PUSH(&state, reg_t, result);
                 } break ;
                 case INS_JMP: {
@@ -813,7 +762,7 @@ int main() {
                     uint8_t bytes;
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ == 0) {
+                    if (a == 0) {
                         state.ip = addr;
                     }
                 } break ;
@@ -823,7 +772,7 @@ int main() {
                     uint8_t bytes;
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ == 0.0 && a.__ == 0.0) {
+                    if (a == 0.0) {
                         state.ip = addr;
                     }
                 } break ;
@@ -835,7 +784,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ < b._) {
+                    if (a < b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -847,7 +796,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ < b._) {
+                    if (a < b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -859,7 +808,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ > b._) {
+                    if (a > b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -871,7 +820,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ > b._) {
+                    if (a > b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -883,7 +832,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ == b._) {
+                    if (a == b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -895,7 +844,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ == b._ && a.__ == b.__) {
+                    if (a == b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -907,7 +856,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ <= b._) {
+                    if (a <= b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -919,7 +868,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ <= b._) {
+                    if (a <= b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -931,7 +880,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
-                    if (a._ >= b._) {
+                    if (a >= b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -943,7 +892,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
-                    if (a._ >= b._) {
+                    if (a >= b) {
                         state.ip = addr;
                     }
                 } break ;
@@ -953,7 +902,7 @@ int main() {
                     STACK_POP(&state, reg_t, addr);
                     CODE_POP(state.ip, uint8_t, bytes);
                     ASSERT(bytes <= sizeof(reg_t));
-                    memmove(state.stack_top, (void*) addr._, bytes);
+                    memmove(state.stack_top, (void*) addr, bytes);
                     if (bytes < sizeof(reg_t)) {
                         // fill remaining bytes with 0s
                         memset(state.stack_top + bytes, 0, sizeof(reg_t) - bytes);
@@ -967,7 +916,7 @@ int main() {
                     CODE_POP(state.ip, uint8_t, bytes);
                     ASSERT(bytes <= sizeof(reg_t));
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
-                    memmove((void*) addr._, state.stack_top, bytes);
+                    memmove((void*) addr, state.stack_top, bytes);
                 } break ;
                 case INS_CALL_INTERNAL: {
                     type_internal_function_t* internal_function;
@@ -975,7 +924,7 @@ int main() {
                     STACK_PUSH(&state, uint8_t*, state.ip);
                     state.ip = type_internal_function__ip(internal_function);
  
-                    debug__push_ins_arg(&debug, internal_function->name);
+                    debug__push_ins_arg_str(&debug, internal_function->name);
                 } break ;
                 case INS_CALL_EXTERNAL: {
                     ASSERT(false && "todo: implement");
@@ -983,14 +932,14 @@ int main() {
                     CODE_POP(state.ip, type_external_function_t*, external_function);
                     type_external_function__call(external_function);
  
-                    debug__push_ins_arg(&debug, external_function->name);
+                    debug__push_ins_arg_str(&debug, external_function->name);
                 } break ;
                 case INS_CALL_BUILTIN: {
                     type_builtin_function_t* builtin_function;
                     CODE_POP(state.ip, type_builtin_function_t*, builtin_function);
                     type_builtin_function__call(builtin_function, &state);
  
-                    debug__push_ins_arg(&debug, builtin_function->name);
+                    debug__push_ins_arg_str(&debug, builtin_function->name);
                 } break ;
                 case INS_RET: {
                     uint8_t* addr;
@@ -1008,7 +957,7 @@ int main() {
                 case INS_EXIT: {
                     state.alive = false;
                     STACK_POP(&state, reg_t, state.exit_status_code);
-                    printf("\nExit status code: %lu\n", state.exit_status_code._);
+                    printf("\nExit status code: %lu\n", state.exit_status_code);
                 } break ;
                 case INS_NOP: {
                 } break ;

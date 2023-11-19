@@ -748,7 +748,7 @@ void type_internal_function__store_argument(type_internal_function_t* self, cons
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
@@ -764,7 +764,7 @@ void type_internal_function__load_argument(type_internal_function_t* self, const
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
@@ -780,7 +780,7 @@ void type_internal_function__store_return(type_internal_function_t* self, ...) {
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, self);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
@@ -796,7 +796,7 @@ void type_internal_function__load_return(type_internal_function_t* self, ...) {
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, self);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
@@ -812,7 +812,7 @@ void type_internal_function__store_local(type_internal_function_t* self, const c
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, local_name);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
@@ -828,7 +828,7 @@ void type_internal_function__load_local(type_internal_function_t* self, const ch
     type_internal_function__add_ins(self, INS_PUSH_BP);
 
     va_start(ap, local_name);
-    type_internal_function__add_ins(self, INS_PUSH, (reg_t){function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap), 0});
+    type_internal_function__add_ins(self, INS_PUSH, function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap));
     va_end(ap);
 
     type_internal_function__add_ins(self, INS_ADD);
