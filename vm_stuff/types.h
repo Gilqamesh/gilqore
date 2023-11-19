@@ -183,6 +183,7 @@ void type_internal_function__store_return(type_internal_function_t* self, ...);
 void type_internal_function__load_return(type_internal_function_t* self, ...);
 void type_internal_function__store_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__load_local(type_internal_function_t* self, const char* local_name, ...);
+type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
 
 type_external_function_t* type_external_function__create(const char* name);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type);

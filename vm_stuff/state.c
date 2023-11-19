@@ -276,7 +276,7 @@ void state__compile_main(hash_map_t* types, type_internal_function_t* type_funct
     compile__emit_call(type_function, fact_fn_decl);
 
     // type_internal_function__load_local(type_function, "fact_result", NULL);
-    type_internal_function__add_ins(type_function, INS_PUSH, *(uint64_t*) type_function->locals[0].type);
+    type_internal_function__add_ins(type_function, INS_PUSH, (uint64_t) type_internal_function__get_local(type_function, "fact_result", NULL));
     type_internal_function__add_ins(type_function, INS_PUSH_BP);
 
     compile__emit_call(type_function, print_fn);
@@ -396,26 +396,24 @@ void state__define_internal_functions(hash_map_t* types) {
 void state__execute_malloc(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    uint8_t* malloc_arg_sp = state->base_pointer - type_builtin__argument_offset_from_bp(self, 0);
-    uint64_t malloc_arg = *(uint64_t*) malloc_arg_sp;
+    uint64_t malloc_arg = *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
     void* malloc_result = malloc(malloc_arg);
-    uint8_t* malloc_return_sp = state->base_pointer - type_builtin__return_offset_from_bp(self);
+    uint8_t* malloc_return_sp = state->stack_top + type_builtin__return_offset_from_bp(self);
     *(uint64_t*) malloc_return_sp = *(uint64_t*) malloc_result;
 }
 
 void state__execute_free(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    uint8_t* free_arg_sp = state->base_pointer - type_builtin__argument_offset_from_bp(self, 0);
-    uint64_t* free_arg = (uint64_t*) *(uint64_t*) free_arg_sp;
-    free(free_arg);
+    void* addr = *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
+    free(addr);
 }
 
 void state__execute_print(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    type_t* type = (type_t*) (state->base_pointer + type_builtin__argument_offset_from_bp(self, 0));
-    uint8_t* addr = state->base_pointer + type_builtin__argument_offset_from_bp(self, 1);
+    type_t* type = (type_t*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
+    uint8_t* addr = (uint8_t*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 1));
     type__print(type, stdout, 3, -1, addr);
 }
 
@@ -963,25 +961,32 @@ int main() {
                 case INS_CALL_INTERNAL: {
                     type_internal_function_t* internal_function;
                     CODE_POP(state.ip, type_internal_function_t*, internal_function);
+
+                    debug__push_ins_arg_str(&debug, internal_function->name);
+
                     STACK_PUSH(&state, uint8_t*, state.ip);
                     state.ip = type_internal_function__ip(internal_function);
- 
-                    debug__push_ins_arg_str(&debug, internal_function->name);
                 } break ;
                 case INS_CALL_EXTERNAL: {
                     ASSERT(false && "todo: implement");
                     type_external_function_t* external_function;
                     CODE_POP(state.ip, type_external_function_t*, external_function);
-                    type_external_function__call(external_function);
- 
+
                     debug__push_ins_arg_str(&debug, external_function->name);
+
+                    type_external_function__call(external_function);
                 } break ;
                 case INS_CALL_BUILTIN: {
+                    /* stack layout (top-down) when called
+                        arguments of builtin function
+                        return value of builtin function
+                    */
                     type_builtin_function_t* builtin_function;
                     CODE_POP(state.ip, type_builtin_function_t*, builtin_function);
-                    type_builtin_function__call(builtin_function, &state);
- 
+
                     debug__push_ins_arg_str(&debug, builtin_function->name);
+
+                    type_builtin_function__call(builtin_function, &state);
                 } break ;
                 case INS_RET: {
                     uint8_t* addr;

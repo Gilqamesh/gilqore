@@ -1,0 +1,78 @@
+ip                   ins bytecode                           instruction mnemonic    stack bytecode                                              base pointer    
+
+main:
+000055e7a45942a0:                                           PUSH_BP                                                                         
+000055e7a45942a1:    00 01                                  MOV_REG                                                                         
+000055e7a45942a4:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055e7a45942b5:    0000000000000004 0000000000000004      PUSH_TYPE                                                                       
+000055e7a45942c6:    000000000000000a                       PUSH                                                                            
+000055e7a45942cf:                                           PUSH_SP                                                                         
+000055e7a45942d0:    fffffffffffffff4                       PUSH                                                                            
+000055e7a45942d9:                                           ADD                                                                             
+000055e7a45942da:    04                                     STACK_STORE                                                                     
+000055e7a45942dc:    000055e7a459de10                       CALL_INTERNAL           fact                                                    
+000055e7a45942e5:    000055e7a459d9c0                       PUSH                                                                            
+000055e7a45942ee:                                           PUSH_BP                                                                         
+000055e7a45942ef:    000055e7a459e210                       CALL_BUILTIN            print                                                   
+000055e7a45942f8:                                           POP_TYPE                                                                        
+000055e7a45942f9:    000000000000002a                       PUSH                                                                            
+000055e7a4594302:                                           PUSH_BP                                                                         
+000055e7a4594303:    ffffffffffffffe8                       PUSH                                                                            
+000055e7a459430c:                                           ADD                                                                             
+000055e7a459430d:    08                                     STACK_STORE                                                                     
+000055e7a459430f:                                           POP_BP                                                                          
+000055e7a4594310:    0000                                   RET                                                                             
+
+_start:
+000055e7a4594313:                                           PUSH_BP                                                                         
+000055e7a4594314:    00 01                                  MOV_REG                                                                         
+000055e7a4594317:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055e7a4594328:    000055e7a459df20                       CALL_INTERNAL           main                                                    
+000055e7a4594331:                                           EXIT                                                                            
+000055e7a4594332:                                           POP_BP                                                                          
+000055e7a4594333:    0000                                   RET                                                                             
+
+fact:
+000055e7a4594336:                                           PUSH_BP                                                                         
+000055e7a4594337:    00 01                                  MOV_REG                                                                         
+000055e7a459433a:    0000000000000001                       PUSH                                                                            
+000055e7a4594343:                                           PUSH_BP                                                                         
+000055e7a4594344:    ffffffffffffffe4                       PUSH                                                                            
+000055e7a459434d:                                           ADD                                                                             
+000055e7a459434e:    08                                     STACK_STORE                                                                     
+000055e7a4594350:                                           PUSH_BP                                                                         
+000055e7a4594351:    ffffffffffffffec                       PUSH                                                                            
+000055e7a459435a:                                           ADD                                                                             
+000055e7a459435b:    04                                     STACK_LOAD                                                                      
+000055e7a459435d:    0000000000000001                       PUSH                                                                            
+000055e7a4594366:    0000000000000000                       JLE                                                                             
+000055e7a459436f:                                           PUSH_BP                                                                         
+000055e7a4594370:    ffffffffffffffe4                       PUSH                                                                            
+000055e7a4594379:                                           ADD                                                                             
+000055e7a459437a:    08                                     STACK_LOAD                                                                      
+000055e7a459437c:                                           PUSH_BP                                                                         
+000055e7a459437d:    ffffffffffffffec                       PUSH                                                                            
+000055e7a4594386:                                           ADD                                                                             
+000055e7a4594387:    04                                     STACK_LOAD                                                                      
+000055e7a4594389:                                           MUL                                                                             
+000055e7a459438a:                                           PUSH_BP                                                                         
+000055e7a459438b:    ffffffffffffffe4                       PUSH                                                                            
+000055e7a4594394:                                           ADD                                                                             
+000055e7a4594395:    08                                     STACK_STORE                                                                     
+000055e7a4594397:                                           PUSH_BP                                                                         
+000055e7a4594398:    ffffffffffffffec                       PUSH                                                                            
+000055e7a45943a1:                                           ADD                                                                             
+000055e7a45943a2:    04                                     STACK_LOAD                                                                      
+000055e7a45943a4:                                           DEC                                                                             
+000055e7a45943a5:                                           PUSH_BP                                                                         
+000055e7a45943a6:    ffffffffffffffec                       PUSH                                                                            
+000055e7a45943af:                                           ADD                                                                             
+000055e7a45943b0:    04                                     STACK_STORE                                                                     
+000055e7a45943b2:                                           PUSH_BP                                                                         
+000055e7a45943b3:    ffffffffffffffec                       PUSH                                                                            
+000055e7a45943bc:                                           ADD                                                                             
+000055e7a45943bd:    04                                     STACK_LOAD                                                                      
+000055e7a45943bf:    000055e7a4594366                       JZ                                                                              
+000055e7a45943c8:    000055e7a459436f                       JMP                                                                             
+000055e7a45943d1:                                           POP_BP                                                                          
+000055e7a45943d2:    0001                                   RET                                                                             
