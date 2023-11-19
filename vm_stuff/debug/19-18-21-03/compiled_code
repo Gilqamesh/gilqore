@@ -1,0 +1,146 @@
+ip                   ins bytecode                           instruction mnemonic    stack bytecode                                              base pointer    
+
+main:
+000055929a59d2a0:                                           PUSH_BP                                                                         
+000055929a59d2a1:    00 01                                  MOV_REG                                                                         
+000055929a59d2a4:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055929a59d2b5:    0000000000000004 0000000000000004      PUSH_TYPE                                                                       
+000055929a59d2c6:    000000000000000a                       PUSH                                                                            
+000055929a59d2cf:                                           PUSH_SP                                                                         
+000055929a59d2d0:    fffffffffffffff4                       PUSH                                                                            
+000055929a59d2d9:                                           ADD                                                                             
+000055929a59d2da:    04                                     STACK_STORE                                                                     
+000055929a59d2dc:    000055929a5a6e10                       CALL_INTERNAL           fact                                                    
+000055929a59d2e5:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055929a59d2f6:    000055929a5a69c0                       PUSH                                                                            
+000055929a59d2ff:                                           PUSH_SP                                                                         
+000055929a59d300:    fffffffffffffff0                       PUSH                                                                            
+000055929a59d309:                                           ADD                                                                             
+000055929a59d30a:    08                                     STACK_STORE                                                                     
+000055929a59d30c:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055929a59d31d:                                           PUSH_BP                                                                         
+000055929a59d31e:                                           PUSH_SP                                                                         
+000055929a59d31f:    fffffffffffffff0                       PUSH                                                                            
+000055929a59d328:                                           ADD                                                                             
+000055929a59d329:    08                                     STACK_STORE                                                                     
+000055929a59d32b:    000055929a5a7230                       CALL_BUILTIN            print                                                   
+000055929a59d334:                                           POP_TYPE                                                                        
+000055929a59d335:                                           POP_TYPE                                                                        
+000055929a59d336:    000000000000002a                       PUSH                                                                            
+000055929a59d33f:                                           PUSH_BP                                                                         
+000055929a59d340:    ffffffffffffffe8                       PUSH                                                                            
+000055929a59d349:                                           ADD                                                                             
+000055929a59d34a:    08                                     STACK_STORE                                                                     
+000055929a59d34c:                                           POP_TYPE                                                                        
+000055929a59d34d:                                           POP_BP                                                                          
+000055929a59d34e:    0000                                   RET                                                                             
+
+_start:
+000055929a59d351:                                           PUSH_BP                                                                         
+000055929a59d352:    00 01                                  MOV_REG                                                                         
+000055929a59d355:    0000000000000008 0000000000000008      PUSH_TYPE                                                                       
+000055929a59d366:    000055929a5a6f20                       CALL_INTERNAL           main                                                    
+000055929a59d36f:                                           EXIT                                                                            
+000055929a59d370:                                           POP_BP                                                                          
+000055929a59d371:    0000                                   RET                                                                             
+
+fact:
+000055929a59d374:                                           PUSH_BP                                                                         
+000055929a59d375:    00 01                                  MOV_REG                                                                         
+000055929a59d378:    0000000000000001                       PUSH                                                                            
+000055929a59d381:                                           PUSH_BP                                                                         
+000055929a59d382:    ffffffffffffffe4                       PUSH                                                                            
+000055929a59d38b:                                           ADD                                                                             
+000055929a59d38c:    08                                     STACK_STORE                                                                     
+000055929a59d38e:                                           PUSH_BP                                                                         
+000055929a59d38f:    ffffffffffffffec                       PUSH                                                                            
+000055929a59d398:                                           ADD                                                                             
+000055929a59d399:    04                                     STACK_LOAD                                                                      
+000055929a59d39b:    0000000000000001                       PUSH                                                                            
+000055929a59d3a4:    0000000000000000                       JLE                                                                             
+000055929a59d3ad:                                           PUSH_BP                                                                         
+000055929a59d3ae:    ffffffffffffffe4                       PUSH                                                                            
+000055929a59d3b7:                                           ADD                                                                             
+000055929a59d3b8:    08                                     STACK_LOAD                                                                      
+000055929a59d3ba:                                           PUSH_BP                                                                         
+000055929a59d3bb:    ffffffffffffffec                       PUSH                                                                            
+000055929a59d3c4:                                           ADD                                                                             
+000055929a59d3c5:    04                                     STACK_LOAD                                                                      
+000055929a59d3c7:                                           MUL                                                                             
+000055929a59d3c8:                                           PUSH_BP                                                                         
+000055929a59d3c9:    ffffffffffffffe4                       PUSH                                                                            
+000055929a59d3d2:                                           ADD                                                                             
+000055929a59d3d3:    08                                     STACK_STORE                                                                     
+000055929a59d3d5:                                           PUSH_BP                                                                         
+000055929a59d3d6:    ffffffffffffffec                       PUSH                                                                            
+000055929a59d3df:                                           ADD                                                                             
+000055929a59d3e0:    04                                     STACK_LOAD                                                                      
+000055929a59d3e2:                                           DEC                                                                             
+000055929a59d3e3:                                           PUSH_BP                                                                         
+000055929a59d3e4:    ffffffffffffffec                       PUSH                                                                            
+000055929a59d3ed:                                           ADD                                                                             
+000055929a59d3ee:    04                                     STACK_STORE                                                                     
+000055929a59d3f0:                                           PUSH_BP                                                                         
+000055929a59d3f1:    ffffffffffffffec                       PUSH                                                                            
+000055929a59d3fa:                                           ADD                                                                             
+000055929a59d3fb:    04                                     STACK_LOAD                                                                      
+000055929a59d3fd:    000055929a59d3a4                       JZ                                                                              
+000055929a59d406:    000055929a59d3ad                       JMP                                                                             
+000055929a59d40f:                                           POP_BP                                                                          
+000055929a59d410:    0001                                   RET                                                                             
+
+ret_struct:
+000055929a59d413:                                           PUSH_BP                                                                         
+000055929a59d414:    00 01                                  MOV_REG                                                                         
+000055929a59d417:    00000000ffffff88                       PUSH                                                                            
+000055929a59d420:                                           PUSH_BP                                                                         
+000055929a59d421:    fffffffffffffbf0                       PUSH                                                                            
+000055929a59d42a:                                           ADD                                                                             
+000055929a59d42b:    01                                     STACK_STORE                                                                     
+000055929a59d42d:    00000000ffffcfc7                       PUSH                                                                            
+000055929a59d436:                                           PUSH_BP                                                                         
+000055929a59d437:    fffffffffffffbf4                       PUSH                                                                            
+000055929a59d440:                                           ADD                                                                             
+000055929a59d441:    02                                     STACK_STORE                                                                     
+000055929a59d443:    00007048860f3a38                       PUSH                                                                            
+000055929a59d44c:                                           PUSH_BP                                                                         
+000055929a59d44d:    fffffffffffffbf8                       PUSH                                                                            
+000055929a59d456:                                           ADD                                                                             
+000055929a59d457:    08                                     STACK_STORE                                                                     
+000055929a59d459:    0000000000000000                       PUSH                                                                            
+000055929a59d462:                                           PUSH_BP                                                                         
+000055929a59d463:    fffffffffffffc00                       PUSH                                                                            
+000055929a59d46c:                                           ADD                                                                             
+000055929a59d46d:    01                                     STACK_STORE                                                                     
+000055929a59d46f:    000000000000000d                       PUSH                                                                            
+000055929a59d478:                                           PUSH_BP                                                                         
+000055929a59d479:    fffffffffffffc01                       PUSH                                                                            
+000055929a59d482:                                           ADD                                                                             
+000055929a59d483:    01                                     STACK_STORE                                                                     
+000055929a59d485:    000000000000001a                       PUSH                                                                            
+000055929a59d48e:                                           PUSH_BP                                                                         
+000055929a59d48f:    fffffffffffffc02                       PUSH                                                                            
+000055929a59d498:                                           ADD                                                                             
+000055929a59d499:    01                                     STACK_STORE                                                                     
+000055929a59d49b:    0000000000000027                       PUSH                                                                            
+000055929a59d4a4:                                           PUSH_BP                                                                         
+000055929a59d4a5:    fffffffffffffc03                       PUSH                                                                            
+000055929a59d4ae:                                           ADD                                                                             
+000055929a59d4af:    01                                     STACK_STORE                                                                     
+000055929a59d4b1:    0000000000000034                       PUSH                                                                            
+000055929a59d4ba:                                           PUSH_BP                                                                         
+000055929a59d4bb:    fffffffffffffc04                       PUSH                                                                            
+000055929a59d4c4:                                           ADD                                                                             
+000055929a59d4c5:    01                                     STACK_STORE                                                                     
+000055929a59d4c7:    0000000000000041                       PUSH                                                                            
+000055929a59d4d0:                                           PUSH_BP                                                                         
+000055929a59d4d1:    fffffffffffffc05                       PUSH                                                                            
+000055929a59d4da:                                           ADD                                                                             
+000055929a59d4db:    01                                     STACK_STORE                                                                     
+000055929a59d4dd:    000000000000004e                       PUSH                                                                            
+000055929a59d4e6:                                           PUSH_BP                                                                         
+000055929a59d4e7:    fffffffffffffc06                       PUSH                                                                            
+000055929a59d4f0:                                           ADD                                                                             
+000055929a59d4f1:    01                                     STACK_STORE                                                                     
+000055929a59d4f3:                                           POP_BP                                                                          
+000055929a59d4f4:    0000                                   RET                                                                             

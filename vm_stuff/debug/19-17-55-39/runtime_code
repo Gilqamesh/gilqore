@@ -1,0 +1,309 @@
+ip                   ins bytecode                           instruction mnemonic    stack bytecode                                              base pointer    
+000055f3a70aa315:                                           PUSH_BP                 000055f3a70ab2b0                                            000055f3a70ab2b0
+000055f3a70aa316:    00 01                                  MOV_REG                                                                             000055f3a70ab2b8
+000055f3a70aa319:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           000055f3a70ab2b8
+000055f3a70aa32a:    000055f3a70b3f20                       CALL_INTERNAL           main 000055f3a70aa333                                       000055f3a70ab2b8
+000055f3a70aa2a0:                                           PUSH_BP                 000055f3a70ab2b8                                            000055f3a70ab2b8
+000055f3a70aa2a1:    00 01                                  MOV_REG                                                                             000055f3a70ab2d0
+000055f3a70aa2a4:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           000055f3a70ab2d0
+000055f3a70aa2b5:    0000000000000004 0000000000000004      PUSH_TYPE                                                                           000055f3a70ab2d0
+000055f3a70aa2c6:    000000000000000a                       PUSH                    000000000000000a                                            000055f3a70ab2d0
+000055f3a70aa2cf:                                           PUSH_SP                 000055f3a70ab2e4                                            000055f3a70ab2d0
+000055f3a70aa2d0:    fffffffffffffff4                       PUSH                    fffffffffffffff4                                            000055f3a70ab2d0
+000055f3a70aa2d9:                                           ADD                     fffffffffffffff4 000055f3a70ab2e4 000055f3a70ab2d8          000055f3a70ab2d0
+000055f3a70aa2da:    04                                     STACK_STORE             000055f3a70ab2d8 0000000a                                   000055f3a70ab2d0
+000055f3a70aa2dc:    000055f3a70b3e10                       CALL_INTERNAL           fact 000055f3a70aa2e5                                       000055f3a70ab2d0
+000055f3a70aa338:                                           PUSH_BP                 000055f3a70ab2d0                                            000055f3a70ab2d0
+000055f3a70aa339:    00 01                                  MOV_REG                                                                             000055f3a70ab2ec
+000055f3a70aa33c:    0000000000000001                       PUSH                    0000000000000001                                            000055f3a70ab2ec
+000055f3a70aa345:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa346:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa34f:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa350:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000000001                           000055f3a70ab2ec
+000055f3a70aa352:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa353:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa35c:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa35d:    04                                     STACK_LOAD              000055f3a70ab2d8 0000000a                                   000055f3a70ab2ec
+000055f3a70aa35f:    0000000000000001                       PUSH                    0000000000000001                                            000055f3a70ab2ec
+000055f3a70aa368:    000055f3a70aa3d3                       JLE                     0000000000000001 000000000000000a                           000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 0000000000000001                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 0000000a                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     000000000000000a 0000000000000001 000000000000000a          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 000000000000000a                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 0000000a                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     000000000000000a 0000000000000009                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000009                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000009                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000009                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 000000000000000a                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000009                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000009 000000000000000a 000000000000005a          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 000000000000005a                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000009                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000009 0000000000000008                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000008                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000008                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000008                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 000000000000005a                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000008                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000008 000000000000005a 00000000000002d0          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 00000000000002d0                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000008                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000008 0000000000000007                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000007                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000007                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000007                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 00000000000002d0                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000007                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000007 00000000000002d0 00000000000013b0          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 00000000000013b0                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000007                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000007 0000000000000006                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000006                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000006                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000006                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 00000000000013b0                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000006                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000006 00000000000013b0 0000000000007620          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000007620                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000006                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000006 0000000000000005                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000005                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000005                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000005                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 0000000000007620                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000005                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000005 0000000000007620 0000000000024ea0          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000024ea0                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000005                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000005 0000000000000004                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000004                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000004                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000004                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 0000000000024ea0                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000004                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000004 0000000000024ea0 0000000000093a80          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000093a80                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000004                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000004 0000000000000003                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000003                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000003                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000003                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 0000000000093a80                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000003                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000003 0000000000093a80 00000000001baf80          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 00000000001baf80                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000003                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000003 0000000000000002                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000002                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000002                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000002                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 00000000001baf80                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000002                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000002 00000000001baf80 0000000000375f00          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000375f00                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000002                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000002 0000000000000001                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000001                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000001                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000001                                            000055f3a70ab2ec
+000055f3a70aa3ca:    000055f3a70aa371                       JMP                                                                                 000055f3a70ab2ec
+000055f3a70aa371:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa372:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa37b:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa37c:    08                                     STACK_LOAD              000055f3a70ab2d0 0000000000375f00                           000055f3a70ab2ec
+000055f3a70aa37e:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa37f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa388:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa389:    04                                     STACK_LOAD              000055f3a70ab2d8 00000001                                   000055f3a70ab2ec
+000055f3a70aa38b:                                           MUL                     0000000000000001 0000000000375f00 0000000000375f00          000055f3a70ab2ec
+000055f3a70aa38c:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa38d:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000055f3a70ab2ec
+000055f3a70aa396:                                           ADD                     ffffffffffffffe4 000055f3a70ab2ec 000055f3a70ab2d0          000055f3a70ab2ec
+000055f3a70aa397:    08                                     STACK_STORE             000055f3a70ab2d0 0000000000375f00                           000055f3a70ab2ec
+000055f3a70aa399:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa39a:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3a3:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3a4:    04                                     STACK_LOAD              000055f3a70ab2d8 00000001                                   000055f3a70ab2ec
+000055f3a70aa3a6:                                           DEC                     0000000000000001 0000000000000000                           000055f3a70ab2ec
+000055f3a70aa3a7:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3a8:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3b1:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3b2:    04                                     STACK_STORE             000055f3a70ab2d8 00000000                                   000055f3a70ab2ec
+000055f3a70aa3b4:                                           PUSH_BP                 000055f3a70ab2ec                                            000055f3a70ab2ec
+000055f3a70aa3b5:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000055f3a70ab2ec
+000055f3a70aa3be:                                           ADD                     ffffffffffffffec 000055f3a70ab2ec 000055f3a70ab2d8          000055f3a70ab2ec
+000055f3a70aa3bf:    04                                     STACK_LOAD              000055f3a70ab2d8 00000000                                   000055f3a70ab2ec
+000055f3a70aa3c1:    000055f3a70aa3d3                       JZ                      0000000000000000                                            000055f3a70ab2ec
+000055f3a70aa3d3:                                           POP_TYPE                                                                            000055f3a70ab2ec
+000055f3a70aa3d4:                                           POP_BP                  0000000000375f00                                            000055f3a70ab2ec

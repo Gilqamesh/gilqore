@@ -460,7 +460,7 @@ void type_enum__add_with_value(type_enum_t* self, const char* name, int32_t valu
     _type_enum__add(self, name, value);
 }
 
-type_internal_function_t* type_internal_function__create(const char* name, void (*compile_fn)(hash_map_t* types, type_internal_function_t* type_function)) {
+type_internal_function_t* type_internal_function__create(const char* name, void (*compile_fn)(type_internal_function_t* self, hash_map_t* types)) {
     type_internal_function_t* result = (type_internal_function_t*) _type__create(name, sizeof(*result));
 
     result->base.type_specifier = TYPE_FUNCTION_INTERNAL;
@@ -513,7 +513,7 @@ uint8_t* type_internal_function__set_ip(type_internal_function_t* self, uint8_t*
     self->end_ip = ip;
 }
 
-uint8_t* type_internal_function__ip(type_internal_function_t* self) {
+uint8_t* type_internal_function__start_ip(type_internal_function_t* self) {
     return self->start_ip;
 }
 
@@ -871,6 +871,28 @@ type_t* type_internal_function__get_local(type_internal_function_t* self, const 
     va_end(ap);
 
     return result;
+}
+
+void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip) {
+    debug__set_fn(&debug, self->name);
+    type_internal_function__set_ip(self, ip);
+    type_internal_function__add_ins(self, INS_PUSH_BP);
+    type_internal_function__add_ins(self, INS_MOV_REG, 0, 1);
+
+    // push for locals
+    for (uint32_t local_index = 0; local_index < self->locals_top; ++local_index) {
+        type_internal_function__add_ins(self, INS_PUSH_TYPE, self->locals[local_index].type);
+    }
+
+    self->compile_fn(self, types);
+
+    for (uint32_t local_index = 0; local_index < self->locals_top; ++local_index) {
+        type_internal_function__add_ins(self, INS_POP_TYPE);
+    }
+
+    type_internal_function__add_ins(self, INS_POP_BP);
+
+    type_internal_function__add_ins(self, INS_RET, self->arguments_top);
 }
 
 type_external_function_t* type_external_function__create(const char* name) {

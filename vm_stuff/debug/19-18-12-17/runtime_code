@@ -1,0 +1,306 @@
+ip                   ins bytecode                           instruction mnemonic    stack bytecode                                              base pointer    
+000056340f550351:                                           PUSH_BP                 000056340f5512b0                                            000056340f5512b0
+000056340f550352:    00 01                                  MOV_REG                                                                             000056340f5512b8
+000056340f550355:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           000056340f5512b8
+000056340f550366:    000056340f559f20                       CALL_INTERNAL           main 000056340f55036f                                       000056340f5512b8
+000056340f5502a0:                                           PUSH_BP                 000056340f5512b8                                            000056340f5512b8
+000056340f5502a1:    00 01                                  MOV_REG                                                                             000056340f5512d0
+000056340f5502a4:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           000056340f5512d0
+000056340f5502b5:    0000000000000004 0000000000000004      PUSH_TYPE                                                                           000056340f5512d0
+000056340f5502c6:    000000000000000a                       PUSH                    000000000000000a                                            000056340f5512d0
+000056340f5502cf:                                           PUSH_SP                 000056340f5512e4                                            000056340f5512d0
+000056340f5502d0:    fffffffffffffff4                       PUSH                    fffffffffffffff4                                            000056340f5512d0
+000056340f5502d9:                                           ADD                     fffffffffffffff4 000056340f5512e4 000056340f5512d8          000056340f5512d0
+000056340f5502da:    04                                     STACK_STORE             000056340f5512d8 0000000a                                   000056340f5512d0
+000056340f5502dc:    000056340f559e10                       CALL_INTERNAL           fact 000056340f5502e5                                       000056340f5512d0
+000056340f550374:                                           PUSH_BP                 000056340f5512d0                                            000056340f5512d0
+000056340f550375:    00 01                                  MOV_REG                                                                             000056340f5512ec
+000056340f550378:    0000000000000001                       PUSH                    0000000000000001                                            000056340f5512ec
+000056340f550381:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f550382:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f55038b:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f55038c:    08                                     STACK_STORE             000056340f5512d0 0000000000000001                           000056340f5512ec
+000056340f55038e:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f55038f:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f550398:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f550399:    04                                     STACK_LOAD              000056340f5512d8 0000000a                                   000056340f5512ec
+000056340f55039b:    0000000000000001                       PUSH                    0000000000000001                                            000056340f5512ec
+000056340f5503a4:    000056340f55040f                       JLE                     0000000000000001 000000000000000a                           000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 0000000000000001                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 0000000a                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     000000000000000a 0000000000000001 000000000000000a          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 000000000000000a                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 0000000a                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     000000000000000a 0000000000000009                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000009                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000009                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000009                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 000000000000000a                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000009                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000009 000000000000000a 000000000000005a          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 000000000000005a                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000009                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000009 0000000000000008                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000008                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000008                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000008                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 000000000000005a                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000008                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000008 000000000000005a 00000000000002d0          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 00000000000002d0                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000008                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000008 0000000000000007                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000007                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000007                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000007                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 00000000000002d0                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000007                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000007 00000000000002d0 00000000000013b0          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 00000000000013b0                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000007                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000007 0000000000000006                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000006                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000006                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000006                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 00000000000013b0                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000006                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000006 00000000000013b0 0000000000007620          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 0000000000007620                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000006                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000006 0000000000000005                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000005                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000005                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000005                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 0000000000007620                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000005                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000005 0000000000007620 0000000000024ea0          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 0000000000024ea0                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000005                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000005 0000000000000004                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000004                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000004                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000004                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 0000000000024ea0                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000004                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000004 0000000000024ea0 0000000000093a80          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 0000000000093a80                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000004                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000004 0000000000000003                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000003                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000003                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000003                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 0000000000093a80                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000003                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000003 0000000000093a80 00000000001baf80          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 00000000001baf80                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000003                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000003 0000000000000002                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000002                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000002                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000002                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 00000000001baf80                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000002                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000002 00000000001baf80 0000000000375f00          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 0000000000375f00                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000002                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000002 0000000000000001                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000001                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                                     STACK_LOAD              000056340f5512d8 00000001                                   000056340f5512ec
+000056340f5503fd:    000056340f55040f                       JZ                      0000000000000001                                            000056340f5512ec
+000056340f550406:    000056340f5503ad                       JMP                                                                                 000056340f5512ec
+000056340f5503ad:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503ae:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503b7:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503b8:    08                                     STACK_LOAD              000056340f5512d0 0000000000375f00                           000056340f5512ec
+000056340f5503ba:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503bb:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503c4:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503c5:    04                                     STACK_LOAD              000056340f5512d8 00000001                                   000056340f5512ec
+000056340f5503c7:                                           MUL                     0000000000000001 0000000000375f00 0000000000375f00          000056340f5512ec
+000056340f5503c8:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503c9:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            000056340f5512ec
+000056340f5503d2:                                           ADD                     ffffffffffffffe4 000056340f5512ec 000056340f5512d0          000056340f5512ec
+000056340f5503d3:    08                                     STACK_STORE             000056340f5512d0 0000000000375f00                           000056340f5512ec
+000056340f5503d5:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503d6:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503df:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503e0:    04                                     STACK_LOAD              000056340f5512d8 00000001                                   000056340f5512ec
+000056340f5503e2:                                           DEC                     0000000000000001 0000000000000000                           000056340f5512ec
+000056340f5503e3:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503e4:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503ed:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503ee:    04                                     STACK_STORE             000056340f5512d8 00000000                                   000056340f5512ec
+000056340f5503f0:                                           PUSH_BP                 000056340f5512ec                                            000056340f5512ec
+000056340f5503f1:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            000056340f5512ec
+000056340f5503fa:                                           ADD                     ffffffffffffffec 000056340f5512ec 000056340f5512d8          000056340f5512ec
+000056340f5503fb:    04                        

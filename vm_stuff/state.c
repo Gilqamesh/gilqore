@@ -91,23 +91,6 @@ static inline void state__patch_call(uint8_t* call_ip, uint8_t* new_addr) {
     *(uint64_t*)(call_ip + 1) = (uint64_t) new_addr;
 }
 
-static void compile__function(hash_map_t* types, type_internal_function_t* function, uint8_t* ip) {
-    debug__set_fn(&debug, function->name);
-    type_internal_function__set_ip(function, ip);
-    type_internal_function__add_ins(function, INS_PUSH_BP);
-    type_internal_function__add_ins(function, INS_MOV_REG, 0, 1);
-
-    // push for locals
-    for (uint32_t local_index = 0; local_index < function->locals_top; ++local_index) {
-        type_internal_function__add_ins(function, INS_PUSH_TYPE, function->locals[local_index].type);
-    }
-
-    function->compile_fn(types, function);
-
-    type_internal_function__add_ins(function, INS_POP_BP);
-    type_internal_function__add_ins(function, INS_RET, function->arguments_top);
-}
-
 #define STACK_CHECK(state_p, addr) do { \
     ASSERT((uint8_t*) addr >= (state_p)->stack && "Stack underflow."); \
     ASSERT((uint8_t*) addr < (state_p)->stack_end && "Stack overflow."); \
@@ -135,7 +118,7 @@ static void compile__function(hash_map_t* types, type_internal_function_t* funct
     (state_p)->stack_top -= sizeof(type); \
 } while (false)
 
-void state__compile_fact(hash_map_t* types, type_internal_function_t* type_function) {
+void state__compile_fact(type_internal_function_t* type_function, hash_map_t* types) {
     type_internal_function__add_ins(type_function, INS_PUSH, 1);
     type_internal_function__store_return(type_function, NULL);
 
@@ -160,7 +143,7 @@ void state__compile_fact(hash_map_t* types, type_internal_function_t* type_funct
     compile__patch_jmp(fact_end2, type_internal_function__end_ip(type_function));
 }
 
-void state__compile_ret_struct_fn(hash_map_t* types, type_internal_function_t* type_function) {
+void state__compile_ret_struct_fn(type_internal_function_t* type_function, hash_map_t* types) {
     type_internal_function__add_ins(type_function, INS_PUSH, -120);
     type_internal_function__store_return(type_function, "member_1", NULL);
 
@@ -183,24 +166,9 @@ void state__compile_ret_struct_fn(hash_map_t* types, type_internal_function_t* t
     }
 }
 
-uint64_t fact(uint64_t a) {
-    uint64_t result = 1;
-    if (a == 0) {
-        return result;
-    }
-
-    while (a) {
-        result *= a--;
-    }
-
-    return result;
-}
-
-void compile__emit_type(type_internal_function_t* type_function, type_t* type, ...) {
+void compile__emit_set_type(type_internal_function_t* self, type_t* type, ...) {
     va_list ap;
     va_start(ap, type);
-
-    type_internal_function__add_ins(type_function, INS_PUSH_TYPE, type);
 
     int64_t sp_offset = 0;
     sp_offset -= type__size(type);
@@ -226,45 +194,53 @@ void compile__emit_type(type_internal_function_t* type_function, type_t* type, .
 
     uint64_t value = va_arg(ap, uint64_t);
 
-    type_internal_function__add_ins(type_function, INS_PUSH, value);
-    type_internal_function__add_ins(type_function, INS_PUSH_SP);
-    type_internal_function__add_ins(type_function, INS_PUSH, sp_offset - 8 /* "INS_PUSH, value" 2 lines ago*/);
-    type_internal_function__add_ins(type_function, INS_ADD);
-    type_internal_function__add_ins(type_function, INS_STACK_STORE, type__size(type));
+    type_internal_function__add_ins(self, INS_PUSH, value);
+    type_internal_function__add_ins(self, INS_PUSH_SP);
+    type_internal_function__add_ins(self, INS_PUSH, sp_offset - 8 /* "INS_PUSH, value" 2 lines ago*/);
+    type_internal_function__add_ins(self, INS_ADD);
+    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(type));
 
     va_end(ap);
 }
 
-void compile__emit_call(type_internal_function_t* type_function, type_t* fn_to_call) {
+void compile__emit_call(type_internal_function_t* self, type_t* fn_to_call) {
     switch (fn_to_call->type_specifier) {
         case TYPE_FUNCTION_INTERNAL: {
-            type_internal_function__add_ins(type_function, INS_CALL_INTERNAL, fn_to_call);
+            type_internal_function__add_ins(self, INS_CALL_INTERNAL, fn_to_call);
         } break ;
         case TYPE_FUNCTION_EXTERNAL: {
-            type_internal_function__add_ins(type_function, INS_CALL_EXTERNAL, fn_to_call);
+            type_internal_function__add_ins(self, INS_CALL_EXTERNAL, fn_to_call);
         } break ;
         case TYPE_FUNCTION_BUILTIN: {
-            type_internal_function__add_ins(type_function, INS_CALL_BUILTIN, fn_to_call);
+            type_internal_function__add_ins(self, INS_CALL_BUILTIN, fn_to_call);
+
+            type_builtin_function_t* builtin_fn = (type_builtin_function_t*) fn_to_call;
+            for (uint32_t arg_index = 0; arg_index < builtin_fn->arguments_top; ++arg_index) {
+                type_internal_function__add_ins(self, INS_POP_TYPE);
+            }
         } break ;
         default: ASSERT(false);
     }
 }
 
-void state__compile_start(hash_map_t* types, type_internal_function_t* type_function) {
+void state__compile_start(type_internal_function_t* self, hash_map_t* types) {
     type_t* t_reg = type__find(types, "reg");
     ASSERT(t_reg);
 
     type_internal_function_t* main_fn = (type_internal_function_t*) type__find(types, "main");
     ASSERT(main_fn);
 
-    type_internal_function__add_ins(type_function, INS_PUSH_TYPE, t_reg);
-    compile__emit_call(type_function, (type_t*) main_fn);
-    type_internal_function__add_ins(type_function, INS_EXIT);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_reg);
+    compile__emit_call(self, (type_t*) main_fn);
+    type_internal_function__add_ins(self, INS_EXIT);
 }
 
-void state__compile_main(hash_map_t* types, type_internal_function_t* type_function) {
+void state__compile_main(type_internal_function_t* self, hash_map_t* types) {
     type_t* t_s32 = type__find(types, "s32");
     ASSERT(t_s32);
+
+    type_t* t_u64 = type__find(types, "u64");
+    ASSERT(t_u64);
 
     type_t* fact_fn_decl = type__find(types, "fact");
     ASSERT(fact_fn_decl);
@@ -272,55 +248,47 @@ void state__compile_main(hash_map_t* types, type_internal_function_t* type_funct
     type_t* print_fn = type__find(types, "print");
     ASSERT(print_fn);
 
-    compile__emit_type(type_function, t_s32, NULL, 10);
-    compile__emit_call(type_function, fact_fn_decl);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s32);
+    compile__emit_set_type(self, t_s32, NULL, 10);
+    compile__emit_call(self, fact_fn_decl);
 
-    // type_internal_function__load_local(type_function, "fact_result", NULL);
-    type_internal_function__add_ins(type_function, INS_PUSH, (uint64_t) type_internal_function__get_local(type_function, "fact_result", NULL));
-    type_internal_function__add_ins(type_function, INS_PUSH_BP);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, type_internal_function__get_local(self, "fact_result", NULL));
+    compile__emit_set_type(
+        self,
+        type_internal_function__get_local(self, "fact_result", NULL),
+        NULL,
+        (uint64_t) type_internal_function__get_local(self, "fact_result", NULL)
+    );
 
-    compile__emit_call(type_function, print_fn);
-    type_internal_function__add_ins(type_function, INS_POP_TYPE);
-    type_internal_function__add_ins(type_function, INS_PUSH, 42);
-    type_internal_function__store_return(type_function, NULL);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_u64);
+    type_internal_function__add_ins(self, INS_PUSH_BP);
+    type_internal_function__add_ins(self, INS_PUSH_SP);
+    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_u64) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
+    type_internal_function__add_ins(self, INS_ADD);
+    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_u64));
+    compile__emit_call(self, print_fn);
+
+    type_internal_function__add_ins(self, INS_PUSH, 42);
+    type_internal_function__store_return(self, NULL);
 }
 
 void state__compile(state_t* self) {
     // _start_fn
     type_internal_function_t* main_fn = (type_internal_function_t*) type__find(&self->types, "main");
     ASSERT(main_fn);
-    compile__function(&self->types, main_fn, self->code);
+    type_internal_function__compile(main_fn, &self->types, self->code);
 
     type_internal_function_t* _start_fn = (type_internal_function_t*) type__find(&self->types, "_start");
     ASSERT(_start_fn);
-    compile__function(&self->types, _start_fn, type_internal_function__end_ip(main_fn));
+    type_internal_function__compile(_start_fn, &self->types, type_internal_function__end_ip(main_fn));
 
     type_internal_function_t* fact_fn = (type_internal_function_t*) type__find(&self->types, "fact");
     ASSERT(fact_fn);
-    compile__function(&self->types, fact_fn, type_internal_function__end_ip(_start_fn));
+    type_internal_function__compile(fact_fn, &self->types, type_internal_function__end_ip(_start_fn));
 
-    // 42
-    // entry_ip = ip;
-    // ip = state__add_ins(self, ip, INS_PUSH, 2);
-    // ip = state__add_ins(self, ip, INS_PUSH, 40);
-    // ip = state__add_ins(self, ip, INS_ADD);
-    // ip = state__add_ins(self, ip, INS_CALL_BUILTIN, 2);
-    // ip = state__add_ins(self, ip, INS_EXIT, 0);
-
-    // counter
-    // entry_ip = ip;
-    // ip = state__add_ins(self, ip, INS_PUSH, 1);
-    // uint8_t* loop_start = ip;
-    // ip = state__add_ins(self, ip, INS_PUSH, 1);
-    // ip = state__add_ins(self, ip, INS_ADD);
-    // ip = state__add_ins(self, ip, INS_CALL_BUILTIN, 2);
-    // ip = state__add_ins(self, ip, INS_JMP, loop_start);
-    // ip = state__add_ins(self, ip, INS_EXIT, 0);
-
-    // call ret struct
-    // type_t* ta = type__find(self, "a");
-    // ASSERT(ta);
-    // fn_decl_t* fn_decl = fn_decl__create("ret_struct", &state__compile_ret_struct_fn, ta);
+    type_internal_function_t* ret_struct_fn = (type_internal_function_t*) type__find(&self->types, "ret_struct");
+    ASSERT(ret_struct_fn);
+    type_internal_function__compile(ret_struct_fn, &self->types, type_internal_function__end_ip(fact_fn));
 
     // uint8_t* ret_struct_fn_ip = ip;
     // ip = state__add_fn(self, fn_decl, ret_struct_fn_ip);
@@ -374,7 +342,7 @@ void state__define_internal_functions(hash_map_t* types) {
     ASSERT(t_s64);
     ASSERT(t_s64);
 
-    type_internal_function_t* ret_struct_fn = type_internal_function__create("fact", &state__compile_ret_struct_fn);
+    type_internal_function_t* ret_struct_fn = type_internal_function__create("ret_struct", &state__compile_ret_struct_fn);
     type_internal_function__set_return(ret_struct_fn, t_a);
 
     type_internal_function_t* fact_fn = type_internal_function__create("fact", &state__compile_fact);
@@ -405,7 +373,7 @@ void state__execute_malloc(type_builtin_function_t* self, void* processor) {
 void state__execute_free(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    void* addr = *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
+    void* addr = (void*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
     free(addr);
 }
 
@@ -578,7 +546,7 @@ int main() {
     uint32_t number_of_iters = 1;
     for (uint32_t current_iter = 0; current_iter < number_of_iters; ++current_iter) {
         state.alive = true;
-        state.ip = type_internal_function__ip(_start);
+        state.ip = type_internal_function__start_ip(_start);
         state.stack_top = state.stack;
         state.base_pointer = state.stack;
         // clear_cache(&cache);
@@ -965,7 +933,7 @@ int main() {
                     debug__push_ins_arg_str(&debug, internal_function->name);
 
                     STACK_PUSH(&state, uint8_t*, state.ip);
-                    state.ip = type_internal_function__ip(internal_function);
+                    state.ip = type_internal_function__start_ip(internal_function);
                 } break ;
                 case INS_CALL_EXTERNAL: {
                     ASSERT(false && "todo: implement");

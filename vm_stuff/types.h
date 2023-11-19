@@ -110,7 +110,7 @@ typedef struct type_internal_function {
     type_t                  base;
 
     const char*             name;
-    void                    (*compile_fn)(hash_map_t* types, struct type_internal_function* type_function);
+    void                    (*compile_fn)(struct type_internal_function* self, hash_map_t* types);
 
     uint8_t*                start_ip;
     uint8_t*                end_ip;
@@ -144,6 +144,11 @@ typedef struct type_builtin_function {
     const char*             name;
     void                    (*execute_fn)(struct type_builtin_function* self, void* processor);
 
+    void                    (*compile_fn)(struct type_builtin_function* self, hash_map_t* types);
+
+    uint8_t*                start_ip;
+    uint8_t*                end_ip;
+
     uint32_t                arguments_size;
     uint32_t                arguments_top;
     int64_t*                arguments_offsets;
@@ -169,9 +174,9 @@ type_enum_t* type_enum__create(const char* abbreviated_name);
 void type_enum__add(type_enum_t* self, const char* name);
 void type_enum__add_with_value(type_enum_t* self, const char* name, int32_t value);
 
-type_internal_function_t* type_internal_function__create(const char* abbreviated_name, void (*compile_fn)(hash_map_t* types, type_internal_function_t* type_function));
+type_internal_function_t* type_internal_function__create(const char* abbreviated_name, void (*compile_fn)(type_internal_function_t* self, hash_map_t* types));
 uint8_t* type_internal_function__set_ip(type_internal_function_t* self, uint8_t* ip);
-uint8_t* type_internal_function__ip(type_internal_function_t* self);
+uint8_t* type_internal_function__start_ip(type_internal_function_t* self);
 uint8_t* type_internal_function__end_ip(type_internal_function_t* self);
 void type_internal_function__add_argument(type_internal_function_t* self, const char* name, type_t* type);
 void type_internal_function__add_local(type_internal_function_t* self, const char* name, type_t* type);
@@ -184,6 +189,7 @@ void type_internal_function__load_return(type_internal_function_t* self, ...);
 void type_internal_function__store_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__load_local(type_internal_function_t* self, const char* local_name, ...);
 type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
+void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip);
 
 type_external_function_t* type_external_function__create(const char* name);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type);
