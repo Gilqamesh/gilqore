@@ -248,24 +248,42 @@ void state__compile_main(type_internal_function_t* self, hash_map_t* types) {
     type_t* print_fn = type__find(types, "print");
     ASSERT(print_fn);
 
+    type_t* t_a = type__find(types, "a");
+    ASSERT(t_a);
+
+    type_t* ret_struct = type__find(types, "ret_struct");
+    ASSERT(ret_struct);
+
+    type_t* t_void_p = (type_t*) type_pointer__create("void_p", NULL);
+    type__add(types, t_void_p);
+
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s32);
     compile__emit_set_type(self, t_s32, NULL, 10);
     compile__emit_call(self, fact_fn_decl);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, type_internal_function__get_local(self, "fact_result", NULL));
-    compile__emit_set_type(
-        self,
-        type_internal_function__get_local(self, "fact_result", NULL),
-        NULL,
-        (uint64_t) type_internal_function__get_local(self, "fact_result", NULL)
-    );
+    type_t* fact_result = type_internal_function__get_local(self, "fact_result", NULL);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, fact_result);
+    compile__emit_set_type(self, fact_result, NULL, (uint64_t) fact_result);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_u64);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
     type_internal_function__add_ins(self, INS_PUSH_BP);
     type_internal_function__add_ins(self, INS_PUSH_SP);
-    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_u64) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
+    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_void_p) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
     type_internal_function__add_ins(self, INS_ADD);
-    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_u64));
+    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_void_p));
+    compile__emit_call(self, print_fn);
+
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
+    compile__emit_call(self, ret_struct);
+
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
+    compile__emit_set_type(self, t_void_p, NULL, (uint64_t) t_a);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
+    type_internal_function__add_ins(self, INS_PUSH_BP);
+    type_internal_function__add_ins(self, INS_PUSH_SP);
+    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_void_p) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
+    type_internal_function__add_ins(self, INS_ADD);
+    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_void_p));
     compile__emit_call(self, print_fn);
 
     type_internal_function__add_ins(self, INS_PUSH, 42);
@@ -289,14 +307,6 @@ void state__compile(state_t* self) {
     type_internal_function_t* ret_struct_fn = (type_internal_function_t*) type__find(&self->types, "ret_struct");
     ASSERT(ret_struct_fn);
     type_internal_function__compile(ret_struct_fn, &self->types, type_internal_function__end_ip(fact_fn));
-
-    // uint8_t* ret_struct_fn_ip = ip;
-    // ip = state__add_fn(self, fn_decl, ret_struct_fn_ip);
-    // entry_ip = ip;
-    // ip = state__add_ins(self, ip, INS_PUSH_ALIGNED, type__alignment(ta), type__size(ta));
-    // ip = state__add_ins(self, ip, INS_CALL, ret_struct_fn_ip);
-    // ip = state__add_ins(self, ip, INS_POP_ALIGNED);
-    // ip = state__add_ins(self, ip, INS_EXIT);
 
     // call builtin, load/store
     // entry_ip = ip;
@@ -328,9 +338,6 @@ void state__compile(state_t* self) {
     // ip = state__add_ins(self, ip, INS_EXIT, (uint64_t) 0);
     // compile__patch_jmp(exit_one_ip, ip);
     // ip = state__add_ins(self, ip, INS_EXIT, (uint64_t) 1);
-
-    // entry_ip = ip;
-    // ip = state__add_ins(self, ip, INS_EXIT, (uint64_t) 0);
 }
 
 void state__define_internal_functions(hash_map_t* types) {
@@ -514,7 +521,7 @@ void state__create_user_types(hash_map_t* types) {
     type_struct__add(ta, ts8,  "member_1");
     type_struct__add(ta, (type_t*) ts16_aligned_4, "member_2");
     type_struct__add(ta, tu64, "member_3");
-    type__set_alignment((type_t*) ta, 1024);
+    // type__set_alignment((type_t*) ta, 1024);
 
     type_array_t* tb = type_array__create("b", ts8, 7);
     type_struct__add(ta, (type_t*) tb, "member_array");

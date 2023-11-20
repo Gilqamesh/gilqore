@@ -10,9 +10,10 @@ debug_t debug;
 
 static const char* first_col  = "ip";
 static const char* second_col = "ins bytecode";
-static const char* third_col  = "instruction mnemonic";
-static const char* forth_col  = "stack bytecode";
-static const char* fifth_col  = "base pointer";
+static const char* third_col  = "ins mnemonic";
+static const char* forth_col  = "ins stack delta";
+static const char* fifth_col  = "bp";
+static const char* sixth_col  = "sp";
 
 static const uint32_t col_padding = 4;
 static const uint32_t first_col_len  = max(sizeof(first_col),  sizeof(uint64_t) * 2 + 1 /* : */);
@@ -20,6 +21,7 @@ static const uint32_t second_col_len = max(sizeof(second_col), 2 * (2 * max(size
 static const uint32_t third_col_len  = max(sizeof(third_col),  20);
 static const uint32_t forth_col_len  = max(sizeof(forth_col),  3 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 3) - 1);
 static const uint32_t fifth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
+static const uint32_t sixth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
 
 static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size);
 
@@ -50,36 +52,39 @@ void debug__create(debug_t* self, state_t* state) {
     self->compiled_code_file = fopen(path_buffer, "w");
     fprintf(
         self->compiled_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
         col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col
+        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
+        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
     );
 
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_code_file_str);
     self->runtime_code_file = fopen(path_buffer, "w");
     fprintf(
         self->runtime_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
         col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col
+        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
+        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
     );
 
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_stack_file_str);
     self->runtime_stack_file = fopen(path_buffer, "w");
     fprintf(
         self->runtime_stack_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
         col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col
+        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
+        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
     );
 }
 
@@ -183,19 +188,16 @@ void debug__dump_line(debug_t* self, FILE* fp) {
         fprintf(fp, "%*c", forth_col_len, ' ');
     }
 
-    // fifth col
     if (self->state->alive) {
+        // fifth col
         fprintf(fp, "    ");
         fprintf(fp, "%0*lx", fifth_col_len, (uint64_t) self->state->base_pointer);
+    
+        // sixth col
+        fprintf(fp, "    ");
+        fprintf(fp, "%0*lx", sixth_col_len, (uint64_t) self->state->stack_top);
     }
 
-    // uint8_t* sp = self->state->stack_top;
-    // if (sp != self->state->stack) {
-    //     fprintf(fp, "    %02x", *--sp);
-    //     while (sp > self->state->stack) {
-    //         fprintf(fp, " %02x", *--sp);
-    //     }
-    // }
 
     fprintf(fp, "\n");
 
