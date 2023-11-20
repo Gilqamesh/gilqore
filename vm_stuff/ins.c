@@ -27,17 +27,14 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
             regf_t n = va_arg(ap, regf_t);
             CODE_PUSH(ip, regf_t, n);
         } break ;
-        case INS_PUSH_SP: {
-        } break ;
-        case INS_PUSH_BP: {
-        } break ;
-        case INS_POP_SP: {
-        } break ;
-        case INS_POP_BP: {
+        case INS_PUSH_REG:
+        case INS_POP_REG: {
+            uint8_t reg = va_arg(ap, uint32_t); // int is minimum va_arg can work with
+            CODE_PUSH(ip, uint8_t, reg);
         } break ;
         case INS_MOV_REG: {
-            uint8_t dst_reg = va_arg(ap, uint32_t); // 4 bytes is minimum va_arg can work with
-            uint8_t src_reg = va_arg(ap, uint32_t); // 4 bytes is minimum va_arg can work with
+            uint8_t dst_reg = va_arg(ap, uint32_t); // int is minimum va_arg can work with
+            uint8_t src_reg = va_arg(ap, uint32_t); // int is minimum va_arg can work with
             CODE_PUSH(ip, uint8_t, dst_reg);
             CODE_PUSH(ip, uint8_t, src_reg);
         } break ;
@@ -83,11 +80,29 @@ uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap) {
             uint8_t* addr = va_arg(ap, uint8_t*);
             CODE_PUSH(ip, uint8_t*, addr);
         } break ;
-        case INS_STACK_LOAD:
-        case INS_STACK_STORE: {
-            uint8_t bytes = va_arg(ap, uint32_t);
-            CODE_PUSH(ip, uint8_t, bytes);
+        case INS_LOAD: {
+            uint8_t reg = va_arg(ap, uint32_t); // int is minimum va_arg can work with
+            int16_t offset = va_arg(ap, int32_t); // int is minimum va_arg can work with
+            uint32_t size = va_arg(ap, uint32_t);
+            CODE_PUSH(ip, uint8_t, reg);
+            CODE_PUSH(ip, int16_t, offset);
+            CODE_PUSH(ip, uint32_t, size);
         } break ;
+        case INS_STORE: {
+            uint8_t reg = va_arg(ap, uint32_t); // int is minimum va_arg can work with
+            int16_t offset = va_arg(ap, int32_t); // int is minimum va_arg can work with
+            uint32_t store_size = va_arg(ap, uint32_t);
+            uint32_t pop_size = va_arg(ap, uint32_t);
+            CODE_PUSH(ip, uint8_t, reg);
+            CODE_PUSH(ip, int16_t, offset);
+            CODE_PUSH(ip, uint32_t, store_size);
+            CODE_PUSH(ip, uint32_t, pop_size);
+        } break ;
+        // case INS_STACK_LOAD:
+        // case INS_STACK_STORE: {
+        //     uint8_t bytes = va_arg(ap, uint32_t);
+        //     CODE_PUSH(ip, uint8_t, bytes);
+        // } break ;
         case INS_CALL_INTERNAL: {
             type_internal_function_t* internal_function = va_arg(ap, type_internal_function_t*);
             CODE_PUSH(ip, type_internal_function_t*, internal_function);
@@ -136,13 +151,10 @@ const char* enum_ins__to_str(ins_t ins) {
     case INS_PUSH: return "PUSH";
     case INS_PUSH_TYPE: return "PUSH_TYPE";
     case INS_PUSHF: return "PUSHF";
-    case INS_PUSH_SP: return "PUSH_SP";
-    case INS_PUSH_BP: return "PUSH_BP";
+    case INS_PUSH_REG: return "PUSH_REG";
     case INS_POP: return "POP";
     case INS_POP_TYPE: return "POP_TYPE";
     case INS_POPF: return "POPF";
-    case INS_POP_SP: return "POP_SP";
-    case INS_POP_BP: return "POP_BP";
     case INS_POP_REG: return "POP_REG";
     case INS_MOV_REG: return "MOV_REG";
     case INS_ADD: return "ADD";
@@ -178,8 +190,10 @@ const char* enum_ins__to_str(ins_t ins) {
     case INS_JLEF: return "JLEF";
     case INS_JGE: return "JGE";
     case INS_JGEF: return "JGEF";
-    case INS_STACK_LOAD: return "STACK_LOAD";
-    case INS_STACK_STORE: return "STACK_STORE";
+    case INS_LOAD: return "LOAD";
+    case INS_STORE: return "STORE";
+    // case INS_STACK_LOAD: return "STACK_LOAD";
+    // case INS_STACK_STORE: return "STACK_STORE";
     case INS_CALL_INTERNAL: return "CALL_INTERNAL";
     case INS_CALL_EXTERNAL: return "CALL_EXTERNAL";
     case INS_CALL_BUILTIN: return "CALL_BUILTIN";

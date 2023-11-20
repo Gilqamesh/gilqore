@@ -46,9 +46,9 @@ bool state__create(state_t* self) {
 
     const uint64_t stack_size = 4096;
     self->stack = malloc(stack_size * sizeof(*self->stack));
-    self->stack_top = self->stack;
+    self->address_registers[REG_SP] = self->stack;
     self->stack_end = self->stack + stack_size;
-    self->base_pointer = self->stack_top;
+    self->address_registers[REG_BP] = self->address_registers[REG_SP];
 
     self->stack_aligned_size = 1024;
     self->stack_aligned = malloc(self->stack_aligned_size * sizeof(*self->stack_aligned));
@@ -92,30 +92,30 @@ static inline void state__patch_call(uint8_t* call_ip, uint8_t* new_addr) {
 }
 
 #define STACK_CHECK(state_p, addr) do { \
-    ASSERT((uint8_t*) addr >= (state_p)->stack && "Stack underflow."); \
-    ASSERT((uint8_t*) addr < (state_p)->stack_end && "Stack overflow."); \
+    ASSERT((uint8_t*) (addr) >= (state_p)->stack && "Stack underflow."); \
+    ASSERT((uint8_t*) (addr) < (state_p)->stack_end && "Stack overflow."); \
 } while (false)
 #define BP_SET(state_p, n) do { \
     STACK_CHECK(state_p, n); \
-    (state_p)->base_pointer = (uint8_t*) n; \
+    (state_p)->address_registers[REG_BP] = (uint8_t*) (n); \
 } while (false)
 #define SP_SET(state_p, n) do { \
     STACK_CHECK(state_p, n); \
-    (state_p)->stack_top = (uint8_t*) n; \
+    (state_p)->address_registers[REG_SP] = (uint8_t*) (n); \
 } while (false)
 #define STACK_GROW(state_p, n) do { \
-    SP_SET(state_p, (state_p)->stack_top + n); \
+    SP_SET(state_p, (state_p)->address_registers[REG_SP] + (n)); \
 } while (false)
 #define STACK_PUSH(state_p, type, a) do { \
-    debug__push_ins_arg_bytes(&debug, (uint8_t*)&a, sizeof(type)); \
-    *(type*) ((state_p)->stack_top) = a; \
+    debug__push_ins_arg_bytes(&debug, (uint8_t*)(&(a)), sizeof(type)); \
+    *(type*) ((state_p)->address_registers[REG_SP]) = (a); \
     STACK_GROW(state_p, sizeof(type)); \
 } while (false)
-#define STACK_TOP(state_p, type, minus) (*(type*) ((state_p)->stack_top - sizeof(type) - minus))
+#define STACK_TOP(state_p, type, minus) (*(type*) ((state_p)->address_registers[REG_SP] - sizeof(type) - minus))
 #define STACK_POP(state_p, type, result) do { \
-    result = *(type*) ((state_p)->stack_top - sizeof(type)); \
-    debug__push_ins_arg_bytes(&debug, (uint8_t*)&result, sizeof(type)); \
-    (state_p)->stack_top -= sizeof(type); \
+    result = *(type*) ((state_p)->address_registers[REG_SP] - sizeof(type)); \
+    debug__push_ins_arg_bytes(&debug, (uint8_t*)(&(result)), sizeof(type)); \
+    (state_p)->address_registers[REG_SP] -= sizeof(type); \
 } while (false)
 
 void state__compile_fact(type_internal_function_t* type_function, hash_map_t* types) {
@@ -195,10 +195,14 @@ void compile__emit_set_type(type_internal_function_t* self, type_t* type, ...) {
     uint64_t value = va_arg(ap, uint64_t);
 
     type_internal_function__add_ins(self, INS_PUSH, value);
-    type_internal_function__add_ins(self, INS_PUSH_SP);
-    type_internal_function__add_ins(self, INS_PUSH, sp_offset - 8 /* "INS_PUSH, value" 2 lines ago*/);
-    type_internal_function__add_ins(self, INS_ADD);
-    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(type));
+    type_internal_function__add_ins(
+        self,
+        INS_STORE,
+        REG_SP,
+        sp_offset - sizeof(reg_t) /* INS_PUSH, value */,
+        type__size(type),
+        sizeof(reg_t) /* INS_PUSH, value */
+    );
 
     va_end(ap);
 }
@@ -238,56 +242,57 @@ void state__compile_start(type_internal_function_t* self, hash_map_t* types) {
 void state__compile_main(type_internal_function_t* self, hash_map_t* types) {
     type_t* t_s32 = type__find(types, "s32");
     ASSERT(t_s32);
-
     type_t* t_u64 = type__find(types, "u64");
     ASSERT(t_u64);
-
     type_t* fact_fn_decl = type__find(types, "fact");
     ASSERT(fact_fn_decl);
-
     type_t* print_fn = type__find(types, "print");
     ASSERT(print_fn);
-
     type_t* t_a = type__find(types, "a");
     ASSERT(t_a);
-
     type_t* ret_struct = type__find(types, "ret_struct");
     ASSERT(ret_struct);
-
-    type_t* t_void_p = (type_t*) type_pointer__create("void_p", NULL);
-    type__add(types, t_void_p);
+    type_t* fact_result = type_internal_function__get_local(self, "fact_result", NULL);
+    ASSERT(fact_result);
+    type_t* t_void_p = type__find(types, "void_p");
+    ASSERT(t_void_p);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s32);
     compile__emit_set_type(self, t_s32, NULL, 10);
     compile__emit_call(self, fact_fn_decl);
 
-    type_t* fact_result = type_internal_function__get_local(self, "fact_result", NULL);
     type_internal_function__add_ins(self, INS_PUSH_TYPE, fact_result);
     compile__emit_set_type(self, fact_result, NULL, (uint64_t) fact_result);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-    type_internal_function__add_ins(self, INS_PUSH_SP);
-    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_void_p) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
-    type_internal_function__add_ins(self, INS_ADD);
-    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_void_p));
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
+    type_internal_function__add_ins(
+        self,
+        INS_STORE,
+        REG_SP,
+        - sizeof(reg_t) /* PUSH_REG, REG_BP */ -(int64_t) type__size(t_void_p),
+        type__size(t_void_p),
+        sizeof(reg_t) /* PUSH_REG, REG_BP */
+    );
     compile__emit_call(self, print_fn);
+
+    // save address for second argument of print
+    type_internal_function__add_ins(self, INS_MOV_REG, REG_ADDR1, REG_SP);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
     compile__emit_call(self, ret_struct);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
     compile__emit_set_type(self, t_void_p, NULL, (uint64_t) t_a);
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-    type_internal_function__add_ins(self, INS_PUSH_SP);
-    type_internal_function__add_ins(self, INS_PUSH, -(int64_t)type__size(t_void_p) - 8 /* "INS_PUSH_BP, value" 2 lines ago*/);
-    type_internal_function__add_ins(self, INS_ADD);
-    type_internal_function__add_ins(self, INS_STACK_STORE, type__size(t_void_p));
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_ADDR1);
+
     compile__emit_call(self, print_fn);
 
     type_internal_function__add_ins(self, INS_PUSH, 42);
     type_internal_function__store_return(self, NULL);
+}
+
+void state__compile_store_load_fn(type_internal_function_t* self, hash_map_t* types) {
 }
 
 void state__compile(state_t* self) {
@@ -307,6 +312,10 @@ void state__compile(state_t* self) {
     type_internal_function_t* ret_struct_fn = (type_internal_function_t*) type__find(&self->types, "ret_struct");
     ASSERT(ret_struct_fn);
     type_internal_function__compile(ret_struct_fn, &self->types, type_internal_function__end_ip(fact_fn));
+
+    type_internal_function_t* store_load_fn = (type_internal_function_t*) type__find(&self->types, "store_load_fn");
+    ASSERT(store_load_fn);
+    type_internal_function__compile(store_load_fn, &self->types, type_internal_function__end_ip(ret_struct_fn));
 
     // call builtin, load/store
     // entry_ip = ip;
@@ -362,33 +371,36 @@ void state__define_internal_functions(hash_map_t* types) {
 
     type_internal_function_t* _start_fn = type_internal_function__create("_start", &state__compile_start);
 
+    type_internal_function_t* store_load_fn = type_internal_function__create("store_load_fn", &state__compile_store_load_fn);
+
     type__add(types, (type_t*) ret_struct_fn);
     type__add(types, (type_t*) fact_fn);
     type__add(types, (type_t*) main_fn);
     type__add(types, (type_t*) _start_fn);
+    type__add(types, (type_t*) store_load_fn);
 }
 
 void state__execute_malloc(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    uint64_t malloc_arg = *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
+    uint64_t malloc_arg = *(uint64_t*) (state->address_registers[REG_SP] + type_builtin__argument_offset_from_bp(self, 0));
     void* malloc_result = malloc(malloc_arg);
-    uint8_t* malloc_return_sp = state->stack_top + type_builtin__return_offset_from_bp(self);
+    uint8_t* malloc_return_sp = state->address_registers[REG_SP] + type_builtin__return_offset_from_bp(self);
     *(uint64_t*) malloc_return_sp = *(uint64_t*) malloc_result;
 }
 
 void state__execute_free(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    void* addr = (void*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
+    void* addr = (void*) *(uint64_t*) (state->address_registers[REG_SP] + type_builtin__argument_offset_from_bp(self, 0));
     free(addr);
 }
 
 void state__execute_print(type_builtin_function_t* self, void* processor) {
     state_t* state = (state_t*) processor;
 
-    type_t* type = (type_t*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 0));
-    uint8_t* addr = (uint8_t*) *(uint64_t*) (state->stack_top + type_builtin__argument_offset_from_bp(self, 1));
+    type_t* type = (type_t*) *(uint64_t*) (state->address_registers[REG_SP] + type_builtin__argument_offset_from_bp(self, 0));
+    uint8_t* addr = (uint8_t*) *(uint64_t*) (state->address_registers[REG_SP] + type_builtin__argument_offset_from_bp(self, 1));
     type__print(type, stdout, 3, -1, addr);
 }
 
@@ -554,8 +566,8 @@ int main() {
     for (uint32_t current_iter = 0; current_iter < number_of_iters; ++current_iter) {
         state.alive = true;
         state.ip = type_internal_function__start_ip(_start);
-        state.stack_top = state.stack;
-        state.base_pointer = state.stack;
+        state.address_registers[REG_SP] = state.stack;
+        state.address_registers[REG_BP] = state.stack;
         // clear_cache(&cache);
 
         while (state.alive) {
@@ -574,8 +586,8 @@ int main() {
                     CODE_POP(state.ip, uint64_t, alignment);
                     CODE_POP(state.ip, uint64_t, size);
                     ASSERT(state.stack_aligned_top < state.stack_aligned_size && "Stack aligned metadata overflow");
-                    state.stack_aligned[state.stack_aligned_top++] = state.stack_top;
-                    uint64_t remainder = ((uint64_t) state.stack_top) % alignment;
+                    state.stack_aligned[state.stack_aligned_top++] = state.address_registers[REG_SP];
+                    uint64_t remainder = ((uint64_t) state.address_registers[REG_SP]) % alignment;
                     if (remainder) {
                         STACK_GROW(&state, alignment - remainder);
                     }
@@ -586,13 +598,13 @@ int main() {
                     CODE_POP(state.ip, regf_t, n);
                     STACK_PUSH(&state, regf_t, n);
                 } break ;
-                case INS_PUSH_SP: {
-                    reg_t result = (uint64_t) state.stack_top;
-                    STACK_PUSH(&state, reg_t, result);
-                } break ;
-                case INS_PUSH_BP: {
-                    reg_t result = (uint64_t) state.base_pointer;
-                    STACK_PUSH(&state, reg_t, result);
+                case INS_PUSH_REG: {
+                    address_register_type_t reg;
+                    CODE_POP(state.ip, uint8_t, reg);
+                    ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    uint8_t* result = state.address_registers[reg];
+                    ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    STACK_PUSH(&state, uint8_t*, result);
                 } break ;
                 case INS_POP: {
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
@@ -605,22 +617,21 @@ int main() {
                 case INS_POPF: {
                     STACK_GROW(&state, -(int64_t) sizeof(regf_t));
                 } break ;
-                case INS_POP_SP: {
+                case INS_POP_REG: {
                     reg_t result;
+                    address_register_type_t reg;
+                    CODE_POP(state.ip, uint8_t, reg);
                     STACK_POP(&state, reg_t, result);
-                    SP_SET(&state, (uint8_t*) result);
-                } break ;
-                case INS_POP_BP: {
-                    reg_t result;
-                    STACK_POP(&state, reg_t, result);
-                    BP_SET(&state, (uint8_t*) result);
+                    state.address_registers[reg] = (uint8_t*) result;
                 } break ;
                 case INS_MOV_REG: {
-                    uint8_t dst_reg;
-                    uint8_t src_reg;
+                    address_register_type_t dst_reg;
+                    address_register_type_t src_reg;
                     CODE_POP(state.ip, uint8_t, dst_reg);
                     CODE_POP(state.ip, uint8_t, src_reg);
-                    BP_SET(&state, state.stack_top);
+                    ASSERT(dst_reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    ASSERT(src_reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    state.address_registers[dst_reg] = state.address_registers[src_reg];
                 } break ;
                 case INS_ADD: {
                     reg_t a;
@@ -909,30 +920,57 @@ int main() {
                         state.ip = addr;
                     }
                 } break ;
-                case INS_STACK_LOAD: {
-                    reg_t addr;
-                    uint8_t bytes;
-                    STACK_POP(&state, reg_t, addr);
-                    CODE_POP(state.ip, uint8_t, bytes);
-                    ASSERT(bytes <= sizeof(reg_t));
-                    memmove(state.stack_top, (void*) addr, bytes);
-                    debug__push_ins_arg_bytes(&debug, (uint8_t*) addr, bytes);
-                    if (bytes < sizeof(reg_t)) {
-                        // fill remaining bytes with 0s
-                        memset(state.stack_top + bytes, 0, sizeof(reg_t) - bytes);
-                    }
-                    STACK_GROW(&state, sizeof(reg_t));
+                case INS_LOAD: {
+                    address_register_type_t reg;
+                    int16_t offset;
+                    uint32_t size;
+                    CODE_POP(state.ip, uint8_t, reg);
+                    CODE_POP(state.ip, int16_t, offset);
+                    CODE_POP(state.ip, uint32_t, size);
+                    ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    STACK_CHECK(&state, state.address_registers[REG_SP] + size);
+                    memmove(state.address_registers[REG_SP], state.address_registers[reg] + offset, size);
+                    STACK_GROW(&state, size);
                 } break ;
-                case INS_STACK_STORE: {
-                    reg_t addr;
-                    uint8_t bytes;
-                    STACK_POP(&state, reg_t, addr);
-                    CODE_POP(state.ip, uint8_t, bytes);
-                    ASSERT(bytes <= sizeof(reg_t));
-                    STACK_GROW(&state, -(int64_t) sizeof(reg_t));
-                    memmove((void*) addr, state.stack_top, bytes);
-                    debug__push_ins_arg_bytes(&debug, (uint8_t*) state.stack_top, bytes);
+                case INS_STORE: {
+                    address_register_type_t reg;
+                    int16_t offset;
+                    uint32_t store_size;
+                    uint32_t pop_size;
+                    CODE_POP(state.ip, uint8_t, reg);
+                    CODE_POP(state.ip, int16_t, offset);
+                    CODE_POP(state.ip, uint32_t, store_size);
+                    CODE_POP(state.ip, uint32_t, pop_size);
+                    ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
+                    STACK_GROW(&state, -(int64_t) pop_size);
+                    memmove(state.address_registers[reg] + offset, state.address_registers[REG_SP], store_size);
                 } break ;
+                // case INS_STACK_LOAD: {
+                //     reg_t addr;
+                //     uint8_t bytes;
+                //     STACK_POP(&state, reg_t, addr);
+                //     CODE_POP(state.ip, uint8_t, bytes);
+                //     ASSERT(bytes <= sizeof(reg_t));
+                //     memmove(state.address_registers[REG_SP], (void*) addr, bytes);
+                //     debug__push_ins_arg_bytes(&debug, (uint8_t*) addr, bytes);
+                //     if (bytes < sizeof(reg_t)) {
+                //         // fill remaining bytes with 0s
+                //         memset(state.address_registers[REG_SP] + bytes, 0, sizeof(reg_t) - bytes);
+                //     }
+                //     STACK_GROW(&state, sizeof(reg_t));
+                // } break ;
+                // case INS_STACK_STORE: {
+                //     // void stack_store(uint8_t* what, uint8_t what_size, uint8_t* where)
+                //     //     memmove(where, what, what_size)
+                //     reg_t addr;
+                //     uint8_t bytes;
+                //     STACK_POP(&state, reg_t, addr);
+                //     CODE_POP(state.ip, uint8_t, bytes);
+                //     ASSERT(bytes <= sizeof(reg_t));
+                //     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
+                //     memmove((void*) addr, state.address_registers[REG_SP], bytes);
+                //     debug__push_ins_arg_bytes(&debug, (uint8_t*) state.address_registers[REG_SP], bytes);
+                // } break ;
                 case INS_CALL_INTERNAL: {
                     type_internal_function_t* internal_function;
                     CODE_POP(state.ip, type_internal_function_t*, internal_function);

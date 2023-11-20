@@ -191,11 +191,11 @@ void debug__dump_line(debug_t* self, FILE* fp) {
     if (self->state->alive) {
         // fifth col
         fprintf(fp, "    ");
-        fprintf(fp, "%0*lx", fifth_col_len, (uint64_t) self->state->base_pointer);
+        fprintf(fp, "%0*lx", fifth_col_len, (uint64_t) self->state->address_registers[REG_BP]);
     
         // sixth col
         fprintf(fp, "    ");
-        fprintf(fp, "%0*lx", sixth_col_len, (uint64_t) self->state->stack_top);
+        fprintf(fp, "%0*lx", sixth_col_len, (uint64_t) self->state->address_registers[REG_SP]);
     }
 
 

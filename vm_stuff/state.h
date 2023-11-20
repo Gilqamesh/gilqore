@@ -7,15 +7,23 @@
 # include "types.h"
 # include "hash_map.h"
 
+typedef enum address_register_type {
+    REG_SP,
+    REG_BP,
+    REG_ADDR1,
+
+    _ADDRESS_REGISTER_TYPE_SIZE
+} address_register_type_t;
+
 typedef struct state {
     uint8_t* ip;
     uint8_t* code;
     uint32_t code_size;
 
-    uint8_t* stack_top;
     uint8_t* stack;
     uint8_t* stack_end;
-    uint8_t* base_pointer;
+
+    uint8_t* address_registers[_ADDRESS_REGISTER_TYPE_SIZE];
 
     // for push/pop aligned instructions, this metadata is stored, as otherwise
     // the extra space pushed for aligning is undeterminable during pop

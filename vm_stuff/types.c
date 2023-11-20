@@ -58,6 +58,9 @@ static int64_t function__return_offset_from_bp(function_argument_t* arguments, u
 static uint64_t function__size_of_ret(type_t* return_type, va_list ap);
 static int64_t function__local_offset_from_bp(function_local_t* locals, uint32_t locals_size, const char* local_name, va_list ap);
 static uint64_t type_internal_function__size_of_local(function_local_t* locals, uint32_t locals_size, const char* local_name, va_list ap);
+static void type_internal_function__vload_local_addr(type_internal_function_t* self, const char* local_name, va_list ap);
+static void type_internal_function__load_return_vaddr(type_internal_function_t* self, va_list ap);
+static void type_internal_function__vload_argument_addr(type_internal_function_t* self, const char* argument_name, va_list ap);
 
 static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expansions, uint8_t* address) {
     if (n_of_value_expansions == 0) {
@@ -745,96 +748,159 @@ static uint64_t type_internal_function__size_of_local(
 void type_internal_function__store_argument(type_internal_function_t* self, const char* argument_name, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_PUSH, function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap));
+    int16_t offset_of_arg = function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap);
+    va_end(ap);
+    va_start(ap, argument_name);
+    uint32_t size_of_arg = function__size_of_arg(self->arguments, self->arguments_top, argument_name, ap);
     va_end(ap);
 
-    type_internal_function__add_ins(self, INS_ADD);
-
-    va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_STACK_STORE, function__size_of_arg(self->arguments, self->arguments_top, argument_name, ap));
-    va_end(ap);
+    type_internal_function__add_ins(
+        self,
+        INS_STORE,
+        REG_BP,
+        offset_of_arg,
+        size_of_arg,
+        sizeof(reg_t) // todo: add this to argument
+    );
 }
 
 void type_internal_function__load_argument(type_internal_function_t* self, const char* argument_name, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_PUSH, function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap));
+    int16_t offset_of_arg = function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap);
+    va_end(ap);
+    va_start(ap, argument_name);
+    uint32_t size_of_arg = function__size_of_arg(self->arguments, self->arguments_top, argument_name, ap);
     va_end(ap);
 
+    type_internal_function__add_ins(
+        self,
+        INS_LOAD,
+        REG_BP,
+        offset_of_arg,
+        size_of_arg
+    );
+}
+
+static void type_internal_function__vload_argument_addr(type_internal_function_t* self, const char* argument_name, va_list ap) {
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
+    type_internal_function__add_ins(self, INS_PUSH, function__argument_offset_from_bp(self->arguments, self->arguments_top, argument_name, ap));
     type_internal_function__add_ins(self, INS_ADD);
+}
+
+void type_internal_function__load_argument_addr(type_internal_function_t* self, const char* argument_name, ...) {
+    va_list ap;
 
     va_start(ap, argument_name);
-    type_internal_function__add_ins(self, INS_STACK_LOAD, function__size_of_arg(self->arguments, self->arguments_top, argument_name, ap));
+    type_internal_function__vload_argument_addr(self, argument_name, ap);
     va_end(ap);
 }
 
 void type_internal_function__store_return(type_internal_function_t* self, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, self);
-    type_internal_function__add_ins(self, INS_PUSH, function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap));
+    int16_t offset_of_ret = function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap);
+    va_end(ap);
+    va_start(ap, self);
+    uint32_t size_of_ret = function__size_of_ret(self->return_type, ap);
     va_end(ap);
 
-    type_internal_function__add_ins(self, INS_ADD);
-
-    va_start(ap, self);
-    type_internal_function__add_ins(self, INS_STACK_STORE, function__size_of_ret(self->return_type, ap));
-    va_end(ap);
+    type_internal_function__add_ins(
+        self,
+        INS_STORE,
+        REG_BP,
+        offset_of_ret,
+        size_of_ret,
+        sizeof(reg_t) // todo: add this to argument
+    );
 }
 
 void type_internal_function__load_return(type_internal_function_t* self, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, self);
-    type_internal_function__add_ins(self, INS_PUSH, function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap));
+    int16_t offset_of_ret = function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap);
+    va_end(ap);
+    va_start(ap, self);
+    uint32_t size_of_ret = function__size_of_ret(self->return_type, ap);
     va_end(ap);
 
+    type_internal_function__add_ins(
+        self,
+        INS_LOAD,
+        REG_BP,
+        offset_of_ret,
+        size_of_ret
+    );
+}
+
+static void type_internal_function__load_return_vaddr(type_internal_function_t* self, va_list ap) {
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
+    type_internal_function__add_ins(self, INS_PUSH, function__return_offset_from_bp(self->arguments, self->arguments_top, self->return_type, ap));
     type_internal_function__add_ins(self, INS_ADD);
+}
+
+void type_internal_function__load_return_addr(type_internal_function_t* self, ...) {
+    va_list ap;
 
     va_start(ap, self);
-    type_internal_function__add_ins(self, INS_STACK_LOAD, function__size_of_ret(self->return_type, ap));
+    type_internal_function__load_return_vaddr(self, ap);
     va_end(ap);
 }
 
 void type_internal_function__store_local(type_internal_function_t* self, const char* local_name, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, local_name);
+    int16_t offset_of_local = function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap);
+    va_end(ap);
+    va_start(ap, local_name);
+    uint32_t size_of_local = type_internal_function__size_of_local(self->locals, self->locals_top, local_name, ap);
+    va_end(ap);
+
+    type_internal_function__add_ins(
+        self,
+        INS_STORE,
+        REG_BP,
+        offset_of_local,
+        size_of_local,
+        sizeof(reg_t) // todo: add this to argument
+    );
+}
+
+static void type_internal_function__vload_local_addr(type_internal_function_t* self, const char* local_name, va_list ap) {
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
     type_internal_function__add_ins(self, INS_PUSH, function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap));
-    va_end(ap);
-
     type_internal_function__add_ins(self, INS_ADD);
-
-    va_start(ap, local_name);
-    type_internal_function__add_ins(self, INS_STACK_STORE, type_internal_function__size_of_local(self->locals, self->locals_top, local_name, ap));
-    va_end(ap);
 }
 
 void type_internal_function__load_local(type_internal_function_t* self, const char* local_name, ...) {
     va_list ap;
 
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-
     va_start(ap, local_name);
-    type_internal_function__add_ins(self, INS_PUSH, function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap));
+    int16_t offset_of_local = function__local_offset_from_bp(self->locals, self->locals_top, local_name, ap);
+    va_end(ap);
+    va_start(ap, local_name);
+    uint32_t size_of_local = type_internal_function__size_of_local(self->locals, self->locals_top, local_name, ap);
     va_end(ap);
 
-    type_internal_function__add_ins(self, INS_ADD);
+    type_internal_function__add_ins(
+        self,
+        INS_LOAD,
+        REG_BP,
+        offset_of_local,
+        size_of_local
+    );
+}
+
+void type_internal_function__load_local_addr(type_internal_function_t* self, const char* local_name, ...) {
+    va_list ap;
 
     va_start(ap, local_name);
-    type_internal_function__add_ins(self, INS_STACK_LOAD, type_internal_function__size_of_local(self->locals, self->locals_top, local_name, ap));
+    type_internal_function__vload_local_addr(self, local_name, ap);
     va_end(ap);
 }
 
@@ -876,8 +942,8 @@ type_t* type_internal_function__get_local(type_internal_function_t* self, const 
 void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip) {
     debug__set_fn(&debug, self->name);
     type_internal_function__set_ip(self, ip);
-    type_internal_function__add_ins(self, INS_PUSH_BP);
-    type_internal_function__add_ins(self, INS_MOV_REG, 0, 1);
+    type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
+    type_internal_function__add_ins(self, INS_MOV_REG, REG_BP, REG_SP);
 
     // push for locals
     for (uint32_t local_index = 0; local_index < self->locals_top; ++local_index) {
@@ -890,7 +956,7 @@ void type_internal_function__compile(type_internal_function_t* self, hash_map_t*
         type_internal_function__add_ins(self, INS_POP_TYPE);
     }
 
-    type_internal_function__add_ins(self, INS_POP_BP);
+    type_internal_function__add_ins(self, INS_POP_REG, REG_BP);
 
     type_internal_function__add_ins(self, INS_RET, self->arguments_top);
 }

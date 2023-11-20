@@ -184,10 +184,13 @@ void type_internal_function__set_return(type_internal_function_t* self, type_t* 
 void type_internal_function__add_ins(type_internal_function_t* self, ins_t ins, ...);
 void type_internal_function__store_argument(type_internal_function_t* self, const char* argument_name, ...);
 void type_internal_function__load_argument(type_internal_function_t* self, const char* argument_name, ...);
+void type_internal_function__load_argument_addr(type_internal_function_t* self, const char* argument_name, ...);
 void type_internal_function__store_return(type_internal_function_t* self, ...);
 void type_internal_function__load_return(type_internal_function_t* self, ...);
+void type_internal_function__load_return_addr(type_internal_function_t* self, ...);
 void type_internal_function__store_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__load_local(type_internal_function_t* self, const char* local_name, ...);
+void type_internal_function__load_local_addr(type_internal_function_t* self, const char* local_name, ...);
 type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip);
 

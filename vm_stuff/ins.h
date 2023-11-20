@@ -87,15 +87,14 @@ typedef enum ins {
     INS_PUSH,           // push reg_t sized integer argument onto the stack
     INS_PUSH_TYPE,      // push sp until 64-bit alignment argument is met followed by 64-bit size argument
     INS_PUSHF,          // push regf_t sized floating point argument onto the stack
-    INS_PUSH_SP,        // push stack pointer onto the stack
-    INS_PUSH_BP,        // push base pointer onto the stack
-    INS_POP,
+    INS_PUSH_REG,       // push reg argument to to stack
+    INS_POP,            // pop reg_t sized value from stack
     INS_POP_TYPE,       // pop sp until 64-bit alignment argument is met followed by 64-bit size argument
-    INS_POPF,
-    INS_POP_SP,
-    INS_POP_BP,
-    INS_POP_REG,
+    INS_POPF,           // pop regf_t sized floating point from the stack
+    INS_POP_REG,        // pop stack to reg argument
     INS_MOV_REG,
+
+    /* ALU operations (between register and register) */
     INS_ADD,
     INS_ADDF,
     INS_SUB,
@@ -129,8 +128,13 @@ typedef enum ins {
     INS_JLEF,
     INS_JGE,
     INS_JGEF,
-    INS_STACK_LOAD,
-    INS_STACK_STORE,
+
+    /* memory access (between memory and registers) */
+    INS_LOAD,           // code(addr reg, offset, load  size)           does(push to stack from address)
+    INS_STORE,          // code(addr reg, offset, store size, pop_size) does(pops from stack to address)
+    // INS_STACK_LOAD,
+    // INS_STACK_STORE,
+
     INS_CALL_INTERNAL,
     INS_CALL_EXTERNAL,
     INS_CALL_BUILTIN,

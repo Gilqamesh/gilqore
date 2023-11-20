@@ -1,0 +1,121 @@
+ip                   ins bytecode                           ins mnemonic            ins stack delta                                             bp                  sp              
+0000558b02bf33aa:    01                                     PUSH_REG                0000558b02bf42b0                                            0000558b02bf42b0    0000558b02bf42b8
+0000558b02bf33ac:    01 00                                  MOV_REG                                                                             0000558b02bf42b8    0000558b02bf42b8
+0000558b02bf33af:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           0000558b02bf42b8    0000558b02bf42c0
+0000558b02bf33c0:    0000558b02bfcf20                       CALL_INTERNAL           main 0000558b02bf33c9                                       0000558b02bf42b8    0000558b02bf42c8
+0000558b02bf32a0:    01                                     PUSH_REG                0000558b02bf42b8                                            0000558b02bf42b8    0000558b02bf42d0
+0000558b02bf32a2:    01 00                                  MOV_REG                                                                             0000558b02bf42d0    0000558b02bf42d0
+0000558b02bf32a5:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf32b6:    0000000000000004 0000000000000004      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf42dc
+0000558b02bf32c7:    000000000000000a                       PUSH                    000000000000000a                                            0000558b02bf42d0    0000558b02bf42e4
+0000558b02bf32d0:    00                                     PUSH_REG                0000558b02bf42e4                                            0000558b02bf42d0    0000558b02bf42ec
+0000558b02bf32d2:    fffffffffffffff4                       PUSH                    fffffffffffffff4                                            0000558b02bf42d0    0000558b02bf42f4
+0000558b02bf32db:                                           ADD                     fffffffffffffff4 0000558b02bf42e4 0000558b02bf42d8          0000558b02bf42d0    0000558b02bf42ec
+0000558b02bf32dc:    04                                     STACK_STORE             0000558b02bf42d8 0000000a                                   0000558b02bf42d0    0000558b02bf42dc
+0000558b02bf32de:    0000558b02bfce10                       CALL_INTERNAL           fact 0000558b02bf32e7                                       0000558b02bf42d0    0000558b02bf42e4
+0000558b02bf33cf:    01                                     PUSH_REG                0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf42ec
+0000558b02bf33d1:    01 00                                  MOV_REG                                                                             0000558b02bf42ec    0000558b02bf42ec
+0000558b02bf33d4:    0000000000000001                       PUSH                    0000000000000001                                            0000558b02bf42ec    0000558b02bf42f4
+0000558b02bf33dd:    01                                     PUSH_REG                0000558b02bf42ec                                            0000558b02bf42ec    0000558b02bf42fc
+0000558b02bf33df:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            0000558b02bf42ec    0000558b02bf4304
+0000558b02bf33e8:                                           ADD                     ffffffffffffffe4 0000558b02bf42ec 0000558b02bf42d0          0000558b02bf42ec    0000558b02bf42fc
+0000558b02bf33e9:    08                                     STACK_STORE             0000558b02bf42d0 0000000000000001                           0000558b02bf42ec    0000558b02bf42ec
+0000558b02bf33eb:    01                                     PUSH_REG                0000558b02bf42ec                                            0000558b02bf42ec    0000558b02bf42f4
+0000558b02bf33ed:    ffffffffffffffe4                       PUSH                    ffffffffffffffe4                                            0000558b02bf42ec    0000558b02bf42fc
+0000558b02bf33f6:                                           ADD                     ffffffffffffffe4 0000558b02bf42ec 0000558b02bf42d0          0000558b02bf42ec    0000558b02bf42f4
+0000558b02bf33f7:    04                                     STACK_LOAD              0000558b02bf42d0 00000001                                   0000558b02bf42ec    0000558b02bf42f4
+0000558b02bf33f9:    0000000000000001                       PUSH                    0000000000000001                                            0000558b02bf42ec    0000558b02bf42fc
+0000558b02bf3402:    0000558b02bf3473                       JLE                     0000000000000001 0000000000000001                           0000558b02bf42ec    0000558b02bf42ec
+0000558b02bf3473:    01                                     POP_REG                 0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf42e4
+0000558b02bf3475:    0001                                   RET                     0000558b02bf32e7                                            0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf32e7:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf42e0
+0000558b02bf32f8:    0000558b02bfc9c0                       PUSH                    0000558b02bfc9c0                                            0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf3301:    00                                     PUSH_REG                0000558b02bf42e8                                            0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf3303:    fffffffffffffff0                       PUSH                    fffffffffffffff0                                            0000558b02bf42d0    0000558b02bf42f8
+0000558b02bf330c:                                           ADD                     fffffffffffffff0 0000558b02bf42e8 0000558b02bf42d8          0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf330d:    08                                     STACK_STORE             0000558b02bf42d8 0000558b02bfc9c0                           0000558b02bf42d0    0000558b02bf42e0
+0000558b02bf330f:    0000000000000008 0000000000000008      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf3320:    01                                     PUSH_REG                0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf3322:    00                                     PUSH_REG                0000558b02bf42f0                                            0000558b02bf42d0    0000558b02bf42f8
+0000558b02bf3324:    fffffffffffffff0                       PUSH                    fffffffffffffff0                                            0000558b02bf42d0    0000558b02bf4300
+0000558b02bf332d:                                           ADD                     fffffffffffffff0 0000558b02bf42f0 0000558b02bf42e0          0000558b02bf42d0    0000558b02bf42f8
+0000558b02bf332e:    08                                     STACK_STORE             0000558b02bf42e0 0000558b02bf42d0                           0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf3330:    0000558b02bfd2b0                       CALL_BUILTIN            print                                                       0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf3339:                                           POP_TYPE                                                                            0000558b02bf42d0    0000558b02bf42e0
+0000558b02bf333a:                                           POP_TYPE                                                                            0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf333b:    02 00                                  MOV_REG                                                                             0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf333e:    0000000000000008 0000000000000018      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf334f:    0000558b02bfcd90                       CALL_INTERNAL           ret_struct 0000558b02bf3358                                 0000558b02bf42d0    0000558b02bf42f8
+0000558b02bf3478:    01                                     PUSH_REG                0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf4300
+0000558b02bf347a:    01 00                                  MOV_REG                                                                             0000558b02bf4300    0000558b02bf4300
+0000558b02bf347d:    00000000ffffff88                       PUSH                    00000000ffffff88                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf3486:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf3488:    ffffffffffffffd8                       PUSH                    ffffffffffffffd8                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf3491:                                           ADD                     ffffffffffffffd8 0000558b02bf4300 0000558b02bf42d8          0000558b02bf4300    0000558b02bf4310
+0000558b02bf3492:    01                                     STACK_STORE             0000558b02bf42d8 88                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf3494:    00000000ffffcfc7                       PUSH                    00000000ffffcfc7                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf349d:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf349f:    ffffffffffffffdc                       PUSH                    ffffffffffffffdc                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf34a8:                                           ADD                     ffffffffffffffdc 0000558b02bf4300 0000558b02bf42dc          0000558b02bf4300    0000558b02bf4310
+0000558b02bf34a9:    02                                     STACK_STORE             0000558b02bf42dc cfc7                                       0000558b02bf4300    0000558b02bf4300
+0000558b02bf34ab:    00007048860f3a38                       PUSH                    00007048860f3a38                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf34b4:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf34b6:    ffffffffffffffe0                       PUSH                    ffffffffffffffe0                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf34bf:                                           ADD                     ffffffffffffffe0 0000558b02bf4300 0000558b02bf42e0          0000558b02bf4300    0000558b02bf4310
+0000558b02bf34c0:    08                                     STACK_STORE             0000558b02bf42e0 00007048860f3a38                           0000558b02bf4300    0000558b02bf4300
+0000558b02bf34c2:    0000000000000000                       PUSH                    0000000000000000                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf34cb:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf34cd:    ffffffffffffffe8                       PUSH                    ffffffffffffffe8                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf34d6:                                           ADD                     ffffffffffffffe8 0000558b02bf4300 0000558b02bf42e8          0000558b02bf4300    0000558b02bf4310
+0000558b02bf34d7:    01                                     STACK_STORE             0000558b02bf42e8 00                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf34d9:    000000000000000d                       PUSH                    000000000000000d                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf34e2:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf34e4:    ffffffffffffffe9                       PUSH                    ffffffffffffffe9                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf34ed:                                           ADD                     ffffffffffffffe9 0000558b02bf4300 0000558b02bf42e9          0000558b02bf4300    0000558b02bf4310
+0000558b02bf34ee:    01                                     STACK_STORE             0000558b02bf42e9 0d                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf34f0:    000000000000001a                       PUSH                    000000000000001a                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf34f9:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf34fb:    ffffffffffffffea                       PUSH                    ffffffffffffffea                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf3504:                                           ADD                     ffffffffffffffea 0000558b02bf4300 0000558b02bf42ea          0000558b02bf4300    0000558b02bf4310
+0000558b02bf3505:    01                                     STACK_STORE             0000558b02bf42ea 1a                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf3507:    0000000000000027                       PUSH                    0000000000000027                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf3510:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf3512:    ffffffffffffffeb                       PUSH                    ffffffffffffffeb                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf351b:                                           ADD                     ffffffffffffffeb 0000558b02bf4300 0000558b02bf42eb          0000558b02bf4300    0000558b02bf4310
+0000558b02bf351c:    01                                     STACK_STORE             0000558b02bf42eb 27                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf351e:    0000000000000034                       PUSH                    0000000000000034                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf3527:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf3529:    ffffffffffffffec                       PUSH                    ffffffffffffffec                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf3532:                                           ADD                     ffffffffffffffec 0000558b02bf4300 0000558b02bf42ec          0000558b02bf4300    0000558b02bf4310
+0000558b02bf3533:    01                                     STACK_STORE             0000558b02bf42ec 34                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf3535:    0000000000000041                       PUSH                    0000000000000041                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf353e:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf3540:    ffffffffffffffed                       PUSH                    ffffffffffffffed                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf3549:                                           ADD                     ffffffffffffffed 0000558b02bf4300 0000558b02bf42ed          0000558b02bf4300    0000558b02bf4310
+0000558b02bf354a:    01                                     STACK_STORE             0000558b02bf42ed 41                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf354c:    000000000000004e                       PUSH                    000000000000004e                                            0000558b02bf4300    0000558b02bf4308
+0000558b02bf3555:    01                                     PUSH_REG                0000558b02bf4300                                            0000558b02bf4300    0000558b02bf4310
+0000558b02bf3557:    ffffffffffffffee                       PUSH                    ffffffffffffffee                                            0000558b02bf4300    0000558b02bf4318
+0000558b02bf3560:                                           ADD                     ffffffffffffffee 0000558b02bf4300 0000558b02bf42ee          0000558b02bf4300    0000558b02bf4310
+0000558b02bf3561:    01                                     STACK_STORE             0000558b02bf42ee 4e                                         0000558b02bf4300    0000558b02bf4300
+0000558b02bf3563:    01                                     POP_REG                 0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf42f8
+0000558b02bf3565:    0000                                   RET                     0000558b02bf3358                                            0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf3358:    0000000000000008 0000000000000018      PUSH_TYPE                                                                           0000558b02bf42d0    0000558b02bf4308
+0000558b02bf3369:    0000558b02bfcc00                       PUSH                    0000558b02bfcc00                                            0000558b02bf42d0    0000558b02bf4310
+0000558b02bf3372:    00                                     PUSH_REG                0000558b02bf4310                                            0000558b02bf42d0    0000558b02bf4318
+0000558b02bf3374:    fffffffffffffff0                       PUSH                    fffffffffffffff0                                            0000558b02bf42d0    0000558b02bf4320
+0000558b02bf337d:                                           ADD                     fffffffffffffff0 0000558b02bf4310 0000558b02bf4300          0000558b02bf42d0    0000558b02bf4318
+0000558b02bf337e:    08                                     STACK_STORE             0000558b02bf4300 0000558b02bfcc00                           0000558b02bf42d0    0000558b02bf4308
+0000558b02bf3380:    02                                     PUSH_REG                0000558b02bf42d8                                            0000558b02bf42d0    0000558b02bf4310
+0000558b02bf3382:    0000558b02bfd2b0                       CALL_BUILTIN            print                                                       0000558b02bf42d0    0000558b02bf4310
+0000558b02bf338b:                                           POP_TYPE                                                                            0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf338c:                                           POP_TYPE                                                                            0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf338d:    000000000000002a                       PUSH                    000000000000002a                                            0000558b02bf42d0    0000558b02bf42e0
+0000558b02bf3396:    01                                     PUSH_REG                0000558b02bf42d0                                            0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf3398:    ffffffffffffffe8                       PUSH                    ffffffffffffffe8                                            0000558b02bf42d0    0000558b02bf42f0
+0000558b02bf33a1:                                           ADD                     ffffffffffffffe8 0000558b02bf42d0 0000558b02bf42b8          0000558b02bf42d0    0000558b02bf42e8
+0000558b02bf33a2:    08                                     STACK_STORE             0000558b02bf42b8 000000000000002a                           0000558b02bf42d0    0000558b02bf42d8
+0000558b02bf33a4:                                           POP_TYPE                                                                            0000558b02bf42d0    0000558b02bf42d0
+0000558b02bf33a5:    01                                     POP_REG                 0000558b02bf42b8                                            0000558b02bf42b8    0000558b02bf42c8
+0000558b02bf33a7:    0000                                   RET                     0000558b02bf33c9                                            0000558b02bf42b8    0000558b02bf42c0
+0000558b02bf33c9:                                           EXIT                    000000000000002a                                        
