@@ -122,7 +122,7 @@ int main() {
         cache__clear(&cache);
         time_start = __rdtsc();
         b_t fn_ffi_result = { 0 };
-        void*   fn_args[1];
+        void* fn_args[1];
         fn_args[0] = &fn_arg;
         ffi_call(&cif, fn, &fn_ffi_result, fn_args);
         time_end = __rdtsc();

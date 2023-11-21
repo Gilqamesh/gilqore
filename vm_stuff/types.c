@@ -958,7 +958,12 @@ void type_internal_function__compile(type_internal_function_t* self, hash_map_t*
     type_internal_function__add_ins(self, INS_RET, self->arguments_top);
 }
 
-ffi_type* type__convert_to_ffi(type_t* type) {
+ffi_type _type__convert_to_ffi(type_t* type) {
+    switch (type->type_specifier) {
+    }
+}
+
+ffi_type type__convert_to_ffi(type_t* type) {
     ffi_type* result;
     switch (type->type_specifier) {
     }
@@ -1024,18 +1029,20 @@ void type_external_function__set_return(type_external_function_t* self, type_t* 
     // compile-time types
     self->return_type = type;
 
-    ffi_type* return_type = type__convert_to_ffi(self->return_type);
+    ffi_type return_type = type__convert_to_ffi(self->return_type);
+    ffi_type _args[MAX_ARGS] = { 0 };
     ffi_type* args[MAX_ARGS] = { 0 };
     ASSERT(self->arguments_top < MAX_ARGS);
     for (uint32_t arg_index = 0; arg_index < self->arguments_top; ++arg_index) {
-        args[arg_index] = type__convert_to_ffi(self->arguments[arg_index].type);
+        _args[arg_index] = type__convert_to_ffi(self->arguments[arg_index].type);
+        args[arg_index] = &_args[arg_index];
     }
 
     if (self->is_variadic) {
-        ffi_prep_cif(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, return_type, args);
+        ffi_prep_cif(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, &return_type, args);
     } else {
         ASSERT(false && "implement");
-        ffi_prep_cif_var(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, 0xbaadf00d /* total number of args */, return_type, args);
+        ffi_prep_cif_var(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, 0xbaadf00d /* total number of args */, &return_type, args);
     }
 
     // run-time offset calculation

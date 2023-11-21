@@ -203,7 +203,7 @@ void type_internal_function__load_local_addr(type_internal_function_t* self, con
 type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip);
 
-ffi_type* type__convert_to_ffi(type_t* type);
+ffi_type type__convert_to_ffi(type_t* type);
 type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type);
 void type_external_function__set_return(type_external_function_t* self, type_t* type);
