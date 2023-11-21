@@ -36,6 +36,9 @@
                 // "${workspaceFolder}/transpiler/out"
                 // "${workspaceFolder}/craftinginterpreters/test/assignment/associativity.lox"
             ],
+            "environment": [
+                { "name": "LD_LIBRARY_PATH", "value": "/home/gilqamesh/Projects/gilqore/vm_stuff/lib" }
+            ],
             "cwd": "${workspaceFolder}/vm_stuff",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",

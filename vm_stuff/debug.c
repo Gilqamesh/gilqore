@@ -8,20 +8,22 @@
 
 debug_t debug;
 
-static const char* first_col  = "ip";
-static const char* second_col = "ins bytecode";
-static const char* third_col  = "ins mnemonic";
-static const char* forth_col  = "ins stack delta";
-static const char* fifth_col  = "bp";
-static const char* sixth_col  = "sp";
+static const char* first_col    = "ip";
+static const char* second_col   = "ins bytecode";
+static const char* third_col    = "ins mnemonic";
+static const char* forth_col    = "ins operand";
+static const char* fifth_col    = "stack delta";
+static const char* sixth_col    = "bp";
+static const char* seventh_col  = "sp";
 
 static const uint32_t col_padding = 4;
 static const uint32_t first_col_len  = max(sizeof(first_col),  sizeof(uint64_t) * 2 + 1 /* : */);
 static const uint32_t second_col_len = max(sizeof(second_col), 2 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 2) - 1);
 static const uint32_t third_col_len  = max(sizeof(third_col),  20);
-static const uint32_t forth_col_len  = max(sizeof(forth_col),  3 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 3) - 1);
-static const uint32_t fifth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
+static const uint32_t forth_col_len  = max(sizeof(forth_col),  20);
+static const uint32_t fifth_col_len  = max(sizeof(forth_col),  3 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 3) - 1);
 static const uint32_t sixth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
+static const uint32_t seventh_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
 
 static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size);
 
@@ -52,39 +54,42 @@ void debug__create(debug_t* self, state_t* state) {
     self->compiled_code_file = fopen(path_buffer, "w");
     fprintf(
         self->compiled_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
-        col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
+        col_padding, ' ', forth_col_len, forth_col_len, forth_col
+        // col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
+        // col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
+        // col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
     );
 
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_code_file_str);
     self->runtime_code_file = fopen(path_buffer, "w");
     fprintf(
         self->runtime_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
         col_padding, ' ', forth_col_len, forth_col_len, forth_col,
         col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
+        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
+        col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
     );
 
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_stack_file_str);
     self->runtime_stack_file = fopen(path_buffer, "w");
     fprintf(
         self->runtime_stack_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
+        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
         first_col_len, first_col_len, first_col, 
         col_padding, ' ', second_col_len, second_col_len, second_col,
         col_padding, ' ', third_col_len, third_col_len, third_col,
         col_padding, ' ', forth_col_len, forth_col_len, forth_col,
         col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col
+        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
+        col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
     );
 }
 
@@ -119,15 +124,6 @@ static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint
         );
         ASSERT(bytes_written == 2);
         buffer_top += bytes_written;
-        // if (bytes_index < bytes_size - 1) {
-        //     ASSERT(buffer_top < buffer_end);
-        //     bytes_written = snprintf(
-        //         buffer_top, buffer_end - buffer_top,
-        //         " "
-        //     );
-        //     ASSERT(bytes_written == 1);
-        //     buffer_top += bytes_written;
-        // }
     }
 
     return buffer_top - buffer_top_start;
@@ -137,7 +133,7 @@ void debug__push_code(debug_t* self, uint8_t* bytes, uint32_t bytes_size) {
     self->byte_code_top += debug__push_hex(self->byte_code, self->byte_code + self->byte_code_top, self->byte_code + sizeof(self->byte_code), bytes, bytes_size);
 }
 
-void debug__push_ins_arg_str(debug_t* self, const char* str) {
+void debug__push_ins_arg(debug_t* self, const char* str) {
     ASSERT(self->instruction_operand_top < sizeof(self->instruction_operand));
     if (self->instruction_operand_top > 0) {
         self->instruction_operand[self->instruction_operand_top++] = ' ';
@@ -152,8 +148,8 @@ void debug__push_ins_arg_str(debug_t* self, const char* str) {
     self->instruction_operand_top += str_len;
 }
 
-void debug__push_ins_arg_bytes(debug_t* self, uint8_t* bytes, uint32_t bytes_size) {
-    self->instruction_operand_top += debug__push_hex(self->instruction_operand, self->instruction_operand + self->instruction_operand_top, self->instruction_operand + sizeof(self->instruction_operand), bytes, bytes_size);
+void debug__push_stack_delta(debug_t* self, uint8_t* bytes, uint32_t bytes_size) {
+    self->stack_delta_top += debug__push_hex(self->stack_delta, self->stack_delta + self->stack_delta_top, self->stack_delta + sizeof(self->stack_delta), bytes, bytes_size);
 }
 
 void debug__dump_line(debug_t* self, FILE* fp) {
@@ -163,18 +159,12 @@ void debug__dump_line(debug_t* self, FILE* fp) {
     }
 
     // first col
-    uint32_t byte_code_index = 0;
     fprintf(fp, "%0*lx:", first_col_len - 1, (uint64_t) self->ip);
     
     // second col
     fprintf(fp, "    ");
     ASSERT(self->byte_code_top <= second_col_len);
-    while (byte_code_index < self->byte_code_top) {
-        fprintf(fp, "%c", self->byte_code[byte_code_index++]);
-    }
-    if (byte_code_index < second_col_len) {
-        fprintf(fp, "%*c", second_col_len - byte_code_index, ' ');
-    }
+    fprintf(fp, "%-*s", second_col_len, self->byte_code);
 
     // third col
     fprintf(fp, "    ");
@@ -191,11 +181,19 @@ void debug__dump_line(debug_t* self, FILE* fp) {
     if (self->state->alive) {
         // fifth col
         fprintf(fp, "    ");
-        fprintf(fp, "%0*lx", fifth_col_len, (uint64_t) self->state->address_registers[REG_BP]);
+        if (self->stack_delta_top > 0) {
+            fprintf(fp, "%-*s", fifth_col_len, self->stack_delta);
+        } else {
+            fprintf(fp, "%*c", fifth_col_len, ' ');
+        }
     
         // sixth col
         fprintf(fp, "    ");
         fprintf(fp, "%0*lx", sixth_col_len, (uint64_t) self->state->address_registers[REG_SP]);
+
+        // seventh col
+        fprintf(fp, "    ");
+        fprintf(fp, "%0*lx", seventh_col_len, (uint64_t) self->state->address_registers[REG_SP]);
     }
 
 
@@ -203,5 +201,6 @@ void debug__dump_line(debug_t* self, FILE* fp) {
 
     self->instruction_operand_top = 0;
     self->byte_code_top = 0;
+    self->stack_delta_top = 0;
     self->ip = 0;
 }

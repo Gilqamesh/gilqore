@@ -760,8 +760,7 @@ void type_internal_function__store_argument(type_internal_function_t* self, cons
         INS_STORE,
         REG_BP,
         offset_of_arg,
-        size_of_arg,
-        sizeof(reg_t) // todo: add this to argument
+        size_of_arg
     );
 }
 
@@ -813,8 +812,7 @@ void type_internal_function__store_return(type_internal_function_t* self, ...) {
         INS_STORE,
         REG_BP,
         offset_of_ret,
-        size_of_ret,
-        sizeof(reg_t) // todo: add this to argument
+        size_of_ret
     );
 }
 
@@ -866,8 +864,7 @@ void type_internal_function__store_local(type_internal_function_t* self, const c
         INS_STORE,
         REG_BP,
         offset_of_local,
-        size_of_local,
-        sizeof(reg_t) // todo: add this to argument
+        size_of_local
     );
 }
 
@@ -961,20 +958,34 @@ void type_internal_function__compile(type_internal_function_t* self, hash_map_t*
     type_internal_function__add_ins(self, INS_RET, self->arguments_top);
 }
 
-type_external_function_t* type_external_function__create(const char* name) {
-    type_external_function_t* result = (type_external_function_t*) _type__create(name, sizeof(*result));
+ffi_type* type__convert_to_ffi(type_t* type) {
+    ffi_type* result;
+    switch (type->type_specifier) {
+    }
+}
+
+type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic) {
+    type_external_function_t* result = (type_external_function_t*) _type__create(symbol, sizeof(*result));
 
     result->base.type_specifier = TYPE_FUNCTION_EXTERNAL;
     result->base.alignment = sizeof(void*);
     result->base.max_alignment = UNSET_MAX_ALIGNMENT;
     result->base.size = sizeof(void*);
 
-    result->name = name;
+    result->name = symbol;
+    result->is_variadic = is_variadic;
+
+    void** shared_lib_handle_p = shared_lib__find(shared_libs, shared_lib);
+    ASSERT(shared_lib_handle_p);
+    void* shared_lib_handle = *shared_lib_handle_p;
+    void* fn = shared_lib__sym(shared_lib_handle, symbol);
+    result->fn = fn;
 
     return result;
 }
 
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type) {
+    // compile-time types
     if (self->arguments_size == 0) {
         self->arguments_size = 8;
         self->arguments = malloc(self->arguments_size * sizeof(*self->arguments));
@@ -987,14 +998,74 @@ void type_external_function__add_argument(type_external_function_t* self, const 
     self->arguments[self->arguments_top].name = name;
     self->arguments[self->arguments_top].type = type;
     ++self->arguments_top;
-}
 
+    // run-time offset calculation
+    if (self->arguments_offsets_top == self->arguments_offsets_size) {
+        if (self->arguments_offsets_size == 0) {
+            self->arguments_offsets_size = 8;
+            self->arguments_offsets = malloc(self->arguments_offsets_size * sizeof(*self->arguments_offsets));
+        } else {
+            self->arguments_offsets_size <<= 1;
+            self->arguments_offsets = realloc(self->arguments_offsets, self->arguments_offsets_size * sizeof(*self->arguments_offsets));
+        }
+    }
+
+    ASSERT(self->arguments_offsets_top < self->arguments_offsets_size);
+    self->arguments_offsets[self->arguments_offsets_top] = 0;
+    if (self->arguments_offsets_top > 0) {
+        self->arguments_offsets[self->arguments_offsets_top] = self->arguments_offsets[self->arguments_offsets_top - 1];
+    }
+
+    self->arguments_offsets[self->arguments_offsets_top] += -(int64_t) type__size(type);
+    self->return_offset += -(int64_t) type__size(type);
+    ++self->arguments_offsets_top;
+}
 void type_external_function__set_return(type_external_function_t* self, type_t* type) {
+    // compile-time types
     self->return_type = type;
+
+    ffi_type* return_type = type__convert_to_ffi(self->return_type);
+    ffi_type* args[MAX_ARGS] = { 0 };
+    ASSERT(self->arguments_top < MAX_ARGS);
+    for (uint32_t arg_index = 0; arg_index < self->arguments_top; ++arg_index) {
+        args[arg_index] = type__convert_to_ffi(self->arguments[arg_index].type);
+    }
+
+    if (self->is_variadic) {
+        ffi_prep_cif(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, return_type, args);
+    } else {
+        ASSERT(false && "implement");
+        ffi_prep_cif_var(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, 0xbaadf00d /* total number of args */, return_type, args);
+    }
+
+    // run-time offset calculation
+    self->return_offset = 0;
+    if (self->arguments_offsets_top > 0) {
+        self->return_offset = self->arguments_offsets[self->arguments_offsets_top - 1];
+    }
+
+    self->return_offset -= type__size(type);
 }
 
-void type_external_function__call(type_external_function_t* self) {
+int64_t type_external_function__return_offset_from_bp(type_external_function_t* self) {
+    return self->return_offset;
+}
+
+int64_t type_external_function__argument_offset_from_bp(type_external_function_t* self, uint32_t argument_index) {
+    ASSERT(argument_index < self->arguments_offsets_top);
+    return self->arguments_offsets[self->arguments_offsets_top - argument_index - 1];
+}
+
+void type_external_function__call(type_external_function_t* self, void* processor) {
     ASSERT(false && "implement");
+    state_t* state = (state_t*) processor;
+
+    uint8_t* return_sp = state->address_registers[REG_SP] + type_external_function__return_offset_from_bp(self);
+    void* arguments[MAX_ARGS] = { 0 };
+    for (uint32_t arg_index = 0; arg_index < self->arguments_top; ++arg_index) {
+        arguments[arg_index] = (void*) *(uint64_t*) (state->address_registers[REG_SP] + type_external_function__argument_offset_from_bp(self, arg_index));
+    }
+    ffi_call(&self->cif, self->fn, return_sp, arguments);
 }
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor)) {
@@ -1012,31 +1083,31 @@ type_builtin_function_t* type_builtin_function__create(const char* name, void (*
 }
 
 void type_builtin_function__add_argument(type_builtin_function_t* self, const char* name, type_t* type) {
-    if (self->arguments_top == self->arguments_size) {
-        if (self->arguments_size == 0) {
-            self->arguments_size = 8;
-            self->arguments_offsets = malloc(self->arguments_size * sizeof(*self->arguments_offsets));
+    if (self->arguments_offsets_top == self->arguments_offsets_size) {
+        if (self->arguments_offsets_size == 0) {
+            self->arguments_offsets_size = 8;
+            self->arguments_offsets = malloc(self->arguments_offsets_size * sizeof(*self->arguments_offsets));
         } else {
-            self->arguments_size <<= 1;
-            self->arguments_offsets = realloc(self->arguments_offsets, self->arguments_size * sizeof(*self->arguments_offsets));
+            self->arguments_offsets_size <<= 1;
+            self->arguments_offsets = realloc(self->arguments_offsets, self->arguments_offsets_size * sizeof(*self->arguments_offsets));
         }
     }
 
-    ASSERT(self->arguments_top < self->arguments_size);
-    self->arguments_offsets[self->arguments_top] = 0;
-    if (self->arguments_top > 0) {
-        self->arguments_offsets[self->arguments_top] = self->arguments_offsets[self->arguments_top - 1];
+    ASSERT(self->arguments_offsets_top < self->arguments_offsets_size);
+    self->arguments_offsets[self->arguments_offsets_top] = 0;
+    if (self->arguments_offsets_top > 0) {
+        self->arguments_offsets[self->arguments_offsets_top] = self->arguments_offsets[self->arguments_offsets_top - 1];
     }
 
-    self->arguments_offsets[self->arguments_top] += -(int64_t) type__size(type);
+    self->arguments_offsets[self->arguments_offsets_top] += -(int64_t) type__size(type);
     self->return_offset += -(int64_t) type__size(type);
-    ++self->arguments_top;
+    ++self->arguments_offsets_top;
 }
 
 void type_builtin_function__set_return(type_builtin_function_t* self, type_t* type) {
     self->return_offset = 0;
-    if (self->arguments_top > 0) {
-        self->return_offset = self->arguments_offsets[self->arguments_top - 1];
+    if (self->arguments_offsets_top > 0) {
+        self->return_offset = self->arguments_offsets[self->arguments_offsets_top - 1];
     }
 
     self->return_offset -= type__size(type);
@@ -1046,13 +1117,13 @@ void type_builtin_function__call(type_builtin_function_t* self, void* processor)
     self->execute_fn(self, processor);
 }
 
-int64_t type_builtin__return_offset_from_bp(type_builtin_function_t* self) {
+int64_t type_builtin_function__return_offset_from_bp(type_builtin_function_t* self) {
     return self->return_offset;
 }
 
-int64_t type_builtin__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index) {
-    ASSERT(argument_index < self->arguments_top);
-    return self->arguments_offsets[self->arguments_top - argument_index - 1];
+int64_t type_builtin_function__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index) {
+    ASSERT(argument_index < self->arguments_offsets_top);
+    return self->arguments_offsets[self->arguments_offsets_top - argument_index - 1];
 }
 
 member_t* type__member(type_t* type, const char* member_name) {

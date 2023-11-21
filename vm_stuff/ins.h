@@ -130,8 +130,8 @@ typedef enum ins {
     INS_JGEF,
 
     /* memory access (between memory and registers) */
-    INS_LOAD,           // code(addr reg, offset, load  size)           does(push to stack from address)
-    INS_STORE,          // code(addr reg, offset, store size, pop_size) does(pops from stack to address)
+    INS_LOAD,           // code(addr reg, offset, max 8 size) does(push to stack from address)
+    INS_STORE,          // code(addr reg, offset, max 8 size) does(pops from stack to address)
     // INS_STACK_LOAD,
     // INS_STACK_STORE,
 

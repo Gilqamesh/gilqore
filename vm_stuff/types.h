@@ -5,6 +5,8 @@
 
 # include "ins.h"
 # include "hash_map.h"
+# include "shared_lib.h"
+# include <ffi.h>
 
 #if defined(min)
 # undef min
@@ -128,14 +130,21 @@ typedef struct type_internal_function {
 typedef struct type_external_function {
     type_t                  base;
 
-    void*                   loaded_addr;
+    void*                   fn;
     const char*             name;
-
-    type_t*                 return_type;
 
     function_argument_t*    arguments;
     uint32_t                arguments_top;
     uint32_t                arguments_size;
+    type_t*                 return_type;
+
+    uint32_t                arguments_offsets_size;
+    uint32_t                arguments_offsets_top;
+    int64_t*                arguments_offsets;
+    int64_t                 return_offset;
+
+    bool                    is_variadic;
+    ffi_cif                 cif; // call interface
 } type_external_function_t;
 
 typedef struct type_builtin_function {
@@ -146,14 +155,14 @@ typedef struct type_builtin_function {
 
     void                    (*compile_fn)(struct type_builtin_function* self, hash_map_t* types);
 
-    uint8_t*                start_ip;
-    uint8_t*                end_ip;
-
-    uint32_t                arguments_size;
-    uint32_t                arguments_top;
+    uint32_t                arguments_offsets_size;
+    uint32_t                arguments_offsets_top;
     int64_t*                arguments_offsets;
     int64_t                 return_offset;
 } type_builtin_function_t;
+
+// todo(david): including variadic arguments?
+#define MAX_ARGS 256
 
 void member__print(member_t* self, FILE* fp);
 const char* member__name(member_t* self);
@@ -194,17 +203,20 @@ void type_internal_function__load_local_addr(type_internal_function_t* self, con
 type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
 void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip);
 
-type_external_function_t* type_external_function__create(const char* name);
+ffi_type* type__convert_to_ffi(type_t* type);
+type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type);
 void type_external_function__set_return(type_external_function_t* self, type_t* type);
-void type_external_function__call(type_external_function_t* self);
+int64_t type_external_function__return_offset_from_bp(type_external_function_t* self);
+int64_t type_external_function__argument_offset_from_bp(type_external_function_t* self, uint32_t argument_index);
+void type_external_function__call(type_external_function_t* self, void* processor);
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor));
 void type_builtin_function__add_argument(type_builtin_function_t* self, const char* name, type_t* type);
 void type_builtin_function__set_return(type_builtin_function_t* self, type_t* type);
 void type_builtin_function__call(type_builtin_function_t* self, void* processor);
-int64_t type_builtin__return_offset_from_bp(type_builtin_function_t* self);
-int64_t type_builtin__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index);
+int64_t type_builtin_function__return_offset_from_bp(type_builtin_function_t* self);
+int64_t type_builtin_function__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index);
 
 void type__set_alignment(type_t* self, uint64_t alignment);
 uint64_t type__alignment(type_t* self);

@@ -20,6 +20,8 @@ typedef struct hash_map {
 
 // use this to measure how much memory is necessary
 uint32_t hash_map__entry_size(uint32_t size_of_key, uint32_t size_of_value);
+uint32_t hash_fn__string(const hash_map_key_t* string_key);
+bool eq_fn__string(const hash_map_key_t* string_key_a, const hash_map_key_t* string_key_b);
 
 bool hash_map__create(
     hash_map_t* self,

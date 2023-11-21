@@ -34,6 +34,9 @@ typedef struct debug {
     uint32_t    instruction_operand_top;
     char        instruction_operand[256];
 
+    uint32_t    stack_delta_top;
+    char        stack_delta[256];
+
     const char* fn;
 
     state_t*    state;
@@ -53,8 +56,8 @@ void debug__destroy(debug_t* self);
 void debug__set_ip(debug_t* self, uint8_t* ip);
 void debug__set_fn(debug_t* self, const char* fn);
 void debug__push_code(debug_t* self, uint8_t* bytes, uint32_t bytes_size);
-void debug__push_ins_arg_str(debug_t* self, const char* str);
-void debug__push_ins_arg_bytes(debug_t* self, uint8_t* bytes, uint32_t bytes_size);
+void debug__push_ins_arg(debug_t* self, const char* str);
+void debug__push_stack_delta(debug_t* self, uint8_t* bytes, uint32_t bytes_size);
 void debug__dump_line(debug_t* self, FILE* fp);
 
 #endif // DEBUG_H

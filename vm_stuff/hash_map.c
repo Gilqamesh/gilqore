@@ -93,6 +93,24 @@ uint32_t hash_map__entry_size(uint32_t size_of_key, uint32_t size_of_value) {
     return sizeof(_hash_map_entry_t) + size_of_key + size_of_value;
 }
 
+uint32_t hash_fn__string(const hash_map_key_t* string_key) {
+    const char* _string_ky = *(const char**) string_key;
+    uint32_t result = 0;
+    
+    while (*_string_ky != '\0') {
+        result += *_string_ky++;
+    }
+
+    return result;
+}
+
+bool eq_fn__string(const hash_map_key_t* string_key_a, const hash_map_key_t* string_key_b) {
+    const char* _string_key_a = *(const char**) string_key_a;
+    const char* _string_key_b = *(const char**) string_key_b;
+
+    return strcmp(_string_key_a, _string_key_b) == 0;
+}
+
 bool hash_map__create(hash_map_t* self, void* memory, uint64_t memory_size, uint32_t size_of_key, uint32_t size_of_value, uint32_t (*hash_fn)(const hash_map_key_t*), bool (*eq_fn)(const hash_map_key_t*, const hash_map_key_t*)) {
     self->size_of_key = size_of_key;
     self->size_of_value = size_of_value;
