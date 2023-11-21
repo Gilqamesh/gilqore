@@ -62,6 +62,60 @@ static void type_internal_function__vload_local_addr(type_internal_function_t* s
 static void type_internal_function__load_return_vaddr(type_internal_function_t* self, va_list ap);
 static void type_internal_function__vload_argument_addr(type_internal_function_t* self, const char* argument_name, va_list ap);
 
+static void _type__print_value_s8(FILE* fp, uint8_t* address);
+static void _type__print_value_s16(FILE* fp, uint8_t* address);
+static void _type__print_value_s32(FILE* fp, uint8_t* address);
+static void _type__print_value_s64(FILE* fp, uint8_t* address);
+static void _type__print_value_u8(FILE* fp, uint8_t* address);
+static void _type__print_value_u16(FILE* fp, uint8_t* address);
+static void _type__print_value_u32(FILE* fp, uint8_t* address);
+static void _type__print_value_u64(FILE* fp, uint8_t* address);
+static void _type__print_value_r32(FILE* fp, uint8_t* address);
+static void _type__print_value_r64(FILE* fp, uint8_t* address);
+
+static void types__ffi_type_add(types_t* self, ffi_type* type, const char* ffi_name);
+static ffi_type* types__ffi_type_find(types_t* self, const char* ffi_name);
+
+static void _type__print_value_s8(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%d", *(ss8_t*) address);
+}
+
+static void _type__print_value_s16(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%d", *(ss16_t*) address);
+}
+
+static void _type__print_value_s32(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%d", *(ss32_t*) address);
+}
+
+static void _type__print_value_s64(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%ld", *(ss64_t*) address);
+}
+
+static void _type__print_value_u8(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%u", *(su8_t*) address);
+}
+
+static void _type__print_value_u16(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%u", *(su16_t*) address);
+}
+
+static void _type__print_value_u32(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%u", *(su32_t*) address);
+}
+
+static void _type__print_value_u64(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%lu", *(su64_t*) address);
+}
+
+static void _type__print_value_r32(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%f", *(sr32_t*) address);
+}
+
+static void _type__print_value_r64(FILE* fp, uint8_t* address) {
+    fprintf(fp, "%lf", *(sr64_t*) address);
+}
+
 static void _type__print_value(type_t* self, FILE* fp, uint32_t n_of_value_expansions, uint8_t* address) {
     if (n_of_value_expansions == 0) {
         if (self->type_specifier == TYPE_ATOM) {
@@ -195,6 +249,92 @@ static void _type_union__update_member(type_union_t* self, member_t* new_member)
 
     self->base.size = type__size(self->biggest_sized_member->type);
     self->base.alignment = min(self->base.max_alignment, self->biggest_aligned_member->type->alignment);
+}
+
+static void types__add_atom_types(types_t* self) {
+    type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(int8_t), &_type__print_value_s8);
+    type_atom_t* ts16 = type_atom__create("s16", "s16", sizeof(int16_t), &_type__print_value_s16);
+    type_atom_t* ts32 = type_atom__create("s32", "s32", sizeof(int32_t), &_type__print_value_s32);
+    type_atom_t* ts64 = type_atom__create("s64", "s64", sizeof(int64_t), &_type__print_value_s64);
+    type_atom_t* tu8 =  type_atom__create("u8",  "u8",  sizeof(uint8_t), &_type__print_value_u8);
+    type_atom_t* tu16 = type_atom__create("u16", "u16", sizeof(uint16_t), &_type__print_value_u16);
+    type_atom_t* tu32 = type_atom__create("u32", "u32", sizeof(uint32_t), &_type__print_value_u32);
+    type_atom_t* tu64 = type_atom__create("u64", "u64", sizeof(uint64_t), &_type__print_value_u64);
+    type_atom_t* tr32 = type_atom__create("r32", "r32", sizeof(float), &_type__print_value_r32);
+    type_atom_t* tr64 = type_atom__create("r64", "r64", sizeof(double), &_type__print_value_r64);
+    static_assert(sizeof(float) == 4, "");
+    static_assert(sizeof(double) == 8, "");
+    type_t* t_void_p = (type_t*) type_pointer__create("void_p", NULL);
+
+    types__type_add(self, (type_t*) ts8 );
+    types__type_add(self, (type_t*) ts16);
+    types__type_add(self, (type_t*) ts32);
+    types__type_add(self, (type_t*) ts64);
+    types__type_add(self, (type_t*) tu8 );
+    types__type_add(self, (type_t*) tu16);
+    types__type_add(self, (type_t*) tu32);
+    types__type_add(self, (type_t*) tu64);
+    types__type_add(self, (type_t*) tr32);
+    types__type_add(self, (type_t*) tr64);
+    types__type_add(self, t_void_p);
+}
+
+bool types__create(types_t* self) {
+    uint32_t types_size_of_key = sizeof(const char*);
+    uint32_t types_size_of_value = sizeof(type_t*);
+    uint64_t types_memory_size = 1024 * hash_map__entry_size(types_size_of_key, types_size_of_value);
+    void* types_memory = malloc(types_memory_size);
+    if (!hash_map__create(&self->types, types_memory, types_memory_size, types_size_of_key, types_size_of_value, hash_fn__string, eq_fn__string)) {
+        return false;
+    }
+
+    uint32_t ffi_ypes_size_of_key = sizeof(const char*);
+    uint32_t ffi_types_size_of_value = sizeof(ffi_type*);
+    uint64_t ffi_types_memory_size = 1024 * hash_map__entry_size(ffi_ypes_size_of_key, ffi_types_size_of_value);
+    void* ffi_types_memory = malloc(ffi_types_memory_size);
+    if (!hash_map__create(&self->ffi_types, ffi_types_memory, ffi_types_memory_size, ffi_ypes_size_of_key, ffi_types_size_of_value, hash_fn__string, eq_fn__string)) {
+        return false;
+    }
+
+    types__add_atom_types(self);
+
+    return true;
+}
+
+void types__destroy(types_t* self) {
+}
+
+static void types__ffi_type_add(types_t* self, ffi_type* type, const char* ffi_name) {
+    uint64_t ffi_name_addr = (uint64_t) ffi_name;
+    uint64_t type_addr = (uint64_t) type;
+    if (!hash_map__insert(&self->ffi_types, &ffi_name_addr, &type_addr)) {
+        ASSERT(false);
+    }
+}
+
+static ffi_type* types__ffi_type_find(types_t* self, const char* ffi_name) {
+    uint64_t ffi_name_addr = (uint64_t) ffi_name;
+    ffi_type* type_pp = hash_map__find(&self->ffi_types, &ffi_name_addr);
+
+    return type_pp;
+}
+
+void types__type_add(types_t* self, type_t* type) {
+    uint64_t abbr_name_addr = (uint64_t) type->abbreviated_name;
+    ffi_type* ffi = types__obtain_ffi(self, type);
+    ASSERT(ffi);
+    uint64_t type_addr = (uint64_t) type;
+    if (!hash_map__insert(&self->types, &abbr_name_addr, &type_addr)) {
+        ASSERT(false);
+    }
+}
+
+type_t* types__type_find(types_t* self, const char* abbreviated_name) {
+    uint64_t abbr_name_addr = (uint64_t) abbreviated_name;
+    type_t** type_pp = hash_map__find(&self->types, &abbr_name_addr);
+    ASSERT(type_pp);
+
+    return *type_pp;
 }
 
 type_atom_t* type_atom__create(
@@ -463,7 +603,7 @@ void type_enum__add_with_value(type_enum_t* self, const char* name, int32_t valu
     _type_enum__add(self, name, value);
 }
 
-type_internal_function_t* type_internal_function__create(const char* name, void (*compile_fn)(type_internal_function_t* self, hash_map_t* types)) {
+type_internal_function_t* type_internal_function__create(const char* name, void (*compile_fn)(type_internal_function_t* self, types_t* types)) {
     type_internal_function_t* result = (type_internal_function_t*) _type__create(name, sizeof(*result));
 
     result->base.type_specifier = TYPE_FUNCTION_INTERNAL;
@@ -936,7 +1076,7 @@ type_t* type_internal_function__get_local(type_internal_function_t* self, const 
     return result;
 }
 
-void type_internal_function__compile(type_internal_function_t* self, hash_map_t* types, uint8_t* ip) {
+void type_internal_function__compile(type_internal_function_t* self, types_t* types, uint8_t* ip) {
     debug__set_fn(&debug, self->name);
     type_internal_function__set_ip(self, ip);
     type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
@@ -963,10 +1103,67 @@ ffi_type _type__convert_to_ffi(type_t* type) {
     }
 }
 
-ffi_type type__convert_to_ffi(type_t* type) {
-    ffi_type* result;
-    switch (type->type_specifier) {
+ffi_type* types__obtain_ffi(types_t* self, type_t* type) {
+    ffi_type* result = types__ffi_type_find(self, type->abbreviated_name);
+    if (result) {
+        return result;
     }
+
+    result = calloc(1, sizeof(*result));
+
+    switch (type->type_specifier) {
+        case TYPE_ATOM: {
+            ASSERT(false && "must have been added when types was created");
+        } break ;
+        case TYPE_STRUCT: {
+            type_struct_t* type_struct = (type_struct_t*) type;
+            result->type = FFI_TYPE_STRUCT;
+            result->elements = malloc((type_struct->members_top + 1) * sizeof(*result->elements));
+            result->elements[type_struct->members_top] = NULL;
+            for (uint32_t member_index = 0; member_index < type_struct->members_top; ++member_index) {
+                result->elements[member_index] = types__obtain_ffi(self, type_struct->members[member_index].type);
+            }
+        } break ;
+        case TYPE_UNION: {
+            type_union_t* type_union = (type_union_t*) type;
+            result->type = FFI_TYPE_STRUCT;
+            result->elements = malloc(2 * sizeof(*result->elements));
+            result->elements[1] = NULL;
+            result->alignment = type__alignment(type_union);
+            result->size = type__size(type_union);
+        } break ;
+        case TYPE_ARRAY: {
+            type_array_t* type_array = (type_array_t*) type;
+            result->type = FFI_TYPE_STRUCT;
+            result->elements = malloc((type_array->element_size + 1) * sizeof(*result->elements));
+            result->elements[type_array->element_size] = NULL;
+            ffi_type* ffi_element_type = types__obtain_ffi(self, type_array->element_type);
+            for (uint32_t element_index = 0; element_index < type_array->element_size; ++element_index) {
+                result->elements[element_index] = ffi_element_type;
+            }
+        } break ;
+        case TYPE_POINTER: {
+            return &ffi_type_pointer;
+        } break ;
+        case TYPE_ENUM: {
+            ASSERT(sizeof(type_specifier_t) == sizeof(int32_t) && "probably not a good idea in the long-run");
+            return &ffi_type_sint32;
+        } break ;
+        case TYPE_FUNCTION_INTERNAL: {
+            // fill in result
+        } break ;
+        case TYPE_FUNCTION_EXTERNAL: {
+            // fill in result
+        } break ;
+        case TYPE_FUNCTION_BUILTIN: {
+            // fill in result
+        } break ;
+        default: ASSERT(false);
+    }
+
+    types__ffi_type_add(self, result, type->abbreviated_name);
+
+    return result;
 }
 
 type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic) {
@@ -986,10 +1183,15 @@ type_external_function_t* type_external_function__create(const char* symbol, con
     void* fn = shared_lib__sym(shared_lib_handle, symbol);
     result->fn = fn;
 
+    result->ffi_arguments_size = 8;
+    result->ffi_arguments = malloc(result->ffi_arguments_size * sizeof(*result->ffi_arguments));
+    result->ffi_arguments[result->ffi_arguments_top++] = NULL; // must be NULL-terminated at all times
     return result;
 }
 
-void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type) {
+void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type, types_t* types) {
+    ASSERT(!self->is_signature_set);
+
     // compile-time types
     if (self->arguments_size == 0) {
         self->arguments_size = 8;
@@ -1024,26 +1226,30 @@ void type_external_function__add_argument(type_external_function_t* self, const 
     self->arguments_offsets[self->arguments_offsets_top] += -(int64_t) type__size(type);
     self->return_offset += -(int64_t) type__size(type);
     ++self->arguments_offsets_top;
+
+    // ffi
+    if (self->ffi_arguments_top == self->ffi_arguments_size) {
+        if (self->ffi_arguments_size == 0) {
+            self->ffi_arguments_size = 8;
+            self->ffi_arguments = malloc(self->ffi_arguments_size * sizeof(*self->ffi_arguments));
+        } else {
+            self->ffi_arguments_size <<= 1;
+            self->ffi_arguments = realloc(self->ffi_arguments, self->ffi_arguments_size * sizeof(*self->ffi_arguments));
+        }
+    }
+
+    ASSERT(self->ffi_arguments_top > 0 && self->ffi_arguments_top < self->ffi_arguments_size);
+    self->ffi_arguments[self->ffi_arguments_top] = self->ffi_arguments[self->ffi_arguments_top - 1]; // push the NULL-terminator
+    ASSERT(self->ffi_arguments[self->ffi_arguments_top] == NULL);
+    ffi_type* ffi_type = self->ffi_arguments[self->ffi_arguments_top - 1] = types__obtain_ffi(types, type);
+    self->ffi_arguments_top++;
 }
-void type_external_function__set_return(type_external_function_t* self, type_t* type) {
+
+void type_external_function__set_return(type_external_function_t* self, type_t* type, types_t* types) {
+    ASSERT(!self->is_signature_set);
+
     // compile-time types
     self->return_type = type;
-
-    ffi_type return_type = type__convert_to_ffi(self->return_type);
-    ffi_type _args[MAX_ARGS] = { 0 };
-    ffi_type* args[MAX_ARGS] = { 0 };
-    ASSERT(self->arguments_top < MAX_ARGS);
-    for (uint32_t arg_index = 0; arg_index < self->arguments_top; ++arg_index) {
-        _args[arg_index] = type__convert_to_ffi(self->arguments[arg_index].type);
-        args[arg_index] = &_args[arg_index];
-    }
-
-    if (self->is_variadic) {
-        ffi_prep_cif(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, &return_type, args);
-    } else {
-        ASSERT(false && "implement");
-        ffi_prep_cif_var(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, 0xbaadf00d /* total number of args */, &return_type, args);
-    }
 
     // run-time offset calculation
     self->return_offset = 0;
@@ -1052,6 +1258,20 @@ void type_external_function__set_return(type_external_function_t* self, type_t* 
     }
 
     self->return_offset -= type__size(type);
+
+    // ffi
+    self->ffi_return_value = types__obtain_ffi(types, type);
+}
+
+void type_external_function__set_signature(type_external_function_t* self, types_t* types) {
+    self->is_signature_set = true;
+
+    if (self->is_variadic) {
+        ASSERT(false && "implement");
+        ffi_prep_cif_var(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, 0xbaadf00d /* total number of args */, self->ffi_return_value, self->ffi_arguments);
+    } else {
+        ffi_prep_cif(&self->cif, FFI_DEFAULT_ABI, self->arguments_top, self->ffi_return_value, self->ffi_arguments);
+    }
 }
 
 int64_t type_external_function__return_offset_from_bp(type_external_function_t* self) {
@@ -1064,7 +1284,7 @@ int64_t type_external_function__argument_offset_from_bp(type_external_function_t
 }
 
 void type_external_function__call(type_external_function_t* self, void* processor) {
-    ASSERT(false && "implement");
+    ASSERT(self->is_signature_set);
     state_t* state = (state_t*) processor;
 
     uint8_t* return_sp = state->address_registers[REG_SP] + type_external_function__return_offset_from_bp(self);
@@ -1280,19 +1500,6 @@ void type__print(
     }
 }
 
-typedef int8_t   ss8_t;
-typedef int16_t  ss16_t;
-typedef int32_t  ss32_t;
-typedef int64_t  ss64_t;
-typedef uint8_t  su8_t;
-typedef uint16_t su16_t;
-typedef uint32_t su32_t;
-typedef uint64_t su64_t;
-typedef float    sr32_t;
-static_assert(sizeof(sr32_t) == 4);
-typedef double   sr64_t;
-static_assert(sizeof(sr64_t) == 8);
-
 #define REGULAR_PRINT(type) do { \
     char buffer[256]; \
     snprintf(buffer, sizeof(buffer), "sizeof(%s): ", #type); \
@@ -1375,46 +1582,6 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
 #define TYPE_UNION_ADD_MULTIPLE(self, ...) do { \
     _type_union__add_multiple(self, __VA_ARGS__, NULL); \
 } while (false)
-
-static void _type__print_value_s8(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%d", *(ss8_t*) address);
-}
-
-static void _type__print_value_s16(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%d", *(ss16_t*) address);
-}
-
-static void _type__print_value_s32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%d", *(ss32_t*) address);
-}
-
-static void _type__print_value_s64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%ld", *(ss64_t*) address);
-}
-
-static void _type__print_value_u8(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(su8_t*) address);
-}
-
-static void _type__print_value_u16(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(su16_t*) address);
-}
-
-static void _type__print_value_u32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(su32_t*) address);
-}
-
-static void _type__print_value_u64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lu", *(su64_t*) address);
-}
-
-static void _type__print_value_r32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%f", *(sr32_t*) address);
-}
-
-static void _type__print_value_r64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lf", *(sr64_t*) address);
-}
 
 int main2() {
     type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(ss8_t), &_type__print_value_s8);

@@ -36,7 +36,7 @@ typedef struct state {
 
     reg_t exit_status_code;
 
-    hash_map_t types;
+    types_t types;
 
     shared_lib_t shared_libs;
 

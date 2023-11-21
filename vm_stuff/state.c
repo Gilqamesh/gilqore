@@ -46,11 +46,7 @@ bool state__create(state_t* self) {
     self->stack_aligned_size = 1024;
     self->stack_aligned = malloc(self->stack_aligned_size * sizeof(*self->stack_aligned));
 
-    uint32_t types_size_of_key = sizeof(const char*);
-    uint32_t types_size_of_value = sizeof(type_t*);
-    uint64_t types_memory_size = 1024 * hash_map__entry_size(types_size_of_key, types_size_of_value);
-    void* types_memory = malloc(types_memory_size);
-    if (!hash_map__create(&self->types, types_memory, types_memory_size, types_size_of_key, types_size_of_value, hash_fn__string, eq_fn__string)) {
+    if (!types__create(&self->types)) {
         return false;
     }
 
@@ -62,22 +58,6 @@ bool state__create(state_t* self) {
 }
 
 void state__destroy(state_t* self) {
-}
-
-static void type__add(hash_map_t* types, type_t* type) {
-    uint64_t abbr_name_addr = (uint64_t) type->abbreviated_name;
-    uint64_t type_addr = (uint64_t) type;
-    if (!hash_map__insert(types, &abbr_name_addr, &type_addr)) {
-        ASSERT(false);
-    }
-}
-
-static type_t* type__find(hash_map_t* types, const char* abbreviated_name) {
-    uint64_t abbr_name_addr = (uint64_t) abbreviated_name;
-    type_t** type_addr = hash_map__find(types, &abbr_name_addr);
-    ASSERT(type_addr);
-
-    return *type_addr;
 }
 
 static inline void compile__patch_jmp(uint8_t* jmp_ip, uint8_t* new_addr) {
@@ -115,7 +95,7 @@ static inline void state__patch_call(uint8_t* call_ip, uint8_t* new_addr) {
     (state_p)->address_registers[REG_SP] -= sizeof(type); \
 } while (false)
 
-void state__compile_fact(type_internal_function_t* type_function, hash_map_t* types) {
+void state__compile_fact(type_internal_function_t* type_function, types_t* types) {
     type_internal_function__add_ins(type_function, INS_PUSH, 1);
     type_internal_function__store_return(type_function, NULL);
 
@@ -140,7 +120,7 @@ void state__compile_fact(type_internal_function_t* type_function, hash_map_t* ty
     compile__patch_jmp(fact_end2, type_internal_function__end_ip(type_function));
 }
 
-void state__compile_ret_struct_fn(type_internal_function_t* type_function, hash_map_t* types) {
+void state__compile_ret_struct_fn(type_internal_function_t* type_function, types_t* types) {
     type_internal_function__add_ins(type_function, INS_PUSH, -120);
     type_internal_function__store_return(type_function, "member_1", NULL);
 
@@ -223,34 +203,34 @@ void compile__emit_call(type_internal_function_t* self, type_t* fn_to_call) {
     }
 }
 
-void state__compile_start(type_internal_function_t* self, hash_map_t* types) {
-    type_t* t_reg = type__find(types, "reg");
-    ASSERT(t_reg);
+void state__compile_start(type_internal_function_t* self, types_t* types) {
+    type_t* t_s64 = types__type_find(types, "s64");
+    ASSERT(t_s64);
 
-    type_internal_function_t* main_fn = (type_internal_function_t*) type__find(types, "main");
+    type_internal_function_t* main_fn = (type_internal_function_t*) types__type_find(types, "main");
     ASSERT(main_fn);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_reg);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s64);
     compile__emit_call(self, (type_t*) main_fn);
     type_internal_function__add_ins(self, INS_EXIT);
 }
 
-void state__compile_main(type_internal_function_t* self, hash_map_t* types) {
-    type_t* t_s32 = type__find(types, "s32");
+void state__compile_main(type_internal_function_t* self, types_t* types) {
+    type_t* t_s32 = types__type_find(types, "s32");
     ASSERT(t_s32);
-    type_t* t_u64 = type__find(types, "u64");
+    type_t* t_u64 = types__type_find(types, "u64");
     ASSERT(t_u64);
-    type_t* fact_fn_decl = type__find(types, "fact");
+    type_t* fact_fn_decl = types__type_find(types, "fact");
     ASSERT(fact_fn_decl);
-    type_t* print_fn = type__find(types, "print");
+    type_t* print_fn = types__type_find(types, "print");
     ASSERT(print_fn);
-    type_t* t_a = type__find(types, "a");
+    type_t* t_a = types__type_find(types, "a");
     ASSERT(t_a);
-    type_t* ret_struct = type__find(types, "ret_struct");
+    type_t* ret_struct = types__type_find(types, "ret_struct");
     ASSERT(ret_struct);
     type_t* fact_result = type_internal_function__get_local(self, "fact_result", NULL);
     ASSERT(fact_result);
-    type_t* t_void_p = type__find(types, "void_p");
+    type_t* t_void_p = types__type_find(types, "void_p");
     ASSERT(t_void_p);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s32);
@@ -287,15 +267,13 @@ void state__compile_main(type_internal_function_t* self, hash_map_t* types) {
     type_internal_function__store_return(self, NULL);
 }
 
-void state__compile_store_load_fn(type_internal_function_t* self, hash_map_t* types) {
+void state__compile_store_load_fn(type_internal_function_t* self, types_t* types) {
 }
 
 void state__define_internal_functions(state_t* self) {
-    type_t* t_reg = type__find(&self->types, "reg");
-    type_t* t_s64 = type__find(&self->types, "s64");
-    type_t* t_s32 = type__find(&self->types, "s32");
-    type_t* t_a = type__find(&self->types, "a");
-    ASSERT(t_reg);
+    type_t* t_s64 = types__type_find(&self->types, "s64");
+    type_t* t_s32 = types__type_find(&self->types, "s32");
+    type_t* t_a = types__type_find(&self->types, "a");
     ASSERT(t_s64);
     ASSERT(t_s64);
 
@@ -308,17 +286,17 @@ void state__define_internal_functions(state_t* self) {
 
     type_internal_function_t* main_fn = type_internal_function__create("main", &state__compile_main);
     type_internal_function__add_local(main_fn, "fact_result", t_s64);
-    type_internal_function__set_return(main_fn, t_reg);
+    type_internal_function__set_return(main_fn, t_s64);
 
     type_internal_function_t* _start_fn = type_internal_function__create("_start", &state__compile_start);
 
     type_internal_function_t* store_load_fn = type_internal_function__create("store_load_fn", &state__compile_store_load_fn);
 
-    type__add(&self->types, (type_t*) ret_struct_fn);
-    type__add(&self->types, (type_t*) fact_fn);
-    type__add(&self->types, (type_t*) main_fn);
-    type__add(&self->types, (type_t*) _start_fn);
-    type__add(&self->types, (type_t*) store_load_fn);
+    types__type_add(&self->types, (type_t*) ret_struct_fn);
+    types__type_add(&self->types, (type_t*) fact_fn);
+    types__type_add(&self->types, (type_t*) main_fn);
+    types__type_add(&self->types, (type_t*) _start_fn);
+    types__type_add(&self->types, (type_t*) store_load_fn);
 
     type_internal_function__compile(main_fn, &self->types, self->code);
     type_internal_function__compile(_start_fn, &self->types, type_internal_function__end_ip(main_fn));
@@ -383,9 +361,9 @@ void state__execute_print(type_builtin_function_t* self, void* processor) {
 }
 
 void state__define_builtin_functions(state_t* self) {
-    type_t* t_u64 = type__find(&self->types, "u64");
+    type_t* t_u64 = types__type_find(&self->types, "u64");
     ASSERT(t_u64);
-    type_t* t_void_p = type__find(&self->types, "void_p");
+    type_t* t_void_p = types__type_find(&self->types, "void_p");
     ASSERT(t_void_p);
 
     type_builtin_function_t* builtin_malloc = type_builtin_function__create("malloc", &state__execute_malloc);
@@ -399,9 +377,9 @@ void state__define_builtin_functions(state_t* self) {
     type_builtin_function__add_argument(builtin_print, "type", t_void_p);
     type_builtin_function__add_argument(builtin_print, "addr", t_void_p);
 
-    type__add(&self->types, (type_t*) builtin_malloc);
-    type__add(&self->types, (type_t*) builtin_free);
-    type__add(&self->types, (type_t*) builtin_print);
+    types__type_add(&self->types, (type_t*) builtin_malloc);
+    types__type_add(&self->types, (type_t*) builtin_free);
+    types__type_add(&self->types, (type_t*) builtin_print);
 }
 
 typedef struct cache {
@@ -415,96 +393,19 @@ void clear_cache(cache_t* cache) {
     }
 }
 
-static void _type__print_value_s8(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%d", *(int8_t*) address);
-}
-
-static void _type__print_value_s16(FILE* fp, uint8_t* address) {
+static void _type__print_value_s16_aligned_4(FILE* fp, uint8_t* address) {
     fprintf(fp, "%d", *(int16_t*) address);
 }
 
-static void _type__print_value_s32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%d", *(int32_t*) address);
-}
-
-static void _type__print_value_s64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%ld", *(int64_t*) address);
-}
-
-static void _type__print_value_u8(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(uint8_t*) address);
-}
-
-static void _type__print_value_u16(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(uint16_t*) address);
-}
-
-static void _type__print_value_u32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%u", *(uint32_t*) address);
-}
-
-static void _type__print_value_u64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lu", *(uint64_t*) address);
-}
-
-static void _type__print_value_r32(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%f", *(float*) address);
-}
-
-static void _type__print_value_r64(FILE* fp, uint8_t* address) {
-    fprintf(fp, "%lf", *(double*) address);
-}
-
-static void _type__print_value_reg(FILE* fp, uint8_t* address) {
-    reg_t* reg = (reg_t*) address;
-    fprintf(fp, "%lu", *reg);
-}
-
-void state__create_atom_types(hash_map_t* types) {
-    type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(int8_t), &_type__print_value_s8);
-    type_atom_t* ts16 = type_atom__create("s16", "s16", sizeof(int16_t), &_type__print_value_s16);
-    type_atom_t* ts32 = type_atom__create("s32", "s32", sizeof(int32_t), &_type__print_value_s32);
-    type_atom_t* ts64 = type_atom__create("s64", "s64", sizeof(int64_t), &_type__print_value_s64);
-    type_atom_t* tu8 =  type_atom__create("u8",  "u8",  sizeof(uint8_t), &_type__print_value_u8);
-    type_atom_t* tu16 = type_atom__create("u16", "u16", sizeof(uint16_t), &_type__print_value_u16);
-    type_atom_t* tu32 = type_atom__create("u32", "u32", sizeof(uint32_t), &_type__print_value_u32);
-    type_atom_t* tu64 = type_atom__create("u64", "u64", sizeof(uint64_t), &_type__print_value_u64);
-    type_atom_t* tr32 = type_atom__create("r32", "r32", sizeof(float), &_type__print_value_r32);
-    type_atom_t* tr64 = type_atom__create("r64", "r64", sizeof(double), &_type__print_value_r64);
-    static_assert(sizeof(float) == 4, "");
-    static_assert(sizeof(double) == 8, "");
-
-    type__add(types, (type_t*) ts8 );
-    type__add(types, (type_t*) ts16);
-    type__add(types, (type_t*) ts32);
-    type__add(types, (type_t*) ts64);
-    type__add(types, (type_t*) tu8 );
-    type__add(types, (type_t*) tu16);
-    type__add(types, (type_t*) tu32);
-    type__add(types, (type_t*) tu64);
-    type__add(types, (type_t*) tr32);
-    type__add(types, (type_t*) tr64);
-}
-
-void state__create_user_types(hash_map_t* types) {
-    type_t* t_void_p = (type_t*) type_pointer__create("void_p", NULL);
-    type__add(types, t_void_p);
-    
-    typedef struct saa {
-        int8_t   _;
-        uint16_t __;
-        uint64_t ___;
-        uint16_t ____[7];
-    } saa_t;
-
+void state__create_user_types(types_t* types) {
     type_struct_t* ta = type_struct__create("a");
-    type__add(types, (type_t*) ta);
-    type_t* ts8 = type__find(types, "s8");
-    type_atom_t* ts16_aligned_4 = type_atom__create("s16_aligned_4", "s16_aligned_4", sizeof(int16_t), &_type__print_value_s16);
+    types__type_add(types, (type_t*) ta);
+    type_t* ts8 = types__type_find(types, "s8");
+    ASSERT(ts8);
+    type_atom_t* ts16_aligned_4 = type_atom__create("s16_aligned_4", "s16_aligned_4", sizeof(int16_t), &_type__print_value_s16_aligned_4);
     type__set_alignment((type_t*) ts16_aligned_4, 4);
 
-    type_t* tu64 = type__find(types, "u64");
-    ASSERT(ts8);
+    type_t* tu64 = types__type_find(types, "u64");
     ASSERT(tu64);
     type_struct__add(ta, ts8,  "member_1");
     type_struct__add(ta, (type_t*) ts16_aligned_4, "member_2");
@@ -520,7 +421,13 @@ void state__load_shared_libs(state_t* self) {
 }
 
 void state__define_external_functions(state_t* self) {
+    type_t* tu64 = types__type_find(&self->types, "u64");
+    ASSERT(tu64);
+
     type_external_function_t* fact_fn = type_external_function__create("fact", "libtest.so", &self->shared_libs, false);
+    type_external_function__add_argument(fact_fn, "arg", tu64, &self->types);
+    type_external_function__set_return(fact_fn, tu64, &self->types);
+    type_external_function__set_signature(fact_fn, &self->types);
 }
 
 int main() {
@@ -536,13 +443,12 @@ int main() {
     debug__create(&debug, &state);
 
     state__load_shared_libs(&state);
-    state__create_atom_types(&state.types);
     state__create_user_types(&state.types);
     state__define_builtin_functions(&state);
     state__define_external_functions(&state);
     state__define_internal_functions(&state);
 
-    type_internal_function_t* _start = (type_internal_function_t*) type__find(&state.types, "_start");
+    type_internal_function_t* _start = (type_internal_function_t*) types__type_find(&state.types, "_start");
     ASSERT(_start);
 
     uint64_t time_total_virt = 0;
