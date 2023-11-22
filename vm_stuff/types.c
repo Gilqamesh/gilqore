@@ -18,6 +18,18 @@
 
 #define FIRST_COL_OFFSET 22
 
+type_t* t_s8   = 0;
+type_t* t_s16  = 0;
+type_t* t_s32  = 0;
+type_t* t_s64  = 0;
+type_t* t_u8   = 0;
+type_t* t_u16  = 0;
+type_t* t_u32  = 0;
+type_t* t_u64  = 0;
+type_t* t_r32  = 0;
+type_t* t_r64  = 0;
+type_t* t_void = 0;
+
 static inline bool is_pow_of_two(uint64_t a) {
     if (a == 0) {
         return false;
@@ -73,8 +85,7 @@ static void _type__print_value_u64(FILE* fp, uint8_t* address);
 static void _type__print_value_r32(FILE* fp, uint8_t* address);
 static void _type__print_value_r64(FILE* fp, uint8_t* address);
 
-static void types__ffi_type_add(types_t* self, ffi_type* type, const char* ffi_name);
-static ffi_type* types__ffi_type_find(types_t* self, const char* ffi_name);
+static void types__ensure_ffi(types_t* self, type_t* type);
 
 static void _type__print_value_s8(FILE* fp, uint8_t* address) {
     fprintf(fp, "%d", *(ss8_t*) address);
@@ -252,31 +263,29 @@ static void _type_union__update_member(type_union_t* self, member_t* new_member)
 }
 
 static void types__add_atom_types(types_t* self) {
-    type_atom_t* ts8 =  type_atom__create("s8",  "s8",  sizeof(int8_t), &_type__print_value_s8);
-    type_atom_t* ts16 = type_atom__create("s16", "s16", sizeof(int16_t), &_type__print_value_s16);
-    type_atom_t* ts32 = type_atom__create("s32", "s32", sizeof(int32_t), &_type__print_value_s32);
-    type_atom_t* ts64 = type_atom__create("s64", "s64", sizeof(int64_t), &_type__print_value_s64);
-    type_atom_t* tu8 =  type_atom__create("u8",  "u8",  sizeof(uint8_t), &_type__print_value_u8);
-    type_atom_t* tu16 = type_atom__create("u16", "u16", sizeof(uint16_t), &_type__print_value_u16);
-    type_atom_t* tu32 = type_atom__create("u32", "u32", sizeof(uint32_t), &_type__print_value_u32);
-    type_atom_t* tu64 = type_atom__create("u64", "u64", sizeof(uint64_t), &_type__print_value_u64);
-    type_atom_t* tr32 = type_atom__create("r32", "r32", sizeof(float), &_type__print_value_r32);
-    type_atom_t* tr64 = type_atom__create("r64", "r64", sizeof(double), &_type__print_value_r64);
+    t_s8 =  (type_t*) type_atom__create(SYMBOL_ATOM_S8,  SYMBOL_ATOM_S8,  sizeof(int8_t),   &_type__print_value_s8);
+    t_s16 = (type_t*) type_atom__create(SYMBOL_ATOM_S16, SYMBOL_ATOM_S16, sizeof(int16_t),  &_type__print_value_s16);
+    t_s32 = (type_t*) type_atom__create(SYMBOL_ATOM_S32, SYMBOL_ATOM_S32, sizeof(int32_t),  &_type__print_value_s32);
+    t_s64 = (type_t*) type_atom__create(SYMBOL_ATOM_S64, SYMBOL_ATOM_S64, sizeof(int64_t),  &_type__print_value_s64);
+    t_u8 =  (type_t*) type_atom__create(SYMBOL_ATOM_U8,  SYMBOL_ATOM_U8,  sizeof(uint8_t),  &_type__print_value_u8);
+    t_u16 = (type_t*) type_atom__create(SYMBOL_ATOM_U16, SYMBOL_ATOM_U16, sizeof(uint16_t), &_type__print_value_u16);
+    t_u32 = (type_t*) type_atom__create(SYMBOL_ATOM_U32, SYMBOL_ATOM_U32, sizeof(uint32_t), &_type__print_value_u32);
+    t_u64 = (type_t*) type_atom__create(SYMBOL_ATOM_U64, SYMBOL_ATOM_U64, sizeof(uint64_t), &_type__print_value_u64);
+    t_r32 = (type_t*) type_atom__create(SYMBOL_ATOM_R32, SYMBOL_ATOM_R32, sizeof(float),    &_type__print_value_r32);
+    t_r64 = (type_t*) type_atom__create(SYMBOL_ATOM_R64, SYMBOL_ATOM_R64, sizeof(double),   &_type__print_value_r64);
     static_assert(sizeof(float) == 4, "");
     static_assert(sizeof(double) == 8, "");
-    type_t* t_void_p = (type_t*) type_pointer__create("void_p", NULL);
 
-    types__type_add(self, (type_t*) ts8 );
-    types__type_add(self, (type_t*) ts16);
-    types__type_add(self, (type_t*) ts32);
-    types__type_add(self, (type_t*) ts64);
-    types__type_add(self, (type_t*) tu8 );
-    types__type_add(self, (type_t*) tu16);
-    types__type_add(self, (type_t*) tu32);
-    types__type_add(self, (type_t*) tu64);
-    types__type_add(self, (type_t*) tr32);
-    types__type_add(self, (type_t*) tr64);
-    types__type_add(self, t_void_p);
+    types__type_add(self, (type_t*) t_s8 );
+    types__type_add(self, (type_t*) t_s16);
+    types__type_add(self, (type_t*) t_s32);
+    types__type_add(self, (type_t*) t_s64);
+    types__type_add(self, (type_t*) t_u8 );
+    types__type_add(self, (type_t*) t_u16);
+    types__type_add(self, (type_t*) t_u32);
+    types__type_add(self, (type_t*) t_u64);
+    types__type_add(self, (type_t*) t_r32);
+    types__type_add(self, (type_t*) t_r64);
 }
 
 bool types__create(types_t* self) {
@@ -288,14 +297,6 @@ bool types__create(types_t* self) {
         return false;
     }
 
-    uint32_t ffi_ypes_size_of_key = sizeof(const char*);
-    uint32_t ffi_types_size_of_value = sizeof(ffi_type*);
-    uint64_t ffi_types_memory_size = 1024 * hash_map__entry_size(ffi_ypes_size_of_key, ffi_types_size_of_value);
-    void* ffi_types_memory = malloc(ffi_types_memory_size);
-    if (!hash_map__create(&self->ffi_types, ffi_types_memory, ffi_types_memory_size, ffi_ypes_size_of_key, ffi_types_size_of_value, hash_fn__string, eq_fn__string)) {
-        return false;
-    }
-
     types__add_atom_types(self);
 
     return true;
@@ -304,25 +305,9 @@ bool types__create(types_t* self) {
 void types__destroy(types_t* self) {
 }
 
-static void types__ffi_type_add(types_t* self, ffi_type* type, const char* ffi_name) {
-    uint64_t ffi_name_addr = (uint64_t) ffi_name;
-    uint64_t type_addr = (uint64_t) type;
-    if (!hash_map__insert(&self->ffi_types, &ffi_name_addr, &type_addr)) {
-        ASSERT(false);
-    }
-}
-
-static ffi_type* types__ffi_type_find(types_t* self, const char* ffi_name) {
-    uint64_t ffi_name_addr = (uint64_t) ffi_name;
-    ffi_type* type_pp = hash_map__find(&self->ffi_types, &ffi_name_addr);
-
-    return type_pp;
-}
-
 void types__type_add(types_t* self, type_t* type) {
     uint64_t abbr_name_addr = (uint64_t) type->abbreviated_name;
-    ffi_type* ffi = types__obtain_ffi(self, type);
-    ASSERT(ffi);
+    types__ensure_ffi(self, type);
     uint64_t type_addr = (uint64_t) type;
     if (!hash_map__insert(&self->types, &abbr_name_addr, &type_addr)) {
         ASSERT(false);
@@ -1103,67 +1088,90 @@ ffi_type _type__convert_to_ffi(type_t* type) {
     }
 }
 
-ffi_type* types__obtain_ffi(types_t* self, type_t* type) {
-    ffi_type* result = types__ffi_type_find(self, type->abbreviated_name);
-    if (result) {
-        return result;
+static void types__ensure_ffi(types_t* self, type_t* type) {
+    if (type->ffi) {
+        return ;
     }
-
-    result = calloc(1, sizeof(*result));
 
     switch (type->type_specifier) {
         case TYPE_ATOM: {
-            ASSERT(false && "must have been added when types was created");
+            if (strcmp(type->abbreviated_name, SYMBOL_ATOM_S8) == 0) {
+                type->ffi = &ffi_type_sint8;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_S16) == 0) {
+                type->ffi = &ffi_type_sint16;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_S32) == 0) {
+                type->ffi = &ffi_type_sint32;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_S64) == 0) {
+                type->ffi = &ffi_type_sint64;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_U8) == 0) {
+                type->ffi = &ffi_type_uint8;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_U16) == 0) {
+                type->ffi = &ffi_type_uint16;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_U32) == 0) {
+                type->ffi = &ffi_type_uint32;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_U64) == 0) {
+                type->ffi = &ffi_type_uint64;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_R32) == 0) {
+                ASSERT(ffi_type_float.size == 4);
+                type->ffi = &ffi_type_float;
+            } else if (strcmp(type->abbreviated_name, SYMBOL_ATOM_R64) == 0) {
+                ASSERT(ffi_type_double.size == 8);
+                type->ffi = &ffi_type_double;
+            } else {
+                ASSERT(false);
+            }
         } break ;
         case TYPE_STRUCT: {
             type_struct_t* type_struct = (type_struct_t*) type;
-            result->type = FFI_TYPE_STRUCT;
-            result->elements = malloc((type_struct->members_top + 1) * sizeof(*result->elements));
-            result->elements[type_struct->members_top] = NULL;
+            type->ffi = calloc(1, sizeof(*type->ffi));
+            type->ffi->type = FFI_TYPE_STRUCT;
+            type->ffi->elements = malloc((type_struct->members_top + 1) * sizeof(*type->ffi->elements));
+            type->ffi->elements[type_struct->members_top] = NULL;
             for (uint32_t member_index = 0; member_index < type_struct->members_top; ++member_index) {
-                result->elements[member_index] = types__obtain_ffi(self, type_struct->members[member_index].type);
+                types__ensure_ffi(self, type_struct->members[member_index].type);
+                ASSERT(type_struct->members[member_index].type->ffi);
+                type->ffi->elements[member_index] = type_struct->members[member_index].type->ffi;
             }
         } break ;
         case TYPE_UNION: {
             type_union_t* type_union = (type_union_t*) type;
-            result->type = FFI_TYPE_STRUCT;
-            result->elements = malloc(2 * sizeof(*result->elements));
-            result->elements[1] = NULL;
-            result->alignment = type__alignment(type_union);
-            result->size = type__size(type_union);
+            type->ffi = calloc(1, sizeof(*type->ffi));
+            type->ffi->type = FFI_TYPE_STRUCT;
+            type->ffi->elements = malloc(2 * sizeof(*type->ffi->elements));
+            type->ffi->elements[1] = NULL;
+            type->ffi->alignment = type__alignment((type_t*) type_union);
+            type->ffi->size = type__size((type_t*) type_union);
         } break ;
         case TYPE_ARRAY: {
             type_array_t* type_array = (type_array_t*) type;
-            result->type = FFI_TYPE_STRUCT;
-            result->elements = malloc((type_array->element_size + 1) * sizeof(*result->elements));
-            result->elements[type_array->element_size] = NULL;
-            ffi_type* ffi_element_type = types__obtain_ffi(self, type_array->element_type);
+            type->ffi = calloc(1, sizeof(*type->ffi));
+            type->ffi->type = FFI_TYPE_STRUCT;
+            type->ffi->elements = malloc((type_array->element_size + 1) * sizeof(*type->ffi->elements));
+            type->ffi->elements[type_array->element_size] = NULL;
+            types__ensure_ffi(self, type_array->element_type);
+            ASSERT(type_array->element_type->ffi);
             for (uint32_t element_index = 0; element_index < type_array->element_size; ++element_index) {
-                result->elements[element_index] = ffi_element_type;
+                type->ffi->elements[element_index] = type_array->element_type->ffi;
             }
         } break ;
         case TYPE_POINTER: {
-            return &ffi_type_pointer;
+            type->ffi = &ffi_type_pointer; // do not add (do not take ownership of this)
         } break ;
         case TYPE_ENUM: {
             ASSERT(sizeof(type_specifier_t) == sizeof(int32_t) && "probably not a good idea in the long-run");
-            return &ffi_type_sint32;
+            type->ffi = &ffi_type_sint32; // do not add (do not take ownership of this)
         } break ;
         case TYPE_FUNCTION_INTERNAL: {
-            // fill in result
+            type->ffi = &ffi_type_pointer; // do not add (do not take ownership of this)
         } break ;
         case TYPE_FUNCTION_EXTERNAL: {
-            // fill in result
+            type->ffi = &ffi_type_pointer; // do not add (do not take ownership of this)
         } break ;
         case TYPE_FUNCTION_BUILTIN: {
-            // fill in result
+            type->ffi = &ffi_type_pointer; // do not add (do not take ownership of this)
         } break ;
         default: ASSERT(false);
     }
-
-    types__ffi_type_add(self, result, type->abbreviated_name);
-
-    return result;
 }
 
 type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic) {
@@ -1241,7 +1249,8 @@ void type_external_function__add_argument(type_external_function_t* self, const 
     ASSERT(self->ffi_arguments_top > 0 && self->ffi_arguments_top < self->ffi_arguments_size);
     self->ffi_arguments[self->ffi_arguments_top] = self->ffi_arguments[self->ffi_arguments_top - 1]; // push the NULL-terminator
     ASSERT(self->ffi_arguments[self->ffi_arguments_top] == NULL);
-    ffi_type* ffi_type = self->ffi_arguments[self->ffi_arguments_top - 1] = types__obtain_ffi(types, type);
+    types__ensure_ffi(types, type);
+    self->ffi_arguments[self->ffi_arguments_top - 1] = type->ffi;
     self->ffi_arguments_top++;
 }
 
@@ -1260,7 +1269,8 @@ void type_external_function__set_return(type_external_function_t* self, type_t* 
     self->return_offset -= type__size(type);
 
     // ffi
-    self->ffi_return_value = types__obtain_ffi(types, type);
+    types__ensure_ffi(types, type);
+    self->ffi_return_value = type->ffi;
 }
 
 void type_external_function__set_signature(type_external_function_t* self, types_t* types) {
@@ -1290,9 +1300,17 @@ void type_external_function__call(type_external_function_t* self, void* processo
     uint8_t* return_sp = state->address_registers[REG_SP] + type_external_function__return_offset_from_bp(self);
     void* arguments[MAX_ARGS] = { 0 };
     for (uint32_t arg_index = 0; arg_index < self->arguments_top; ++arg_index) {
-        arguments[arg_index] = (void*) *(uint64_t*) (state->address_registers[REG_SP] + type_external_function__argument_offset_from_bp(self, arg_index));
+        arguments[arg_index] = state->address_registers[REG_SP] + type_external_function__argument_offset_from_bp(self, arg_index);
     }
-    ffi_call(&self->cif, self->fn, return_sp, arguments);
+
+    uint32_t ret_size = type__size(self->return_type);
+    if (ret_size < sizeof(ffi_arg)) {
+        ffi_arg ret;
+        ffi_call(&self->cif, self->fn, &ret, arguments);
+        memcpy(return_sp, &ret, ret_size);
+    } else {
+        ffi_call(&self->cif, self->fn, return_sp, arguments);
+    }
 }
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor)) {

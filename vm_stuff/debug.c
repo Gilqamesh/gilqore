@@ -164,7 +164,11 @@ void debug__dump_line(debug_t* self, FILE* fp) {
     // second col
     fprintf(fp, "    ");
     ASSERT(self->byte_code_top <= second_col_len);
-    fprintf(fp, "%-*s", second_col_len, self->byte_code);
+    if (self->byte_code_top > 0) {
+        fprintf(fp, "%-*s", second_col_len, self->byte_code);
+    } else {
+        fprintf(fp, "%*c", second_col_len, ' ');
+    }
 
     // third col
     fprintf(fp, "    ");

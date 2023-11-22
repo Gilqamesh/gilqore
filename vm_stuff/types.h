@@ -31,6 +31,17 @@ static_assert(sizeof(sr32_t) == 4);
 typedef double   sr64_t;
 static_assert(sizeof(sr64_t) == 8);
 
+#define SYMBOL_ATOM_S8    "s8"
+#define SYMBOL_ATOM_S16   "s16"
+#define SYMBOL_ATOM_S32   "s32"
+#define SYMBOL_ATOM_S64   "s64"
+#define SYMBOL_ATOM_U8    "u8"
+#define SYMBOL_ATOM_U16   "u16"
+#define SYMBOL_ATOM_U32   "u32"
+#define SYMBOL_ATOM_U64   "u64"
+#define SYMBOL_ATOM_R32   "r32"
+#define SYMBOL_ATOM_R64   "r64"
+
 typedef enum type_specifier {
     TYPE_ATOM,
     TYPE_STRUCT,
@@ -46,6 +57,8 @@ typedef enum type_specifier {
 typedef struct type {
     type_specifier_t    type_specifier;
 
+    ffi_type*           ffi;
+
     const char*         abbreviated_name;
 
     uint64_t            alignment;
@@ -53,9 +66,19 @@ typedef struct type {
     uint64_t            size;
 } type_t;
 
+extern type_t* t_s8;
+extern type_t* t_s16;
+extern type_t* t_s32;
+extern type_t* t_s64;
+extern type_t* t_u8;
+extern type_t* t_u16;
+extern type_t* t_u32;
+extern type_t* t_u64;
+extern type_t* t_r32;
+extern type_t* t_r64;
+
 typedef struct types {
     hash_map_t types;
-    hash_map_t ffi_types;
 } types_t;
 
 bool types__create(types_t* self);
@@ -63,8 +86,6 @@ void types__destroy(types_t* self);
 
 void types__type_add(types_t* self, type_t* type);
 type_t* types__type_find(types_t* self, const char* abbreviated_name);
-
-ffi_type* types__obtain_ffi(types_t* self, type_t* type);
 
 typedef struct type_atom {
     type_t      base;

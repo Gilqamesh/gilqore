@@ -1,0 +1,97 @@
+ip                   ins bytecode                           ins mnemonic            ins operand         
+
+main:
+000055ba5d9fd2a0:    01                                     PUSH_REG                                    
+000055ba5d9fd2a2:    01 00                                  MOV_REG                                     
+000055ba5d9fd2a5:    0000000000000008 0000000000000008      PUSH_TYPE                                   
+000055ba5d9fd2b6:    0000000000000008 0000000000000008      PUSH_TYPE                                   
+000055ba5d9fd2c7:    000000000000000a                       PUSH                                        
+000055ba5d9fd2d0:    00 fff0 08                             STORE                                       
+000055ba5d9fd2d5:    000055ba5da11540                       CALL_EXTERNAL           fact                
+000055ba5d9fd2de:    000055ba5da11540                       POP_TYPE                                    
+000055ba5d9fd2df:    0000000000000008 0000000000000008      PUSH_TYPE                                   
+000055ba5d9fd2f0:    000055ba5da0b3b0                       PUSH                                        
+000055ba5d9fd2f9:    00 fff0 08                             STORE                                       
+000055ba5d9fd2fe:    0000000000000008 0000000000000008      PUSH_TYPE                                   
+000055ba5d9fd30f:    01                                     PUSH_REG                                    
+000055ba5d9fd311:    00 fff0 08                             STORE                                       
+000055ba5d9fd316:    000055ba5da11490                       CALL_BUILTIN            print               
+000055ba5d9fd31f:    000055ba5da11490                       POP_TYPE                                    
+000055ba5d9fd320:    000055ba5da11490                       POP_TYPE                                    
+000055ba5d9fd321:    02 00                                  MOV_REG                                     
+000055ba5d9fd324:    0000000000000008 0000000000000018      PUSH_TYPE                                   
+000055ba5d9fd335:    000055ba5da11720                       CALL_INTERNAL           ret_struct          
+000055ba5d9fd33e:    0000000000000008 0000000000000018      PUSH_TYPE                                   
+000055ba5d9fd34f:    000055ba5da11180                       PUSH                                        
+000055ba5d9fd358:    00 fff0 08                             STORE                                       
+000055ba5d9fd35d:    02                                     PUSH_REG                                    
+000055ba5d9fd35f:    000055ba5da11490                       CALL_BUILTIN            print               
+000055ba5d9fd368:    000055ba5da11490                       POP_TYPE                                    
+000055ba5d9fd369:    000055ba5da11490                       POP_TYPE                                    
+000055ba5d9fd36a:    000000000000002a                       PUSH                                        
+000055ba5d9fd373:    01 ffe8 08                             STORE                                       
+000055ba5d9fd378:    01 ffe8 08                             POP_TYPE                                    
+000055ba5d9fd379:    01                                     POP_REG                                     
+000055ba5d9fd37b:    0000                                   RET                                         
+
+_start:
+000055ba5d9fd37e:    01                                     PUSH_REG                                    
+000055ba5d9fd380:    01 00                                  MOV_REG                                     
+000055ba5d9fd383:    0000000000000008 0000000000000008      PUSH_TYPE                                   
+000055ba5d9fd394:    000055ba5da157e0                       CALL_INTERNAL           main                
+000055ba5d9fd39d:    000055ba5da157e0                       EXIT                                        
+000055ba5d9fd39e:    01                                     POP_REG                                     
+000055ba5d9fd3a0:    0000                                   RET                                         
+
+fact_internal:
+000055ba5d9fd3a3:    01                                     PUSH_REG                                    
+000055ba5d9fd3a5:    01 00                                  MOV_REG                                     
+000055ba5d9fd3a8:    0000000000000001                       PUSH                                        
+000055ba5d9fd3b1:    01 ffe0 08                             STORE                                       
+000055ba5d9fd3b6:    01 ffe8 08                             LOAD                                        
+000055ba5d9fd3bb:    0000000000000001                       PUSH                                        
+000055ba5d9fd3c4:    0000000000000000                       JLE                                         
+000055ba5d9fd3cd:    01 ffe0 08                             LOAD                                        
+000055ba5d9fd3d2:    01 ffe8 08                             LOAD                                        
+000055ba5d9fd3d7:    01 ffe8 08                             MUL                                         
+000055ba5d9fd3d8:    01 ffe0 08                             STORE                                       
+000055ba5d9fd3dd:    01 ffe8 08                             LOAD                                        
+000055ba5d9fd3e2:    01 ffe8 08                             DEC                                         
+000055ba5d9fd3e3:    01 ffe8 08                             STORE                                       
+000055ba5d9fd3e8:    01 ffe8 08                             LOAD                                        
+000055ba5d9fd3ed:    000055ba5d9fd3c4                       JZ                                          
+000055ba5d9fd3f6:    000055ba5d9fd3cd                       JMP                                         
+000055ba5d9fd3ff:    01                                     POP_REG                                     
+000055ba5d9fd401:    0001                                   RET                                         
+
+ret_struct:
+000055ba5d9fd404:    01                                     PUSH_REG                                    
+000055ba5d9fd406:    01 00                                  MOV_REG                                     
+000055ba5d9fd409:    00000000ffffff88                       PUSH                                        
+000055ba5d9fd412:    01 ffd8 01                             STORE                                       
+000055ba5d9fd417:    00000000ffffcfc7                       PUSH                                        
+000055ba5d9fd420:    01 ffdc 02                             STORE                                       
+000055ba5d9fd425:    00007048860f3a38                       PUSH                                        
+000055ba5d9fd42e:    01 ffe0 08                             STORE                                       
+000055ba5d9fd433:    0000000000000000                       PUSH                                        
+000055ba5d9fd43c:    01 ffe8 01                             STORE                                       
+000055ba5d9fd441:    000000000000000d                       PUSH                                        
+000055ba5d9fd44a:    01 ffe9 01                             STORE                                       
+000055ba5d9fd44f:    000000000000001a                       PUSH                                        
+000055ba5d9fd458:    01 ffea 01                             STORE                                       
+000055ba5d9fd45d:    0000000000000027                       PUSH                                        
+000055ba5d9fd466:    01 ffeb 01                             STORE                                       
+000055ba5d9fd46b:    0000000000000034                       PUSH                                        
+000055ba5d9fd474:    01 ffec 01                             STORE                                       
+000055ba5d9fd479:    0000000000000041                       PUSH                                        
+000055ba5d9fd482:    01 ffed 01                             STORE                                       
+000055ba5d9fd487:    000000000000004e                       PUSH                                        
+000055ba5d9fd490:    01 ffee 01                             STORE                                       
+000055ba5d9fd495:    01                                     POP_REG                                     
+000055ba5d9fd497:    0000                                   RET                                         
+
+store_load_fn:
+000055ba5d9fd49a:    01                                     PUSH_REG                                    
+000055ba5d9fd49c:    01 00                                  MOV_REG                                     
+000055ba5d9fd49f:    01                                     POP_REG                                     
+000055ba5d9fd4a1:    0000                                   RET                                         

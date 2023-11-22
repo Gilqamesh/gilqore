@@ -18,9 +18,12 @@
 
 const char* address_register_type__to_str(address_register_type_t reg) {
     switch (reg) {
-    case REG_SP: return "REG_SP";
-    case REG_BP: return "REG_BP";
-    case REG_ADDR1: return "REG_ADDR1";
+    case REG_REG_BP: return "REG_BP";
+    case REG_REG_SP: return "REG_SP";
+    case REG_RET_IP_SP: return "RET_IP_SP";
+    case REG_ARG_TYPES_SP: return "ARG_TYPES_SP";
+    case REG_RET_VAL_TYPES_SP: return "RET_VAL_TYPES_SP";
+    case REG_LOCAL_TYPES_SP: return "LOCAL_TYPES_SP";
     default: ASSERT(false);
     }
 
@@ -30,21 +33,51 @@ const char* address_register_type__to_str(address_register_type_t reg) {
 bool state__create(state_t* self) {
     memset(self, 0, sizeof(*self));
 
-    self->code_size = 4096;
-    self->code = malloc(self->code_size * sizeof(*self->code));
-    for (uint32_t code_index = 0; code_index < self->code_size; ++code_index) {
-        self->code[code_index] = INS_NOP;
+    const uint32_t code_size = 4096;
+    self->code_start = malloc(code_size * sizeof(*self->code_start));
+    for (uint32_t code_index = 0; code_index < code_size; ++code_index) {
+        self->code_start[code_index] = INS_NOP;
     }
-    self->ip = self->code;
+    self->code_end = self->code_start + code_size;
+    self->address_registers[REG_IP] = self->code_start;
 
-    const uint64_t stack_size = 4096;
-    self->stack = malloc(stack_size * sizeof(*self->stack));
-    self->address_registers[REG_SP] = self->stack;
-    self->stack_end = self->stack + stack_size;
-    self->address_registers[REG_BP] = self->address_registers[REG_SP];
+    const uint32_t register_stack_size = 4096;
+    self->register_stack_start = malloc(register_stack_size * sizeof(*self->register_stack_start));
+    self->register_stack_end = self->register_stack_start + register_stack_size;
+    self->address_registers[REG_REG_SP] = self->register_stack_start;
+    self->address_registers[REG_REG_BP] = self->register_stack_start;
 
-    self->stack_aligned_size = 1024;
-    self->stack_aligned = malloc(self->stack_aligned_size * sizeof(*self->stack_aligned));
+    const uint32_t return_ip_stack_size = 256;
+    self->return_ip_stack_start = malloc(return_ip_stack_size * sizeof(*self->return_ip_stack_start));
+    self->return_ip_stack_end = self->return_ip_stack_start + return_ip_stack_size;
+    self->address_registers[REG_RET_IP_SP] = self->return_ip_stack_start;
+
+    const uint32_t argument_types_stack_size = 4096;
+    self->argument_types_stack_start = malloc(argument_types_stack_size * sizeof(*self->argument_types_stack_start));
+    self->argument_types_stack_end = self->argument_types_stack_start + argument_types_stack_size;
+    self->address_registers[REG_ARG_TYPES_SP] = self->argument_types_stack_start;
+    const uint32_t argument_types_offset_stack_size = argument_types_stack_size << 2;
+    self->argument_types_offset_stack_start = malloc(argument_types_offset_stack_size * sizeof(*self->argument_types_offset_stack_start));
+    self->argument_types_offset_stack_end = self->argument_types_offset_stack_start + argument_types_offset_stack_size;
+    self->argument_types_offset_stack_cur = self->argument_types_offset_stack_start;
+
+    const uint32_t return_value_types_stack_size = 256;
+    self->return_value_types_stack_start = malloc(return_value_types_stack_size * sizeof(*self->return_value_types_stack_start));
+    self->return_value_types_stack_end = self->return_value_types_stack_start + return_value_types_stack_size;
+    self->address_registers[REG_RET_VAL_TYPES_SP] = self->return_value_types_stack_start;
+    const uint32_t return_value_types_offset_stack_size = return_value_types_stack_size << 2;
+    self->return_value_offset_stack_start = malloc(return_value_types_offset_stack_size * sizeof(*self->return_value_offset_stack_start));
+    self->return_value_offset_stack_end = self->return_value_offset_stack_start + return_value_types_offset_stack_size;
+    self->return_value_offset_stack_cur = self->return_value_offset_stack_start;
+
+    const uint32_t local_types_stack_size = 4096;
+    self->local_types_stack_start = malloc(local_types_stack_size * sizeof(*self->local_types_stack_start));
+    self->local_types_stack_end = self->local_types_stack_start + local_types_stack_size;
+    self->address_registers[REG_LOCAL_TYPES_SP] = self->local_types_stack_start;
+    const uint32_t local_types_offset_stack_size = local_types_stack_size << 2;
+    self->local_types_offset_stack_start = malloc(local_types_offset_stack_size * sizeof(*self->local_types_offset_stack_start));
+    self->local_types_offset_stack_end = self->local_types_offset_stack_start + local_types_offset_stack_size;
+    self->local_types_offset_stack_cur = self->local_types_offset_stack_start;
 
     if (!types__create(&self->types)) {
         return false;
@@ -69,7 +102,7 @@ static inline void state__patch_call(uint8_t* call_ip, uint8_t* new_addr) {
 }
 
 #define STACK_CHECK(state_p, addr) do { \
-    ASSERT((uint8_t*) (addr) >= (state_p)->stack && "Stack underflow."); \
+    ASSERT((uint8_t*) (addr) >= (state_p)->stack_start && "Stack underflow."); \
     ASSERT((uint8_t*) (addr) < (state_p)->stack_end && "Stack overflow."); \
 } while (false)
 #define BP_SET(state_p, n) do { \
@@ -190,6 +223,11 @@ void compile__emit_call(type_internal_function_t* self, type_t* fn_to_call) {
         } break ;
         case TYPE_FUNCTION_EXTERNAL: {
             type_internal_function__add_ins(self, INS_CALL_EXTERNAL, fn_to_call);
+
+            type_external_function_t* external_fn = (type_external_function_t*) fn_to_call;
+            for (uint32_t arg_index = 0; arg_index < external_fn->arguments_offsets_top; ++arg_index) {
+                type_internal_function__add_ins(self, INS_POP_TYPE);
+            }
         } break ;
         case TYPE_FUNCTION_BUILTIN: {
             type_internal_function__add_ins(self, INS_CALL_BUILTIN, fn_to_call);
@@ -204,9 +242,6 @@ void compile__emit_call(type_internal_function_t* self, type_t* fn_to_call) {
 }
 
 void state__compile_start(type_internal_function_t* self, types_t* types) {
-    type_t* t_s64 = types__type_find(types, "s64");
-    ASSERT(t_s64);
-
     type_internal_function_t* main_fn = (type_internal_function_t*) types__type_find(types, "main");
     ASSERT(main_fn);
 
@@ -216,12 +251,10 @@ void state__compile_start(type_internal_function_t* self, types_t* types) {
 }
 
 void state__compile_main(type_internal_function_t* self, types_t* types) {
-    type_t* t_s32 = types__type_find(types, "s32");
-    ASSERT(t_s32);
-    type_t* t_u64 = types__type_find(types, "u64");
-    ASSERT(t_u64);
-    type_t* fact_fn_decl = types__type_find(types, "fact");
-    ASSERT(fact_fn_decl);
+    type_t* fact_fn_decl_internal = types__type_find(types, "fact_internal");
+    ASSERT(fact_fn_decl_internal);
+    type_t* fact_fn_decl_external = types__type_find(types, "fact");
+    ASSERT(fact_fn_decl_external);
     type_t* print_fn = types__type_find(types, "print");
     ASSERT(print_fn);
     type_t* t_a = types__type_find(types, "a");
@@ -233,33 +266,28 @@ void state__compile_main(type_internal_function_t* self, types_t* types) {
     type_t* t_void_p = types__type_find(types, "void_p");
     ASSERT(t_void_p);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_s32);
-    compile__emit_set_type(self, t_s32, NULL, 10);
-    compile__emit_call(self, fact_fn_decl);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_u64);
+    compile__emit_set_type(self, t_u64, NULL, 10);
+    // compile__emit_call(self, fact_fn_decl_internal);
+    compile__emit_call(self, fact_fn_decl_external);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, fact_result);
-    compile__emit_set_type(self, fact_result, NULL, (uint64_t) fact_result);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
+    compile__emit_set_type(self, t_void_p, NULL, (uint64_t) fact_result);
 
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
     type_internal_function__add_ins(self, INS_PUSH_REG, REG_BP);
-    type_internal_function__add_ins(
-        self,
-        INS_STORE,
-        REG_SP,
-        - sizeof(reg_t) /* PUSH_REG, REG_BP */ -(int64_t) type__size(t_void_p),
-        type__size(t_void_p)
-    );
     compile__emit_call(self, print_fn);
 
     // save address for second argument of print
-    type_internal_function__add_ins(self, INS_MOV_REG, REG_ADDR1, REG_SP);
-
     type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
+    type_internal_function__add_ins(self, INS_MOV_REG, REG_ADDR1, REG_SP);
     compile__emit_call(self, ret_struct);
 
-    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_a);
+    type_internal_function__add_ins(self, INS_PUSH_TYPE, t_void_p);
     compile__emit_set_type(self, t_void_p, NULL, (uint64_t) t_a);
     type_internal_function__add_ins(self, INS_PUSH_REG, REG_ADDR1);
+    type_internal_function__add_ins(self, INS_PUSH, -type__size(t_a));
+    type_internal_function__add_ins(self, INS_ADD);
 
     compile__emit_call(self, print_fn);
 
@@ -271,21 +299,17 @@ void state__compile_store_load_fn(type_internal_function_t* self, types_t* types
 }
 
 void state__define_internal_functions(state_t* self) {
-    type_t* t_s64 = types__type_find(&self->types, "s64");
-    type_t* t_s32 = types__type_find(&self->types, "s32");
     type_t* t_a = types__type_find(&self->types, "a");
-    ASSERT(t_s64);
-    ASSERT(t_s64);
 
     type_internal_function_t* ret_struct_fn = type_internal_function__create("ret_struct", &state__compile_ret_struct_fn);
     type_internal_function__set_return(ret_struct_fn, t_a);
 
-    type_internal_function_t* fact_fn = type_internal_function__create("fact", &state__compile_fact);
-    type_internal_function__set_return(fact_fn, t_s64);
-    type_internal_function__add_argument(fact_fn, "arg1", t_s32);
+    type_internal_function_t* fact_fn = type_internal_function__create("fact_internal", &state__compile_fact);
+    type_internal_function__set_return(fact_fn, t_s32);
+    type_internal_function__add_argument(fact_fn, "arg1", t_u64);
 
     type_internal_function_t* main_fn = type_internal_function__create("main", &state__compile_main);
-    type_internal_function__add_local(main_fn, "fact_result", t_s64);
+    type_internal_function__add_local(main_fn, "fact_result", t_s32);
     type_internal_function__set_return(main_fn, t_s64);
 
     type_internal_function_t* _start_fn = type_internal_function__create("_start", &state__compile_start);
@@ -298,7 +322,7 @@ void state__define_internal_functions(state_t* self) {
     types__type_add(&self->types, (type_t*) _start_fn);
     types__type_add(&self->types, (type_t*) store_load_fn);
 
-    type_internal_function__compile(main_fn, &self->types, self->code);
+    type_internal_function__compile(main_fn, &self->types, self->code_cur);
     type_internal_function__compile(_start_fn, &self->types, type_internal_function__end_ip(main_fn));
     type_internal_function__compile(fact_fn, &self->types, type_internal_function__end_ip(_start_fn));
     type_internal_function__compile(ret_struct_fn, &self->types, type_internal_function__end_ip(fact_fn));
@@ -361,8 +385,6 @@ void state__execute_print(type_builtin_function_t* self, void* processor) {
 }
 
 void state__define_builtin_functions(state_t* self) {
-    type_t* t_u64 = types__type_find(&self->types, "u64");
-    ASSERT(t_u64);
     type_t* t_void_p = types__type_find(&self->types, "void_p");
     ASSERT(t_void_p);
 
@@ -398,21 +420,20 @@ static void _type__print_value_s16_aligned_4(FILE* fp, uint8_t* address) {
 }
 
 void state__create_user_types(types_t* types) {
+    type_t* t_voidp = (type_t*) type_pointer__create("void_p", NULL);
+    types__type_add(types, t_voidp);
+
     type_struct_t* ta = type_struct__create("a");
     types__type_add(types, (type_t*) ta);
-    type_t* ts8 = types__type_find(types, "s8");
-    ASSERT(ts8);
     type_atom_t* ts16_aligned_4 = type_atom__create("s16_aligned_4", "s16_aligned_4", sizeof(int16_t), &_type__print_value_s16_aligned_4);
     type__set_alignment((type_t*) ts16_aligned_4, 4);
 
-    type_t* tu64 = types__type_find(types, "u64");
-    ASSERT(tu64);
-    type_struct__add(ta, ts8,  "member_1");
+    type_struct__add(ta, t_s8,  "member_1");
     type_struct__add(ta, (type_t*) ts16_aligned_4, "member_2");
-    type_struct__add(ta, tu64, "member_3");
+    type_struct__add(ta, t_u64, "member_3");
     // type__set_alignment((type_t*) ta, 1024);
 
-    type_array_t* tb = type_array__create("b", ts8, 7);
+    type_array_t* tb = type_array__create("b", t_s8, 7);
     type_struct__add(ta, (type_t*) tb, "member_array");
 }
 
@@ -423,11 +444,15 @@ void state__load_shared_libs(state_t* self) {
 void state__define_external_functions(state_t* self) {
     type_t* tu64 = types__type_find(&self->types, "u64");
     ASSERT(tu64);
+    type_t* ts32 = types__type_find(&self->types, "s32");
+    ASSERT(ts32);
 
     type_external_function_t* fact_fn = type_external_function__create("fact", "libtest.so", &self->shared_libs, false);
     type_external_function__add_argument(fact_fn, "arg", tu64, &self->types);
-    type_external_function__set_return(fact_fn, tu64, &self->types);
+    type_external_function__set_return(fact_fn, ts32, &self->types);
     type_external_function__set_signature(fact_fn, &self->types);
+
+    types__type_add(&self->types, (type_t*) fact_fn);
 }
 
 int main() {
@@ -456,26 +481,27 @@ int main() {
     uint32_t number_of_iters = 1;
     for (uint32_t current_iter = 0; current_iter < number_of_iters; ++current_iter) {
         state.alive = true;
-        state.ip = type_internal_function__start_ip(_start);
-        state.address_registers[REG_SP] = state.stack;
-        state.address_registers[REG_BP] = state.stack;
+        state.code_cur = type_internal_function__start_ip(_start);
+        state.address_registers[REG_SP] = state.stack_start;
+        state.address_registers[REG_BP] = state.stack_start;
         // clear_cache(&cache);
 
         while (state.alive) {
-            debug__set_ip(&debug, state.ip);
-            ASSERT(state.ip >= state.code && state.ip < state.code + state.code_size);
-            uint8_t ins = *state.ip++;
+            debug__set_ip(&debug, state.code_cur);
+            ASSERT(state.code_cur >= state.code_start && state.code_cur < state.code_end);
+            uint8_t ins = *state.code_cur++;
             switch (ins) {
                 case INS_PUSH: {
                     reg_t n;
-                    CODE_POP(state.ip, reg_t, n);
+                    CODE_POP(state.code_cur, reg_t, n);
                     STACK_PUSH(&state, reg_t, n);
                 } break ;
                 case INS_PUSH_TYPE: {
+                    // todo: ffi's return type promotes to at least register-size
                     uint64_t alignment;
                     uint64_t size;
-                    CODE_POP(state.ip, uint64_t, alignment);
-                    CODE_POP(state.ip, uint64_t, size);
+                    CODE_POP(state.code_cur, uint64_t, alignment);
+                    CODE_POP(state.code_cur, uint64_t, size);
                     ASSERT(state.stack_aligned_top < state.stack_aligned_size && "Stack aligned metadata overflow");
                     state.stack_aligned[state.stack_aligned_top++] = state.address_registers[REG_SP];
                     uint64_t remainder = ((uint64_t) state.address_registers[REG_SP]) % alignment;
@@ -486,12 +512,12 @@ int main() {
                 } break ;
                 case INS_PUSHF: {
                     regf_t n;
-                    CODE_POP(state.ip, regf_t, n);
+                    CODE_POP(state.code_cur, regf_t, n);
                     STACK_PUSH(&state, regf_t, n);
                 } break ;
                 case INS_PUSH_REG: {
                     address_register_type_t reg;
-                    CODE_POP(state.ip, uint8_t, reg);
+                    CODE_POP(state.code_cur, uint8_t, reg);
                     ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
                     uint8_t* result = state.address_registers[reg];
                     ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
@@ -513,7 +539,7 @@ int main() {
                 case INS_POP_REG: {
                     reg_t result;
                     address_register_type_t reg;
-                    CODE_POP(state.ip, uint8_t, reg);
+                    CODE_POP(state.code_cur, uint8_t, reg);
                     STACK_POP(&state, reg_t, result);
                     state.address_registers[reg] = (uint8_t*) result;
 
@@ -522,8 +548,8 @@ int main() {
                 case INS_MOV_REG: {
                     address_register_type_t dst_reg;
                     address_register_type_t src_reg;
-                    CODE_POP(state.ip, uint8_t, dst_reg);
-                    CODE_POP(state.ip, uint8_t, src_reg);
+                    CODE_POP(state.code_cur, uint8_t, dst_reg);
+                    CODE_POP(state.code_cur, uint8_t, src_reg);
                     ASSERT(dst_reg < _ADDRESS_REGISTER_TYPE_SIZE);
                     ASSERT(src_reg < _ADDRESS_REGISTER_TYPE_SIZE);
                     state.address_registers[dst_reg] = state.address_registers[src_reg];
@@ -675,27 +701,27 @@ int main() {
                 } break ;
                 case INS_JMP: {
                     uint8_t* addr;
-                    CODE_POP(state.ip, uint8_t*, addr);
-                    state.ip = addr;
+                    CODE_POP(state.code_cur, uint8_t*, addr);
+                    state.code_cur = addr;
                 } break ;
                 case INS_JZ: {
                     uint8_t* addr;
                     reg_t a;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, a);
                     if (a == 0) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JZF: {
                     uint8_t* addr;
                     regf_t a;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, a);
                     if (a == 0.0) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JL: {
@@ -703,11 +729,11 @@ int main() {
                     reg_t a;
                     reg_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
                     if (a < b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JLF: {
@@ -715,11 +741,11 @@ int main() {
                     regf_t a;
                     regf_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
                     if (a < b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JG: {
@@ -727,11 +753,11 @@ int main() {
                     reg_t a;
                     reg_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
                     if (a > b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JGF: {
@@ -739,11 +765,11 @@ int main() {
                     regf_t a;
                     regf_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
                     if (a > b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JE: {
@@ -751,11 +777,11 @@ int main() {
                     reg_t a;
                     reg_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
                     if (a == b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JEF: {
@@ -763,11 +789,11 @@ int main() {
                     regf_t a;
                     regf_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
                     if (a == b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JLE: {
@@ -775,11 +801,11 @@ int main() {
                     reg_t a;
                     reg_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
                     if (a <= b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JLEF: {
@@ -787,11 +813,11 @@ int main() {
                     regf_t a;
                     regf_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
                     if (a <= b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JGE: {
@@ -799,11 +825,11 @@ int main() {
                     reg_t a;
                     reg_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, reg_t, b);
                     STACK_POP(&state, reg_t, a);
                     if (a >= b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_JGEF: {
@@ -811,20 +837,20 @@ int main() {
                     regf_t a;
                     regf_t b;
                     uint8_t bytes;
-                    CODE_POP(state.ip, uint8_t*, addr);
+                    CODE_POP(state.code_cur, uint8_t*, addr);
                     STACK_POP(&state, regf_t, b);
                     STACK_POP(&state, regf_t, a);
                     if (a >= b) {
-                        state.ip = addr;
+                        state.code_cur = addr;
                     }
                 } break ;
                 case INS_LOAD: {
                     address_register_type_t reg;
                     int16_t offset;
                     uint8_t size;
-                    CODE_POP(state.ip, uint8_t, reg);
-                    CODE_POP(state.ip, int16_t, offset);
-                    CODE_POP(state.ip, uint8_t, size);
+                    CODE_POP(state.code_cur, uint8_t, reg);
+                    CODE_POP(state.code_cur, int16_t, offset);
+                    CODE_POP(state.code_cur, uint8_t, size);
                     ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
                     ASSERT(size <= 8);
                     STACK_CHECK(&state, state.address_registers[REG_SP] + size);
@@ -842,12 +868,12 @@ int main() {
                     address_register_type_t reg;
                     int16_t offset;
                     uint8_t size;
-                    CODE_POP(state.ip, uint8_t, reg);
-                    CODE_POP(state.ip, int16_t, offset);
-                    CODE_POP(state.ip, uint8_t, size);
+                    CODE_POP(state.code_cur, uint8_t, reg);
+                    CODE_POP(state.code_cur, int16_t, offset);
+                    CODE_POP(state.code_cur, uint8_t, size);
                     ASSERT(reg < _ADDRESS_REGISTER_TYPE_SIZE);
                     ASSERT(size <= 8);
-                    debug__push_stack_delta(&debug, state.address_registers[REG_SP], size);
+                    debug__push_stack_delta(&debug, state.address_registers[REG_SP] -(int64_t) sizeof(reg_t), size);
                     memmove(state.address_registers[reg] + offset, state.address_registers[REG_SP] -(int64_t) sizeof(reg_t), size);
                     STACK_GROW(&state, -(int64_t) sizeof(reg_t));
 
@@ -855,17 +881,21 @@ int main() {
                 } break ;
                 case INS_CALL_INTERNAL: {
                     type_internal_function_t* internal_function;
-                    CODE_POP(state.ip, type_internal_function_t*, internal_function);
+
+                    CODE_POP(state.code_cur, type_internal_function_t*, internal_function);
 
                     debug__push_ins_arg(&debug, internal_function->name);
 
-                    STACK_PUSH(&state, uint8_t*, state.ip);
-                    state.ip = type_internal_function__start_ip(internal_function);
+                    STACK_PUSH(&state, uint8_t*, state.code_cur);
+                    state.code_cur = type_internal_function__start_ip(internal_function);
                 } break ;
                 case INS_CALL_EXTERNAL: {
-                    ASSERT(false && "todo: implement");
+                    /* stack layout (top-down) when called
+                        arguments of builtin function
+                        return value of builtin function
+                    */
                     type_external_function_t* external_function;
-                    CODE_POP(state.ip, type_external_function_t*, external_function);
+                    CODE_POP(state.code_cur, type_external_function_t*, external_function);
 
                     debug__push_ins_arg(&debug, external_function->name);
 
@@ -877,7 +907,7 @@ int main() {
                         return value of builtin function
                     */
                     type_builtin_function_t* builtin_function;
-                    CODE_POP(state.ip, type_builtin_function_t*, builtin_function);
+                    CODE_POP(state.code_cur, type_builtin_function_t*, builtin_function);
 
                     debug__push_ins_arg(&debug, builtin_function->name);
 
@@ -887,14 +917,14 @@ int main() {
                     uint8_t* addr;
                     uint16_t number_of_arguments;
                     STACK_POP(&state, uint8_t*, addr);
-                    CODE_POP(state.ip, uint16_t, number_of_arguments);
+                    CODE_POP(state.code_cur, uint16_t, number_of_arguments);
                     ASSERT(state.stack_aligned_top >= number_of_arguments && "Stack aligned metadata underflow");
                     state.stack_aligned_top -= number_of_arguments;
                     if (number_of_arguments > 0) {
                         uint8_t* new_sp = state.stack_aligned[state.stack_aligned_top];
                         SP_SET(&state, new_sp);
                     }
-                    state.ip = addr;
+                    state.code_cur = addr;
                 } break ;
                 case INS_EXIT: {
                     state.alive = false;

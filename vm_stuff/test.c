@@ -40,7 +40,7 @@ b_t fn3() {
     };
 }
 
-uint64_t fact(uint64_t a) {
+int32_t fact(uint64_t a) {
     if (a == 0) {
         return 1;
     }

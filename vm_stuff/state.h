@@ -9,9 +9,13 @@
 # include "shared_lib.h"
 
 typedef enum address_register_type {
-    REG_SP,
-    REG_BP,
-    REG_ADDR1,
+    REG_IP,
+    REG_REG_BP,
+    REG_REG_SP,
+    REG_RET_IP_SP,
+    REG_ARG_TYPES_SP,
+    REG_RET_VAL_TYPES_SP,
+    REG_LOCAL_TYPES_SP,
 
     _ADDRESS_REGISTER_TYPE_SIZE
 } address_register_type_t;
@@ -19,20 +23,36 @@ typedef enum address_register_type {
 const char* address_register_type__to_str(address_register_type_t reg);
 
 typedef struct state {
-    uint8_t* ip;
-    uint8_t* code;
-    uint32_t code_size;
+    uint8_t* code_start;
+    uint8_t* code_end;
 
-    uint8_t* stack;
-    uint8_t* stack_end;
+    // for ALU operations, and memory access
+    uint8_t* register_stack_start;
+    uint8_t* register_stack_end;
+
+    uint8_t* return_ip_stack_start;
+    uint8_t* return_ip_stack_end;
+
+    // the offset stack is to determine the alignment during pop_type
+    uint8_t*  argument_types_stack_start;
+    uint8_t*  argument_types_stack_end;
+    uint32_t* argument_types_offset_stack_cur;
+    uint32_t* argument_types_offset_stack_start;
+    uint32_t* argument_types_offset_stack_end;
+
+    uint8_t*  return_value_types_stack_start;
+    uint8_t*  return_value_types_stack_end;
+    uint32_t* return_value_offset_stack_cur;
+    uint32_t* return_value_offset_stack_start;
+    uint32_t* return_value_offset_stack_end;
+
+    uint8_t*  local_types_stack_start;
+    uint8_t*  local_types_stack_end;
+    uint32_t* local_types_offset_stack_cur;
+    uint32_t* local_types_offset_stack_start;
+    uint32_t* local_types_offset_stack_end;
 
     uint8_t* address_registers[_ADDRESS_REGISTER_TYPE_SIZE];
-
-    // for push/pop aligned instructions, this metadata is stored, as otherwise
-    // the extra space pushed for aligning is undeterminable during pop
-    uint8_t** stack_aligned;
-    uint32_t  stack_aligned_top;
-    uint32_t  stack_aligned_size;
 
     reg_t exit_status_code;
 
