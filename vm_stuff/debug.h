@@ -7,57 +7,81 @@
 # include <stdbool.h>
 
 # include "types.h"
-# include "state.h"
+# include "buffer.h"
 
 #define ASSERT(cond) do { \
     if (!(cond)) { \
         if (!debug.panic_mode) { \
             debug.panic_mode = true; \
-            if ( \
-                debug.byte_code_top > 0 || \
-                debug.instruction_operand_top > 0 \
-            ) { \
-                debug__dump_line(&debug, debug.runtime_code_file); \
-            } \
+            debug__dump_line(&debug, DEBUG_OUT_MODE_RUNTIME_CODE); \
+            debug__clear_line(&debug); \
             debug__destroy(&debug); \
         } \
         assert(cond); \
     } \
 } while (false)
 
+typedef enum debug_buffer_type {
+    DEBUG_BUFFER_TYPE_IP,
+    DEBUG_BUFFER_TYPE_INS_BYTECODE,
+    DEBUG_BUFFER_TYPE_INS_MNEMONIC,
+    DEBUG_BUFFER_TYPE_INS_OPERAND,
+    DEBUG_BUFFER_TYPE_RETURN_IP,
+    DEBUG_BUFFER_TYPE_REGISTER,
+    DEBUG_BUFFER_TYPE_REGISTERF,
+    DEBUG_BUFFER_TYPE_ARG_TYPE,
+    DEBUG_BUFFER_TYPE_RET_TYPE,
+    DEBUG_BUFFER_TYPE_LOC_TYPE,
+
+    _DEBUG_BUFFER_TYPE_SIZE
+} debug_buffer_type_t;
+
+typedef struct debug_buffer {
+    buffer_t    buffer;
+    const char* name;
+    uint32_t    format_len;
+} debug_buffer_t;
+
+bool debug_buffer__create(debug_buffer_t* self, const char* name, uint32_t format_len, uint32_t max_size);
+void debug_buffer__destroy(debug_buffer_t* self);
+
+typedef enum debug_out_mode {
+    DEBUG_OUT_MODE_COMPILE,
+    DEBUG_OUT_MODE_RUNTIME_CODE,
+    DEBUG_OUT_MODE_RUNTIME_STACK,
+
+    _DEBUG_OUT_MODE_SIZE
+} debug_out_mode_t;
+
+typedef struct debug_out {
+    FILE*                   fp;
+    uint32_t                supported_types_top;
+    debug_buffer_type_t     supported_types[_DEBUG_BUFFER_TYPE_SIZE];
+} debug_out_t;
+
 typedef struct debug {
-    uint8_t*    ip;
+    const char*     fn;
 
-    uint32_t    byte_code_top;
-    char        byte_code[128];
+    const char*     debug_buffer_separator;
+    debug_buffer_t  debug_buffer[_DEBUG_BUFFER_TYPE_SIZE];
+    debug_out_t     debug_out[_DEBUG_OUT_MODE_SIZE];
 
-    uint32_t    instruction_operand_top;
-    char        instruction_operand[256];
-
-    uint32_t    stack_delta_top;
-    char        stack_delta[256];
-
-    const char* fn;
-
-    state_t*    state;
-
-    FILE*       compiled_code_file;
-    FILE*       runtime_code_file;
-    FILE*       runtime_stack_file;
-
-    bool        panic_mode;
+    bool            panic_mode;
 } debug_t;
 
 extern debug_t debug;
 
-void debug__create(debug_t* self, state_t* state);
+bool debug__create(debug_t* self);
 void debug__destroy(debug_t* self);
 
-void debug__set_ip(debug_t* self, uint8_t* ip);
 void debug__set_fn(debug_t* self, const char* fn);
-void debug__push_code(debug_t* self, uint8_t* bytes, uint32_t bytes_size);
-void debug__push_ins_arg(debug_t* self, const char* str);
-void debug__push_stack_delta(debug_t* self, uint8_t* bytes, uint32_t bytes_size);
-void debug__dump_line(debug_t* self, FILE* fp);
+void debug__push_flt(debug_t* self, debug_buffer_type_t type, double a);
+void debug__push_int(debug_t* self, debug_buffer_type_t type, int64_t a);
+void debug__push_bin(debug_t* self, debug_buffer_type_t type, uint64_t a);
+void debug__push_hex(debug_t* self, debug_buffer_type_t type, uint8_t* bytes, uint32_t bytes_size);
+void debug__push_str(debug_t* self, debug_buffer_type_t type, const char* str);
+void debug__push_ptr(debug_t* self, debug_buffer_type_t type, uint8_t* ptr);
+void debug__dump_line(debug_t* self, debug_out_mode_t out_mode);
+void debug__clear_line(debug_t* self);
 
 #endif // DEBUG_H

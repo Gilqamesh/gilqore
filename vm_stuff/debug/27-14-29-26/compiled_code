@@ -1,0 +1,18 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007fff651f3028     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f2f88     4010e38da3c21188                       PUSHF                   4.222                                             
+00007fff651f3018                                            ADDF                                                                      
+00007fff651f30d8                                            PRINTF                                                                    
+00007fff651f3148                                            RET                                                                       
+00007fff651f3148                                            RET                                                                       
+00007fff651f3028     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f2f88     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f3018                                            ADDF                                                                      
+00007fff651f2f88     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f3018                                            ADDF                                                                      
+00007fff651f2f88     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f3018                                            ADDF                                                                      
+00007fff651f2f88     4002666666666666                       PUSHF                   2.300                                             
+00007fff651f3018                                            ADDF                                                                      
+00007fff651f30d8                                            PRINTF                                                                    
+00007fff651f3148                                            RET                                                                       

@@ -1,0 +1,60 @@
+ip                   ins mnemonic            return ip           register            registerf           argument type       return type         local type      
+00007fff322a3ed8     PUSH                                        0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         00007fff322a4268                                                                                
+00007fff322a3ed8     PRINT                                       00007fff322a4310                                                                                
+00007fff322a3ed8     RET                                                                                                                                         
+00007fff322a3ed8     PUSH                                        0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         00007fff322a4268                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     PRINT                                       00007fff322a4310                                                                                
+00007fff322a3ed8     RET                                                                                                                                         
+00007fff322a3ed8     PUSH                                        0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         00007fff322a4268                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     NEG                                         0000000000000002                                                                                
+00007fff322a3ed8     NEG                                         fffffffffffffffe                                                                                
+00007fff322a3ed8     PRINT                                       00007fff322a4310                                                                                
+00007fff322a3ed8     RET                                                                                                                                         
+00007fff322a3ed8     PUSHF                                                           4002666666666666                                                            
+00007fff322a3ed8     NEGF                                                            0000000000409429                                                            
+00007fff322a3ed8     PRINTF                                                          000000000133f810                                                            
+00007fff322a3ed8     RET                                                                                                                                         
+00007fff322a3ed8     PUSH                                        0000000000000002                                                                                
+00007fff322a3ed8     PUSHF                                                           4002666666666666                                                            
+00007fff322a3ed8     NEGF                                                            0000000000409429                                                            
+00007fff322a3ed8     CVTI2F                                      0000000000407785    4000000000000000                                                            
+00007fff322a3ed8     ADDF                                                            01007f00322a43a0                                                            
+00007fff322a3ed8     PRINTF                                                          0000000001344f90                                                            
+00007fff322a3ed8     RET                                                                                                                                         
+00007fff322a3ed8     PUSH                                        0000000000000027                                                                                

@@ -1,6 +1,0 @@
-ip                   ins bytecode                           ins mnemonic            ins operand         
-
-main:
-0000560e37f752a0:    01                                     PUSH_REG                                    
-0000560e37f752a2:    01 00                                  MOV_REG                                     
-0000560e37f752a5:    0000000000000008 0000000000000008      PUSH_TYPE                                   

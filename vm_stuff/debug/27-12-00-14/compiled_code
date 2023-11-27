@@ -1,0 +1,8 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007ffe16e5d0f8     0000000000000002                       PUSH                    2                                                 
+00007ffe16e5d058     400999999999999a                       PUSHF                   3.200                                             
+00007ffe16e5d088                                            CVTI2F                                                                    
+00007ffe16e5d0e8                                            ADDF                                                                      
+00007ffe16e5d1a8                                            PRINTF                                                                    
+00007ffe16e5d228                                            RET                                                                       
+00007ffe16e5d228                                            RET                                                                       

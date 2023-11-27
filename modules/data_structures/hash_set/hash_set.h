@@ -7,6 +7,7 @@
 
 typedef void hash_set_key_t;
 
+// static hash_set
 typedef struct hash_set {
     u32                 size_of_key;
     u32                 fill;
@@ -15,6 +16,9 @@ typedef struct hash_set {
     u32                 (*hash_fn)(const hash_set_key_t*);
     bool                (*eq_fn)(const hash_set_key_t*, const hash_set_key_t*);
 } hash_set_t;
+
+// use this to measure how much memory is necessary
+uint32_t hash_set__entry_size(uint32_t size_of_key);
 
 PUBLIC_API bool hash_set__create(hash_set_t* self, memory_slice_t max_memory, u32 size_of_key, u32 (*hash_fn)(const hash_set_key_t*), bool (*eq_fn)(const hash_set_key_t*, const hash_set_key_t*));
 

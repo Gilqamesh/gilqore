@@ -8,33 +8,143 @@
 
 debug_t debug;
 
-static const char* first_col    = "ip";
-static const char* second_col   = "ins bytecode";
-static const char* third_col    = "ins mnemonic";
-static const char* forth_col    = "ins operand";
-static const char* fifth_col    = "stack delta";
-static const char* sixth_col    = "bp";
-static const char* seventh_col  = "sp";
+static uint32_t _debug__push_bin(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint64_t a);
+static uint32_t _debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size);
+static uint32_t _debug__push_int(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, int64_t a);
+static uint32_t _debug__push_flt(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, double a);
 
-static const uint32_t col_padding = 4;
-static const uint32_t first_col_len  = max(sizeof(first_col),  sizeof(uint64_t) * 2 + 1 /* : */);
-static const uint32_t second_col_len = max(sizeof(second_col), 2 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 2) - 1);
-static const uint32_t third_col_len  = max(sizeof(third_col),  20);
-static const uint32_t forth_col_len  = max(sizeof(forth_col),  20);
-static const uint32_t fifth_col_len  = max(sizeof(forth_col),  3 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 3) - 1);
-static const uint32_t sixth_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
-static const uint32_t seventh_col_len  = max(sizeof(fifth_col),  sizeof(uint64_t) * 2);
+uint32_t print_bin(uint64_t a, uint8_t* buffer_cur, uint8_t* buffer_end) {
+    ASSERT(buffer_cur < buffer_end);
+    if (a < 2) {
+        *buffer_cur = (a & 1) ? '1': '0';
+        return 1;
+    }
 
-static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size);
+    *buffer_cur++ = (a & 1) ? '1': '0';
+    
+    return 1 + print_bin(a >> 1, buffer_cur, buffer_end);
+}
 
-void debug__create(debug_t* self, state_t* state) {
+static uint32_t _debug__push_bin(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint64_t a) {
+    uint8_t* buffer_top_start = buffer_top;
+
+    ASSERT(buffer_top < buffer_end);
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+
+    uint32_t written_bytes = print_bin(a, buffer_top, buffer_end);
+    uint8_t* bytes_to_flip = buffer_top;
+    buffer_top += written_bytes;
+
+    // flip
+    for (uint32_t byte_offset = 0; byte_offset < written_bytes / 2; ++byte_offset) {
+        uint8_t tmp = *(bytes_to_flip + byte_offset);
+        *(bytes_to_flip + byte_offset) = *(bytes_to_flip + written_bytes - 1 - byte_offset);
+        *(bytes_to_flip + written_bytes - 1 - byte_offset) = tmp;
+    }
+
+    ASSERT(buffer_top < buffer_end);
+    *buffer_top = '\0';
+
+    return buffer_top - buffer_top_start;
+}
+
+static uint32_t _debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size) {
+    bytes = bytes + bytes_size;
+    uint8_t* buffer_top_start = buffer_top;
+
+    ASSERT(buffer_top < buffer_end);
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+
+    for (uint32_t bytes_index = 0; bytes_index < bytes_size; ++bytes_index) {
+        ASSERT(buffer_top + 2 < buffer_end);
+        int32_t bytes_written = snprintf(
+            (char*) buffer_top, buffer_end - buffer_top,
+            "%02x", (int32_t) *--bytes
+        );
+        ASSERT(bytes_written == 2);
+        buffer_top += bytes_written;
+    }
+
+    return buffer_top - buffer_top_start;
+}
+
+static uint32_t _debug__push_int(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, int64_t a) {
+    uint8_t* buffer_top_start = buffer_top;
+    ASSERT(buffer_top < buffer_end);
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+    int32_t bytes_written = snprintf((char*) buffer_top, buffer_end - buffer_top, "%ld", a);
+    buffer_top += bytes_written;
+
+    return buffer_top - buffer_top_start;
+}
+
+static uint32_t _debug__push_flt(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, double a) {
+    uint8_t* buffer_top_start = buffer_top;
+    ASSERT(buffer_top < buffer_end);
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+    int32_t bytes_written = snprintf((char*) buffer_top, buffer_end - buffer_top, "%.3lf", a);
+    buffer_top += bytes_written;
+
+    return buffer_top - buffer_top_start;
+}
+
+bool debug_buffer__create(debug_buffer_t* self, const char* name, uint32_t format_len, uint32_t max_size) {
+    self->name = name;
+    self->format_len = max(strlen(name), format_len);
+    if (!buffer__create(&self->buffer, max_size)) {
+        return false;
+    }
+
+    return true;
+}
+
+void debug_buffer__destroy(debug_buffer_t* self) {
+    (void) self;
+}
+
+bool debug__create(debug_t* self) {
     memset(self, 0, sizeof(*self));
 
-    self->state = state;
+    self->debug_buffer_separator = "    ";
 
-    const char* compiled_code_file_str = "compiled_code";
-    const char* runtime_code_file_str = "runtime_code";
-    const char* runtime_stack_file_str = "runtime_stack";
+    const char* debug_buffer_name[_DEBUG_BUFFER_TYPE_SIZE] = {
+        [DEBUG_BUFFER_TYPE_IP]              = "ip",
+        [DEBUG_BUFFER_TYPE_INS_BYTECODE]    = "ins bytecode",
+        [DEBUG_BUFFER_TYPE_INS_MNEMONIC]    = "ins mnemonic",
+        [DEBUG_BUFFER_TYPE_INS_OPERAND]     = "ins operand",
+        [DEBUG_BUFFER_TYPE_RETURN_IP]       = "return ip",
+        [DEBUG_BUFFER_TYPE_REGISTER]        = "register",
+        [DEBUG_BUFFER_TYPE_REGISTERF]       = "registerf",
+        [DEBUG_BUFFER_TYPE_ARG_TYPE]        = "argument type",
+        [DEBUG_BUFFER_TYPE_RET_TYPE]        = "return type",
+        [DEBUG_BUFFER_TYPE_LOC_TYPE]        = "local type"
+    };
+    const uint32_t debug_buffer_format_len[_DEBUG_BUFFER_TYPE_SIZE] = {
+        [DEBUG_BUFFER_TYPE_IP]              = sizeof(uint64_t) * 2 + 1 /* : */,
+        [DEBUG_BUFFER_TYPE_INS_BYTECODE]    = 2 * (2 * max(sizeof(reg_t), sizeof(regf_t)) + 2) - 1,
+        [DEBUG_BUFFER_TYPE_INS_MNEMONIC]    = 20,
+        [DEBUG_BUFFER_TYPE_INS_OPERAND]     = 50,
+        [DEBUG_BUFFER_TYPE_RETURN_IP]       = sizeof(uint8_t*) * 2,
+        [DEBUG_BUFFER_TYPE_REGISTER]        = sizeof(reg_t) * 2,
+        [DEBUG_BUFFER_TYPE_REGISTERF]       = sizeof(regf_t) * 2,
+        [DEBUG_BUFFER_TYPE_ARG_TYPE]        = sizeof(uint8_t*) * 2,
+        [DEBUG_BUFFER_TYPE_RET_TYPE]        = sizeof(uint8_t*) * 2,
+        [DEBUG_BUFFER_TYPE_LOC_TYPE]        = sizeof(uint8_t*) * 2
+    };
+    ASSERT(sizeof(debug_buffer_name)/sizeof(debug_buffer_name[0]) == _DEBUG_BUFFER_TYPE_SIZE);
+    for (uint32_t debug_buffer_index = 0; debug_buffer_index < _DEBUG_BUFFER_TYPE_SIZE; ++debug_buffer_index) {
+        if (!debug_buffer__create(&self->debug_buffer[debug_buffer_index], debug_buffer_name[debug_buffer_index], debug_buffer_format_len[debug_buffer_index], 256)) {
+            return false;
+        }
+    }
 
     char dir_buffer[128];
     time_t cur_time = time(0);
@@ -48,163 +158,160 @@ void debug__create(debug_t* self, state_t* state) {
     ASSERT(mkdir(dir_buffer, 0777) == 0);
     ASSERT(access(dir_buffer, F_OK) == 0);
 
+    const char* out_paths[_DEBUG_OUT_MODE_SIZE] = {
+        [DEBUG_OUT_MODE_COMPILE]        = "compiled_code",
+        [DEBUG_OUT_MODE_RUNTIME_CODE]   = "runtime_code",
+        [DEBUG_OUT_MODE_RUNTIME_STACK]  = "runtime_stack"
+    };
+
+    const debug_buffer_type_t debug_out_supported_types[_DEBUG_OUT_MODE_SIZE][_DEBUG_BUFFER_TYPE_SIZE] = {
+        [DEBUG_OUT_MODE_COMPILE] = { // DEBUG_OUT_MODE_COMPILE
+            DEBUG_BUFFER_TYPE_IP,
+            DEBUG_BUFFER_TYPE_INS_BYTECODE,
+            DEBUG_BUFFER_TYPE_INS_MNEMONIC,
+            DEBUG_BUFFER_TYPE_INS_OPERAND,
+
+            _DEBUG_BUFFER_TYPE_SIZE
+        },
+        [DEBUG_OUT_MODE_RUNTIME_CODE] = { // DEBUG_OUT_MODE_RUNTIME_CODE
+            DEBUG_BUFFER_TYPE_IP,
+            DEBUG_BUFFER_TYPE_INS_BYTECODE,
+            DEBUG_BUFFER_TYPE_INS_MNEMONIC,
+            DEBUG_BUFFER_TYPE_INS_OPERAND,
+
+            _DEBUG_BUFFER_TYPE_SIZE
+        },
+        [DEBUG_OUT_MODE_RUNTIME_STACK] = { // DEBUG_OUT_MODE_RUNTIME_STACK
+            DEBUG_BUFFER_TYPE_IP,
+            DEBUG_BUFFER_TYPE_INS_MNEMONIC,
+            DEBUG_BUFFER_TYPE_RETURN_IP,
+            DEBUG_BUFFER_TYPE_REGISTER,
+            DEBUG_BUFFER_TYPE_REGISTERF,
+            DEBUG_BUFFER_TYPE_ARG_TYPE,
+            DEBUG_BUFFER_TYPE_RET_TYPE,
+            DEBUG_BUFFER_TYPE_LOC_TYPE,
+
+            _DEBUG_BUFFER_TYPE_SIZE
+        }
+    };
+
     char path_buffer[256];
+    ASSERT(sizeof(debug_out_supported_types)/sizeof(debug_out_supported_types[0]) == _DEBUG_OUT_MODE_SIZE);
+    for (uint32_t debug_out_index = 0; debug_out_index < _DEBUG_OUT_MODE_SIZE; ++debug_out_index) {
+        snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, out_paths[debug_out_index]);
+        debug_out_t* debug_out = &self->debug_out[debug_out_index];
+        debug_out->fp = fopen(path_buffer, "w");
+        debug_out->supported_types_top = 0;
+        for (uint32_t debug_out_supported_types_index = 0; debug_out_supported_types_index < _DEBUG_BUFFER_TYPE_SIZE; ++debug_out_supported_types_index) {
+            debug_buffer_type_t supported_type = debug_out_supported_types[debug_out_index][debug_out_supported_types_index];
+            if (supported_type == _DEBUG_BUFFER_TYPE_SIZE) {
+                break ;
+            }
+            if (debug_out_supported_types_index > 0) {
+                fprintf(debug_out->fp, "%s", self->debug_buffer_separator);
+            }
+            fprintf(debug_out->fp, "%-*.*s", self->debug_buffer[supported_type].format_len, self->debug_buffer[supported_type].format_len, self->debug_buffer[supported_type].name);
+            debug_out->supported_types[debug_out->supported_types_top++] = supported_type;
+        }
+        fprintf(debug_out->fp, "\n");
+    }
 
-    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, compiled_code_file_str);
-    self->compiled_code_file = fopen(path_buffer, "w");
-    fprintf(
-        self->compiled_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
-        first_col_len, first_col_len, first_col, 
-        col_padding, ' ', second_col_len, second_col_len, second_col,
-        col_padding, ' ', third_col_len, third_col_len, third_col,
-        col_padding, ' ', forth_col_len, forth_col_len, forth_col
-        // col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        // col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
-        // col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
-    );
-
-    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_code_file_str);
-    self->runtime_code_file = fopen(path_buffer, "w");
-    fprintf(
-        self->runtime_code_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
-        first_col_len, first_col_len, first_col, 
-        col_padding, ' ', second_col_len, second_col_len, second_col,
-        col_padding, ' ', third_col_len, third_col_len, third_col,
-        col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
-        col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
-    );
-
-    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, runtime_stack_file_str);
-    self->runtime_stack_file = fopen(path_buffer, "w");
-    fprintf(
-        self->runtime_stack_file,
-        "%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s%*c%-*.*s\n",
-        first_col_len, first_col_len, first_col, 
-        col_padding, ' ', second_col_len, second_col_len, second_col,
-        col_padding, ' ', third_col_len, third_col_len, third_col,
-        col_padding, ' ', forth_col_len, forth_col_len, forth_col,
-        col_padding, ' ', fifth_col_len, fifth_col_len, fifth_col,
-        col_padding, ' ', sixth_col_len, sixth_col_len, sixth_col,
-        col_padding, ' ', seventh_col_len, seventh_col_len, seventh_col
-    );
+    return true;
 }
 
 void debug__destroy(debug_t* self) {
-    fclose(self->compiled_code_file);
-    fclose(self->runtime_code_file);
-    fclose(self->runtime_stack_file);
-}
-
-void debug__set_ip(debug_t* self, uint8_t* ip) {
-    self->ip = ip;
+    for (uint32_t debug_out_index = 0; debug_out_index < _DEBUG_OUT_MODE_SIZE; ++debug_out_index) {
+        fclose(self->debug_out[debug_out_index].fp);
+    }
 }
 
 void debug__set_fn(debug_t* self, const char* fn) {
     self->fn = fn;
 }
 
-static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size) {
-    bytes = bytes + bytes_size;
-    uint8_t* buffer_top_start = buffer_top;
-
-    ASSERT(buffer_top < buffer_end);
-    if (buffer_top > buffer_start) {
-        *buffer_top++ = ' ';
-    }
-
-    for (uint32_t bytes_index = 0; bytes_index < bytes_size; ++bytes_index) {
-        ASSERT(buffer_top + 2 < buffer_end);
-        int32_t bytes_written = snprintf(
-            buffer_top, buffer_end - buffer_top,
-            "%02x", (int32_t) *--bytes
-        );
-        ASSERT(bytes_written == 2);
-        buffer_top += bytes_written;
-    }
-
-    return buffer_top - buffer_top_start;
+void debug__push_flt(debug_t* self, debug_buffer_type_t type, double a) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
+    self->debug_buffer[type].buffer.cur += _debug__push_flt(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, a);
 }
 
-void debug__push_code(debug_t* self, uint8_t* bytes, uint32_t bytes_size) {
-    self->byte_code_top += debug__push_hex(self->byte_code, self->byte_code + self->byte_code_top, self->byte_code + sizeof(self->byte_code), bytes, bytes_size);
+void debug__push_int(debug_t* self, debug_buffer_type_t type, int64_t a) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
+    self->debug_buffer[type].buffer.cur += _debug__push_int(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, a);
 }
 
-void debug__push_ins_arg(debug_t* self, const char* str) {
-    ASSERT(self->instruction_operand_top < sizeof(self->instruction_operand));
-    if (self->instruction_operand_top > 0) {
-        self->instruction_operand[self->instruction_operand_top++] = ' ';
-    }
+void debug__push_bin(debug_t* self, debug_buffer_type_t type, uint64_t a) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
+    self->debug_buffer[type].buffer.cur += _debug__push_bin(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, a);
+}
+
+void debug__push_hex(debug_t* self, debug_buffer_type_t type, uint8_t* bytes, uint32_t bytes_size) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
+    self->debug_buffer[type].buffer.cur += _debug__push_hex(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, bytes, bytes_size);
+}
+
+void debug__push_str(debug_t* self, debug_buffer_type_t type, const char* str) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
     size_t str_len = strlen(str);
+    ASSERT(self->debug_buffer[type].buffer.cur + str_len < self->debug_buffer[type].buffer.end);
+    if (self->debug_buffer[type].buffer.cur > self->debug_buffer[type].buffer.start) {
+        *self->debug_buffer[type].buffer.cur++ = ' ';
+    }
     ASSERT(
         snprintf(
-            self->instruction_operand + self->instruction_operand_top, sizeof(self->instruction_operand) - self->instruction_operand_top,
+            (char*) self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end - self->debug_buffer[type].buffer.cur,
             "%s", str
-        ) == str_len
+        ) == (int) str_len
     );
-    self->instruction_operand_top += str_len;
+    self->debug_buffer[type].buffer.cur += str_len;
 }
 
-void debug__push_stack_delta(debug_t* self, uint8_t* bytes, uint32_t bytes_size) {
-    self->stack_delta_top += debug__push_hex(self->stack_delta, self->stack_delta + self->stack_delta_top, self->stack_delta + sizeof(self->stack_delta), bytes, bytes_size);
+void debug__push_ptr(debug_t* self, debug_buffer_type_t type, uint8_t* ptr) {
+    ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
+    uint64_t ptr_val = (uint64_t) ptr;
+    uint8_t* ptr_val_p = (uint8_t*) &ptr_val;
+    ptr_val_p += sizeof(uint8_t*);
+    self->debug_buffer[type].buffer.cur += _debug__push_hex(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, ptr_val_p, sizeof(uint8_t*));
 }
 
-void debug__dump_line(debug_t* self, FILE* fp) {
+void debug__dump_line(debug_t* self, debug_out_mode_t out_mode) {
+    ASSERT(out_mode < _DEBUG_OUT_MODE_SIZE);
+    FILE* fp = self->debug_out[out_mode].fp;
+
     if (self->fn) {
         fprintf(fp, "\n%s:\n", self->fn);
         self->fn = 0;
     }
 
-    // first col
-    fprintf(fp, "%0*lx:", first_col_len - 1, (uint64_t) self->ip);
-    
-    // second col
-    fprintf(fp, "    ");
-    ASSERT(self->byte_code_top <= second_col_len);
-    if (self->byte_code_top > 0) {
-        fprintf(fp, "%-*s", second_col_len, self->byte_code);
-    } else {
-        fprintf(fp, "%*c", second_col_len, ' ');
-    }
-
-    // third col
-    fprintf(fp, "    ");
-    fprintf(fp, "%-*s", third_col_len, enum_ins__to_str((ins_t) *self->ip));
-
-    // forth col
-    fprintf(fp, "    ");
-    if (self->instruction_operand_top > 0) {
-        fprintf(fp, "%-*s", forth_col_len, self->instruction_operand);
-    } else {
-        fprintf(fp, "%*c", forth_col_len, ' ');
-    }
-
-    if (self->state->alive) {
-        // fifth col
-        fprintf(fp, "    ");
-        if (self->stack_delta_top > 0) {
-            fprintf(fp, "%-*s", fifth_col_len, self->stack_delta);
-        } else {
-            fprintf(fp, "%*c", fifth_col_len, ' ');
+    bool written_line = false;
+    for (debug_buffer_type_t debug_buffer_type = 0; debug_buffer_type < _DEBUG_BUFFER_TYPE_SIZE; ++debug_buffer_type) {
+        bool is_supported = false;
+        for (uint32_t supported_types_index = 0; supported_types_index < self->debug_out[out_mode].supported_types_top; ++supported_types_index) {
+            if (self->debug_out[out_mode].supported_types[supported_types_index] == debug_buffer_type) {
+                is_supported = true;
+                break ;
+            }
         }
-    
-        // sixth col
-        fprintf(fp, "    ");
-        fprintf(fp, "%0*lx", sixth_col_len, (uint64_t) self->state->address_registers[REG_SP]);
 
-        // seventh col
-        fprintf(fp, "    ");
-        fprintf(fp, "%0*lx", seventh_col_len, (uint64_t) self->state->address_registers[REG_SP]);
+        if (is_supported) {
+            if (!written_line) {
+                written_line = true;
+            } else {
+                fprintf(fp, "%s", self->debug_buffer_separator);
+            }
+
+            if (self->debug_buffer[debug_buffer_type].buffer.cur > self->debug_buffer[debug_buffer_type].buffer.start) {
+                fprintf(fp, "%-*.*s", self->debug_buffer[debug_buffer_type].format_len, self->debug_buffer[debug_buffer_type].format_len, self->debug_buffer[debug_buffer_type].buffer.start);
+            } else {
+                fprintf(fp, "%*c", self->debug_buffer[debug_buffer_type].format_len, ' ');
+            }
+        }
     }
-
-
     fprintf(fp, "\n");
+}
 
-    self->instruction_operand_top = 0;
-    self->byte_code_top = 0;
-    self->stack_delta_top = 0;
-    self->ip = 0;
+void debug__clear_line(debug_t* self) {
+    self->fn = 0;
+    for (debug_buffer_type_t debug_buffer_type = 0; debug_buffer_type < _DEBUG_BUFFER_TYPE_SIZE; ++debug_buffer_type) {
+        self->debug_buffer[debug_buffer_type].buffer.cur = self->debug_buffer[debug_buffer_type].buffer.start;
+    }
 }

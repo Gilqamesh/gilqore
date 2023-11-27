@@ -1,0 +1,18 @@
+ip                   ins mnemonic            return ip           register            registerf           argument type       return type         local type      
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     PUSHF                                                           4010e38da3c21188                                                            
+00007fff651f2ea8     ADDF                                                            01007f00651f3350                                                            
+00007fff651f2ea8     PRINTF                                                          0000000001fcae80                                                            
+00007fff651f2ea8     RET                                                                                                                                         
+00007fff651f2ea8     RET                                                                                                                                         
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     ADDF                                                            01007f00651f3350                                                            
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     ADDF                                                            4002666666666666                                                            
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     ADDF                                                            4002666666666666                                                            
+00007fff651f2ea8     PUSHF                                                           4002666666666666                                                            
+00007fff651f2ea8     ADDF                                                            4002666666666666                                                            
+00007fff651f2ea8     PRINTF                                                          0000000002031040                                                            
+00007fff651f2ea8     RET                                                                                                                                         

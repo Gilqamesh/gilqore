@@ -47,3 +47,56 @@ int32_t fact(uint64_t a) {
 
     return a * fact(a - 1);
 }
+
+#include <stdio.h>
+
+static uint32_t debug__push_hex(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* bytes, uint32_t bytes_size) {
+    bytes = bytes + bytes_size;
+    uint8_t* buffer_top_start = buffer_top;
+
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+
+    for (uint32_t bytes_index = 0; bytes_index < bytes_size; ++bytes_index) {
+        int32_t bytes_written = snprintf(
+            buffer_top, buffer_end - buffer_top,
+            "%02x", (int32_t) *--bytes
+        );
+        buffer_top += bytes_written;
+    }
+
+    return buffer_top - buffer_top_start;
+}
+
+static uint32_t debug__push_pointer(uint8_t* buffer_start, uint8_t* buffer_top, uint8_t* buffer_end, uint8_t* pointer) {
+    uint8_t* buffer_top_start = buffer_top;
+
+    if (buffer_top > buffer_start) {
+        *buffer_top++ = ' ';
+    }
+
+    uint64_t val = (uint64_t) pointer;
+    uint8_t* p = (uint8_t*) &val;
+    p += sizeof(uint8_t*);
+    for (uint32_t bytes_index = 0; bytes_index < sizeof(uint8_t*); ++bytes_index) {
+        int32_t bytes_written = snprintf(
+            buffer_top, buffer_end - buffer_top,
+            "%02x", (int32_t) *--p
+        );
+        buffer_top += bytes_written;
+    }
+
+    return buffer_top - buffer_top_start;
+}
+
+int main() {
+    uint8_t* ip = (uint8_t*) 0x1c0b0a0b0a0b0a0b; // I want to print 0a0b0a0b0a0b0a0b
+    
+    uint8_t buffer[128] = { 0 };
+    debug__push_pointer(buffer, buffer, buffer + 128, ip);
+    printf("%s\n", buffer);
+
+
+    return 0;
+}

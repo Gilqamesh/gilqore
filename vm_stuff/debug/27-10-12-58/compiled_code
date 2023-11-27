@@ -1,0 +1,8 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007ffced7d1bc8     0000000000000003                       PUSH                    3                                                 
+00007ffced7d1cc8                                            RET                                                                       
+00007ffced7d1bc8     0000000000000004                       PUSH                    4                                                 
+00007ffced7d1cc8                                            RET                                                                       
+00007ffced7d1cc8                                            RET                                                                       
+00007ffced7d1bc8     0000000000000003                       PUSH                    3                                                 
+00007ffced7d1cc8                                            RET                                                                       

@@ -145,7 +145,10 @@
         "xutility": "cpp",
         "assert.h": "c",
         "ins.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "stdbool.h": "c",
+        "float.h": "c",
+        "hash_map.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/gcc"
 }

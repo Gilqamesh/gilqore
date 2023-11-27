@@ -5,27 +5,21 @@
 # include <stdarg.h>
 # include <stdbool.h>
 
-#define CODE_PUSH(ip, type, a) do { \
-    *(type*) ip = a; \
-    debug__push_code(&debug, (uint8_t*)&a, sizeof(type)); \
-    ip += sizeof(type); \
+# include "buffer.h"
+
+# define IP_PUSH(ip, type, a) do { \
+    *(type*) (ip) = (a); \
+    debug__push_hex(&debug, DEBUG_BUFFER_TYPE_INS_BYTECODE, (uint8_t*)(&(a)), sizeof(type)); \
+    (ip) += sizeof(type); \
 } while (false)
-#define CODE_POP(ip, type, result) do { \
+# define IP_POP(ip, type, result) do { \
     (result) = *(type*) (ip); \
     (ip) += sizeof(type); \
-    debug__push_code(&debug, (uint8_t*)&result, sizeof(type)); \
+    debug__push_hex(&debug, DEBUG_BUFFER_TYPE_INS_BYTECODE, (uint8_t*)(&(result)), sizeof(type)); \
 } while (false)
 
-// // todo: change these into types?
-// typedef struct reg {
-//     uint64_t _;
-//     // uint64_t __;
-// } reg_t;
+// todo: change these into types?
 typedef uint64_t reg_t;
-// typedef struct regf {
-//     double _;
-//     // double __;
-// } regf_t;
 typedef double regf_t;
 
 /* ABI
@@ -84,17 +78,20 @@ typedef double regf_t;
 */
 
 typedef enum ins {
-    INS_PUSH,           // push reg_t sized integer argument onto the stack
-    INS_PUSH_TYPE,      // push sp until 64-bit alignment argument is met followed by 64-bit size argument
-    INS_PUSHF,          // push regf_t sized floating point argument onto the stack
-    INS_PUSH_REG,       // push reg argument to to stack
-    INS_POP,            // pop reg_t sized value from stack
-    INS_POP_TYPE,       // pop sp until 64-bit alignment argument is met followed by 64-bit size argument
-    INS_POPF,           // pop regf_t sized floating point from the stack
-    INS_POP_REG,        // pop stack to reg argument
-    INS_MOV_REG,
+    INS_PRINT,
+    INS_PRINTF,
 
-    /* ALU operations (between register and register) */
+    INS_PUSH,
+    INS_POP,             // pop reg_t sized value from stack
+
+    INS_PUSHF,           // push regf_t sized floating point argument onto the stack
+    INS_POPF,            // pop regf_t sized floating point from the stack
+
+    INS_PUSH_TYPE,
+    INS_POP_TYPE,
+    INS_POPN_TYPE,
+
+    /* ALU operations (between register(f) and register(f)) */
     INS_ADD,
     INS_ADDF,
     INS_SUB,
@@ -111,10 +108,21 @@ typedef enum ins {
     INS_NEGF,
     INS_INC,
     INS_DEC,
-    INS_NOT,
-    INS_XOR,
-    INS_AND,
-    INS_OR,
+
+    INS_CVTF2I,
+    INT_CVTI2F,
+
+    // logical
+    INS_LNOT,
+    INS_LAND,
+    INS_LOR,
+
+    // bitwise
+    INS_BNOT,
+    INS_BXOR,
+    INS_BAND,
+    INS_BOR,
+
     INS_JMP,
     INS_JZ,
     INS_JZF,
@@ -129,21 +137,36 @@ typedef enum ins {
     INS_JGE,
     INS_JGEF,
 
-    /* memory access (between memory and registers) */
-    INS_LOAD,           // code(addr reg, offset, max 8 size) does(push to stack from address)
-    INS_STORE,          // code(addr reg, offset, max 8 size) does(pops from stack to address)
-    // INS_STACK_LOAD,
-    // INS_STACK_STORE,
+    /*
+        memory access (between memory and registers)
+        LRA, LRAF: load atom into register(f)-buffer from aligned-buffer
+        SAR, SARF: store atom into aligned-buffer from register(f)-buffer
+        arguments:
+            - aligned buffer type
+            - offset index of type (from top of the buffer, must be positive)
+            - offset of atom (from addr of type)
+            - size of atom (max reg_size)
+        LREA: load address into register-buffer from aligned-buffer
+        arguments:
+            - aligned buffer type
+            - offset index of type (from top of the buffer, must be positive)
+            - offset of member (does not have to be an atom)
+    */
+    INS_LRA,
+    INS_LRAF,
+    INS_SAR,
+    INS_SARF,
+    INS_LREA,
 
     INS_CALL_INTERNAL,
     INS_CALL_EXTERNAL,
     INS_CALL_BUILTIN,
+
     INS_RET,
-    INS_EXIT,
-    INS_NOP
+    INS_EXIT
 } ins_t;
 
-const char* enum_ins__to_str(ins_t ins);
+const char* ins__to_str(ins_t ins);
 uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap);
 uint8_t* ins__add(ins_t ins, uint8_t* ip, ...);
 

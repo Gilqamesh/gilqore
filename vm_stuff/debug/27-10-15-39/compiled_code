@@ -1,0 +1,13 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007ffc8d977e78     0000000000000003                       PUSH                    3                                                 
+00007ffc8d977f08                                            PRINT                                                                     
+00007ffc8d977f78                                            RET                                                                       
+00007ffc8d977e78     4000000000000000                       PUSH                    4611686018427387904                               
+00007ffc8d977f08                                            PRINT                                                                     
+00007ffc8d977f78                                            RET                                                                       
+00007ffc8d977e78     3fc999999999999a                       PUSH                    4596373779694328218                               
+00007ffc8d977f08                                            PRINT                                                                     
+00007ffc8d977f78                                            RET                                                                       
+00007ffc8d977e78     4002666666666666                       PUSH                    4612361558371493478                               
+00007ffc8d977f08                                            PRINT                                                                     
+00007ffc8d977f78                                            RET                                                                       

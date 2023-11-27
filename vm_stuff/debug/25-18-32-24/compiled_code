@@ -1,0 +1,69 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+
+main:
+00007ffd92f02428     02 0000000000000004 000000000000000    PUSH_TYPE               LOCAL_TYPE_STACK                                  
+00007ffd92f023c8     01 0000000000000004 000000000000000    PUSH_TYPE               RETURN_TYPE_STACK                                 
+00007ffd92f023c8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     000000000000000a                       PUSH                    10                                                
+00007ffd92f022b8     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f02398     000000000140f5e0                       CALL_INTERNAL           fact_internal                                     
+00007ffd92f02398     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     00000000013b4640                       PUSH                    20661824                                          
+00007ffd92f022b8     00 01 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f022b8     01 00 00000000                         LREA                    RETURN_TYPE_STACK                                 
+00007ffd92f022b8     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f02398     000000000140f450                       CALL_BUILTIN            print                                             
+00007ffd92f02398     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f02398     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     0000000000001c70                       PUSH                    7280                                              
+00007ffd92f023c8     0000000000000085                       PUSH                    133                                               
+00007ffd92f023c8                                            OR                                                                        
+00007ffd92f023c8                                            POP                                                                       
+00007ffd92f023c8     01 0000000000000008 000000000000001    PUSH_TYPE               RETURN_TYPE_STACK                                 
+00007ffd92f02398     000000000140f550                       CALL_INTERNAL           ret_struct                                        
+00007ffd92f023c8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     000000000140ef10                       PUSH                    21032720                                          
+00007ffd92f022b8     00 01 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f022b8     01 00 00000000                         LREA                    RETURN_TYPE_STACK                                 
+00007ffd92f022b8     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f02398     000000000140f450                       CALL_BUILTIN            print                                             
+00007ffd92f02398     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f02398     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     01                                     POP_TYPE                RETURN_TYPE_STACK                                 
+00007ffd92f023c8     01                                     POP_TYPE                RETURN_TYPE_STACK                                 
+00007ffd92f023c8     000000000000002a                       PUSH                    42                                                
+00007ffd92f022b8     01 00 00000000 08                      SAR                     RETURN_TYPE_STACK                                 
+00007ffd92f02428     02                                     POP_TYPE                LOCAL_TYPE_STACK                                  
+00007ffd92f02428                                            RET                                                                       
+
+fact_internal:
+00007ffd92f023e8     0000000000000001                       PUSH                    1                                                 
+00007ffd92f022d8     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK                                 
+00007ffd92f022d8     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK                               
+00007ffd92f023e8     0000000000000001                       PUSH                    1                                                 
+00007ffd92f023e8     0000000000000000                       JLE                     00007ffd92f023e8                                  
+00007ffd92f022d8     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK                                 
+00007ffd92f022d8     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK                               
+00007ffd92f023e8                                            MUL                                                                       
+00007ffd92f022d8     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK                                 
+00007ffd92f022d8     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK                               
+00007ffd92f023e8                                            DEC                                                                       
+00007ffd92f022d8     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK                               
+00007ffd92f022d8     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK                               
+00007ffd92f023e8     00000000013b869d                       JZ                      00007ffd92f023e8                                  
+00007ffd92f023e8     00000000013b86a6                       JMP                     00007ffd92f023e8                                  
+00007ffd92f02428     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd92f02428                                            RET                                                                       
+
+_start:
+00007ffd92f023f8     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd92f023c8     000000000140f700                       CALL_INTERNAL           main                                              
+00007ffd92f023f8                                            EXIT                                                                      
+00007ffd92f02428                                            RET                                                                       
+
+ret_struct:
+00007ffd92f023e8     00000000ffffff88                       PUSH                    4294967176                                        
+00007ffd92f022d8     01 00 00000000 01         

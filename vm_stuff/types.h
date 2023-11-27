@@ -2,11 +2,11 @@
 # define TYPES_H
 
 # include <stdio.h>
+# include <ffi.h>
 
 # include "ins.h"
 # include "hash_map.h"
 # include "shared_lib.h"
-# include <ffi.h>
 
 #if defined(min)
 # undef min
@@ -27,20 +27,7 @@ typedef uint16_t su16_t;
 typedef uint32_t su32_t;
 typedef uint64_t su64_t;
 typedef float    sr32_t;
-static_assert(sizeof(sr32_t) == 4);
 typedef double   sr64_t;
-static_assert(sizeof(sr64_t) == 8);
-
-#define SYMBOL_ATOM_S8    "s8"
-#define SYMBOL_ATOM_S16   "s16"
-#define SYMBOL_ATOM_S32   "s32"
-#define SYMBOL_ATOM_S64   "s64"
-#define SYMBOL_ATOM_U8    "u8"
-#define SYMBOL_ATOM_U16   "u16"
-#define SYMBOL_ATOM_U32   "u32"
-#define SYMBOL_ATOM_U64   "u64"
-#define SYMBOL_ATOM_R32   "r32"
-#define SYMBOL_ATOM_R64   "r64"
 
 typedef enum type_specifier {
     TYPE_ATOM,
@@ -76,10 +63,16 @@ extern type_t* t_u32;
 extern type_t* t_u64;
 extern type_t* t_r32;
 extern type_t* t_r64;
+extern type_t* t_void;
 
 typedef struct types {
     hash_map_t types;
 } types_t;
+
+bool type__is_unsigned(type_t* type);
+bool type__is_signed(type_t* type);
+bool type__is_integral(type_t* type);
+bool type__is_floating(type_t* type);
 
 bool types__create(types_t* self);
 void types__destroy(types_t* self);
@@ -155,19 +148,32 @@ typedef struct function_local {
     type_t*     type;
 } function_local_t;
 
-typedef struct type_internal_function {
-    type_t                  base;
+typedef struct type_function {
+    type_t                      base;
 
-    const char*             name;
-    void                    (*compile_fn)(struct type_internal_function* self, types_t* types);
+    const char*                 name;
+
+    function_argument_t*        arguments;
+    uint32_t                    arguments_top;
+    uint32_t                    arguments_size;
+    type_t*                     return_type;
+
+    void                        (*compile_fn)(struct type_function* self, types_t* types);
+} type_function_t;
+
+bool type__is_function(type_t* type);
+bool type__is_aggregate_type(type_t* type);
+void type_function__create(type_function_t* self, type_specifier_t type_specifier, const char* name);
+type_specifier_t type_function__type(type_function_t* self);
+void type_function__add_argument(type_function_t* self, const char* name, type_t* type);
+type_t* type_function__get_argument(type_function_t* self, const char* name, uint32_t* result_arg_index);
+void type_function__set_return(type_function_t* self, type_t* type);
+
+typedef struct type_internal_function {
+    type_function_t         function_base;
 
     uint8_t*                start_ip;
     uint8_t*                end_ip;
-    type_t*                 return_type;
-
-    function_argument_t*    arguments;
-    uint32_t                arguments_top;
-    uint32_t                arguments_size;
 
     function_local_t*       locals;
     uint32_t                locals_top;
@@ -175,46 +181,26 @@ typedef struct type_internal_function {
 } type_internal_function_t;
 
 typedef struct type_external_function {
-    type_t                  base;
+    type_function_t         function_base;
 
-    void*                   fn;
-    const char*             name;
-
-    function_argument_t*    arguments;
-    uint32_t                arguments_top;
-    uint32_t                arguments_size;
-    type_t*                 return_type;
-
-    uint32_t                arguments_offsets_size;
-    uint32_t                arguments_offsets_top;
-    int64_t*                arguments_offsets;
-    int64_t                 return_offset;
-
-    bool                    is_signature_set;
+    bool                    is_compiled;
     bool                    is_variadic;
+
+    void                    *fn;
 
     ffi_cif                 cif; // call interface
     ffi_type**              ffi_arguments;
     uint32_t                ffi_arguments_top;
     uint32_t                ffi_arguments_size;
-    ffi_type*               ffi_return_value;
 } type_external_function_t;
 
 typedef struct type_builtin_function {
-    type_t                  base;
+    type_function_t         function_base;
 
-    const char*             name;
     void                    (*execute_fn)(struct type_builtin_function* self, void* processor);
-
-    void                    (*compile_fn)(struct type_builtin_function* self, types_t* types);
-
-    uint32_t                arguments_offsets_size;
-    uint32_t                arguments_offsets_top;
-    int64_t*                arguments_offsets;
-    int64_t                 return_offset;
 } type_builtin_function_t;
 
-// todo(david): including variadic arguments?
+// todo(david): figure out and specify if this includes variadic arguments
 #define MAX_ARGS 256
 
 void member__print(member_t* self, FILE* fp);
@@ -236,40 +222,21 @@ type_enum_t* type_enum__create(const char* abbreviated_name);
 void type_enum__add(type_enum_t* self, const char* name);
 void type_enum__add_with_value(type_enum_t* self, const char* name, int32_t value);
 
-type_internal_function_t* type_internal_function__create(const char* abbreviated_name, void (*compile_fn)(type_internal_function_t* self, types_t* types));
-uint8_t* type_internal_function__set_ip(type_internal_function_t* self, uint8_t* ip);
+type_internal_function_t* type_internal_function__create(const char* abbreviated_name);
+void type_internal_function__add_local(type_internal_function_t* self, const char* name, type_t* type);
+type_t* type_internal_function__get_local(type_internal_function_t* self, const char* name);
+void type_internal_function__set_ip(type_internal_function_t* self, uint8_t* ip);
 uint8_t* type_internal_function__start_ip(type_internal_function_t* self);
 uint8_t* type_internal_function__end_ip(type_internal_function_t* self);
-void type_internal_function__add_argument(type_internal_function_t* self, const char* name, type_t* type);
-void type_internal_function__add_local(type_internal_function_t* self, const char* name, type_t* type);
-void type_internal_function__set_return(type_internal_function_t* self, type_t* type);
 void type_internal_function__add_ins(type_internal_function_t* self, ins_t ins, ...);
-void type_internal_function__store_argument(type_internal_function_t* self, const char* argument_name, ...);
-void type_internal_function__load_argument(type_internal_function_t* self, const char* argument_name, ...);
-void type_internal_function__load_argument_addr(type_internal_function_t* self, const char* argument_name, ...);
-void type_internal_function__store_return(type_internal_function_t* self, ...);
-void type_internal_function__load_return(type_internal_function_t* self, ...);
-void type_internal_function__load_return_addr(type_internal_function_t* self, ...);
-void type_internal_function__store_local(type_internal_function_t* self, const char* local_name, ...);
-void type_internal_function__load_local(type_internal_function_t* self, const char* local_name, ...);
-void type_internal_function__load_local_addr(type_internal_function_t* self, const char* local_name, ...);
-type_t* type_internal_function__get_local(type_internal_function_t* self, const char* local_name, ...);
-void type_internal_function__compile(type_internal_function_t* self, types_t* types, uint8_t* ip);
 
 type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type, types_t* types);
-void type_external_function__set_return(type_external_function_t* self, type_t* type, types_t* types);
-void type_external_function__set_signature(type_external_function_t* self, types_t* types);
-int64_t type_external_function__return_offset_from_bp(type_external_function_t* self);
-int64_t type_external_function__argument_offset_from_bp(type_external_function_t* self, uint32_t argument_index);
+void type_external_function__compile(type_external_function_t* self);
 void type_external_function__call(type_external_function_t* self, void* processor);
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor));
-void type_builtin_function__add_argument(type_builtin_function_t* self, const char* name, type_t* type);
-void type_builtin_function__set_return(type_builtin_function_t* self, type_t* type);
 void type_builtin_function__call(type_builtin_function_t* self, void* processor);
-int64_t type_builtin_function__return_offset_from_bp(type_builtin_function_t* self);
-int64_t type_builtin_function__argument_offset_from_bp(type_builtin_function_t* self, uint32_t argument_index);
 
 void type__set_alignment(type_t* self, uint64_t alignment);
 uint64_t type__alignment(type_t* self);
@@ -278,6 +245,12 @@ uint64_t type__max_alignment(type_t* self);
 uint64_t type__size(type_t* self);
 const char* type__abbreviated_name(type_t* self);
 uint8_t* type__address(type_t* self, uint8_t* requested_address);
+// @param ap:
+//   - sequential member names
+//   - array type must be followed by an uint64_t element index
+// @param self contains the result member
+// @return searched member offset from 'self'
+uint64_t type__member_offsetv(type_t** self, va_list ap);
 
 void type__print(
     type_t* self, FILE* fp,

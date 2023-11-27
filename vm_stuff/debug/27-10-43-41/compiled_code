@@ -1,0 +1,5 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007ffc6ac3ac58     0000000000000002                       PUSH                    2                                                 
+00007ffc6ac3ad18                                            PRINT                                                                     
+00007ffc6ac3ad18                                            PRINTF                                                                    
+00007ffc6ac3ad98                                            RET                                                                       

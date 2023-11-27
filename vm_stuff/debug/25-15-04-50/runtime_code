@@ -1,0 +1,165 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     0000000002020700                       CALL_INTERNAL           main                                              
+00007ffd20c49388     02 0000000000000004 000000000000000    PUSH_TYPE               LOCAL_TYPE_STACK                                  
+00007ffd20c49388     01 0000000000000004 000000000000000    PUSH_TYPE               RETURN_TYPE_STACK                                 
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     000000000000000a                       PUSH                    10                                                
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 10                            
+00007ffd20c49388     00000000020205e0                       CALL_INTERNAL           fact_internal                                     
+00007ffd20c49388     0000000000000001                       PUSH                    1                                                 
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 1                               
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 10                            
+00007ffd20c49388     0000000000000001                       PUSH                    1                                                 
+00007ffd20c49388     0000000001fc96ea                       JLE                     10 1                                              
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 1                               
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 10                            
+00007ffd20c49388                                            MUL                     1 10 10                                           
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 10                              
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 10                            
+00007ffd20c49388                                            DEC                     10 9                                              
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 9                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 9                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      9                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 10                              
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 9                             
+00007ffd20c49388                                            MUL                     10 9 90                                           
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 90                              
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 9                             
+00007ffd20c49388                                            DEC                     9 8                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 8                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 8                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      8                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 90                              
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 8                             
+00007ffd20c49388                                            MUL                     90 8 720                                          
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 720                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 8                             
+00007ffd20c49388                                            DEC                     8 7                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 7                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 7                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      7                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 720                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 7                             
+00007ffd20c49388                                            MUL                     720 7 5040                                        
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 5040                            
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 7                             
+00007ffd20c49388                                            DEC                     7 6                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 6                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 6                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      6                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 5040                            
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 6                             
+00007ffd20c49388                                            MUL                     5040 6 30240                                      
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 30240                           
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 6                             
+00007ffd20c49388                                            DEC                     6 5                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 5                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 5                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      5                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 30240                           
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 5                             
+00007ffd20c49388                                            MUL                     30240 5 151200                                    
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 151200                          
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 5                             
+00007ffd20c49388                                            DEC                     5 4                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 4                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 4                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      4                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 151200                          
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 4                             
+00007ffd20c49388                                            MUL                     151200 4 604800                                   
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 604800                          
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 4                             
+00007ffd20c49388                                            DEC                     4 3                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 3                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 3                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      3                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 604800                          
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 3                             
+00007ffd20c49388                                            MUL                     604800 3 1814400                                  
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 1814400                         
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 3                             
+00007ffd20c49388                                            DEC                     3 2                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 2                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 2                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      2                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 1814400                         
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 2                             
+00007ffd20c49388                                            MUL                     1814400 2 3628800                                 
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 3628800                         
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 2                             
+00007ffd20c49388                                            DEC                     2 1                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 1                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 1                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      1                                                 
+00007ffd20c49388     0000000001fc96a6                       JMP                     00007ffd20c49388                                  
+00007ffd20c49388     01 00 00000000 04                      LRA                     RETURN_TYPE_STACK 3628800                         
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 1                             
+00007ffd20c49388                                            MUL                     3628800 1 3628800                                 
+00007ffd20c49388     01 00 00000000 04                      SAR                     RETURN_TYPE_STACK 3628800                         
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 1                             
+00007ffd20c49388                                            DEC                     1 0                                               
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 0                             
+00007ffd20c49388     00 00 00000000 08                      LRA                     ARGUMENT_TYPE_STACK 0                             
+00007ffd20c49388     0000000001fc96ea                       JZ                      0                                                 
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388                                            RET                     00007ffd20c49388                                  
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     0000000001fc5640                       PUSH                    33314368                                          
+00007ffd20c49388     00 01 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 33314368                      
+00007ffd20c49388     01 00 00000000                         LREA                    RETURN_TYPE_STACK 00007ffd20c49388                
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 33313936                      
+00007ffd20c49388     0000000002020450                       CALL_BUILTIN            print                                             
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     0000000000001c70                       PUSH                    7280                                              
+00007ffd20c49388     0000000000000085                       PUSH                    133                                               
+00007ffd20c49388                                            OR                      1110001110000 10000101 1110011110101              
+00007ffd20c49388                                            POP                                                                       
+00007ffd20c49388     01 0000000000000008 000000000000001    PUSH_TYPE               RETURN_TYPE_STACK                                 
+00007ffd20c49388     0000000002020550                       CALL_INTERNAL           ret_struct                                        
+00007ffd20c49388     00000000ffffff88                       PUSH                    4294967176                                        
+00007ffd20c49388     01 00 00000000 01                      SAR                     RETURN_TYPE_STACK 4294967176                      
+00007ffd20c49388     00000000ffffcfc7                       PUSH                    4294954951                                        
+00007ffd20c49388     01 00 00000004 02                      SAR                     RETURN_TYPE_STACK 4294954951                      
+00007ffd20c49388     00007048860f3a38                       PUSH                    123456789101112                                   
+00007ffd20c49388     01 00 00000008 08                      SAR                     RETURN_TYPE_STACK 123456789101112                 
+00007ffd20c49388     0000000000000000                       PUSH                    0                                                 
+00007ffd20c49388     01 00 00000010 07                      SAR                     RETURN_TYPE_STACK 0                               
+00007ffd20c49388     000000000000000d                       PUSH                    13                                                
+00007ffd20c49388     01 00 00000011 07                      SAR                     RETURN_TYPE_STACK 13                              
+00007ffd20c49388     000000000000001a                       PUSH                    26                                                
+00007ffd20c49388     01 00 00000012 07                      SAR                     RETURN_TYPE_STACK 26                              
+00007ffd20c49388     0000000000000027                       PUSH                    39                                                
+00007ffd20c49388     01 00 00000013 07                      SAR                     RETURN_TYPE_STACK 39                              
+00007ffd20c49388     0000000000000034                       PUSH                    52                                                
+00007ffd20c49388     01 00 00000014 07                      SAR                     RETURN_TYPE_STACK 52                              
+00007ffd20c49388     0000000000000041                       PUSH                    65                                                
+00007ffd20c49388     01 00 00000015 07                      SAR                     RETURN_TYPE_STACK 65                              
+00007ffd20c49388     000000000000004e                       PUSH                    78                                                
+00007ffd20c49388     01 00 00000016 07                      SAR                     RETURN_TYPE_STACK 78                              
+00007ffd20c49388                                            RET                     00007ffd20c49388                                  
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     00 0000000000000008 000000000000000    PUSH_TYPE               ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     000000000201ff10                       PUSH                    33685264                                          
+00007ffd20c49388     00 01 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 33685264                      
+00007ffd20c49388     01 00 00000000                         LREA                    RETURN_TYPE_STACK 00007ffd20c49388                
+00007ffd20c49388     00 00 00000000 08                      SAR                     ARGUMENT_TYPE_STACK 33313944                      
+00007ffd20c49388     0000000002020450                       CALL_BUILTIN            print                                             
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     00                                     POP_TYPE                ARGUMENT_TYPE_STACK                               
+00007ffd20c49388     01                                     POP_TYPE                RETURN_TYPE_STACK                                 
+00007ffd20c49388     01                                     POP_TYPE                RETURN_TYPE_STACK                                 
+00007ffd20c49388     000000000000002a                       PUSH                    42                                                
+00007ffd20c49388     01 00 00000000 08                      SAR                                                                       
