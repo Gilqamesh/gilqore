@@ -90,13 +90,33 @@ static uint32_t debug__push_pointer(uint8_t* buffer_start, uint8_t* buffer_top, 
     return buffer_top - buffer_top_start;
 }
 
-int main() {
-    uint8_t* ip = (uint8_t*) 0x1c0b0a0b0a0b0a0b; // I want to print 0a0b0a0b0a0b0a0b
-    
-    uint8_t buffer[128] = { 0 };
-    debug__push_pointer(buffer, buffer, buffer + 128, ip);
-    printf("%s\n", buffer);
+typedef struct sa {
+    int a;
+    int b;
+    double c;
+    float d;
+    uint32_t e;
+} ta;
 
+typedef struct sb {
+    int a;
+    int b;
+    double c;
+    float d;
+    uint32_t e;
+} tb;
+
+int main() {
+    uint64_t a = (uint64_t)(-2+0.2);
+    uint64_t b = a + 1;
+    double c = 2;
+    float c;
+
+    // ta a;
+    // tb* b = (tb*) &a;
+
+    // float b = 2;
+    // ta c = (ta) b;
 
     return 0;
 }

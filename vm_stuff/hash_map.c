@@ -240,5 +240,9 @@ hash_map_key_t* hash_map__end(hash_map_t* self) {
 }
 
 hash_map_value_t* hash_map__value(hash_map_t* self, hash_map_key_t* key) {
-    return (hash_map_value_t*)((char*)key + self->size_of_key);
+    return (hash_map_value_t*) ((char*) key + self->size_of_key);
+}
+
+hash_map_key_t* hash_map__key(hash_map_t* self, hash_map_value_t* value) {
+    return (hash_map_value_t*) ((char*) value - self->size_of_value);
 }

@@ -1,0 +1,5 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+
+_start:
+00000000008fc590     0000000000000004 0000000000000004      PUSH_TYPE                                                                 
+00000000008fc5a1                                            RET                                                                       

@@ -3,6 +3,7 @@ SRC = \
 	app.c \
 	buffer.c \
 	compiler.c \
+	compiler/compiler_alignment.c \
 	debug.c \
 	hash_map.c \
 	hash_set.c \

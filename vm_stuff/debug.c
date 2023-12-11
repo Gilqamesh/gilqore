@@ -158,10 +158,27 @@ bool debug__create(debug_t* self) {
     ASSERT(mkdir(dir_buffer, 0777) == 0);
     ASSERT(access(dir_buffer, F_OK) == 0);
 
+    char path_buffer[256];
+    const char* source_dump_name = "in_source.txt";
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, source_dump_name);
+    self->source_dump = fopen(path_buffer, "w");
+    ASSERT(self->source_dump);
+    
+    const char* scanner_dump_name = "out_scanner.txt";
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, scanner_dump_name);
+    self->scanner_dump = fopen(path_buffer, "w");
+    ASSERT(self->scanner_dump);
+    
+    const char* compiler_out_dump_name = "out_compiler.txt";
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, compiler_out_dump_name);
+    self->compiler_out_dump = fopen(path_buffer, "w");
+    ASSERT(self->compiler_out_dump);
+
+
     const char* out_paths[_DEBUG_OUT_MODE_SIZE] = {
-        [DEBUG_OUT_MODE_COMPILE]        = "compiled_code",
-        [DEBUG_OUT_MODE_RUNTIME_CODE]   = "runtime_code",
-        [DEBUG_OUT_MODE_RUNTIME_STACK]  = "runtime_stack"
+        [DEBUG_OUT_MODE_COMPILE]        = "compiled_code.txt",
+        [DEBUG_OUT_MODE_RUNTIME_CODE]   = "runtime_code.txt",
+        [DEBUG_OUT_MODE_RUNTIME_STACK]  = "runtime_stack.txt"
     };
 
     const debug_buffer_type_t debug_out_supported_types[_DEBUG_OUT_MODE_SIZE][_DEBUG_BUFFER_TYPE_SIZE] = {
@@ -195,12 +212,12 @@ bool debug__create(debug_t* self) {
         }
     };
 
-    char path_buffer[256];
     ASSERT(sizeof(debug_out_supported_types)/sizeof(debug_out_supported_types[0]) == _DEBUG_OUT_MODE_SIZE);
     for (uint32_t debug_out_index = 0; debug_out_index < _DEBUG_OUT_MODE_SIZE; ++debug_out_index) {
         snprintf(path_buffer, sizeof(path_buffer), "%s/%s", dir_buffer, out_paths[debug_out_index]);
         debug_out_t* debug_out = &self->debug_out[debug_out_index];
         debug_out->fp = fopen(path_buffer, "w");
+        ASSERT(debug_out->fp);
         debug_out->supported_types_top = 0;
         for (uint32_t debug_out_supported_types_index = 0; debug_out_supported_types_index < _DEBUG_BUFFER_TYPE_SIZE; ++debug_out_supported_types_index) {
             debug_buffer_type_t supported_type = debug_out_supported_types[debug_out_index][debug_out_supported_types_index];
@@ -223,6 +240,9 @@ void debug__destroy(debug_t* self) {
     for (uint32_t debug_out_index = 0; debug_out_index < _DEBUG_OUT_MODE_SIZE; ++debug_out_index) {
         fclose(self->debug_out[debug_out_index].fp);
     }
+    fclose(self->scanner_dump);
+    fclose(self->source_dump);
+    fclose(self->compiler_out_dump);
 }
 
 void debug__set_fn(debug_t* self, const char* fn) {
@@ -269,7 +289,6 @@ void debug__push_ptr(debug_t* self, debug_buffer_type_t type, uint8_t* ptr) {
     ASSERT(type < _DEBUG_BUFFER_TYPE_SIZE);
     uint64_t ptr_val = (uint64_t) ptr;
     uint8_t* ptr_val_p = (uint8_t*) &ptr_val;
-    ptr_val_p += sizeof(uint8_t*);
     self->debug_buffer[type].buffer.cur += _debug__push_hex(self->debug_buffer[type].buffer.start, self->debug_buffer[type].buffer.cur, self->debug_buffer[type].buffer.end, ptr_val_p, sizeof(uint8_t*));
 }
 
@@ -307,6 +326,7 @@ void debug__dump_line(debug_t* self, debug_out_mode_t out_mode) {
         }
     }
     fprintf(fp, "\n");
+    fflush(fp);
 }
 
 void debug__clear_line(debug_t* self) {

@@ -1,0 +1,2 @@
+[Compiler]: Warning variable declaration is uninitialized: [a]
+[Compiler]: 1:6 - 1:7: [;]

@@ -1,0 +1,4 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+00000000020b0590     02 0000000000000004 000000000000000    PUSH_TYPE                                                                 
+00000000020b05a1     05                                     POP                                                                       
+00000000020b05a2     01                                     PRINTF                                                                    

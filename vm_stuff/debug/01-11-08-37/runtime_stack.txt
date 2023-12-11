@@ -1,0 +1,3 @@
+ip                   ins mnemonic            return ip           register            registerf           argument type       return type         local type      
+000000000090f590     PUSH_TYPE                                                                                                                                   
+000000000090f5a1     RET                                                                                                                                         

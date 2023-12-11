@@ -81,15 +81,18 @@ typedef enum ins {
     INS_PRINT,
     INS_PRINTF,
 
-    INS_PUSH,
-    INS_POP,             // pop reg_t sized value from stack
+    // INS_PUSH_TYPE,
 
-    INS_PUSHF,           // push regf_t sized floating point argument onto the stack
-    INS_POPF,            // pop regf_t sized floating point from the stack
+    // maybe have a data segment instead of these two
+    // INS_PUSH,  // special push_type for reg_t  immediate
+    // INS_PUSHF, // special push_type for regf_t immediate
 
-    INS_PUSH_TYPE,
-    INS_POP_TYPE,
-    INS_POPN_TYPE,
+    // todo: replace this with INS_LOAD from data segment
+    INS_MOV_IMM, // copies reg_t size immediate on top of the stack, does not grow
+    INS_GROW,    // grow stack by N bytes
+
+    // INS_POP,
+    // INS_POPN,
 
     /* ALU operations (between register(f) and register(f)) */
     INS_ADD,
@@ -102,20 +105,25 @@ typedef enum ins {
     INS_DIVF,
     INS_MOD,
     INS_MODF,
-    INS_DUP,
-    INS_DUPF,
     INS_NEG,
     INS_NEGF,
     INS_INC,
     INS_DEC,
 
-    INS_CVTF2I,
-    INT_CVTI2F,
+    INS_CVTF2U,
+    INT_CVTU2F,
+    INT_CVTS2F,
 
     // logical
     INS_LNOT,
     INS_LAND,
     INS_LOR,
+    INS_LT,
+    INS_LTF,
+    INS_GT,
+    INS_GTF,
+    INS_EQ,
+    INT_EQF,
 
     // bitwise
     INS_BNOT,
@@ -124,50 +132,42 @@ typedef enum ins {
     INS_BOR,
 
     INS_JMP,
-    INS_JZ,
-    INS_JZF,
-    INS_JL,
-    INS_JLF,
-    INS_JG,
-    INS_JGF,
-    INS_JE,
-    INS_JEF,
-    INS_JLE,
-    INS_JLEF,
-    INS_JGE,
-    INS_JGEF,
+    INS_JT,
+    INS_JF,
 
     /*
-        memory access (between memory and registers)
-        LRA, LRAF: load atom into register(f)-buffer from aligned-buffer
-        SAR, SARF: store atom into aligned-buffer from register(f)-buffer
+        MOV:
+            - dst offset from BP
+            - src offset from BP
+            - src size
+
+        LOAD: load type into stack from the stack
+        STORE: store type from stack into stack
         arguments:
-            - aligned buffer type
-            - offset index of type (from top of the buffer, must be positive)
-            - offset of atom (from addr of type)
-            - size of atom (max reg_size)
-        LREA: load address into register-buffer from aligned-buffer
+            - src offset from BP
+            - src size to_load
+            - alignment of member
+        LEA: load address of type into stack from stack
         arguments:
-            - aligned buffer type
-            - offset index of type (from top of the buffer, must be positive)
-            - offset of member (does not have to be an atom)
+            - offset from BP
+
+            - index of type from BP
+            - offset of member
     */
-    INS_LRA,
-    INS_LRAF,
-    INS_SAR,
-    INS_SARF,
-    INS_LREA,
+    INS_MOV,
+    // INS_LOAD,
+    // INS_STORE,
+    INS_LEA,
 
     INS_CALL_INTERNAL,
     INS_CALL_EXTERNAL,
     INS_CALL_BUILTIN,
 
-    INS_RET,
-    INS_EXIT
+    INS_RET
 } ins_t;
 
 const char* ins__to_str(ins_t ins);
-uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap);
 uint8_t* ins__add(ins_t ins, uint8_t* ip, ...);
+uint8_t* ins__vadd(ins_t ins, uint8_t* ip, va_list ap);
 
 #endif // INS_H

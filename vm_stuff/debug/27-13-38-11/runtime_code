@@ -1,4 +1,0 @@
-ip                   ins bytecode                           ins mnemonic            ins operand                                       
-00007ffc57f21528     0000000000000002                       PUSH                    2                                                 
-00007ffc57f21528                                            PRINT                                                                     
-00007ffc57f21528                                            RET                                                                       

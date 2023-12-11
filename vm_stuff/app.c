@@ -13,7 +13,7 @@
 #include "libc.h"
 
 static void app__load_shared_libs(app_t* self);
-static void app__run_src(app_t* self, const char* source, uint64_t source_len);
+static void app__run_src(app_t* self, const char* source, uint64_t source_len, bool source_is_mutable);
 static uint64_t app__read_from_fd(int fd, char* buffer, uint64_t buffer_size);
 static bool app__process_cmd_line_argument(app_t* self, const char* arg);
 static void app__compile_file(app_t* self, const char* path);
@@ -32,7 +32,7 @@ static bool app__process_cmd_line_argument(app_t* self, const char* arg) {
     if (*arg == '-') {
         compiler_flag_t* compiler_flag = compiler__flag_find(arg + 1);
         if (compiler_flag) {
-            if (!compiler_flag->fn(arg, &self->cmd_line_flags.compiler_flags)) {
+            if (!compiler_flag->fn(arg, &self->cmd_line_flags.compiler_flags, compiler_flag)) {
                 return false;
             }
         } else {
@@ -61,7 +61,8 @@ static bool app__process_cmd_line_argument(app_t* self, const char* arg) {
 bool app__create_and_run(app_t* self, int argc, char** argv) {
     memset(self, 0, sizeof(*self));
 
-    self->cmd_line_flags.compiler_flags.compiler_flag_limit_errors_n = UINT32_MAX;
+    compiler_flags__create(&self->cmd_line_flags.compiler_flags);
+
     for (int arg_index = 1; arg_index < argc; ++arg_index) {
         if (!app__process_cmd_line_argument(self, argv[arg_index])) {
             return false;
@@ -89,28 +90,25 @@ bool app__create_and_run(app_t* self, int argc, char** argv) {
     // ASSERT(type->type_specifier == TYPE_FUNCTION_INTERNAL);
     // type_internal_function_t* entry_fn = (type_internal_function_t*) type;
 
-    // state__init(&self->state, type_internal_function__start_ip(entry_fn));
-
     return true;
 }
 
-static void app__run_src(app_t* self, const char* source, uint64_t source_len) {
+static void app__run_src(app_t* self, const char* source, uint64_t source_len, bool source_is_mutable) {
     compiler_t compiler;
     compiler_flags_t compiler_flags = self->cmd_line_flags.compiler_flags;
 
-    if (!compiler__create(&compiler, &compiler_flags, source, source_len)) {
+    if (debug.is_debug_mode_on) {
+        ASSERT(debug.source_dump);
+        fwrite(source, sizeof(*source), source_len, debug.source_dump);
+        fflush(debug.source_dump);
+    }
+
+    type_internal_function_t* entry_fn = compiler__create_and_compile(&compiler, &compiler_flags, source, source_len, source_is_mutable, "_start");
+    if (!entry_fn) {
         return ;
     }
 
-    compiler__define_builtins(&compiler);
-
-    uint8_t* start_ip = self->state.buffer[BUFFER_TYPE_IP].cur;
-    uint8_t* end_ip = self->state.buffer[BUFFER_TYPE_IP].end;
-    if (!compiler__compile(&compiler, "_start", start_ip, end_ip)) {
-        return ;
-    }
-
-    state__run(&self->state);
+    state__run(&self->state, entry_fn);
 }
 
 static uint64_t app__read_from_fd(int fd, char* buffer, uint64_t buffer_size) {
@@ -126,15 +124,6 @@ static uint64_t app__read_from_fd(int fd, char* buffer, uint64_t buffer_size) {
         return 0;
     }
 
-    if (bytes_read > 1 && buffer[bytes_read - 2] == '\r' && buffer[bytes_read - 1] == '\n') {
-        buffer[bytes_read - 2] = '\0';
-    } else if (bytes_read > 0 && buffer[bytes_read - 1] == '\n') {
-        buffer[bytes_read - 1] = '\0';
-    }
-
-    ASSERT(bytes_read < (int64_t) buffer_size);
-    buffer[bytes_read] = '\0';
-
     return bytes_read;
 
 }
@@ -149,7 +138,7 @@ static void app__run_repl(app_t* self) {
             break ;
         }
 
-        app__run_src(self, buffer, buffer_len);
+        app__run_src(self, buffer, buffer_len, true);
     }
 }
 
@@ -186,7 +175,7 @@ static void app__compile_file(app_t* self, const char* path) {
         return ;
     }
 
-    app__run_src(self, source, source_len);
+    app__run_src(self, source, source_len, true);
 }
 
 static void app__compile_files(app_t* self) {
@@ -203,6 +192,8 @@ int main(int argc, char** argv) {
     app_t app;
 
     ASSERT(debug__create(&debug));
+    debug.is_debug_mode_on = true;
+
     app__create_and_run(&app, argc, argv);
 
     app__destroy(&app);

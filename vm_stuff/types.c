@@ -31,6 +31,8 @@ type_t* t_u64   = 0;
 type_t* t_r32   = 0;
 type_t* t_r64   = 0;
 type_t* t_void  = 0;
+type_t* t_reg   = 0;
+type_t* t_regf  = 0;
 
 static inline bool is_pow_of_two(uint64_t a) {
     if (a == 0) {
@@ -259,42 +261,48 @@ static void _type_union__update_member(type_union_t* self, member_t* new_member)
 }
 
 static void types__add_atom_types(types_t* self) {
-    t_s8 =  (type_t*) type_atom__create(token_type__to_str(TOKEN_S8), token_type__to_str(TOKEN_S8),  sizeof(int8_t),   &_type__print_value_s8);
+    t_s8 =  (type_t*) type_atom__create(SYMBOL_ATOM_S8, SYMBOL_ATOM_S8,  sizeof(int8_t),   &_type__print_value_s8);
     t_s8->ffi = &ffi_type_sint8;
 
-    t_s16 = (type_t*) type_atom__create(token_type__to_str(TOKEN_S16), token_type__to_str(TOKEN_S16), sizeof(int16_t),  &_type__print_value_s16);
+    t_s16 = (type_t*) type_atom__create(SYMBOL_ATOM_S16, SYMBOL_ATOM_S16, sizeof(int16_t),  &_type__print_value_s16);
     t_s16->ffi = &ffi_type_sint16;
 
-    t_s32 = (type_t*) type_atom__create(token_type__to_str(TOKEN_S32), token_type__to_str(TOKEN_S32), sizeof(int32_t),  &_type__print_value_s32);
+    t_s32 = (type_t*) type_atom__create(SYMBOL_ATOM_S32, SYMBOL_ATOM_S32, sizeof(int32_t),  &_type__print_value_s32);
     t_s32->ffi = &ffi_type_sint32;
     
-    t_s64 = (type_t*) type_atom__create(token_type__to_str(TOKEN_S64), token_type__to_str(TOKEN_S64), sizeof(int64_t),  &_type__print_value_s64);
+    t_s64 = (type_t*) type_atom__create(SYMBOL_ATOM_S64, SYMBOL_ATOM_S64, sizeof(int64_t),  &_type__print_value_s64);
     t_s64->ffi = &ffi_type_sint64;
     
-    t_u8 =  (type_t*) type_atom__create(token_type__to_str(TOKEN_U8),  token_type__to_str(TOKEN_U8),  sizeof(uint8_t),  &_type__print_value_u8);
+    t_u8 =  (type_t*) type_atom__create(SYMBOL_ATOM_U8,  SYMBOL_ATOM_U8,  sizeof(uint8_t),  &_type__print_value_u8);
     t_u8->ffi = &ffi_type_uint8;
 
-    t_u16 = (type_t*) type_atom__create(token_type__to_str(TOKEN_U16), token_type__to_str(TOKEN_U16), sizeof(uint16_t), &_type__print_value_u16);
+    t_u16 = (type_t*) type_atom__create(SYMBOL_ATOM_U16, SYMBOL_ATOM_U16, sizeof(uint16_t), &_type__print_value_u16);
     t_u16->ffi = &ffi_type_uint16;
 
-    t_u32 = (type_t*) type_atom__create(token_type__to_str(TOKEN_U32), token_type__to_str(TOKEN_U32), sizeof(uint32_t), &_type__print_value_u32);
+    t_u32 = (type_t*) type_atom__create(SYMBOL_ATOM_U32, SYMBOL_ATOM_U32, sizeof(uint32_t), &_type__print_value_u32);
     t_u32->ffi = &ffi_type_uint32;
 
-    t_u64 = (type_t*) type_atom__create(token_type__to_str(TOKEN_U64), token_type__to_str(TOKEN_U64), sizeof(uint64_t), &_type__print_value_u64);
+    t_u64 = (type_t*) type_atom__create(SYMBOL_ATOM_U64, SYMBOL_ATOM_U64, sizeof(uint64_t), &_type__print_value_u64);
     t_u64->ffi = &ffi_type_uint64;
 
-    t_r32 = (type_t*) type_atom__create(token_type__to_str(TOKEN_R32), token_type__to_str(TOKEN_R32), sizeof(float),    &_type__print_value_r32);
+    t_r32 = (type_t*) type_atom__create(SYMBOL_ATOM_R32, SYMBOL_ATOM_R32, sizeof(float),    &_type__print_value_r32);
     t_r32->ffi = &ffi_type_float;
     static_assert(sizeof(float) == 4, "");
     ASSERT(ffi_type_float.size == 4);
 
-    t_r64 = (type_t*) type_atom__create(token_type__to_str(TOKEN_R64), token_type__to_str(TOKEN_R64), sizeof(double),   &_type__print_value_r64);
+    t_r64 = (type_t*) type_atom__create(SYMBOL_ATOM_R64, SYMBOL_ATOM_R64, sizeof(double),   &_type__print_value_r64);
     t_r64->ffi = &ffi_type_double;
     static_assert(sizeof(double) == 8, "");
     ASSERT(ffi_type_double.size == 8);
 
-    t_void  = (type_t*) type_atom__create(token_type__to_str(TOKEN_VOID), token_type__to_str(TOKEN_VOID), 0, &_type__print_value_void);
+    t_void  = (type_t*) type_atom__create(SYMBOL_ATOM_VOID, SYMBOL_ATOM_VOID, 0, &_type__print_value_void);
     t_void->ffi = &ffi_type_void;
+
+    t_reg = (type_t*) type_atom__create(SYMBOL_ATOM_U64, SYMBOL_ATOM_U64, sizeof(uint64_t), &_type__print_value_u64);
+    t_reg->ffi = &ffi_type_uint64;
+
+    t_regf = (type_t*) type_atom__create(SYMBOL_ATOM_R64, SYMBOL_ATOM_R64, sizeof(double), &_type__print_value_r64);
+    t_regf->ffi = &ffi_type_double;
 
     types__type_add(self, t_s8 );
     types__type_add(self, t_s16);
@@ -307,6 +315,8 @@ static void types__add_atom_types(types_t* self) {
     types__type_add(self, t_r32);
     types__type_add(self, t_r64);
     types__type_add(self, t_void);
+    types__type_add(self, t_reg);
+    types__type_add(self, t_regf);
 }
 
 bool type__is_unsigned(type_t* type) {
@@ -358,9 +368,11 @@ void types__type_add(types_t* self, type_t* type) {
 type_t* types__type_find(types_t* self, const char* abbreviated_name) {
     uint64_t abbr_name_addr = (uint64_t) abbreviated_name;
     type_t** type_pp = hash_map__find(&self->types, &abbr_name_addr);
-    ASSERT(type_pp);
+    if (type_pp) {
+        return *type_pp;
+    }
 
-    return *type_pp;
+    return 0;
 }
 
 type_atom_t* type_atom__create(
@@ -714,55 +726,43 @@ type_internal_function_t* type_internal_function__create(const char* name) {
 
     type_function__create(&result->function_base, TYPE_FUNCTION_INTERNAL, name);
 
+    const uint32_t start_code_size = 32;
+    result->ip_start = malloc(start_code_size * sizeof(*result->ip_start));
+    result->ip_cur = result->ip_start;
+    result->ip_end = result->ip_start + start_code_size;
+
     return result;
 }
 
-void type_internal_function__add_local(type_internal_function_t* self, const char* name, type_t* type) {
-    if (self->locals_size == 0) {
-        self->locals_size = 8;
-        self->locals = malloc(self->locals_size * sizeof(*self->locals));
-    } else if (self->locals_top == self->locals_size) {
-        self->locals_size <<= 1;
-        self->locals = realloc(self->locals, self->locals_size * sizeof(*self->locals));
-    }
-
-    ASSERT(self->locals_top != self->locals_size);
-    self->locals[self->locals_top].name = name;
-    self->locals[self->locals_top].type = type;
-    ++self->locals_top;
-}
-
-type_t* type_internal_function__get_local(type_internal_function_t* self, const char* name) {
-    for (uint32_t local_index = 0; local_index < self->locals_top; ++local_index) {
-        function_local_t* local = &self->locals[local_index];
-        if (strcmp(local->name, name) == 0) {
-            return local->type;
-        }
-    }
-
-    return 0;
-}
-
-void type_internal_function__set_ip(type_internal_function_t* self, uint8_t* ip) {
-    self->start_ip = ip;
-    self->end_ip = ip;
-}
-
 uint8_t* type_internal_function__start_ip(type_internal_function_t* self) {
-    return self->start_ip;
+    return self->ip_start;
 }
 
-uint8_t* type_internal_function__end_ip(type_internal_function_t* self) {
-    return self->end_ip;
+uint8_t* type_internal_function__cur_ip(type_internal_function_t* self) {
+    return self->ip_cur;
 }
 
 void type_internal_function__add_ins(type_internal_function_t* self, ins_t ins, ...) {
     va_list ap;
     va_start(ap, ins);
 
-    self->end_ip = ins__vadd(ins, self->end_ip, ap);
+    type_internal_function__vadd_ins(self, ins, ap);
 
     va_end(ap);
+}
+
+void type_internal_function__vadd_ins(type_internal_function_t* self, ins_t ins, va_list ap) {
+    // todo: do this request when it really is necessary
+    if (self->ip_cur + 16 < self->ip_end) {
+        const uint32_t ip_cur_index = self->ip_cur - self->ip_start;
+        const uint32_t new_size = (self->ip_end - self->ip_start) << 1;
+        self->ip_start = realloc(self->ip_start, new_size * sizeof(*self->ip_start));
+        self->ip_cur = self->ip_start + ip_cur_index;
+        self->ip_end = self->ip_start + new_size;
+    }
+    ASSERT(!(self->ip_cur + 16 < self->ip_end));
+
+    self->ip_cur = ins__vadd(ins, self->ip_cur, self->ip_end, ap);
 }
 
 static void types__ensure_ffi(types_t* self, type_t* type) {
@@ -885,23 +885,24 @@ void type_external_function__compile(type_external_function_t* self) {
 void type_external_function__call(type_external_function_t* self, void* processor) {
     ASSERT(self->is_compiled);
     state_t* state = (state_t*) processor;
+    (void) state;
 
-    uint8_t* return_addr = 0;
-    if (self->function_base.return_type) {
-        ALIGNED_BUFFER_ADDR_AT(state->aligned_buffer[ALIGNED_BUFFER_TYPE_RETURN_TYPE_STACK], 0, return_addr);
-    }
-    uint8_t** arguments_addr = state->aligned_buffer[ALIGNED_BUFFER_TYPE_ARGUMENT_TYPE_STACK].addr_cur - self->function_base.arguments_top;
-    ASSERT(arguments_addr >= state->aligned_buffer[ALIGNED_BUFFER_TYPE_ARGUMENT_TYPE_STACK].addr_start);
+    // uint8_t* return_addr = 0;
+    // if (self->function_base.return_type) {
+    //     ALIGNED_BUFFER_ADDR_AT(state->aligned_buffer[ALIGNED_BUFFER_TYPE_RETURN_TYPE_STACK], 0, return_addr);
+    // }
+    // uint8_t** arguments_addr = state->aligned_buffer[ALIGNED_BUFFER_TYPE_ARGUMENT_TYPE_STACK].addr_cur - self->function_base.arguments_top;
+    // ASSERT(arguments_addr >= state->aligned_buffer[ALIGNED_BUFFER_TYPE_ARGUMENT_TYPE_STACK].addr_start);
 
-    uint32_t ret_size = type__size(self->function_base.return_type);
-    if (ret_size < sizeof(ffi_arg)) {
-        // for integral types, that are narrower than the system register size, the return value will be widened by 'libffi'
-        ffi_arg ret;
-        ffi_call(&self->cif, self->fn, &ret, (void**) arguments_addr);
-        memcpy(return_addr, &ret, ret_size);
-    } else {
-        ffi_call(&self->cif, self->fn, return_addr, (void**) arguments_addr);
-    }
+    // uint32_t ret_size = type__size(self->function_base.return_type);
+    // if (ret_size < sizeof(ffi_arg)) {
+    //     // for integral types, that are narrower than the system register size, the return value will be widened by 'libffi'
+    //     ffi_arg ret;
+    //     ffi_call(&self->cif, self->fn, &ret, (void**) arguments_addr);
+    //     memcpy(return_addr, &ret, ret_size);
+    // } else {
+    //     ffi_call(&self->cif, self->fn, return_addr, (void**) arguments_addr);
+    // }
 }
 
 type_builtin_function_t* type_builtin_function__create(const char* name, void (*execute_fn)(type_builtin_function_t* self, void* processor)) {
@@ -1654,3 +1655,19 @@ static void _type_union__add_multiple(type_union_t* self, ...) {
 
 //     return 0;
 // }
+
+
+/*
+
+lambda calculus
+escape analysis
+
+lambda fn: have one in, one out
+    fn (x) {
+        return x;
+    }
+
+smalltalk
+lisp
+
+*/

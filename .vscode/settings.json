@@ -148,7 +148,10 @@
         "stdint.h": "c",
         "stdbool.h": "c",
         "float.h": "c",
-        "hash_map.h": "c"
+        "hash_map.h": "c",
+        "stdlib.h": "c",
+        "glut.h": "c",
+        "freeglut_std.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/gcc"
 }

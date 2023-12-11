@@ -60,11 +60,17 @@ typedef struct debug_out {
 } debug_out_t;
 
 typedef struct debug {
+    bool            is_debug_mode_on;
+
     const char*     fn;
 
     const char*     debug_buffer_separator;
     debug_buffer_t  debug_buffer[_DEBUG_BUFFER_TYPE_SIZE];
     debug_out_t     debug_out[_DEBUG_OUT_MODE_SIZE];
+
+    FILE*           source_dump;
+    FILE*           scanner_dump;
+    FILE*           compiler_out_dump;
 
     bool            panic_mode;
 } debug_t;

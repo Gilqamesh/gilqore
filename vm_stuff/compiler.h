@@ -8,89 +8,76 @@
 # include "types.h"
 # include "scanner.h"
 # include "hash_map.h"
+# include "compiler/compiler_alignment.h"
+
+bool compiler__module_init();
 
 typedef struct compiler_flags {
-    uint32_t compiler_flag_limit_errors_n;
-} compiler_flags_t;
+    uint32_t    error_limit;
+    bool        show_warnings;
 
-typedef bool (*compiler_flag_fn_t)(const char* arg, compiler_flags_t*);
+    FILE*       out_stream;
+    FILE*       warn_stream;
+    FILE*       err_stream;
+} compiler_flags_t;
+void compiler_flags__create(compiler_flags_t* self);
+
+typedef struct compiler_flag compiler_flag_t;
+// @returns false if 'arg' usage for flag is wrong
+typedef bool (*compiler_flag_fn_t)(const char* arg, compiler_flags_t*, compiler_flag_t* compiler_flag);
 typedef struct compiler_flag {
     compiler_flag_fn_t  fn;
-    const char*         help_message;
+    const char*         option_usage;
+    const char*         option_description;
 } compiler_flag_t;
 
 compiler_flag_t* compiler__flag_find(const char* flag);
 extern hash_map_t* compiler_flag_fns;
 
-typedef struct compiler {
-    scanner_t                 scanner;
-    types_t                   types;
+typedef struct local {
+    token_t     token;
+    type_t*     type;
+    uint32_t    offset_from_bp;
+    bool        is_const;
 
-    // might not need these as the compiled_fn gets them upon creation
-    uint8_t*                  ip_start;
-    uint8_t*                  ip_cur;
-    uint8_t*                  ip_end;
+    struct {
+        uint32_t stack_index; // changes depending on where we are in the stack
+        bool     is_defined;
+    } transient_data;
+} local_t;
+
+typedef struct scope {
+    local_t*       locals;
+    uint32_t       locals_top;
+    uint32_t       locals_size;
+} scope_t;
+
+typedef struct compiler {
+    scanner_t                 scanner; // todo: move to compilation unit shared place
+    types_t                   types;
 
     token_t                   token_cur;
     token_t                   token_prev;
 
-    hash_map_t*               scope_cur;
-    hash_map_t*               scope_start;
-    hash_map_t*               scope_end;
+    scope_t*                  scopes;
+    uint32_t                  scopes_top;
+    uint32_t                  scopes_size;
 
     type_internal_function_t* compiled_fn;
 
     bool                      panic_mode;
     bool                      had_error;
 
-    compiler_flags_t*         flags;
+    compiler_flags_t*         flags; // todo: move to compilation unit shared place
 
     struct compiler*          parent;
 } compiler_t;
 
-bool compiler__module_init();
-
-bool compiler__create(compiler_t* self, compiler_flags_t* compiler_flags, const char* source, uint64_t source_len);
-void compiler__destroy(compiler_t* self);
-
-bool compiler__compile(compiler_t* self, const char* fn_name, uint8_t* ip_start, uint8_t* ip_end);
-
-void compiler__define_builtins(compiler_t* self);
-
-void compiler__patch_jmp(uint8_t* jmp_ip, uint8_t* new_addr);
-
-/* EMITTERS START */
-
-typedef enum function_ins {
-    FUNCTION_INS_LOAD_ADDRESS,
-    FUNCTION_INS_STORE_INTEGRAL,
-    FUNCTION_INS_STORE_FLOAT,
-    FUNCTION_INS_LOAD_INTEGRAL,
-    FUNCTION_INS_LOAD_FLOAT
-} function_ins_t;
-ins_t function_ins__to_ins(function_ins_t function_ins);
-
-// @param internal_function the function to compile from
-// @param target_function the function's argument to access, CAREFUL: context dependent, can't call this anywhere, as all functions share the same argument buffer
-// @param arg_index index of argument
-// @param ... MUST be null-terminated, subsequent members of the supplied argument, if 'lea' is false, this must end in an atom
-void compiler__emit_internal_function_arg(compiler_t* self, type_function_t* target_function, function_ins_t function_ins, uint32_t arg_index, ...);
-
-// @param internal_function the function to compile from
-// @param target_function the function's return value to access, CAREFUL: context dependent, can't call this anywhere, as all functions share the same return buffer
-// @param ... subsequent members of the supplied argument, if 'lea' is false, this must end in an atom
-void compiler__emit_internal_function_ret(compiler_t* self, type_function_t* target_function, function_ins_t function_ins, ...);
-
-// @param ... subsequent members of the supplied argument, if 'lea' is false, this must end in an atom
-void compiler__emit_internal_function_local(compiler_t* self, function_ins_t function_ins, const char* local_name, ...);
-
-void compiler__emit_internal_function_call(compiler_t* self, type_function_t* target_function);
-
-void compiler__emit_decl_fn(compiler_t* self);
-void compiler__emit_stmt(compiler_t* self, token_type_t token_type);
-void compiler__emit_type_decl_stmt(compiler_t* self, token_type_t token_type);
-void compiler__emit_expr_stmt(compiler_t* self);
-
-/* EMITTERS END */
+type_internal_function_t* compiler__create_and_compile(
+    compiler_t* self,
+    compiler_flags_t* compiler_flags,
+    const char* fn_source, uint64_t fn_source_len, bool source_is_mutable,
+    const char* fn_name
+);
 
 #endif // COMPILER_H

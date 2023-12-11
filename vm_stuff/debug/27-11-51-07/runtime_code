@@ -1,9 +1,0 @@
-ip                   ins bytecode                           ins mnemonic            ins operand                                       
-00007ffe5a120718     0000000000000002                       PUSH                    2                                                 
-00007ffe5a120718     0000000000000003                       PUSH                    3                                                 
-00007ffe5a120718                                            ADD                     2 3 5                                             
-00007ffe5a120718                                            PRINT                                                                     
-00007ffe5a120718                                            RET                                                                       
-00007ffe5a120718     0000000000000002                       PUSH                    2                                                 
-00007ffe5a120718     4002666666666666                       PUSHF                   2.300                                             
-00007ffe5a120718                                            ADDF                                                                      

@@ -1,0 +1,16 @@
+ip                   ins mnemonic            return ip           register            registerf           argument type       return type         local type      
+000000000062a590     PUSH_TYPE                                                                                                                                   
+000000000062a5a1     POP                                                                                                                                         
+000000000062a5a2     RET                                                                                                                                         
+000000000062a5a3     PUSH_TYPE                                                                                                                                   
+000000000062a5b4     PUSH                                                                                                                                        
+000000000062a5bd     STORE                                                                                                                                       
+000000000062a5cb     POP                                                                                                                                         
+000000000062a5cc     RET                                                                                                                                         
+000000000062a5cd     PUSH_TYPE                                                                                                                                   
+000000000062a5de     PUSH                                                                                                                                        
+000000000062a5e7     STORE                                                                                                                                       
+000000000062a5f5     LOAD                                                                                                                                        
+000000000062a603     PRINT                                                                                                                                       
+000000000062a604     POP                                                                                                                                         
+000000000062a605     RET                                                                                                                                         

@@ -1,0 +1,2 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+0000000000430590     02 0000000000000004 000000000000000    PUSH_TYPE                                                                 

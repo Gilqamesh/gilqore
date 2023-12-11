@@ -1,0 +1,8 @@
+ip                   ins bytecode                           ins mnemonic            ins operand                                       
+0000000001375590     06 02 0000000000000004 000000000000    PUSH_TYPE               LOCAL_TYPE_STACK                                  
+00000000013755a2     02 0000000000000002                    PUSH                    2                                                 
+00000000013755ab     1b                                     CVTS2F                  2 2.000                                           
+00000000013755ac     2f 02 00 00000000 04                   SARF                    LOCAL_TYPE_STACK 2.000 00000000013ac610           
+00000000013755b4     2d 02 00 00000000 04                   LRAF                    LOCAL_TYPE_STACK 0.000 00000000013ac610           
+00000000013755bc     01                                     PRINTF                                                                    
+00000000013755bd     34                                     RET                                                                       

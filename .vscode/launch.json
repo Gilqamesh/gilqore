@@ -8,7 +8,8 @@
             // "program": "${workspaceFolder}/modules/test_framework/test/test_framework.exe",
             // "program": "${workspaceFolder}/modules/io/file/test/file.exe",
             // "program": "${workspaceFolder}/modules/io/file/file_reader/test/file_reader.exe",
-            "program": "${workspaceFolder}/vm_stuff/a.out",
+            // "program": "${workspaceFolder}/vm_stuff/a.out",
+            "program": "${workspaceFolder}/gfx/a.out",
             // "program": "${workspaceFolder}/modules/data_structures/circular_buffer/test/circular_buffer.exe",
             // "program": "${workspaceFolder}/modules/test/modules.exe",
             // "program": "${workspaceFolder}/transpiler/transpiler.exe",
@@ -29,7 +30,7 @@
             // "program": "${workspaceFolder}/modules/data_structures/hash_set/test/hash_set.exe",
             // "program": "${workspaceFolder}/modules/data_structures/heap/test/heap.exe",
             "args": [
-                "-h"
+                // "-h"
                 // "-fmax-errors="
                 // "${workspaceFolder}/vm_stuff/debug.h"
                 // "${workspaceFolder}/vm_stuff/debug/25-15-04-50/compiled_code"
@@ -43,7 +44,7 @@
             "environment": [
                 { "name": "LD_LIBRARY_PATH", "value": "/home/gilqamesh/Projects/gilqore/vm_stuff/lib" }
             ],
-            "cwd": "${workspaceFolder}/vm_stuff",
+            "cwd": "${workspaceFolder}/gfx",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
             "externalConsole": true

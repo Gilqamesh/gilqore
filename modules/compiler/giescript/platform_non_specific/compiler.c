@@ -685,7 +685,7 @@ static void compiler__emit_while_stmt(compiler_t* self) {
     compiler__eat_err(self, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
     u32 exit_ip = compiler__emit_jump(self, INS_JUMP_ON_FALSE);
 
-    // pop condition expr
+// pop condition exp
     compiler__emit_pop(self, true);
     compiler__emit_stmt(self);
 

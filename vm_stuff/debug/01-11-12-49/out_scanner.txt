@@ -1,0 +1,4 @@
+IDENTIFIER: [u32] 1:1 - 1:4
+IDENTIFIER: [a] 1:5 - 1:6
+SEMICOLON: [;] 1:6 - 1:7
+EOF: [] 2:2 - 2:2

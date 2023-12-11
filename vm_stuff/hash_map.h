@@ -44,5 +44,6 @@ hash_map_key_t* hash_map__next(hash_map_t* self, hash_map_key_t* key);
 hash_map_key_t* hash_map__end(hash_map_t* self);
 
 hash_map_value_t* hash_map__value(hash_map_t* self, hash_map_key_t* key);
+hash_map_key_t* hash_map__key(hash_map_t* self, hash_map_value_t* value);
 
 #endif // HASH_MAP_H

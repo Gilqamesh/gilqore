@@ -1,7 +1,0 @@
-ip                   ins bytecode                           ins mnemonic            ins operand                                       
-00007ffc17561e78     0000000000000003                       PUSH                    3                                                 
-00007ffc17561f38                                            PRINT                                                                     
-00007ffc17561fb8                                            RET                                                                       
-00007ffc17561e78     4002666666666666                       PUSHF                   2.300                                             
-00007ffc17561f38                                            PRINTF                                                                    
-00007ffc17561fb8                                            RET                                                                       

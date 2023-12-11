@@ -29,6 +29,18 @@ typedef uint64_t su64_t;
 typedef float    sr32_t;
 typedef double   sr64_t;
 
+# define SYMBOL_ATOM_S8   "s8"
+# define SYMBOL_ATOM_S16  "s16"
+# define SYMBOL_ATOM_S32  "s32"
+# define SYMBOL_ATOM_S64  "s64"
+# define SYMBOL_ATOM_U8   "u8"
+# define SYMBOL_ATOM_U16  "u16"
+# define SYMBOL_ATOM_U32  "u32"
+# define SYMBOL_ATOM_U64  "u64"
+# define SYMBOL_ATOM_R32  "r32"
+# define SYMBOL_ATOM_R64  "r64"
+# define SYMBOL_ATOM_VOID "void"
+
 typedef enum type_specifier {
     TYPE_ATOM,
     TYPE_STRUCT,
@@ -64,6 +76,8 @@ extern type_t* t_u64;
 extern type_t* t_r32;
 extern type_t* t_r64;
 extern type_t* t_void;
+extern type_t* t_reg;
+extern type_t* t_regf;
 
 typedef struct types {
     hash_map_t types;
@@ -143,11 +157,6 @@ typedef struct function_argument {
     type_t*     type;
 } function_argument_t;
 
-typedef struct function_local {
-    const char* name;
-    type_t*     type;
-} function_local_t;
-
 typedef struct type_function {
     type_t                      base;
 
@@ -171,13 +180,11 @@ void type_function__set_return(type_function_t* self, type_t* type);
 
 typedef struct type_internal_function {
     type_function_t         function_base;
-
-    uint8_t*                start_ip;
-    uint8_t*                end_ip;
-
-    function_local_t*       locals;
-    uint32_t                locals_top;
-    uint32_t                locals_size;
+ 
+    // uint8_t*                data_segment;
+    uint8_t*                ip_start;
+    uint8_t*                ip_cur; // for compilation
+    uint8_t*                ip_end;
 } type_internal_function_t;
 
 typedef struct type_external_function {
@@ -223,12 +230,10 @@ void type_enum__add(type_enum_t* self, const char* name);
 void type_enum__add_with_value(type_enum_t* self, const char* name, int32_t value);
 
 type_internal_function_t* type_internal_function__create(const char* abbreviated_name);
-void type_internal_function__add_local(type_internal_function_t* self, const char* name, type_t* type);
-type_t* type_internal_function__get_local(type_internal_function_t* self, const char* name);
-void type_internal_function__set_ip(type_internal_function_t* self, uint8_t* ip);
 uint8_t* type_internal_function__start_ip(type_internal_function_t* self);
-uint8_t* type_internal_function__end_ip(type_internal_function_t* self);
+uint8_t* type_internal_function__cur_ip(type_internal_function_t* self);
 void type_internal_function__add_ins(type_internal_function_t* self, ins_t ins, ...);
+void type_internal_function__vadd_ins(type_internal_function_t* self, ins_t ins, va_list ap);
 
 type_external_function_t* type_external_function__create(const char* symbol, const char* shared_lib, shared_lib_t* shared_libs, bool is_variadic);
 void type_external_function__add_argument(type_external_function_t* self, const char* name, type_t* type, types_t* types);

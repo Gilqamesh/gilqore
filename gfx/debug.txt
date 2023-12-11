@@ -1,0 +1,21 @@
+[16:02:22] [glfw] - info: 
+  version string: 3.4.0 Wayland X11 GLX Null EGL OSMesa monotonic
+  compiled version: 3.4.0
+  runtime version: 3.4.0
+  number of connected monitors: 1
+    0: eDP-1 - physical size: 380x210 [mm]
+[16:02:23] [glfw] - info: window content area's position changed to: 50 119
+[16:02:23] [glfw] - info: window content area's position changed to: 50 119
+[16:02:23] [glfw] - info: window has gained input focus
+[16:02:23] [glfw] - info: window has lost input focus
+[16:02:23] [glfw] - info: window content area's position changed to: 50 119
+[16:02:23] [glfw] - info: window content area's position changed to: 50 119
+[16:02:23] [glfw] - info: window has gained input focus
+[16:02:23] [glfw] - info: framebuffer dimensions changed to: 500px 500px
+[16:02:23] [glfw] - info: window content area's size changed to: 500 500
+[16:02:24] [glfw] - info: window has lost input focus
+[16:02:26] [glfw] - info: window has gained input focus
+[16:02:26] [glfw] - info: button transition [WINDOW_CLOSE]: released -> pressed
+[16:02:26] [app] - info: 
+  Frame    Button                   Transitions    Repeats    State    
+  57       WINDOW_CLOSE             1              0          Pressed
