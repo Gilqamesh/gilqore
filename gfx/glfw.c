@@ -285,6 +285,7 @@ const char* button__to_str(button_t button) {
     case BUTTON_WINDOW_FULL_SCREEN: return "WINDOW_FULL_SCREEN";
     default: ASSERT(false);
     }
+    return 0;
 }
 
 static void char_callback(GLFWwindow* window, uint32_t utf32) {
