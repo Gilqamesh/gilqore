@@ -71,14 +71,18 @@ const char* debug_error_level__to_str(debug_error_level_t error_level) {
     case DEBUG_INFO:  return "info";
     default: ASSERT(false);
     }
+
+    return 0;
 }
 
 const char* debug_module__to_str(debug_module_t module) {
-     switch (module) {
+    switch (module) {
     case DEBUG_MODULE_APP: return "app";
     case DEBUG_MODULE_GLFW: return "glfw";
     default: ASSERT(false);
     }
+
+    return 0;
 }
 
 void debug__write(const char* format, ...) {
