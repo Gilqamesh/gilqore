@@ -555,8 +555,8 @@ void window__set_size_limit(
 ) {
     glfwSetWindowSizeLimits(
         self->glfw_window,
-        min_width == 0 ? GLFW_DONT_CARE : min_width, min_height == 0 ? GLFW_DONT_CARE : min_height,
-        max_width == 0 ? GLFW_DONT_CARE : max_width, max_height == 0 ? GLFW_DONT_CARE : max_height
+        min_width == 0 ? GLFW_DONT_CARE : (int32_t) min_width, min_height == 0 ? GLFW_DONT_CARE : (int32_t) min_height,
+        max_width == 0 ? GLFW_DONT_CARE : (int32_t) max_width, max_height == 0 ? GLFW_DONT_CARE : (int32_t) max_height
     );
 }
 
