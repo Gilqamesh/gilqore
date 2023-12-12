@@ -6,6 +6,8 @@
 # include <assert.h>
 # include <stdint.h>
 
+// todo: turn some of the message types that are resource-intensitve into compile-time api
+
 # define ASSERT(expr) do { \
     if (!(expr)) { \
         assert(false); \
@@ -15,14 +17,14 @@
 bool debug__init_module();
 void debug__deinit_module();
 
-typedef enum debug_error_level {
+typedef enum debug_message_type {
     DEBUG_ERROR,
     DEBUG_WARN,
     DEBUG_INFO,
 
-    _DEBUG_ERROR_LEVEL_SIZE
-} debug_error_level_t;
-const char* debug_error_level__to_str(debug_error_level_t error_level);
+    _DEBUG_MESSAGE_TYPE_SIZE
+} debug_message_type_t;
+const char* debug_message_type__to_str(debug_message_type_t message_type);
 
 typedef enum debug_module {
     DEBUG_MODULE_APP,
@@ -33,7 +35,10 @@ typedef enum debug_module {
 const char* debug_module__to_str(debug_module_t module);
 
 void debug__write(const char* format, ...);
-void debug__write_and_flush(debug_module_t module, debug_error_level_t error_level, const char* format, ...);
-void debug__flush(debug_module_t module, debug_error_level_t error_level);
+void debug__write_and_flush(debug_module_t module, debug_message_type_t message_type, const char* format, ...);
+void debug__flush(debug_module_t module, debug_message_type_t message_type);
+
+void debug__set_message_type_availability(debug_message_type_t message_type, bool value);
+bool debug__get_message_type_availability(debug_message_type_t message_type);
 
 #endif // DEBUG_H

@@ -13,8 +13,8 @@ typedef struct debug_buffer {
 typedef struct debug {
     buffer_t buffer;
     uint32_t number_of_lines;
-
-    FILE* error_file;
+    bool     error_level_availability[_DEBUG_MESSAGE_TYPE_SIZE];
+    FILE*    error_file;
 } debug_t;
 
 static debug_t debug;
@@ -46,6 +46,10 @@ static void debug__vwrite(const char* format, va_list ap) {
 bool debug__init_module() {
     memset(&debug, 0, sizeof(debug));
 
+    for (uint32_t error_level_availability_index = 0; error_level_availability_index < _DEBUG_MESSAGE_TYPE_SIZE; ++error_level_availability_index) {
+        debug.error_level_availability[error_level_availability_index] = true;
+    }
+
     debug.error_file = fopen("debug.txt", "w");
     if (!debug.error_file) {
         return false;
@@ -64,8 +68,8 @@ void debug__deinit_module() {
     buffer__destroy(&debug.buffer);
 }
 
-const char* debug_error_level__to_str(debug_error_level_t error_level) {
-    switch (error_level) {
+const char* debug_message_type__to_str(debug_message_type_t message_type) {
+    switch (message_type) {
     case DEBUG_ERROR: return "error";
     case DEBUG_WARN:  return "warn";
     case DEBUG_INFO:  return "info";
@@ -94,7 +98,11 @@ void debug__write(const char* format, ...) {
     va_end(ap);
 }
 
-void debug__write_and_flush(debug_module_t module, debug_error_level_t error_level, const char* format, ...) {
+void debug__write_and_flush(debug_module_t module, debug_message_type_t message_type, const char* format, ...) {
+    if (!debug__get_message_type_availability(message_type)) {
+        return ;
+    }
+
     va_list ap;
     va_start(ap, format);
 
@@ -102,16 +110,16 @@ void debug__write_and_flush(debug_module_t module, debug_error_level_t error_lev
 
     va_end(ap);
 
-    debug__flush(module, error_level);
+    debug__flush(module, message_type);
 }
 
-static void debug__flush_helper(FILE* fp, debug_module_t module, debug_error_level_t error_level) {
+static void debug__flush_helper(FILE* fp, debug_module_t module, debug_message_type_t message_type) {
     time_t cur_time = time(NULL);
     struct tm* cur_localtime = localtime(&cur_time);
     fprintf(
         fp,
         "[%02d:%02d:%02d] [%s] - %s: ",
-        cur_localtime->tm_hour, cur_localtime->tm_min, cur_localtime->tm_sec, debug_module__to_str(module), debug_error_level__to_str(error_level)
+        cur_localtime->tm_hour, cur_localtime->tm_min, cur_localtime->tm_sec, debug_module__to_str(module), debug_message_type__to_str(message_type)
     );
     if (debug.number_of_lines > 1) {
         fprintf(fp, "\n");
@@ -120,12 +128,26 @@ static void debug__flush_helper(FILE* fp, debug_module_t module, debug_error_lev
     fprintf(fp, "%s", debug.buffer.start);
 }
 
-void debug__flush(debug_module_t module, debug_error_level_t error_level) {
-    debug__flush_helper(debug.error_file, module, error_level);
+void debug__flush(debug_module_t module, debug_message_type_t message_type) {
+    if (!debug__get_message_type_availability(message_type)) {
+        return ;
+    }
+
+    debug__flush_helper(debug.error_file, module, message_type);
     if (debug.error_file != stderr) {
-        debug__flush_helper(stderr, module, error_level);
+        debug__flush_helper(stderr, module, message_type);
     }
     
     buffer__clear(&debug.buffer);
     debug.number_of_lines = 0;
+}
+
+void debug__set_message_type_availability(debug_message_type_t message_type, bool value) {
+    ASSERT(message_type < _DEBUG_MESSAGE_TYPE_SIZE);
+    debug.error_level_availability[message_type] = value;
+}
+
+bool debug__get_message_type_availability(debug_message_type_t message_type) {
+    ASSERT(message_type < _DEBUG_MESSAGE_TYPE_SIZE);
+    return debug.error_level_availability[message_type];
 }

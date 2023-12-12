@@ -5,43 +5,93 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct button_state {
+    uint32_t n_of_transitions;
+    uint32_t n_of_repeats;
+    void     (*action_on_key_down_fn)(window_t);
+    bool     ended_down;
+
+    /**
+     * @todo: add state for shortcut customization
+     */
+};
+
+typedef struct controller {
+    const char*    name;
+    button_state_t buttons[_BUTTON_SIZE];
+    bool           is_connected;
+    bool           received_button_input;
+} controller_t;
+
+typedef struct glfw {
+    /**
+     * @brief global controllers that affect all windows, such as gamepads
+    */
+    controller_t controller[16];
+    
+    window_t* windows;
+    uint32_t  windows_top;
+    uint32_t  windows_size;
+} glfw_t;
+glfw_t glfw;
+
+struct window {
+    GLFWwindow* glfw_window;
+    const char* title;
+
+    // todo: need to be saved to restore to windowed mode from fullscreen mode, but it doesn't do it properly atm
+    int32_t  content_area_x;
+    int32_t  content_area_y;
+    uint32_t content_area_w;
+    uint32_t content_area_h;
+
+    // todo: I think this can be removed as it's unnecessary state as it can be queried, so check where it's necessary
+    monitor_t monitor;
+
+    controller_t controller;
+};
+
+static void glfw__prepare_for_poll_events();
 static void glfw__error_callback(int code, const char* description);
 static void glfw__monitor_callback(GLFWmonitor* monitor, int event);
+static void glfw__controller_callback(int jid, int event);
 static void window__should_close_callback(GLFWwindow* glfw_window);
 static void window__pos_changed_callback(GLFWwindow* glfw_window, int x, int y);
 static void window__size_changed_callback(GLFWwindow* glfw_window, int width, int height);
 static window_t window__from_glfw_window(GLFWwindow* glfw_window);
-static void wiondow__framebuffer_resize_callback(GLFWwindow* glfw_window, int width, int height);
+static void window__framebuffer_resize_callback(GLFWwindow* glfw_window, int width, int height);
 static void window__content_scale_callback(GLFWwindow* glfw_window, float xscale, float yscale);
 static void window__minimized_callback(GLFWwindow* glfw_window, int minimized);
 static void window__maximized_callback(GLFWwindow* glfw_window, int maximized);
 static void window__focus_callback(GLFWwindow* glfw_window, int focused);
-static void window__key_callback(GLFWwindow* glfw_window, int key, int scancode, int action, int mods);
+static void window__key_callback(GLFWwindow* glfw_window, int key, int platform_specific_scancode, int action, int mods);
+static void window__utf32_callback(GLFWwindow* window, uint32_t utf32);
 static void window__add_default_button_actions(window_t self);
 static void window__button_default_action_window_close(window_t self);
 static void window__button_default_action_window_minimize(window_t self);
 static void window__button_default_action_window_maximize(window_t self);
 static void window__button_default_action_window_windowed(window_t self);
 static void window__button_default_action_window_full_screen(window_t self);
+static void window__button_default_action_debug_info_message_toggle(window_t self);
+static void window__cursor_pos_callback(GLFWwindow* glfw_window, double x, double y);
+static void window__button_process_input(window_t self, button_t button, bool is_pressed);
+static void window__cursor_enter_callback(GLFWwindow* glfw_window, int entered);
+static void window__cursor_button_callback(GLFWwindow* glfw_window, int button, int action, int mods);
+static void window__cursor_scroll_callback(GLFWwindow* glfw_window, double xoffset, double yoffset);
+static void controller__button_process_input(controller_t* self, button_t button, bool is_pressed);
+static void controller__clear(controller_t* self);
+static void controller__set_connected(controller_t* self, bool value);
+static bool controller__get_connected(controller_t* self);
 
-static void window__button_default_action_window_close(window_t self) {
-    window__set_should_close(self, true);
-}
-
-static void window__button_default_action_window_minimize(window_t self) {
-    window__set_state(self, WINDOW_STATE_MINIMIZED);
-}
-
-static void window__button_default_action_window_maximize(window_t self) {
-    window__set_state(self, WINDOW_STATE_MAXIMIZED);
-}
-
-static void window__button_default_action_window_windowed(window_t self) {
-    window__set_state(self, WINDOW_STATE_WINDOWED);
-}
-
-static void window__button_default_action_window_full_screen(window_t self) {
-    window__set_state(self, WINDOW_STATE_FULL_SCREEN);
+static void glfw__prepare_for_poll_events() {
+    for (uint32_t controller_index = 0; controller_index < sizeof(glfw.controller) / sizeof(glfw.controller[0]); ++controller_index) {
+        if (glfw.controller[controller_index].is_connected) {
+            controller__clear(&glfw.controller[controller_index]);
+        }
+    }
+    for (uint32_t window_index = 0; window_index < glfw.windows_top; ++window_index) {
+        controller__clear(&glfw.windows[window_index]->controller);
+    }
 }
 
 static void glfw__error_callback(int code, const char* description) {
@@ -56,6 +106,21 @@ static void glfw__monitor_callback(GLFWmonitor* monitor, int event) {
     }
 }
 
+static void glfw__controller_callback(int jid, int event) {
+    ASSERT(jid >= 0 && (uint32_t) jid < sizeof(glfw.controller) / sizeof(glfw.controller[0]));
+    controller_t* controller = &glfw.controller[jid];
+    const bool exists_gamepad_mapping = glfwJoystickIsGamepad(jid);
+
+    if (event == GLFW_CONNECTED && exists_gamepad_mapping) {
+        controller->name = glfwGetJoystickName(jid);
+        controller__set_connected(controller, true);
+    } else if (event == GLFW_DISCONNECTED) {
+        controller__set_connected(controller, false);
+    } else {
+        debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_WARN, "joystick event? %d\n", event);
+    }
+}
+
 static void window__should_close_callback(GLFWwindow* glfw_window) {
     window_t window = window__from_glfw_window(glfw_window);
     window__set_should_close(window, true);
@@ -65,8 +130,8 @@ static void window__pos_changed_callback(GLFWwindow* glfw_window, int x, int y) 
     window_t window = window__from_glfw_window(glfw_window);
     if (window__get_state(window) == WINDOW_STATE_WINDOWED) {
         window__get_content_area_pos(window, &x, &y);
-        window->x = x;
-        window->y = y;
+        window->content_area_x = x;
+        window->content_area_y = y;
     }
     debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "window content area's position changed to: %d %d", x, y);
 }
@@ -75,8 +140,8 @@ static void window__size_changed_callback(GLFWwindow* glfw_window, int width, in
     window_t window = window__from_glfw_window(glfw_window);
     if (window__get_state(window) == WINDOW_STATE_WINDOWED) {
         window__get_content_area_size(window, (uint32_t*) &width, (uint32_t*) &height);
-        window->w = width;
-        window->h = height;
+        window->content_area_w = width;
+        window->content_area_h = height;
     }
     debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "window content area's size changed to: %u %u", width, height);
 }
@@ -88,7 +153,7 @@ static window_t window__from_glfw_window(GLFWwindow* glfw_window) {
     return window;
 }
 
-static void wiondow__framebuffer_resize_callback(GLFWwindow* glfw_window, int width, int height) {
+static void window__framebuffer_resize_callback(GLFWwindow* glfw_window, int width, int height) {
     (void) glfw_window;
 
     debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "framebuffer dimensions changed to: %dpx %dpx", width, height);
@@ -131,14 +196,13 @@ static void window__focus_callback(GLFWwindow* glfw_window, int focused) {
     }
 }
 
-static void window__key_callback(GLFWwindow* glfw_window, int key, int scancode, int action, int mods) {
-    (void) scancode;
-    (void) mods;
+static void window__key_callback(GLFWwindow* glfw_window, int key, int platform_specific_scancode, int action, int mods) {
+    (void) platform_specific_scancode;
 
     window_t window = window__from_glfw_window(glfw_window);
     button_t button = _BUTTON_SIZE;
 
-    const bool is_key_down          = action == GLFW_PRESS || action == GLFW_REPEAT;
+    const bool is_pressed           = action == GLFW_PRESS || action == GLFW_REPEAT;
     const bool is_shift_down        = mods & GLFW_MOD_SHIFT;
     const bool is_ctrl_down         = mods & GLFW_MOD_CONTROL;
     const bool is_alt_down          = mods & GLFW_MOD_ALT;
@@ -177,39 +241,175 @@ static void window__key_callback(GLFWwindow* glfw_window, int key, int scancode,
     } break ;
     }
 
+    if (button == BUTTON_I && is_alt_down) {
+        button = BUTTON_DEBUG_INFO_MESSAGE_TOGGLE;
+    }
+
     if (button == _BUTTON_SIZE) {
         return ;
     }
 
-    button_state_t* button_state = &window->buttons[button];
+    window__button_process_input(window, button, is_pressed);
+}
 
-    if (is_key_down && button_state->action_on_key_down_fn) {
-        button_state->action_on_key_down_fn(window);
+static void window__utf32_callback(GLFWwindow* window, uint32_t utf32) {
+    (void) window;
+    (void) utf32;
+}
+
+static void window__add_default_button_actions(window_t window) {
+    window->controller.buttons[BUTTON_WINDOW_CLOSE].action_on_key_down_fn = &window__button_default_action_window_close;
+    window->controller.buttons[BUTTON_WINDOW_MINIMIZE].action_on_key_down_fn = &window__button_default_action_window_minimize;
+    window->controller.buttons[BUTTON_WINDOW_MAXIMIZE].action_on_key_down_fn = &window__button_default_action_window_maximize;
+    window->controller.buttons[BUTTON_WINDOW_WINDOWED].action_on_key_down_fn = &window__button_default_action_window_windowed;
+    window->controller.buttons[BUTTON_WINDOW_FULL_SCREEN].action_on_key_down_fn = &window__button_default_action_window_full_screen;
+    window->controller.buttons[BUTTON_DEBUG_INFO_MESSAGE_TOGGLE].action_on_key_down_fn = &window__button_default_action_debug_info_message_toggle;
+}
+
+static void window__button_default_action_window_close(window_t self) {
+    window__set_should_close(self, true);
+}
+
+static void window__button_default_action_window_minimize(window_t self) {
+    window__set_state(self, WINDOW_STATE_MINIMIZED);
+}
+
+static void window__button_default_action_window_maximize(window_t self) {
+    window__set_state(self, WINDOW_STATE_MAXIMIZED);
+}
+
+static void window__button_default_action_window_windowed(window_t self) {
+    window__set_state(self, WINDOW_STATE_WINDOWED);
+}
+
+static void window__button_default_action_window_full_screen(window_t self) {
+    window__set_state(self, WINDOW_STATE_FULL_SCREEN);
+}
+
+static void window__button_default_action_debug_info_message_toggle(window_t self) {
+    (void) self;
+
+    debug__set_message_type_availability(DEBUG_INFO, !debug__get_message_type_availability(DEBUG_INFO));
+}
+
+static void window__cursor_pos_callback(GLFWwindow* glfw_window, double x, double y) {
+    window_t window = window__from_glfw_window(glfw_window);
+    (void) window;
+    (void) x;
+    (void) y;
+}
+
+static void window__button_process_input(window_t self, button_t button, bool is_pressed) {
+    controller__button_process_input(&self->controller, button, is_pressed);
+
+    button_state_t* button_state = &self->controller.buttons[button];
+    if (is_pressed && button_state->action_on_key_down_fn) {
+        button_state->action_on_key_down_fn(self);
+    }
+}
+
+static void window__cursor_enter_callback(GLFWwindow* glfw_window, int entered) {
+    (void) glfw_window;
+
+    if (entered) {
+        debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "cursor has entered the content area");
+    } else {
+        debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "cursor has left the content area");
+    }
+}
+
+static void window__cursor_button_callback(GLFWwindow* glfw_window, int key, int action, int mods) {
+    window_t window = window__from_glfw_window(glfw_window);
+
+    const bool is_pressed           = action == GLFW_PRESS;
+    const bool is_shift_down        = mods & GLFW_MOD_SHIFT;
+    const bool is_ctrl_down         = mods & GLFW_MOD_CONTROL;
+    const bool is_alt_down          = mods & GLFW_MOD_ALT;
+    const bool is_super_down        = mods & GLFW_MOD_SUPER;
+    const bool is_caps_lock_enabled = mods & GLFW_MOD_CAPS_LOCK;
+    const bool is_num_lock_enabled  = mods & GLFW_MOD_NUM_LOCK;
+    (void) is_shift_down;
+    (void) is_ctrl_down;
+    (void) is_alt_down;
+    (void) is_super_down;
+    (void) is_caps_lock_enabled;
+    (void) is_num_lock_enabled;
+
+    button_t button = _BUTTON_SIZE;
+
+    switch (key) {
+    case GLFW_MOUSE_BUTTON_LEFT: button = BUTTON_CURSOR_LEFT; break ;
+    case GLFW_MOUSE_BUTTON_RIGHT: button = BUTTON_CURSOR_RIGHT; break ;
+    case GLFW_MOUSE_BUTTON_MIDDLE: button = BUTTON_CURSOR_MIDDLE; break ;
     }
 
+    if (button == _BUTTON_SIZE) {
+        return ;
+    }
+
+    window__button_process_input(window, button, is_pressed);
+}
+
+static void window__cursor_scroll_callback(GLFWwindow* glfw_window, double xoffset, double yoffset) {
+    (void) glfw_window;
+
+    debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "cursor scroll: %.3lf %.3lf", xoffset, yoffset);
+}
+
+static void controller__button_process_input(controller_t* self, button_t button, bool is_pressed) {
+    button_state_t* button_state = &self->buttons[button];
+
     const bool was_down = button_state->ended_down;
+    button_state->ended_down = is_pressed;
     if (
-        (action == GLFW_PRESS && !was_down) ||
-        (action == GLFW_RELEASE && was_down)
+        (is_pressed && !was_down) ||
+        (!is_pressed && was_down)
     ) {
-        window->received_button_input = true;
+        self->received_button_input = true;
         ++button_state->n_of_transitions;
         debug__write_and_flush(
             DEBUG_MODULE_GLFW, DEBUG_INFO,
             "button transition [%s]: %s -> %s",
             button__to_str(button),
             was_down ? "pressed" : "released",
-            action == GLFW_PRESS ? "pressed" : "released"
+            is_pressed ? "pressed" : "released"
         );
     }
-    button_state->ended_down = is_key_down;
-    if (action == GLFW_REPEAT) {
-        window->received_button_input = true;
+    if (is_pressed) {
         ++button_state->n_of_repeats;
     }
 }
 
+static void controller__clear(controller_t* self) {
+    for (uint32_t button_index = 0; button_index < sizeof(self->buttons) / sizeof(self->buttons[0]); ++button_index) {
+        self->buttons[button_index].n_of_repeats     = 0;
+        self->buttons[button_index].n_of_transitions = 0;
+    }
+    self->received_button_input = false;
+}
+
+static void controller__set_connected(controller_t* self, bool value) {
+    if (value) {
+        if (!controller__get_connected(self)) {
+            debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "controller [%s] is connected", self->name);
+            memset(self->buttons, 0, sizeof(self->buttons));
+            self->received_button_input = false;
+        }
+    } else {
+        if (controller__get_connected(self)) {
+            debug__write_and_flush(DEBUG_MODULE_GLFW, DEBUG_INFO, "controller [%s] is disconnected", self->name);
+        }
+    }
+    self->is_connected = value;
+}
+
+static bool controller__get_connected(controller_t* self) {
+    return self->is_connected;
+}
+
 bool glfw__init() {
+    memset(&glfw, 0, sizeof(glfw));
+
     glfwSetErrorCallback(&glfw__error_callback);
 
     debug__write("version string: %s", glfwGetVersionString());
@@ -223,10 +423,13 @@ bool glfw__init() {
 
     // glfwInitHint();
     if (glfwInit() == GLFW_FALSE) {
+        debug__write("glfwInit == GLFW_FALSE");
+        debug__flush(DEBUG_MODULE_GLFW, DEBUG_ERROR);
         return false;
     }
 
     glfwSetMonitorCallback(&glfw__monitor_callback);
+    glfwSetJoystickCallback(&glfw__controller_callback);
 
     uint32_t number_of_monitors;
     monitor_t* monitors = monitor__get_monitors(&number_of_monitors);
@@ -242,19 +445,33 @@ bool glfw__init() {
 
     debug__flush(DEBUG_MODULE_GLFW, DEBUG_INFO);
 
+    for (uint32_t controller_index = 0; controller_index < sizeof(glfw.controller) / sizeof(glfw.controller[0]); ++controller_index) {
+        if (glfwJoystickIsGamepad(controller_index)) {
+            controller_t* controller = &glfw.controller[controller_index];
+            controller->name = glfwGetJoystickName(controller_index);
+            controller__set_connected(controller, true);
+        }
+    }
+
     return true;
 }
 
-void glfw__destroy() {
+void glfw__deinit() {
     glfwTerminate();
 }
 
 void glfw__poll_events() {
+    glfw__prepare_for_poll_events();
     glfwPollEvents();
 }
 
 void glfw__wait_events() {
+    glfw__prepare_for_poll_events();
     glfwWaitEvents();
+}
+
+double glfw__get_time_s() {
+    return glfwGetTime();
 }
 
 monitor_t* monitor__get_monitors(uint32_t* number_of_monitors) {
@@ -276,37 +493,50 @@ const char* button__to_str(button_t button) {
     case BUTTON_0: return "0"; case BUTTON_1: return "1"; case BUTTON_2: return "2"; case BUTTON_3: return "3"; case BUTTON_4: return "4"; case BUTTON_5: return "5"; case BUTTON_6: return "6"; case BUTTON_7: return "7"; case BUTTON_8: return "8"; case BUTTON_9: return "9";
     case BUTTON_A: return "A"; case BUTTON_B: return "B"; case BUTTON_C: return "C"; case BUTTON_D: return "D"; case BUTTON_E: return "E"; case BUTTON_F: return "F"; case BUTTON_G: return "G"; case BUTTON_H: return "H"; case BUTTON_I: return "I"; case BUTTON_J: return "J"; case BUTTON_K: return "K"; case BUTTON_L: return "L"; case BUTTON_M: return "M";
     case BUTTON_N: return "N"; case BUTTON_O: return "O"; case BUTTON_P: return "P"; case BUTTON_Q: return "Q"; case BUTTON_R: return "R"; case BUTTON_S: return "S"; case BUTTON_T: return "T"; case BUTTON_U: return "U"; case BUTTON_V: return "V"; case BUTTON_W: return "W"; case BUTTON_X: return "X"; case BUTTON_Y: return "Y"; case BUTTON_Z: return "Z";
+
     case BUTTON_LEFT: return "LEFT"; case BUTTON_UP: return "UP"; case BUTTON_RIGHT: return "RIGHT"; case BUTTON_DOWN: return "DOWN";
     case BUTTON_CAPS_LOCK: return "CAPS_LOCK"; case BUTTON_SHIFT: return "SHIFT";
+
     case BUTTON_WINDOW_CLOSE: return "WINDOW_CLOSE";
     case BUTTON_WINDOW_MINIMIZE: return "WINDOW_MINIMIZE";
     case BUTTON_WINDOW_MAXIMIZE: return "WINDOW_MAXIMIZE";
     case BUTTON_WINDOW_WINDOWED: return "WINDOW_WINDOWED";
     case BUTTON_WINDOW_FULL_SCREEN: return "WINDOW_FULL_SCREEN";
+
+    case BUTTON_DEBUG_INFO_MESSAGE_TOGGLE: return "DEBUG_INFO_MESSAGE_TOGGLE";
+
+    case BUTTON_CURSOR_LEFT: return "CURSOR_LEFT";
+    case BUTTON_CURSOR_RIGHT: return "CURSOR_RIGHT";
+    case BUTTON_CURSOR_MIDDLE: return "CURSOR_MIDDLE";
+
     default: ASSERT(false);
     }
-    
+
     return 0;
 }
 
-static void char_callback(GLFWwindow* window, uint32_t utf32) {
-    (void) window;
-    (void) utf32;
-
-    // printf("%c", utf32);
-    // fflush(stdout);
-}
-
-static void window__add_default_button_actions(window_t window) {
-    window->buttons[BUTTON_WINDOW_CLOSE].action_on_key_down_fn = &window__button_default_action_window_close;
-    window->buttons[BUTTON_WINDOW_MINIMIZE].action_on_key_down_fn = &window__button_default_action_window_minimize;
-    window->buttons[BUTTON_WINDOW_MAXIMIZE].action_on_key_down_fn = &window__button_default_action_window_maximize;
-    window->buttons[BUTTON_WINDOW_WINDOWED].action_on_key_down_fn = &window__button_default_action_window_windowed;
-    window->buttons[BUTTON_WINDOW_FULL_SCREEN].action_on_key_down_fn = &window__button_default_action_window_full_screen;
-}
-
 window_t window__create(monitor_t monitor, const char* title, uint32_t width, uint32_t height) {
-    window_t result = calloc(1, sizeof(*result));
+    if (glfw.windows_top == glfw.windows_size) {
+        uint32_t windows_prev_size = glfw.windows_size;
+        if (glfw.windows_size == 0) {
+            glfw.windows_size = 4;
+            glfw.windows = malloc(glfw.windows_size * sizeof(*glfw.windows));
+        } else {
+            glfw.windows_size <<= 1;
+            glfw.windows = realloc(glfw.windows, glfw.windows_size * sizeof(*glfw.windows));
+        }
+        for (uint32_t window_index = windows_prev_size; window_index < glfw.windows_size; ++window_index) {
+            glfw.windows[window_index] = malloc(sizeof(*glfw.windows[window_index]));
+        }
+    }
+    assert(glfw.windows_top < glfw.windows_size);
+    window_t result = glfw.windows[glfw.windows_top++];
+    memset(result, 0, sizeof(*result));
+
+    result->title = title;
+    result->monitor = monitor;
+    result->controller.name = "window controller";
+    controller__set_connected(&result->controller, true);
 
     // for faster window creation and application switching, choose the closest video mode available (relative to monitor)
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -318,9 +548,24 @@ window_t window__create(monitor_t monitor, const char* title, uint32_t width, ui
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     result->glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
-    result->title = title;
-    result->monitor = monitor;
+    if (!result->glfw_window) {
+        window__destroy(result);
+        return 0;
+    }
+
+    window__set_current_window(result);
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+        debug__write("gladLoadGLLoader failed to load opengl function pointers");
+        debug__flush(DEBUG_MODULE_GLFW, DEBUG_ERROR);
+        return 0;
+    }
+
+    // glfwSetJoystickUserPointer();
 
     window__set_hidden(result, true);
     {
@@ -330,17 +575,20 @@ window_t window__create(monitor_t monitor, const char* title, uint32_t width, ui
         glfwSetWindowPosCallback(result->glfw_window, &window__pos_changed_callback);
         glfwSetWindowSizeCallback(result->glfw_window, &window__size_changed_callback);
         glfwSetWindowCloseCallback(result->glfw_window, &window__should_close_callback);
-        glfwSetFramebufferSizeCallback(result->glfw_window, &wiondow__framebuffer_resize_callback);
+        glfwSetFramebufferSizeCallback(result->glfw_window, &window__framebuffer_resize_callback);
         glfwSetWindowContentScaleCallback(result->glfw_window, &window__content_scale_callback);
         glfwSetWindowIconifyCallback(result->glfw_window, &window__minimized_callback);
         glfwSetWindowMaximizeCallback(result->glfw_window, &window__maximized_callback);
         glfwSetWindowFocusCallback(result->glfw_window, &window__focus_callback);
-
         glfwSetKeyCallback(result->glfw_window, &window__key_callback);
-        glfwSetCharCallback(result->glfw_window, &char_callback);
+        glfwSetCharCallback(result->glfw_window, &window__utf32_callback);
+        glfwSetCursorPosCallback(result->glfw_window, &window__cursor_pos_callback);
+        glfwSetCursorEnterCallback(result->glfw_window, &window__cursor_enter_callback);
+        glfwSetMouseButtonCallback(result->glfw_window, &window__cursor_button_callback);
+        glfwSetScrollCallback(result->glfw_window, &window__cursor_scroll_callback);
 
-        window__get_content_area_size(result, &result->w, &result->h);
-        window__get_content_area_pos(result, &result->x, &result->y);
+        window__get_content_area_size(result, &result->content_area_w, &result->content_area_h);
+        window__get_content_area_pos(result, &result->content_area_x, &result->content_area_y);
     }
     window__set_hidden(result, false);
 
@@ -349,6 +597,24 @@ window_t window__create(monitor_t monitor, const char* title, uint32_t width, ui
 
 void window__destroy(window_t self) {
     glfwDestroyWindow(self->glfw_window);
+
+    bool found_window = false;
+    for (uint32_t window_index = 0; window_index < glfw.windows_top; ++window_index) {
+        if (glfw.windows[window_index] == self) {
+            found_window = true;
+            while (window_index < glfw.windows_top - 1) {
+                glfw.windows[window_index] = glfw.windows[window_index + 1];
+                ++window_index;
+            }
+            break ;
+        }
+    }
+
+    ASSERT(found_window);
+
+    --glfw.windows_top;
+
+    // todo: realloc glfw.windows_size to save space?
 }
 
 void window__set_default_button_actions(window_t self, bool value) {
@@ -461,8 +727,8 @@ void window__set_state(window_t self, window_state_t state) {
         glfwSetWindowMonitor(
             self->glfw_window,
             NULL,
-            self->x, self->y,
-            self->w, self->h,
+            self->content_area_x, self->content_area_y,
+            self->content_area_w, self->content_area_h,
             GLFW_DONT_CARE
         );
     } break ;
@@ -573,29 +839,85 @@ void window__set_aspect_ratio(window_t self, uint32_t num, uint32_t den) {
     glfwSetWindowAspectRatio(self->glfw_window, num, den);
 }
 
-void window__clear_button_state(window_t self) {
-    for (uint32_t button_index = 0; button_index < sizeof(self->buttons) / sizeof(self->buttons[0]); ++button_index) {
-        self->buttons[button_index].n_of_repeats     = 0;
-        self->buttons[button_index].n_of_transitions = 0;
-    }
-    self->received_button_input = false;
-}
-
-bool window__received_button_input(window_t self) {
-    return self->received_button_input;
-}
-
 bool window__button_is_down(window_t self, button_t button) {
     ASSERT(button < _BUTTON_SIZE);
-    return self->buttons[button].ended_down;
+    return self->controller.buttons[button].ended_down;
 }
 
 uint32_t window__button_n_of_repeats(window_t self, button_t button) {
     ASSERT(button < _BUTTON_SIZE);
-    return self->buttons[button].n_of_repeats;
+    return self->controller.buttons[button].n_of_repeats;
 }
 
 uint32_t window__button_n_of_transitions(window_t self, button_t button) {
     ASSERT(button < _BUTTON_SIZE);
-    return self->buttons[button].n_of_transitions;
+    return self->controller.buttons[button].n_of_transitions;
+}
+
+void window__set_cursor_state(window_t self, cursor_state_t state) {
+    int glfw_cursor_state;
+
+    switch (state) {
+    case CURSOR_DISABLED: {
+        glfw_cursor_state = GLFW_CURSOR_DISABLED;
+    } break ;
+    case CURSOR_ENABLED: {
+        glfw_cursor_state = GLFW_CURSOR_NORMAL;
+    } break ;
+    case CURSOR_HIDDEN: {
+        glfw_cursor_state = GLFW_CURSOR_HIDDEN;
+    } break ;
+    default: ASSERT(false);
+    }
+
+    glfwSetInputMode(self->glfw_window, GLFW_CURSOR, glfw_cursor_state);
+}
+
+cursor_state_t window__get_cursor_state(window_t self) {
+    int glfw_cursor_state = glfwGetInputMode(self->glfw_window, GLFW_CURSOR);
+
+    switch (glfw_cursor_state) {
+    case GLFW_CURSOR_DISABLED: return CURSOR_DISABLED;
+    case GLFW_CURSOR_NORMAL: return CURSOR_ENABLED;
+    case GLFW_CURSOR_HIDDEN: return CURSOR_HIDDEN;
+    default: ASSERT(false && "not implemented cursor mode");
+    }
+
+    return 0;
+}
+
+void window__set_cursor_pos(window_t self, double x, double y) {
+    (void) self;
+    (void) x;
+    (void) y;
+}
+
+void window__get_cursor_pos(window_t self, double* x, double* y) {
+    glfwGetCursorPos(self->glfw_window, x, y);
+}
+
+cursor_t cursor__create(uint8_t* pixels, uint32_t w, uint32_t h) {
+    GLFWimage cursor_image = {
+        .pixels = pixels,
+        .width  = w,
+        .height = h
+    };
+
+    return glfwCreateCursor(&cursor_image, 0, 0);
+}
+
+void cursor__destroy(cursor_t cursor) {
+    glfwDestroyCursor(cursor);
+}
+
+void window__set_cursor(window_t self, cursor_t cursor) {
+    glfwSetCursor(self->glfw_window, cursor);
+}
+
+void window__reset_cursor(window_t self) {
+    glfwSetCursor(self->glfw_window, NULL);
+}
+
+bool window__cursor_is_in_content_area(window_t self) {
+    return glfwGetWindowAttrib(self->glfw_window, GLFW_HOVERED);
 }

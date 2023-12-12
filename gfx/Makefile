@@ -5,10 +5,12 @@ src = \
 	app.c \
 	glfw.c \
 	debug.c \
-	buffer.c
+	buffer.c \
+	system.c \
+	glad/src/glad.c
 obj = $(src:.c=.o)
 dps = $(src:.c=.d)
-cflags = $(shell pkg-config --cflags glfw3) -g -Wall -Wextra -Werror
+cflags = $(shell pkg-config --cflags glfw3) -g -Wall -Wextra -Werror -Iglfw/includes -Iglad/include
 lflags = $(shell pkg-config --static --libs glfw3 gl)
 
 .PHONY: all

@@ -5,6 +5,7 @@ int main(int argc, char* argv[]) {
     if (!debug__init_module()) {
         return false;
     }
+    // debug__set_message_type_availability(DEBUG_INFO, false);
 
     app_t app;
     if (app__create(&app, argc, argv)) {

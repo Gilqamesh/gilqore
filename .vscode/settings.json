@@ -151,7 +151,11 @@
         "hash_map.h": "c",
         "stdlib.h": "c",
         "glut.h": "c",
-        "freeglut_std.h": "c"
+        "freeglut_std.h": "c",
+        "glfw3.h": "c",
+        "glfw.h": "c",
+        "system_defs.h": "c"
     },
-    "C_Cpp.default.compilerPath": "/usr/bin/gcc"
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+    "C_Cpp.errorSquiggles": "disabled"
 }
